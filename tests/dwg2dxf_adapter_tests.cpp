@@ -12523,6 +12523,577 @@ bool dynamicBlockParameterDependencyBodyDxfWriter(
     return true;
 }
 
+bool dynamicBlockSourceGraphCensus(const std::filesystem::path& sourcePath) {
+    dx_data data;
+    dx_iface reader;
+    if (!reader.fileImport(sourcePath.string(), &data, false)
+        || data.sourceFormat != dx_source_format::DWG
+        || data.sourceVersion != DRW::AC1024)
+        return fail("dynamic-block graph census requires an AC1024 DWG");
+
+    const auto quote = [](std::string_view value) {
+        std::string result("\"");
+        for (const unsigned char ch : value) {
+            switch (ch) {
+            case '\\': result += "\\\\"; break;
+            case '"': result += "\\\""; break;
+            case '\n': result += "\\n"; break;
+            case '\r': result += "\\r"; break;
+            case '\t': result += "\\t"; break;
+            default:
+                if (ch < 0x20u) {
+                    constexpr char digits[] = "0123456789abcdef";
+                    result += "\\u00";
+                    result += digits[ch >> 4];
+                    result += digits[ch & 0x0fu];
+                } else {
+                    result += static_cast<char>(ch);
+                }
+            }
+        }
+        result += '"';
+        return result;
+    };
+    const auto hex = [](std::uint32_t value) {
+        std::ostringstream text;
+        text << "0x" << std::hex << std::uppercase << value;
+        return text.str();
+    };
+    const auto emitHandles = [&hex](const std::vector<std::uint32_t>& values) {
+        std::cout << '[';
+        for (std::size_t index = 0u; index < values.size(); ++index) {
+            if (index != 0u)
+                std::cout << ',';
+            std::cout << '"' << hex(values[index]) << '"';
+        }
+        std::cout << ']';
+    };
+    const auto emitInts = [](const std::vector<std::int32_t>& values) {
+        std::cout << '[';
+        for (std::size_t index = 0u; index < values.size(); ++index) {
+            if (index != 0u)
+                std::cout << ',';
+            std::cout << values[index];
+        }
+        std::cout << ']';
+    };
+    const auto emitPoint = [](const DRW_Coord& point) {
+        std::cout << '[' << std::setprecision(17) << point.x << ','
+                  << point.y << ',' << point.z << ']';
+    };
+
+    using RoleList = std::vector<std::string>;
+    std::unordered_map<std::uint32_t, RoleList> roles;
+    std::unordered_map<std::uint32_t, const DRW_DynamicBlockObject*>
+        dynamicObjectsByHandle;
+    roles.reserve(data.dynamicBlockObjects.size() + data.evaluationGraphs.size()
+                  + data.dictionaries.size() + data.blockRecords.size()
+                  + data.dwgAssociativeObjects.size()
+                  + data.sortEntsTables.size());
+    dynamicObjectsByHandle.reserve(data.dynamicBlockObjects.size());
+    const auto addRole = [&roles](std::uint32_t handle, std::string role) {
+        if (handle != 0u && handle != DRW::NoHandle)
+            roles[handle].push_back(std::move(role));
+    };
+    for (const DRW_DynamicBlockObject& object : data.dynamicBlockObjects) {
+        addRole(object.handle, "DYNAMIC:" + object.m_recordName);
+        dynamicObjectsByHandle.emplace(object.handle, &object);
+    }
+    for (const DRW_EvaluationGraph& graph : data.evaluationGraphs)
+        addRole(graph.handle, "EVALUATION_GRAPH");
+    for (const DRW_Dictionary& dictionary : data.dictionaries)
+        addRole(dictionary.handle, "DICTIONARY");
+    for (const DRW_Block_Record& block : data.blockRecords)
+        addRole(block.handle, "BLOCK_RECORD:" + block.name);
+    for (const DRW_SortEntsTable& table : data.sortEntsTables)
+        addRole(table.handle, "SORTENTSTABLE");
+    for (const DRW_AssociativeObject& object : data.dwgAssociativeObjects)
+        addRole(object.handle, "ASSOCIATIVE:" + object.m_recordName);
+    const auto addEntities = [&addRole](
+            const std::list<DRW_Entity*>& entities,
+            std::uint32_t ownerHandle) {
+        for (const DRW_Entity* entity : entities) {
+            if (entity == nullptr)
+                continue;
+            addRole(entity->handle,
+                "ENTITY:" + std::to_string(static_cast<int>(entity->eType))
+                    + ":owner=" + std::to_string(ownerHandle));
+        }
+    };
+    if (data.mBlock != nullptr)
+        addEntities(data.mBlock->ent, data.mBlock->parentHandle);
+    for (const dx_ifaceBlock* block : data.blocks) {
+        if (block != nullptr)
+            addEntities(block->ent, block->parentHandle);
+    }
+    const auto targetRole = [&roles, &hex](std::uint32_t handle) {
+        const auto found = roles.find(handle);
+        if (found == roles.end())
+            return std::string("UNRESOLVED");
+        if (found->second.size() != 1u)
+            return std::string("AMBIGUOUS:")
+                + std::to_string(found->second.size());
+        return found->second.front() + "@" + hex(handle);
+    };
+    std::unordered_set<std::uint32_t> referencedAssociativeHandles;
+    for (const DRW_DynamicBlockObject& object : data.dynamicBlockObjects) {
+        const auto addAssociativeReference = [&roles,
+                &referencedAssociativeHandles](std::uint32_t handle) {
+            const auto target = roles.find(handle);
+            if (target == roles.end())
+                return;
+            if (std::any_of(target->second.begin(), target->second.end(),
+                    [](const std::string& role) {
+                        return role.compare(0u, 12u, "ASSOCIATIVE:") == 0;
+                    }))
+                referencedAssociativeHandles.insert(handle);
+        };
+        if (object.m_recordName == "BLOCKPARAMDEPENDENCYBODY")
+            addAssociativeReference(object.parentHandle);
+        addAssociativeReference(object.m_constraintDependencyHandle);
+        for (const std::uint32_t handle : object.reactorHandles)
+            addAssociativeReference(handle);
+        for (const std::uint32_t handle : object.m_dependencyHandles)
+            addAssociativeReference(handle);
+    }
+    const auto emitReference = [&hex, &quote, &targetRole](
+                                   std::uint32_t handle) {
+        std::cout << "{\"handle\":\"" << hex(handle)
+                  << "\",\"target\":" << quote(targetRole(handle)) << '}';
+    };
+    const auto emitOptionalReference = [&emitReference](
+            std::uint32_t handle) {
+        if (handle == 0u || handle == DRW::NoHandle)
+            std::cout << "null";
+        else
+            emitReference(handle);
+    };
+    const auto emitReferenceArray = [&emitReference](
+            const std::vector<std::uint32_t>& values) {
+        std::cout << '[';
+        for (std::size_t index = 0u; index < values.size(); ++index) {
+            if (index != 0u)
+                std::cout << ',';
+            emitReference(values[index]);
+        }
+        std::cout << ']';
+    };
+
+    std::cout << "{\"source\":{\"path\":" << quote(sourcePath.string())
+              << ",\"version\":\"AC1024\"},\"graphs\":[";
+    for (std::size_t graphIndex = 0u;
+         graphIndex < data.evaluationGraphs.size(); ++graphIndex) {
+        const DRW_EvaluationGraph& graph = data.evaluationGraphs[graphIndex];
+        if (graphIndex != 0u)
+            std::cout << ',';
+        std::cout << "{\"handle\":\"" << hex(graph.handle)
+                  << "\",\"ownerDictionary\":\""
+                  << hex(graph.parentHandle) << "\",\"reactors\":";
+        emitHandles(graph.reactorHandles);
+        std::cout << ",\"values\":[" << graph.m_value96 << ','
+                  << graph.m_value97 << "],\"nodes\":[";
+        for (std::size_t index = 0u; index < graph.m_nodes.size(); ++index) {
+            const DRW_EvaluationGraphNode& node = graph.m_nodes[index];
+            if (index != 0u)
+                std::cout << ',';
+            std::cout << "{\"index\":" << node.m_index
+                      << ",\"flags\":" << node.m_flags
+                      << ",\"nextNodeIndex\":" << node.m_nextNodeIndex
+                      << ",\"expression\":";
+            emitReference(node.m_expressionHandle);
+            std::cout << ",\"data\":[" << node.m_data1 << ','
+                      << node.m_data2 << ',' << node.m_data3 << ','
+                      << node.m_data4 << "]}";
+        }
+        std::cout << "],\"edges\":[";
+        for (std::size_t index = 0u; index < graph.m_edges.size(); ++index) {
+            const DRW_EvaluationGraphEdge& edge = graph.m_edges[index];
+            if (index != 0u)
+                std::cout << ',';
+            std::cout << '[' << edge.m_value92 << ',' << edge.m_value93
+                      << ',' << edge.m_value94 << ',' << edge.m_value91a
+                      << ',' << edge.m_value91b << ',' << edge.m_value92a
+                      << ',' << edge.m_value92b << ',' << edge.m_value92c
+                      << ',' << edge.m_value92d << ',' << edge.m_value92e
+                      << ']';
+        }
+        std::cout << "]}";
+    }
+    std::cout << "],\"owners\":[";
+    bool firstOwner = true;
+    for (const DRW_Dictionary& dictionary : data.dictionaries) {
+        const auto graph = std::find_if(
+            data.evaluationGraphs.begin(), data.evaluationGraphs.end(),
+            [&dictionary](const DRW_EvaluationGraph& candidate) {
+                return candidate.parentHandle == dictionary.handle;
+            });
+        if (graph == data.evaluationGraphs.end())
+            continue;
+        if (!firstOwner)
+            std::cout << ',';
+        firstOwner = false;
+        const auto block = std::find_if(
+            data.blockRecords.begin(), data.blockRecords.end(),
+            [&dictionary](const DRW_Block_Record& candidate) {
+                return candidate.handle == dictionary.parentHandle;
+            });
+        std::cout << "{\"dictionary\":\"" << hex(dictionary.handle)
+                  << "\",\"blockRecord\":\"" << hex(dictionary.parentHandle)
+                  << "\",\"blockName\":"
+                  << (block == data.blockRecords.end()
+                          ? "null" : quote(block->name))
+                  << ",\"hardOwner\":" << dictionary.hardOwner
+                  << ",\"cloning\":" << dictionary.cloning
+                  << ",\"reactors\":";
+        emitHandles(dictionary.reactorHandles);
+        std::cout << ",\"xDictionary\":\"" << hex(dictionary.xDictHandle)
+                  << "\",\"entries\":[";
+        for (std::size_t index = 0u; index < dictionary.m_entries.size();
+             ++index) {
+            const DRW_Dictionary::Entry& entry = dictionary.m_entries[index];
+            if (index != 0u)
+                std::cout << ',';
+            std::cout << "{\"key\":" << quote(entry.m_name)
+                      << ",\"target\":";
+            emitReference(entry.m_handle);
+            std::cout << '}';
+        }
+        std::cout << "]}";
+    }
+    std::cout << "],\"nestedDictionaries\":[";
+    bool firstNested = true;
+    for (const DRW_Dictionary& parent : data.dictionaries) {
+        const bool isGraphOwner = std::any_of(
+            data.evaluationGraphs.begin(), data.evaluationGraphs.end(),
+            [&parent](const DRW_EvaluationGraph& candidate) {
+                return candidate.parentHandle == parent.handle;
+            });
+        if (!isGraphOwner)
+            continue;
+        for (const DRW_Dictionary::Entry& entry : parent.m_entries) {
+            const auto nested = std::find_if(
+                data.dictionaries.begin(), data.dictionaries.end(),
+                [&entry](const DRW_Dictionary& candidate) {
+                    return candidate.handle == entry.m_handle;
+                });
+            if (nested == data.dictionaries.end())
+                continue;
+            if (!firstNested)
+                std::cout << ',';
+            firstNested = false;
+            std::cout << "{\"parent\":\"" << hex(parent.handle)
+                      << "\",\"key\":" << quote(entry.m_name)
+                      << ",\"dictionary\":\"" << hex(nested->handle)
+                      << "\",\"owner\":\"" << hex(nested->parentHandle)
+                      << "\",\"reactors\":";
+            emitHandles(nested->reactorHandles);
+            std::cout << ",\"entries\":[";
+            for (std::size_t index = 0u; index < nested->m_entries.size();
+                 ++index) {
+                if (index != 0u)
+                    std::cout << ',';
+                std::cout << "{\"key\":"
+                          << quote(nested->m_entries[index].m_name)
+                          << ",\"target\":";
+                emitReference(nested->m_entries[index].m_handle);
+                std::cout << '}';
+            }
+            std::cout << "]}";
+        }
+    }
+    std::cout << "],\"sortEnts\":[";
+    bool firstSortEnts = true;
+    for (const DRW_SortEntsTable& table : data.sortEntsTables) {
+        const bool selected = std::any_of(
+            data.evaluationGraphs.begin(), data.evaluationGraphs.end(),
+            [&data, &table](const DRW_EvaluationGraph& graph) {
+                if (graph.parentHandle != table.parentHandle)
+                    return false;
+                const auto owner = std::find_if(
+                    data.dictionaries.begin(), data.dictionaries.end(),
+                    [&graph](const DRW_Dictionary& candidate) {
+                        return candidate.handle == graph.parentHandle;
+                    });
+                return owner != data.dictionaries.end()
+                    && std::any_of(
+                        owner->m_entries.begin(), owner->m_entries.end(),
+                        [&table](const DRW_Dictionary::Entry& entry) {
+                            return entry.m_handle == table.handle;
+                        });
+            });
+        if (!selected)
+            continue;
+        if (table.m_entityHandles.size() != table.m_sortHandles.size())
+            return fail("selected SORTENTSTABLE pair counts differ");
+        if (!firstSortEnts)
+            std::cout << ',';
+        firstSortEnts = false;
+        std::cout << "{\"handle\":\"" << hex(table.handle)
+                  << "\",\"owner\":";
+        emitReference(table.parentHandle);
+        std::cout << ",\"blockOwner\":";
+        emitReference(table.m_blockOwnerHandle);
+        std::cout << ",\"reactors\":";
+        emitReferenceArray(table.reactorHandles);
+        std::cout << ",\"entries\":[";
+        for (std::size_t index = 0u;
+             index < table.m_entityHandles.size(); ++index) {
+            if (index != 0u)
+                std::cout << ',';
+            std::cout << "{\"entity\":";
+            emitReference(table.m_entityHandles[index]);
+            std::cout << ",\"sortHandle\":";
+            emitReference(table.m_sortHandles[index]);
+            std::cout << '}';
+        }
+        std::cout << "]}";
+    }
+    std::cout << "],\"associativeTargets\":[";
+    bool firstAssociative = true;
+    for (const DRW_AssociativeObject& object : data.dwgAssociativeObjects) {
+        if (referencedAssociativeHandles.count(object.handle) == 0u)
+            continue;
+        if (!firstAssociative)
+            std::cout << ',';
+        firstAssociative = false;
+        std::cout << "{\"handle\":\"" << hex(object.handle)
+                  << "\",\"record\":" << quote(object.m_recordName)
+                  << ",\"owner\":";
+        emitReference(object.parentHandle);
+        std::cout << ",\"reactors\":";
+        emitReferenceArray(object.reactorHandles);
+        std::cout << ",\"owningNetwork\":";
+        emitOptionalReference(object.m_owningNetworkHandle);
+        std::cout << ",\"actionBody\":";
+        emitOptionalReference(object.m_actionBodyHandle);
+        std::cout << ",\"dependencyBody\":";
+        emitReference(object.m_dependencyBodyHandle);
+        std::cout << ",\"dependencyNode\":";
+        emitOptionalReference(object.m_dependencyNodeHandle);
+        std::cout << ",\"readWrite\":["
+                  << (object.m_dependencyIsRead ? "true" : "false") << ','
+                  << (object.m_dependencyIsWrite ? "true" : "false")
+                  << "],\"dependencies\":[";
+        for (std::size_t index = 0u; index < object.m_dependencies.size();
+             ++index) {
+            if (index != 0u)
+                std::cout << ',';
+            std::cout << "{\"target\":";
+            emitReference(object.m_dependencies[index].m_handle);
+            std::cout << ",\"owned\":"
+                      << (object.m_dependencies[index].m_isOwned
+                              ? "true" : "false") << '}';
+        }
+        std::cout << "],\"actions\":[";
+        for (std::size_t index = 0u; index < object.m_actions.size(); ++index) {
+            if (index != 0u)
+                std::cout << ',';
+            std::cout << "{\"target\":";
+            emitReference(object.m_actions[index].m_handle);
+            std::cout << ",\"owned\":"
+                      << (object.m_actions[index].m_isOwned
+                              ? "true" : "false") << '}';
+        }
+        std::cout << "]}";
+    }
+    std::cout << "],\"objects\":[";
+    for (std::size_t objectIndex = 0u;
+         objectIndex < data.dynamicBlockObjects.size(); ++objectIndex) {
+        const DRW_DynamicBlockObject& object =
+            data.dynamicBlockObjects[objectIndex];
+        if (objectIndex != 0u)
+            std::cout << ',';
+        std::cout << "{\"handle\":\"" << hex(object.handle)
+                  << "\",\"record\":" << quote(object.m_recordName)
+                  << ",\"kind\":"
+                  << static_cast<unsigned>(object.m_kind)
+                  << ",\"owner\":";
+        emitReference(object.parentHandle);
+        std::cout << ",\"reactors\":";
+        emitReferenceArray(object.reactorHandles);
+        std::cout << ",\"evalExpr\":"
+                  << (object.m_evalExprParsed ? "true" : "false")
+                  << ",\"bodyDecoded\":"
+                  << (object.m_bodyFullyDecoded ? "true" : "false")
+                  << ",\"nodeId\":" << object.m_nodeId
+                  << ",\"parentId\":" << object.m_parentId
+                  << ",\"element\":" << quote(object.m_elementName)
+                  << ",\"eed1071\":" << object.m_eed1071
+                  << ",\"actionIndexes\":";
+        emitInts(object.m_actionIndexes);
+        std::cout << ",\"actionIndexTargets\":[";
+        const auto graph = std::find_if(
+            data.evaluationGraphs.begin(), data.evaluationGraphs.end(),
+            [&object](const DRW_EvaluationGraph& candidate) {
+                return candidate.handle == object.parentHandle;
+            });
+        for (std::size_t action = 0u;
+             action < object.m_actionIndexes.size(); ++action) {
+            if (action != 0u)
+                std::cout << ',';
+            const std::int32_t actionIndex = object.m_actionIndexes[action];
+            std::cout << "{\"actionIndex\":" << actionIndex
+                      << ",\"nodeIds\":[";
+            bool firstMatch = true;
+            if (graph != data.evaluationGraphs.end()) {
+                for (const DRW_EvaluationGraphNode& node : graph->m_nodes) {
+                    const auto target =
+                        dynamicObjectsByHandle.find(node.m_expressionHandle);
+                    if (target == dynamicObjectsByHandle.end()
+                        || target->second->parentHandle != graph->handle
+                        || target->second->m_nodeId
+                            != static_cast<std::uint32_t>(actionIndex))
+                        continue;
+                    if (!firstMatch)
+                        std::cout << ',';
+                    firstMatch = false;
+                    std::cout << "{\"index\":" << node.m_index
+                              << ",\"nextNodeIndex\":"
+                              << node.m_nextNodeIndex
+                              << ",\"targetNodeId\":"
+                              << target->second->m_nodeId
+                              << ",\"record\":"
+                              << quote(target->second->m_recordName)
+                              << ",\"expression\":";
+                    emitReference(node.m_expressionHandle);
+                    std::cout << '}';
+                }
+            }
+            std::cout << "]}";
+        }
+        std::cout << ']';
+        std::cout << ",\"dependencies\":";
+        emitReferenceArray(object.m_dependencyHandles);
+        std::cout << ",\"constraintDependency\":";
+        if (object.m_constraintDependencyHandle == 0u)
+            std::cout << "null";
+        else
+            emitReference(object.m_constraintDependencyHandle);
+        std::cout << ",\"handleReferences\":";
+        emitReferenceArray(object.m_handleReferenceHandles);
+        std::cout << ",\"visibilityBlocks\":";
+        emitReferenceArray(object.m_blockHandles);
+        std::cout << ",\"visibilityStates\":[";
+        for (std::size_t state = 0u;
+             state < object.m_stateNames.size(); ++state) {
+            if (state != 0u)
+                std::cout << ',';
+            std::cout << "{\"name\":" << quote(object.m_stateNames[state])
+                      << ",\"blocks\":";
+            if (state < object.m_stateBlockHandles.size())
+                emitReferenceArray(object.m_stateBlockHandles[state]);
+            else
+                std::cout << "null";
+            std::cout << ",\"parameters\":";
+            if (state < object.m_stateParameterHandles.size())
+                emitReferenceArray(object.m_stateParameterHandles[state]);
+            else
+                std::cout << "null";
+            std::cout << '}';
+        }
+        std::cout << "],\"stretchPoints\":[";
+        for (std::size_t point = 0u;
+             point < object.m_stretchPoints.size(); ++point) {
+            if (point != 0u)
+                std::cout << ',';
+            emitPoint(object.m_stretchPoints[point]);
+        }
+        std::cout << "],\"displayLocation\":";
+        emitPoint(object.m_displayLocation);
+        std::cout << ",\"parameterPoints\":{\"definition\":";
+        emitPoint(object.m_defPoint);
+        std::cout << ",\"first\":";
+        emitPoint(object.m_firstPoint);
+        std::cout << ",\"second\":";
+        emitPoint(object.m_secondPoint);
+        std::cout << ",\"point\":";
+        emitPoint(object.m_point);
+        std::cout << ",\"basePoint\":";
+        emitPoint(object.m_basePoint);
+        std::cout << ",\"scaleOffset\":";
+        emitPoint(object.m_scaleOffset);
+        std::cout << ",\"scaleBasePoint\":";
+        emitPoint(object.m_scaleBasePoint);
+        std::cout << "},\"sourceFrame\":";
+        const DRW_UnsupportedObject* frame =
+            DxIfaceStandardDwgCaptureTestAccess::opaqueSourceFrame(
+                data, data.importGeneration, object.handle);
+        if (frame == nullptr) {
+            std::cout << "null";
+        } else {
+            std::cout << "{\"type\":" << frame->m_objectType
+                      << ",\"record\":"
+                      << quote(frame->m_recordName)
+                      << ",\"parent\":\""
+                      << hex(frame->m_parentHandle) << "\"}";
+        }
+        std::cout << ",\"xdata\":[";
+        bool firstXdata = true;
+        for (const DRW_Variant* value : object.extData) {
+            if (value == nullptr)
+                continue;
+            if (!firstXdata)
+                std::cout << ',';
+            firstXdata = false;
+            std::cout << "{\"code\":" << value->code()
+                      << ",\"type\":"
+                      << static_cast<unsigned>(value->type());
+            if (value->type() == DRW_Variant::STRING
+                && value->c_str() != nullptr)
+                std::cout << ",\"string\":" << quote(value->c_str());
+            else if (value->type() == DRW_Variant::INTEGER)
+                std::cout << ",\"integer\":" << value->i_val();
+            else if (value->type() == DRW_Variant::INTEGER64)
+                std::cout << ",\"integer64\":" << value->i64_val();
+            else if (value->type() == DRW_Variant::COORD
+                     && value->coord() != nullptr) {
+                std::cout << ",\"point\":";
+                emitPoint(*value->coord());
+            }
+            else if (value->type() == DRW_Variant::DOUBLE)
+                std::cout << ",\"real\":" << std::setprecision(17)
+                          << value->d_val();
+            if ((value->code() == 1001 || value->code() == 1003)
+                && value->type() == DRW_Variant::STRING
+                && value->c_str() != nullptr) {
+                const std::string_view name(value->c_str());
+                std::cout << ",\"symbolTargets\":[";
+                bool firstSymbol = true;
+                if (value->code() == 1001) {
+                    for (const DRW_AppId& app : data.appIds) {
+                        if (app.name != name)
+                            continue;
+                        if (!firstSymbol)
+                            std::cout << ',';
+                        firstSymbol = false;
+                        std::cout << "{\"table\":\"APPID\",\"name\":"
+                                  << quote(app.name) << ",\"handle\":\""
+                                  << hex(app.handle) << "\"}";
+                    }
+                } else {
+                    for (const DRW_Layer& layer : data.layers) {
+                        if (layer.name != name)
+                            continue;
+                        if (!firstSymbol)
+                            std::cout << ',';
+                        firstSymbol = false;
+                        std::cout << "{\"table\":\"LAYER\",\"name\":"
+                                  << quote(layer.name) << ",\"handle\":\""
+                                  << hex(layer.handle) << "\"}";
+                    }
+                }
+                std::cout << ']';
+            }
+            std::cout << '}';
+        }
+        std::cout << "]}";
+    }
+    std::cout << "]}\n";
+    if (!std::cout)
+        return fail("could not write dynamic-block source graph census");
+    return true;
+}
+
 bool dynamicBlockVisibilityComposedGraphOutputProfile() {
     constexpr std::uint32_t blockHandle = 0x127u;
     constexpr std::uint32_t dictionaryHandle = 0x1116u;
@@ -54731,6 +55302,9 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--dynamic-block-capture-limits")
         return dynamicBlockCaptureLimitsFailClosed() ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--dynamic-block-source-graph-census")
+        return dynamicBlockSourceGraphCensus(argv[2]) ? 0 : 1;
     if (argc == 2
         && std::string(argv[1])
             == "--dynamic-block-visibility-composed-graph")

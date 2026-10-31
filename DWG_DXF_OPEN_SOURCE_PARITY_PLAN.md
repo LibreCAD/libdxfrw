@@ -58,31 +58,41 @@ Implementation history and evidence stay in Git and `docs/research/`.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next implementation packet — bind and close the AC1024 dynamic-block output
-graph for `architectural_example-imperial.dwg`.** Strict whole-document
-conversion still stops at `dynamic-block objects are outside the closed output
-profiles` and leaves its destination unpublished. Use [the P5 inventory
-receipt](docs/research/p5-ac1024-architectural-dynamic-block-source-inventory-2026-10-31.json)
-for the source hash, 65 typed objects, both EvaluationGraph roots, owner
-routes, and dependencies. Record-level DXF projections are not graph closure;
-fresh readback does not prove native semantics.
+**Next implementation packet — bind and close both AC1024 dynamic-block output
+graphs in `architectural_example-imperial.dwg`.** Strict whole-document
+conversion still refuses these records. The source-edge census is complete in
+[the edge-census receipt](docs/research/p5-ac1024-architectural-dynamic-block-edge-census-2026-10-31.json):
+65/65 dynamic objects have fully decoded bodies and retained source frames;
+the Door - Imperial root `0x110F` has 38 nodes/43 edges and the Window - Imperial
+root `0x1155` has 19 nodes/14 edges. All 57 expression handles and all 26
+action-index-to-object-nodeId links resolve uniquely. The census also binds 75
+action dependencies, 8 action handle references, 11 visibility block handles,
+124 visibility-state block/parameter handles, 2 constraint dependencies, the
+two root SORTENTSTABLE records, the nested ACAD_ASSOCNETWORK dictionary, six
+ACDBASSOCDEPENDENCY records and six BLOCKPARAMDEPENDENCYBODY objects. One
+BLOCKFLIPPARAMETER carries APPID `ACAUTHENVIRON` XDATA and a point; no layer
+XDATA occurs in this input. This is source evidence only: staged output,
+readback, native dynamic semantics, and support claims remain unqualified.
 
-Implementation order, using current object/graph models and source-frame
-snapshots rather than adding another graph engine: (1) produce an exact source
-edge census for both EvaluationGraphs, including action-index-to-node mapping,
-dependency/handle-reference targets, reactors, EED APPID/LAYER dependencies,
-constraint dependencies, owner dictionaries, purge preventers, and required
-geometry; classify each endpoint by emitted record role and identity; (2) bind
-all source handles to planned emitted identities and owner roles, reusing
-existing body/output providers only when the source profile and handle role
-match; (3) extend staged output inspection to cover both roots and every
-reachable required object/reference, preserving collision, alias, wrong-owner,
-missing-target, and unknown-body refusal; (4) test the smallest missing-edge
-and late-mutation failures, whole-destination atomicity, corrected retry, exact
-staged fields, and fresh ASCII/Binary readback; (5) run one strict-complete
-conversion for this source. Keep native dynamic-block meaning separate from
-serializer/readback evidence and leave the support ledger closed until its
-consumer gate passes.
+Implementation order, using the current object/graph models and retained source
+frames rather than adding another graph engine: (1) add adapter output-group
+projections for the two remaining witnessed bodies—ACDB_DYNAMICBLOCKPROXYNODE
+and BLOCKPARAMDEPENDENCYBODY—reusing the already-bounded typed writer fields;
+(2) generalize source preparation from the Title_Block-ARCH single-root profile
+to both roots, all 65 dynamic records, their source frames, two owner
+BLOCK_RECORD/DICTIONARY routes, SORTENTSTABLE records, purge preventers and the
+Window - Imperial nested associative-network dictionary; (3) bind every graph
+expression, action index (match object nodeId), action/constraint dependency,
+reactor, XDATA APPID, visibility-state and geometry-entity reference to its
+unique planned identity and role, including the six dependency-body owner and
+dependency-node chains; reject unresolved, aliased, wrong-owner and unsupported
+targets; (4) generalize staged-output inspection and finalization across both
+roots and every reachable required object/reference, proving exact fields,
+remapped handles and owner roles; (5) add missing-edge/wrong-owner/late-mutation
+refusal, whole-destination atomicity, corrected retry, and fresh ASCII/Binary
+readback controls; then run one strict-complete conversion for this source.
+Keep native dynamic-block meaning separate from serializer/readback evidence
+and leave the support ledger closed until its consumer gate passes.
 
 The sweep also reproduced separate unresolved gates: AC1021 proxy-graphics
 refusal and AC1018 `ET-Drawing-with-Border.dwg` with 23 opaque callbacks but no
