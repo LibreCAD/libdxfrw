@@ -51682,7 +51682,23 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             return true;
         };
 
-        return registerClass("SCALE", "AcDbScale",
+        std::unordered_set<std::uint32_t> materialHandles;
+        const auto addMaterialHandles = [&materialHandles](
+                const std::vector<std::uint32_t>& handles) {
+            for (const std::uint32_t handle : handles)
+                if (handle == 0u || handle == DRW::NoHandle
+                    || !materialHandles.insert(handle).second)
+                    return false;
+            return true;
+        };
+        if (!addMaterialHandles(m_acdsMaterialHandles)
+            || !addMaterialHandles(m_dxfMaterialHandles)
+            || !addMaterialHandles(m_extensionMaterialHandles))
+            return false;
+
+        return registerClass("MATERIAL", "AcDbMaterial",
+                             materialHandles.size())
+            && registerClass("SCALE", "AcDbScale",
                              m_extensionScaleHandles.size())
             && registerClass("DICTIONARYVAR", "AcDbDictionaryVar",
                              m_extensionDictionaryVarHandles.size());

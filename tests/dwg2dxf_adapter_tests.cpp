@@ -9,6 +9,7 @@
 #include "appid_test_helpers.h"
 #include "layer_test_helpers.h"
 #include "material_dwg_test_helpers.h"
+#include "intern/dxfmaterial.h"
 #include "dx_raster_output.h"
 #include "dx_standard_output.h"
 #include "independent_dxf_scalar_walker.h"
@@ -29316,6 +29317,454 @@ bool physicalDictionaryVarOutputReadback(
     return outputEncoding(false) && outputEncoding(true);
 }
 
+bool physicalMaterialOutputReadback(
+        const std::filesystem::path& sourcePath) {
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024
+        || !source.hasSingleSuccessfulNamedResourceImport()
+        || !source.hasNamedObjectDictionary
+        || source.materials.size() != 3u)
+        return fail("physical MATERIAL source is not the three-record AC1024 profile");
+
+    using MaterialsByHandle = std::map<std::uint32_t, const DRW_Material*>;
+    using DictionariesByHandle =
+        std::map<std::uint32_t, const DRW_Dictionary*>;
+    const auto indexMaterials = [](const dx_data& data,
+                                  MaterialsByHandle& indexed) {
+        for (const DRW_Material& value : data.materials)
+            if (value.handle == 0u || value.handle == DRW::NoHandle
+                || !indexed.emplace(value.handle, &value).second)
+                return false;
+        return true;
+    };
+    const auto indexDictionaries = [](const dx_data& data,
+                                      DictionariesByHandle& indexed) {
+        if (data.hasNamedObjectDictionary
+            && (data.namedObjectDictionary.handle == 0u
+                || data.namedObjectDictionary.handle == DRW::NoHandle
+                || !indexed.emplace(data.namedObjectDictionary.handle,
+                    &data.namedObjectDictionary).second))
+            return false;
+        for (const DRW_Dictionary& dictionary : data.dictionaries)
+            if (dictionary.handle == 0u || dictionary.handle == DRW::NoHandle
+                || !indexed.emplace(dictionary.handle, &dictionary).second)
+                return false;
+        return true;
+    };
+    MaterialsByHandle sourceByHandle;
+    DictionariesByHandle sourceDictionaries;
+    if (!indexMaterials(source, sourceByHandle)
+        || !indexDictionaries(source, sourceDictionaries))
+        return fail("physical MATERIAL or dictionary identities are ambiguous");
+
+    const auto materialRoot = std::find_if(
+        source.namedObjectDictionary.m_entries.begin(),
+        source.namedObjectDictionary.m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == "ACAD_MATERIAL";
+        });
+    if (materialRoot == source.namedObjectDictionary.m_entries.end()
+        || std::count_if(source.namedObjectDictionary.m_entries.begin(),
+            source.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_MATERIAL";
+            }) != 1)
+        return fail("physical MATERIAL NOD owner route is missing or ambiguous");
+    const auto sourceOwnerFound = sourceDictionaries.find(
+        materialRoot->m_handle);
+    if (sourceOwnerFound == sourceDictionaries.end()
+        || sourceOwnerFound->second == &source.namedObjectDictionary
+        || sourceOwnerFound->second->parentHandle
+            != source.namedObjectDictionary.handle
+        || !sourceOwnerFound->second->hasCompleteDwgEntries()
+        || sourceOwnerFound->second->m_entries.size()
+            != source.materials.size())
+        return fail("physical ACAD_MATERIAL owner dictionary is incomplete");
+    const DRW_Dictionary& sourceOwner = *sourceOwnerFound->second;
+
+    struct MaterialOwner {
+        const DRW_Material* material{nullptr};
+        std::string key;
+    };
+    std::map<std::uint32_t, MaterialOwner> sourceOwners;
+    std::set<std::string> sourceKeys;
+    for (const DRW_Material& material : source.materials) {
+        if (!material.hasCompleteDwgSemanticFields()
+            || !material.hasDwgRawData()
+            || material.dwgRawDataVersion() != DRW::AC1024
+            || material.parentHandle != sourceOwner.handle
+            || material.reactorCount() != 1
+            || material.reactorHandles.size() != 1u
+            || material.reactorHandles.front() != sourceOwner.handle)
+            return fail("physical MATERIAL has an incomplete typed/common owner profile: handle="
+                + std::to_string(material.handle));
+        const auto key = std::find_if(sourceOwner.m_entries.begin(),
+            sourceOwner.m_entries.end(), [&material](
+                const DRW_Dictionary::Entry& entry) {
+                return entry.m_handle == material.handle;
+            });
+        if (key == sourceOwner.m_entries.end() || key->m_name.empty()
+            || !sourceKeys.insert(key->m_name).second
+            || !sourceOwners.emplace(material.handle,
+                MaterialOwner{&material, key->m_name}).second)
+            return fail("physical MATERIAL identity has no unique ACAD_MATERIAL key");
+        for (const auto& dictionary : sourceDictionaries) {
+            const auto aliases = static_cast<std::size_t>(std::count_if(
+                dictionary.second->m_entries.begin(),
+                dictionary.second->m_entries.end(), [&material](
+                    const DRW_Dictionary::Entry& entry) {
+                    return entry.m_handle == material.handle;
+                }));
+            if ((dictionary.first == sourceOwner.handle && aliases != 1u)
+                || (dictionary.first != sourceOwner.handle && aliases != 0u))
+                return fail("physical MATERIAL is aliased or not uniquely owned");
+        }
+    }
+    if (sourceOwners.size() != 3u || sourceKeys.size() != 3u)
+        return fail("physical MATERIAL owner/key census differs from three records");
+
+    const auto outputEncoding = [&](bool binary) {
+        const auto nonce = std::chrono::steady_clock::now()
+                               .time_since_epoch()
+                               .count();
+        const std::filesystem::path outputPath =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-physical-materials-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{outputPath};
+        const std::string sentinel =
+            "physical MATERIAL destination sentinel\n";
+        const auto seedDestination = [&]() {
+            std::ofstream existing(outputPath,
+                std::ios::binary | std::ios::trunc);
+            return existing && static_cast<bool>(existing << sentinel);
+        };
+        const auto destinationEquals = [&outputPath](
+                const std::string& expected) {
+            std::ifstream input(outputPath, std::ios::binary);
+            return input && std::string{
+                std::istreambuf_iterator<char>(input), {}} == expected;
+        };
+        if (!seedDestination())
+            return fail("could not seed physical MATERIAL destination sentinel");
+
+        class LateMaterialMutation final : public dx_iface {
+        public:
+            bool mutateAfterObjects{false};
+            std::uint32_t targetHandle{0u};
+            std::map<std::uint32_t, std::uint32_t> remappedHandles;
+            std::set<std::uint32_t> ambiguousHandles;
+
+            void writeObjects() override {
+                dx_iface::writeObjects();
+                if (dxfW != nullptr && cData != nullptr) {
+                    const DRW_WritingContext* context =
+                        dxfW->getWritingContext();
+                    if (context != nullptr)
+                        ambiguousHandles = context->ambiguousSourceHandles;
+                    const auto capture = [this](std::uint32_t handle) {
+                        if (handle == 0u || handle == DRW::NoHandle)
+                            return;
+                        const std::uint32_t mapped = dxfW->remapHandle(handle);
+                        if (mapped != 0u && mapped != DRW::NoHandle)
+                            remappedHandles[handle] = mapped;
+                    };
+                    capture(cData->namedObjectDictionary.handle);
+                    for (const DRW_Dictionary& dictionary :
+                         cData->dictionaries) {
+                        capture(dictionary.handle);
+                        capture(static_cast<std::uint32_t>(
+                            dictionary.parentHandle));
+                        for (const DRW_Dictionary::Entry& entry :
+                             dictionary.m_entries)
+                            capture(entry.m_handle);
+                    }
+                    for (const DRW_Material& material : cData->materials) {
+                        capture(material.handle);
+                        capture(static_cast<std::uint32_t>(
+                            material.parentHandle));
+                        capture(material.xDictHandle);
+                        for (const std::uint32_t reactor :
+                             material.reactorHandles)
+                            capture(reactor);
+                    }
+                }
+                if (!mutateAfterObjects || cData == nullptr)
+                    return;
+                for (DRW_Material& material : cData->materials) {
+                    if (material.handle != targetHandle)
+                        continue;
+                    material.m_diffuseColorFactor += 0.125;
+                    return;
+                }
+            }
+        } writer;
+        const DRW_Material& first = *sourceOwners.begin()->second.material;
+        const double originalFactor = first.m_diffuseColorFactor;
+        writer.targetHandle = first.handle;
+        writer.mutateAfterObjects = true;
+        const auto exportPartial = [&]() {
+            return writer.fileExport(
+                outputPath.string(), DRW::AC1024, binary, &source,
+                false, true, dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::AllowPartial);
+        };
+        if (exportPartial() || !destinationEquals(sentinel))
+            return fail("late physical MATERIAL mutation did not refuse atomically");
+        auto mutableFirst = std::find_if(source.materials.begin(),
+            source.materials.end(), [&first](const DRW_Material& value) {
+                return value.handle == first.handle;
+            });
+        if (mutableFirst == source.materials.end())
+            return fail("physical MATERIAL mutation target disappeared");
+        mutableFirst->m_diffuseColorFactor = originalFactor;
+        writer.mutateAfterObjects = false;
+
+        auto mutableOwner = std::find_if(source.dictionaries.begin(),
+            source.dictionaries.end(), [&sourceOwner](
+                const DRW_Dictionary& value) {
+                return value.handle == sourceOwner.handle;
+            });
+        if (mutableOwner == source.dictionaries.end())
+            return fail("physical ACAD_MATERIAL owner dictionary disappeared");
+        const auto rejectChangedOwner = [&](const char* label) {
+            if (!seedDestination())
+                return fail("could not reseed physical MATERIAL destination sentinel");
+            if (writer.fileExport(
+                    outputPath.string(), DRW::AC1024, binary, &source,
+                    false, true, dx_dxfSourceTextPolicy::RequireValidSource,
+                    DRW::DxfTextWritePolicy::RequireLossless,
+                    dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                    dx_dwgReadCompletenessPolicy::AllowPartial)
+                || !destinationEquals(sentinel))
+                return fail(std::string("physical MATERIAL ") + label
+                    + " was accepted or replaced the destination");
+            return true;
+        };
+        auto firstKey = std::find_if(mutableOwner->m_entries.begin(),
+            mutableOwner->m_entries.end(), [&first](
+                const DRW_Dictionary::Entry& entry) {
+                return entry.m_handle == first.handle;
+            });
+        const auto secondKey = std::find_if(mutableOwner->m_entries.begin(),
+            mutableOwner->m_entries.end(), [&first](
+                const DRW_Dictionary::Entry& entry) {
+                return entry.m_handle != first.handle;
+            });
+        if (firstKey == mutableOwner->m_entries.end()
+            || secondKey == mutableOwner->m_entries.end())
+            return fail("physical MATERIAL alias control lacks two owner entries");
+        const std::size_t firstKeyIndex = static_cast<std::size_t>(
+            firstKey - mutableOwner->m_entries.begin());
+        const DRW_Dictionary::Entry originalKey = *firstKey;
+        firstKey->m_handle = secondKey->m_handle;
+        if (!rejectChangedOwner("owner-key alias"))
+            return false;
+        firstKey->m_handle = originalKey.m_handle;
+        mutableOwner->m_entries.erase(mutableOwner->m_entries.begin()
+            + static_cast<std::ptrdiff_t>(firstKeyIndex));
+        if (!rejectChangedOwner("missing owner key"))
+            return false;
+        mutableOwner->m_entries.insert(mutableOwner->m_entries.begin()
+            + static_cast<std::ptrdiff_t>(firstKeyIndex), originalKey);
+
+        if (!exportPartial())
+            return fail("corrected physical MATERIAL graph could not retry on the same adapter");
+
+        const auto mapHandle = [&writer](std::uint32_t sourceHandle,
+                                         std::uint32_t& outputHandle) {
+            outputHandle = 0u;
+            if (sourceHandle == 0u)
+                return true;
+            if (sourceHandle == DRW::NoHandle
+                || writer.ambiguousHandles.count(sourceHandle) != 0u)
+                return false;
+            const auto found = writer.remappedHandles.find(sourceHandle);
+            if (found == writer.remappedHandles.end()
+                || found->second == 0u || found->second == DRW::NoHandle)
+                return false;
+            outputHandle = found->second;
+            return true;
+        };
+        std::uint32_t outputNodHandle = 0u;
+        std::uint32_t outputOwnerHandle = 0u;
+        if (!mapHandle(source.namedObjectDictionary.handle, outputNodHandle)
+            || !mapHandle(sourceOwner.handle, outputOwnerHandle))
+            return fail("physical MATERIAL NOD/owner identities lack staged bindings");
+
+        dx_iface outputReader;
+        dx_data output;
+        MaterialsByHandle outputByHandle;
+        DictionariesByHandle outputDictionaries;
+        if (!outputReader.fileImport(outputPath.string(), &output, false)
+            || output.sourceFormat != dx_source_format::DXF
+            || output.sourceVersion != DRW::AC1024
+            || output.materials.size() != sourceOwners.size()
+            || !indexMaterials(output, outputByHandle)
+            || !indexDictionaries(output, outputDictionaries)
+            || !output.hasNamedObjectDictionary
+            || output.namedObjectDictionary.handle != outputNodHandle)
+            return fail("physical MATERIAL output did not reopen with the expected identities");
+        const auto outputOwnerFound = outputDictionaries.find(
+            outputOwnerHandle);
+        if (outputOwnerFound == outputDictionaries.end()
+            || outputOwnerFound->second
+                == &output.namedObjectDictionary
+            || outputOwnerFound->second->parentHandle != outputNodHandle
+            || outputOwnerFound->second->m_entries.size()
+                != sourceOwner.m_entries.size())
+            return fail("physical ACAD_MATERIAL owner dictionary is incomplete on readback");
+        const DRW_Dictionary& outputOwner = *outputOwnerFound->second;
+        const auto outputRootEntry = std::find_if(
+            output.namedObjectDictionary.m_entries.begin(),
+            output.namedObjectDictionary.m_entries.end(),
+            [outputOwnerHandle](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_MATERIAL"
+                    && entry.m_handle == outputOwnerHandle;
+            });
+        if (outputRootEntry == output.namedObjectDictionary.m_entries.end()
+            || std::count_if(output.namedObjectDictionary.m_entries.begin(),
+                output.namedObjectDictionary.m_entries.end(),
+                [outputOwnerHandle](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "ACAD_MATERIAL"
+                        && entry.m_handle == outputOwnerHandle;
+                }) != 1)
+            return fail("physical MATERIAL NOD key does not uniquely bind its owner");
+
+        std::set<std::uint32_t> outputIdentities;
+        for (const auto& item : sourceOwners) {
+            const std::uint32_t sourceHandle = item.first;
+            const MaterialOwner& expected = item.second;
+            std::uint32_t mappedHandle = 0u;
+            if (!mapHandle(sourceHandle, mappedHandle)
+                || !outputIdentities.insert(mappedHandle).second)
+                return fail("physical MATERIAL source identity mapping is ambiguous");
+            const auto actualFound = outputByHandle.find(mappedHandle);
+            if (actualFound == outputByHandle.end())
+                return fail("physical MATERIAL source identity is absent from readback");
+            const DRW_Material& actual = *actualFound->second;
+            std::uint32_t mappedParent = 0u, mappedXdict = 0u;
+            if (!mapHandle(static_cast<std::uint32_t>(
+                               expected.material->parentHandle), mappedParent)
+                || !mapHandle(expected.material->xDictHandle, mappedXdict)
+                || actual.handle != mappedHandle
+                || actual.tType != expected.material->tType
+                || actual.name != expected.material->name
+                || actual.flags != expected.material->flags
+                || actual.parentHandle != mappedParent
+                || actual.parentHandle != outputOwnerHandle
+                || actual.xDictHandle != mappedXdict
+                || !dxfMaterial::sameBodyState(*expected.material, actual)
+                || actual.reactorHandles.size()
+                    != expected.material->reactorHandles.size())
+                return fail("physical MATERIAL typed fields or common links changed on readback");
+            for (std::size_t index = 0u;
+                 index < expected.material->reactorHandles.size(); ++index) {
+                std::uint32_t mappedReactor = 0u;
+                if (!mapHandle(expected.material->reactorHandles[index],
+                               mappedReactor)
+                    || actual.reactorHandles[index] != mappedReactor)
+                    return fail("physical MATERIAL reactor role changed on readback");
+            }
+            const auto sourceKey = std::find_if(
+                sourceOwner.m_entries.begin(), sourceOwner.m_entries.end(),
+                [&expected](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == expected.key;
+                });
+            const auto outputKey = std::find_if(
+                outputOwner.m_entries.begin(), outputOwner.m_entries.end(),
+                [&expected](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == expected.key;
+                });
+            if (sourceKey == sourceOwner.m_entries.end()
+                || sourceKey->m_handle != sourceHandle
+                || outputKey == outputOwner.m_entries.end()
+                || std::count_if(outputOwner.m_entries.begin(),
+                    outputOwner.m_entries.end(), [&expected](
+                        const DRW_Dictionary::Entry& entry) {
+                        return entry.m_name == expected.key;
+                    }) != 1
+                || outputKey->m_handle != mappedHandle)
+                return fail("physical MATERIAL dictionary key does not bind its staged identity");
+
+            if (expected.material->xDictHandle != 0u) {
+                const auto sourceExtension = sourceDictionaries.find(
+                    expected.material->xDictHandle);
+                const auto outputExtension = outputDictionaries.find(
+                    mappedXdict);
+                if (sourceExtension == sourceDictionaries.end()
+                    || outputExtension == outputDictionaries.end()
+                    || outputExtension->second->parentHandle != mappedHandle
+                    || sourceExtension->second->m_entries.size()
+                        != outputExtension->second->m_entries.size())
+                    return fail("physical MATERIAL extension-dictionary owner changed on readback");
+                for (const DRW_Dictionary::Entry& extensionEntry :
+                     sourceExtension->second->m_entries) {
+                    std::uint32_t mappedTarget = 0u;
+                    if (!mapHandle(extensionEntry.m_handle, mappedTarget))
+                        return fail("physical MATERIAL extension target is unmapped");
+                    const auto outputEntry = std::find_if(
+                        outputExtension->second->m_entries.begin(),
+                        outputExtension->second->m_entries.end(),
+                        [&extensionEntry](const DRW_Dictionary::Entry& entry) {
+                            return entry.m_name == extensionEntry.m_name;
+                        });
+                    if (outputEntry == outputExtension->second->m_entries.end()
+                        || outputEntry->m_handle != mappedTarget)
+                        return fail("physical MATERIAL extension dictionary entry changed on readback");
+                }
+            }
+        }
+        const auto materialClass = std::find_if(
+            output.dxfClasses.begin(), output.dxfClasses.end(),
+            [](const DRW_Class& value) {
+                return value.recName == "MATERIAL"
+                    && value.className == "AcDbMaterial";
+            });
+        const std::size_t materialClassCount = static_cast<std::size_t>(
+            std::count_if(output.dxfClasses.begin(),
+                output.dxfClasses.end(), [](const DRW_Class& value) {
+                    return value.recName == "MATERIAL"
+                        && value.className == "AcDbMaterial";
+                }));
+        if (outputIdentities.size() != 3u
+            || outputIdentities.size() != outputByHandle.size()
+            || materialClassCount != 1u
+            || materialClass == output.dxfClasses.end()
+            || materialClass->instanceCount != 3) {
+            std::string classDetails;
+            for (const DRW_Class& value : output.dxfClasses)
+                if (value.recName == "MATERIAL")
+                    classDetails += " [" + value.recName + "/"
+                        + value.className + "/"
+                        + std::to_string(value.instanceCount) + "]";
+            return fail("physical MATERIAL identity or class-instance census changed: identities="
+                + std::to_string(outputIdentities.size()) + "/"
+                + std::to_string(outputByHandle.size()) + " classCount="
+                + std::to_string(materialClassCount) + classDetails);
+        }
+
+        std::cerr << "Physical MATERIAL "
+                  << (binary ? "binary" : "ASCII")
+                  << " readback passed: 3 identities, ACAD_MATERIAL keys, "
+                     "typed body/common links, extension-dictionary roles, "
+                     "atomic refusal and same-adapter retry.\n";
+        return true;
+    };
+    return outputEncoding(false) && outputEncoding(true);
+}
+
 bool physicalAssociativeVariableOutputReadback(
         const std::filesystem::path& sourcePath) {
     dx_iface sourceReader;
@@ -44820,6 +45269,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--dictionaryvar-physical-output-readback")
         return physicalDictionaryVarOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--material-physical-output-readback")
+        return physicalMaterialOutputReadback(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--assocvariable-physical-output-readback")
         return physicalAssociativeVariableOutputReadback(argv[2]) ? 0 : 1;
