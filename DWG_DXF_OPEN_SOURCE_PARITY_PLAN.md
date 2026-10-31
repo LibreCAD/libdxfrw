@@ -58,35 +58,23 @@ Implementation history and evidence stay in Git and `docs/research/`.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next implementation packet — extend dynamic-block output beyond the exact
-Title_Block-ARCH profile.** The AC1024 `title_block-arch.dwg` source now passes
-ASCII and Binary output/readback for its physical owner graph and all 109/109
-source callback identities, including VIEWPORT `0x52`; see [the refreshed P5
-receipt](docs/research/p5-ac1024-title-block-dynamic-graph-output-readback-2026-10-31.json).
-This is a source-profile result, not native dynamic-block semantics or a
-format-wide support claim. The distinct
-`architectural_example-imperial.dwg` source still stops at
-`dynamic-block objects are outside the closed output profiles`; its output
-remains atomically unpublished. The source's `SORTENTSTABLE`, extension-owner,
-and nested associative-network checks already pass. Reuse those qualified
-routes and existing exact record serializers where the source fields and roles
-match. Use [the P5 inventory
+**Next implementation packet — close dynamic-block output for the AC1024
+`architectural_example-imperial.dwg` source.** A strict whole-document
+conversion stops at `dynamic-block objects are outside the closed output
+profiles`; its output remains atomically unpublished. Use [the P5 inventory
 receipt](docs/research/p5-ac1024-architectural-dynamic-block-source-inventory-2026-10-31.json)
-and its exact source hash, both EvaluationGraph roots, object classes, owner
-roles, and observed dependencies. Bind each remaining class projection and
-graph reference to emitted identities before widening output eligibility.
-Keep structural owner validation separate from complete graph output
-qualification. Serializer readback does not prove native dynamic-block
-semantics.
+for the exact source hash, required records, both EvaluationGraph roots, owner
+roles, and dependencies. Finish only its remaining record profiles and bind
+every required object/reference to emitted identities before widening output
+eligibility. Serializer readback does not prove native dynamic-block semantics.
 
-The remaining source-backed record projections in this inventory are
+The only unimplemented source-backed record projections in this inventory are
 `BLOCKALIGNMENTPARAMETER` (2), `BLOCKFLIPACTION` (3),
 `BLOCKFLIPPARAMETER` (3), `BLOCKHORIZONTALCONSTRAINTPARAMETER` (1),
 `BLOCKLINEARPARAMETER` (2), `BLOCKMOVEACTION` (2), `BLOCKSCALEACTION` (1),
-`BLOCKSTRETCHACTION` (6), and `BLOCKVERTICALCONSTRAINTPARAMETER` (1).
-Use the retained typed fields and exact physical source records to implement
-their wire profiles. Do not reopen completed record serializers or promote
-their source field readback to native semantics.
+`BLOCKSTRETCHACTION` (6), and `BLOCKVERTICALCONSTRAINTPARAMETER` (1). Implement
+their bounded wire profiles from retained typed fields and exact physical
+source records; serializer readback alone does not establish native semantics.
 
 Implementation order: (1) add bounded DXF projections and admitted
 output/replay routes for those nine remaining source-required subclasses; raw
