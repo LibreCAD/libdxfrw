@@ -33809,6 +33809,34 @@ bool physicalMaterialOutputReadback(
     return outputEncoding(false) && outputEncoding(true);
 }
 
+bool mLeaderStyleOutputOmitsTableRecordFields(
+        const std::filesystem::path& path, bool binary,
+        std::size_t expectedStyles) {
+    std::ifstream stream(path, std::ios::binary);
+    if (!stream)
+        return false;
+    if (binary)
+        stream.seekg(22);
+    if (!stream)
+        return false;
+    std::unique_ptr<dxfReader> reader = binary
+        ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
+        : std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+    bool inMLeaderStyle = false;
+    std::size_t styleCount = 0u;
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            inMLeaderStyle = reader->getString() == "MLEADERSTYLE";
+            if (inMLeaderStyle)
+                ++styleCount;
+        } else if (inMLeaderStyle && (code == 2 || code == 70)) {
+            return false;
+        }
+    }
+    return !stream.bad() && styleCount == expectedStyles;
+}
+
 bool physicalMLeaderStyleOutputReadback(
         const std::filesystem::path& sourcePath) {
     dx_iface sourceReader;
@@ -34099,6 +34127,9 @@ bool physicalMLeaderStyleOutputReadback(
 
         if (!exportPartial())
             return fail("corrected physical MLEADERSTYLE graph could not retry on the same adapter");
+        if (!mLeaderStyleOutputOmitsTableRecordFields(
+                outputPath, binary, sourceOwners.size()))
+            return fail("MLEADERSTYLE output emitted table-only name or flags groups");
 
         const auto mapHandle = [&writer](std::uint32_t sourceHandle,
                                          std::uint32_t& outputHandle) {

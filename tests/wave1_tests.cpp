@@ -4371,6 +4371,8 @@ void testMLeaderStyleVersionAndHandleRemapping(TestContext& t) {
             const auto tags = numericWireProjection(output.str(), binary, ended);
             t.expect(written && ended,
                      "versioned MLEADERSTYLE preserves following-record framing");
+            t.expect(!hasCode(tags, 2) && !hasCode(tags, 70),
+                     "MLEADERSTYLE output omits table-only name and flags groups");
             for (const char* expected : {"5:B000", "330:B001", "340:B002",
                                          "341:B003", "342:B004", "343:B005"})
                 t.expect(std::find(tags.begin(), tags.end(), expected) != tags.end(),
@@ -5576,9 +5578,11 @@ void testMLeaderStyleDxfCmcColorLossGuard(TestContext& t) {
             return std::find(scalarTags.begin(), scalarTags.end(), expected)
                 != scalarTags.end();
         };
-        t.expect(scalarWritten && scalarEnded && hasScalarTag("91:7")
-                     && hasScalarTag("93:256") && hasScalarTag("94:0"),
-                 "MLEADERSTYLE scalar ACI/ByLayer/ByBlock colors retain documented groups");
+        t.expect(scalarWritten && scalarEnded
+                     && hasScalarTag("91:-1023410169")
+                     && hasScalarTag("93:-1073741824")
+                     && hasScalarTag("94:-1056964608"),
+                 "MLEADERSTYLE packed C3/C0/C1 colors retain documented raw group values");
     }
 }
 

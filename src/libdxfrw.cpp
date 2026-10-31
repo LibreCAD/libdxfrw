@@ -29048,9 +29048,10 @@ bool dxfRW::writeFieldList(DRW_FieldList *ent) {
     return bindDxfWriteSourceObjectHandle(sourceHandle, emittedHandle);
 }
 
-// MLEADERSTYLE (AcDbMLeaderStyle, custom class). Inverse of
-// DRW_MLeaderStyle::parseCode: common table-entry name/flags, scalar style
-// fields, and handle references 340-343.
+// MLEADERSTYLE (AcDbMLeaderStyle, custom class). The style name is carried by
+// its ACAD_MLEADERSTYLE dictionary key; the object body contains the scalar
+// style fields and handle references 340-343, not table-record name/flag
+// groups 2 and 70.
 bool dxfRW::writeMLeaderStyle(DRW_MLeaderStyle *ent) {
     if (version < DRW::AC1021)
         return rejectUnsupportedDxfWrite("MLEADERSTYLE");
@@ -29150,8 +29151,6 @@ bool dxfRW::writeMLeaderStyle(DRW_MLeaderStyle *ent) {
         return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     writer->writeString(100, "AcDbMLeaderStyle");
-    writer->writeUtf8String(2, ent->name);
-    writer->writeInt16(70, ent->flags);
     if (version >= DRW::AC1024)
         writer->writeInt16(179, ent->styleVersion);
     writer->writeInt16(170, ent->contentType);
