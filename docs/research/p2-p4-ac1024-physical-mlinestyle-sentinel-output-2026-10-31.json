@@ -23,6 +23,15 @@
         "finding": "The R2018 upgrade maps index 0 to CONTINUOUS, 32767 to BYLAYER and 32766 to BYBLOCK; the DXF schema maps the same pre-R2018 indices to group 6 names."
       }
     },
+    "tableStyleOutputSchema": {
+      "odaSection": "20.4.101.2 R24 TABLESTYLE format, plus 20.4.101.3 Content format and 20.4.101.4 Cell style",
+      "autodeskDxfReference": {
+        "file": "/Users/dli/doc/dwg/autocad_2012_dxf-reference.pdf",
+        "sha256": "fe28e2fc0dbb2acae5d4cbf6df2c52d13b451e0500f2138efa741fd7890f4104",
+        "section": "TABLESTYLE group codes"
+      },
+      "finding": "The physical AC1024 object takes the R24 parser path. Existing DXF group codes still define description, flow, flags, margins, title/header suppression and repeated title/header/data cell style fields; R24 DWG style prefix values documented as unknown remain uninterpreted."
+    },
     "associativeClasses": [
       {
         "recordName": "ACDBASSOCDEPENDENCY",
@@ -52,7 +61,30 @@
       "instanceCount": 1,
       "handle": "0x87",
       "name": "Standard",
-      "diagnostic": "tablestyle-unsupported-profile: TABLESTYLE is outside the bounded typed profile"
+      "diagnostic": "tablestyle-unsupported-profile: TABLESTYLE does not contain exactly three row styles",
+      "parsedModel": {
+        "legacyRowStyles": 0,
+        "richCellStyles": 3,
+        "tableCellStyle": {
+          "hasData": true,
+          "id": 4,
+          "class": 2,
+          "name": "Table",
+          "backgroundColor": 256,
+          "contentLayout": 1,
+          "contentValueDataType": 512,
+          "contentValueUnitType": 0,
+          "cellAlignment": 1,
+          "textHeight": 0.18,
+          "marginOverrideFlags": 1
+        },
+        "standardCellStyles": [
+          {"id": 1, "class": 1, "name": "_TITLE", "mergeFlags": 32768, "alignment": 5, "textHeight": 0.25},
+          {"id": 2, "class": 1, "name": "_HEADER", "mergeFlags": 0, "alignment": 5, "textHeight": 0.18},
+          {"id": 3, "class": 2, "name": "_DATA", "mergeFlags": 0, "alignment": 2, "textHeight": 0.18}
+        ],
+        "commonObservedStyleData": "Each standard style has six borders with edge flags 1,2,4,8,16,32; property overrides are 0, border type is 1, ACI color is 0, lineweight is -2, linetype handle is 0, source invisibility is 0, and double-line spacing is 0.045."
+      }
     }
   },
   "implementation": {
@@ -82,5 +114,5 @@
     "The run used --allow-partial-dwg-read and is diagnostic evidence only; strict-complete export and full source graph closure remain unqualified.",
     "No native CAD rendering or independent consumer semantic evidence is established by serializer tests."
   ],
-  "next": "Split the TABLESTYLE bounded-profile rejection by predicate for the physical Standard record at handle 0x87; then implement only the first source-backed lossless output/readback profile. Continue physical callback closure while keeping strict-complete admission closed."
+  "next": "Add an AC1024+ TABLESTYLE DXF output path for the observed R24 model. Map standard role IDs 1/2/3 to the DXF title/header/data records, preserve the ID-4 Table style and CELLSTYLEMAP dependency where representable, and refuse unknown or unrepresented R24 fields. Prove exact output/readback with locally authored ASCII/Binary controls before retrying the physical witness; keep strict-complete admission closed."
 }

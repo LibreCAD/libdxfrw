@@ -10231,49 +10231,99 @@ bool dxfRW::writeTableStyle(
             || value == 4 || value == 8 || value == 0x10
             || value == 0x20 || value == 0x10000;
     };
-    if (!preflightDxfWrite() || ent == nullptr || version < DRW::AC1021
-        || ent->handle == 0 || ent->handle == DRW::NoHandle
-        || ent->parentHandle == 0 || ent->parentHandle == DRW::NoHandle
-        || ent->m_name.size() > 255u || !isSafeDxfRecordText(ent->m_name)
-        || ent->m_flowDirection < 0 || ent->m_flowDirection > 1
-        || ent->m_flags < 0
-        || ent->m_flags > std::numeric_limits<std::uint16_t>::max()
-        || !std::isfinite(ent->m_horizontalCellMargin)
-        || ent->m_horizontalCellMargin < 0.0
-        || !std::isfinite(ent->m_verticalCellMargin)
-        || ent->m_verticalCellMargin < 0.0
-        || ent->m_rowStyles.size() != 3u || !ent->m_cellStyles.empty()
-        || ent->m_tableCellStyle.m_hasData || ent->m_unknownHandle != 0u)
-        return reject("TABLESTYLE is outside the bounded typed profile");
+    if (!preflightDxfWrite())
+        return reject("TABLESTYLE writer is already in a failed state");
+    if (ent == nullptr)
+        return reject("TABLESTYLE object is null");
+    if (version < DRW::AC1021)
+        return reject("TABLESTYLE requires DXF R2007 or later");
+    if (ent->handle == 0 || ent->handle == DRW::NoHandle)
+        return reject("TABLESTYLE has no writable source handle");
+    if (ent->parentHandle == 0 || ent->parentHandle == DRW::NoHandle)
+        return reject("TABLESTYLE has no writable parent dictionary handle");
+    if (ent->m_name.size() > 255u)
+        return reject("TABLESTYLE name exceeds the supported byte length");
+    if (!isSafeDxfRecordText(ent->m_name))
+        return reject("TABLESTYLE name has unsupported DXF text");
+    if (ent->m_flowDirection < 0 || ent->m_flowDirection > 1)
+        return reject("TABLESTYLE flow direction is outside the DXF domain");
+    if (ent->m_flags < 0
+        || ent->m_flags > std::numeric_limits<std::uint16_t>::max())
+        return reject("TABLESTYLE flags are outside the DXF domain");
+    if (!std::isfinite(ent->m_horizontalCellMargin)
+        || ent->m_horizontalCellMargin < 0.0)
+        return reject("TABLESTYLE horizontal cell margin is invalid");
+    if (!std::isfinite(ent->m_verticalCellMargin)
+        || ent->m_verticalCellMargin < 0.0)
+        return reject("TABLESTYLE vertical cell margin is invalid");
+    if (ent->m_rowStyles.size() != 3u) {
+        DRW_DBG("DXF TABLESTYLE legacyRowStyles/richCellStyles/tableHasData/tableId/tableClass=");
+        DRW_DBG(ent->m_rowStyles.size()); DRW_DBG("/");
+        DRW_DBG(ent->m_cellStyles.size()); DRW_DBG("/");
+        DRW_DBG(ent->m_tableCellStyle.m_hasData ? 1 : 0); DRW_DBG("/");
+        DRW_DBG(ent->m_tableCellStyle.m_id); DRW_DBG("/");
+        DRW_DBG(ent->m_tableCellStyle.m_styleClass); DRW_DBG("/");
+        DRW_DBG("\n");
+        return reject("TABLESTYLE does not contain exactly three row styles");
+    }
+    if (!ent->m_cellStyles.empty())
+        return reject("TABLESTYLE contains additional cell styles");
+    if (ent->m_tableCellStyle.m_hasData)
+        return reject("TABLESTYLE default cell style has represented data");
+    if (ent->m_unknownHandle != 0u)
+        return reject("TABLESTYLE retains an unresolved object handle");
 
     const DRW_TableStyleCellStyle& cellStyle = ent->m_tableCellStyle;
     const DRW_TableStyleContentFormat& contentFormat =
         cellStyle.m_contentFormat;
-    if (cellStyle.m_type != 0 || cellStyle.m_propertyOverrideFlags != 0u
-        || cellStyle.m_mergeFlags != 0u || cellStyle.m_backgroundColor != 0
-        || cellStyle.m_contentLayout != 0u
-        || contentFormat.m_propertyOverrideFlags != 0u
-        || contentFormat.m_propertyFlags != 0u
-        || contentFormat.m_valueDataType != 0
-        || contentFormat.m_valueUnitType != 0
-        || !contentFormat.m_valueFormatString.empty()
-        || contentFormat.m_rotation != 0.0
-        || contentFormat.m_blockScale != 1.0
-        || contentFormat.m_cellAlignment != 0
-        || contentFormat.m_contentColor != 0
-        || !contentFormatColorIsDxfRepresentable(contentFormat)
-        || contentFormat.m_textStyleHandle != 0u
-        || contentFormat.m_textHeight != 0.0
-        || cellStyle.m_marginOverrideFlags != 0
-        || cellStyle.m_verticalMargin != 0.0
+    if (cellStyle.m_type != 0)
+        return reject("TABLESTYLE default cell style has a nondefault type");
+    if (cellStyle.m_propertyOverrideFlags != 0u)
+        return reject("TABLESTYLE default cell style has property overrides");
+    if (cellStyle.m_mergeFlags != 0u)
+        return reject("TABLESTYLE default cell style has merge flags");
+    if (cellStyle.m_backgroundColor != 0)
+        return reject("TABLESTYLE default cell style has a background color");
+    if (cellStyle.m_contentLayout != 0u)
+        return reject("TABLESTYLE default cell style has a content layout");
+    if (contentFormat.m_propertyOverrideFlags != 0u)
+        return reject("TABLESTYLE content format has property overrides");
+    if (contentFormat.m_propertyFlags != 0u)
+        return reject("TABLESTYLE content format has property flags");
+    if (contentFormat.m_valueDataType != 0)
+        return reject("TABLESTYLE content format has a value data type");
+    if (contentFormat.m_valueUnitType != 0)
+        return reject("TABLESTYLE content format has a value unit type");
+    if (!contentFormat.m_valueFormatString.empty())
+        return reject("TABLESTYLE content format has a value format string");
+    if (contentFormat.m_rotation != 0.0)
+        return reject("TABLESTYLE content format has a rotation");
+    if (contentFormat.m_blockScale != 1.0)
+        return reject("TABLESTYLE content format has a block scale");
+    if (contentFormat.m_cellAlignment != 0)
+        return reject("TABLESTYLE content format has cell alignment");
+    if (contentFormat.m_contentColor != 0
+        || !contentFormatColorIsDxfRepresentable(contentFormat))
+        return reject("TABLESTYLE content format color is not losslessly representable");
+    if (contentFormat.m_textStyleHandle != 0u)
+        return reject("TABLESTYLE default content format has a text style handle");
+    if (contentFormat.m_textHeight != 0.0)
+        return reject("TABLESTYLE default content format has a text height");
+    if (cellStyle.m_marginOverrideFlags != 0)
+        return reject("TABLESTYLE default cell style has margin overrides");
+    if (cellStyle.m_verticalMargin != 0.0
         || cellStyle.m_horizontalMargin != 0.0
         || cellStyle.m_bottomMargin != 0.0
         || cellStyle.m_rightMargin != 0.0
         || cellStyle.m_marginHorizontalSpacing != 0.0
-        || cellStyle.m_marginVerticalSpacing != 0.0
-        || cellStyle.m_id != 0 || cellStyle.m_styleClass != 0
-        || !cellStyle.m_name.empty() || !cellStyle.m_borders.empty())
-        return reject("TABLESTYLE contains an unmodeled custom cell style");
+        || cellStyle.m_marginVerticalSpacing != 0.0)
+        return reject("TABLESTYLE default cell style has explicit margins");
+    if (cellStyle.m_id != 0 || cellStyle.m_styleClass != 0)
+        return reject("TABLESTYLE default cell style has an ID or style class");
+    if (!cellStyle.m_name.empty())
+        return reject("TABLESTYLE default cell style has a name");
+    if (!cellStyle.m_borders.empty())
+        return reject("TABLESTYLE default cell style has explicit borders");
 
     std::vector<std::string> textStyleNames;
     try {
