@@ -6806,6 +6806,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         std::unordered_map<std::uint32_t, const DRW_Material*> materials;
         std::unordered_map<std::uint32_t,
                            const DRW_AssociativeObject*> associativeRecords;
+        std::unordered_map<std::uint32_t, const DRW_Entity*>
+            associativeEntityTargets;
         std::unordered_map<std::uint32_t, const DRW_DictionaryVar*> dictionaryVars;
         std::unordered_map<std::uint32_t, const DRW_RawDxfObject*> rawDictionaryVars;
         std::unordered_map<std::uint32_t, const DRW_Scale*> scales;
@@ -6890,6 +6892,43 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     return reject(ExtensionGraphFailure::InvalidGraph,
                         "duplicate associative source handle "
                         + std::to_string(object.handle));
+            }
+        }
+        const bool hasGeometryDependencies = associativeObjects != nullptr
+            && std::any_of(associativeObjects->begin(),
+                           associativeObjects->end(),
+                [](const DRW_AssociativeObject& object) {
+                    return layoutSymbolKey(object.m_recordName)
+                        == "ACDBASSOCGEOMDEPENDENCY";
+                });
+        if (data->sourceFormat == dx_source_format::DWG
+            && hasGeometryDependencies) {
+            inventoryFamily = "associative geometry-dependent entity targets";
+            const auto indexEntityTargets = [&](const dx_ifaceBlock* block) {
+                if (block == nullptr)
+                    return true;
+                for (const DRW_Entity* entity : block->ent) {
+                    if (!examineSourceRecord())
+                        return false;
+                    if (entity == nullptr)
+                        return reject(ExtensionGraphFailure::InvalidGraph,
+                            "null entity in associative dependency target inventory");
+                    if (entity->handle == 0u
+                        || entity->handle == DRW::NoHandle)
+                        continue;
+                    if (!associativeEntityTargets.emplace(
+                            entity->handle, entity).second)
+                        return reject(ExtensionGraphFailure::InvalidGraph,
+                            "duplicate entity identity in associative dependency target inventory: "
+                            + std::to_string(entity->handle));
+                }
+                return true;
+            };
+            if (!indexEntityTargets(data->mBlock))
+                return false;
+            for (const dx_ifaceBlock* block : data->blocks) {
+                if (block != data->mBlock && !indexEntityTargets(block))
+                    return false;
             }
         }
         inventoryFamily = "DICTIONARY records";
@@ -8303,18 +8342,214 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 }
                                 const auto target = associativeRecords.find(
                                     action.m_handle);
-                                if (target == associativeRecords.end()
-                                    || layoutSymbolKey(
+                                const bool variableTarget =
+                                    target != associativeRecords.end()
+                                    && layoutSymbolKey(
                                         target->second->m_recordName)
-                                        != "ACDBASSOCVARIABLE"
+                                        == "ACDBASSOCVARIABLE";
+                                const bool groupTarget =
+                                    target != associativeRecords.end()
+                                    && layoutSymbolKey(
+                                        target->second->m_recordName)
+                                        == "ACDBASSOC2DCONSTRAINTGROUP";
+                                if ((!variableTarget && !groupTarget)
                                     || target->second->parentHandle
                                         != object.handle
                                     || target->second->m_owningNetworkHandle
                                         != object.handle)
                                     return reject(
                                         ExtensionGraphFailure::InvalidGraph,
-                                        "ACDBASSOCNETWORK action target is not an owned AC1024 variable");
+                                        "ACDBASSOCNETWORK action target is not an owned AC1024 variable or constraint group");
                             }
+                        } else if (layoutSymbolKey(object.m_recordName)
+                                   == "ACDBASSOC2DCONSTRAINTGROUP") {
+                            const auto network = associativeRecords.find(
+                                object.m_owningNetworkHandle);
+                            const std::size_t ownedMemberships =
+                                network == associativeRecords.end() ? 0u
+                                : static_cast<std::size_t>(std::count_if(
+                                    network->second->m_actions.begin(),
+                                    network->second->m_actions.end(),
+                                    [&object](const DRW_AssociativeHandleRef& ref) {
+                                        return ref.m_handle == object.handle
+                                            && ref.m_isOwned;
+                                    }));
+                            std::unordered_set<std::uint32_t> actionHandles;
+                            actionHandles.reserve(
+                                object.m_constraintActions.size());
+                            std::size_t geometryNodeReferences = 0u;
+                            if (!object.m_constraintGroupBodyParsed
+                                || object.m_constraintGroupVersion != 0
+                                || !object.m_constraintActionsParsed
+                                || !object.m_constraintNextNodeIdRead
+                                || !object.m_constraintNodesParsed
+                                || object.m_constraintActionCount < 0
+                                || object.m_constraintNodeCount < 0
+                                || static_cast<std::size_t>(
+                                    object.m_constraintActionCount)
+                                    != object.m_constraintActions.size()
+                                || static_cast<std::size_t>(
+                                    object.m_constraintNodeCount)
+                                    != object.m_constraintNodes.size()
+                                || object.m_constraintGroupReference != 0u
+                                || object.m_classVersion != 1u
+                                || object.m_owningNetworkHandle == 0u
+                                || object.parentHandle
+                                    != object.m_owningNetworkHandle
+                                || network == associativeRecords.end()
+                                || layoutSymbolKey(
+                                    network->second->m_recordName)
+                                    != "ACDBASSOCNETWORK"
+                                || ownedMemberships != 1u
+                                || object.m_actionBodyHandle != 0u
+                                || object.m_maxDependencyIndex != 0
+                                || !object.m_dependencies.empty()
+                                || !object.m_ownedParams.empty()
+                                || !object.m_ownedActions.empty()
+                                || object.m_valueParamCount != 0u
+                                || object.m_valueParamsParsed
+                                || object.m_actionParamPrefixParsed
+                                || object.m_singleDependencyActionParamParsed
+                                || object.m_compoundActionParamParsed
+                                || !object.m_actions.empty()
+                                || object.m_prefixStatuses.size() != 2u
+                                || !completePrefix(
+                                    DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
+                                    1u, 2u, 0u, 0)
+                                || !completePrefix(
+                                    DRW_AssociativePrefixStatus::Kind::AcDbAssoc2dConstraintGroup,
+                                    1u,
+                                    object.m_constraintActions.size()
+                                        + object.m_constraintNodes.size(),
+                                    object.m_constraintNodes.size(),
+                                    object.m_constraintNodeCount))
+                                return reject(
+                                    ExtensionGraphFailure::InvalidGraph,
+                                    "ACDBASSOC2DCONSTRAINTGROUP is outside the fully consumed AC1024 inline geometry-dependency profile");
+
+                            for (const std::uint32_t actionHandle :
+                                 object.m_constraintActions) {
+                                if (!examineEdge() || actionHandle == 0u
+                                    || actionHandle == DRW::NoHandle
+                                    || !actionHandles.insert(
+                                        actionHandle).second)
+                                    return reject(
+                                        ExtensionGraphFailure::InvalidGraph,
+                                        "ACDBASSOC2DCONSTRAINTGROUP contains an invalid or duplicate action reference");
+                                const auto action = associativeRecords.find(
+                                    actionHandle);
+                                if (action == associativeRecords.end()
+                                    || layoutSymbolKey(
+                                        action->second->m_recordName)
+                                        != "ACDBASSOCGEOMDEPENDENCY"
+                                    || action->second->parentHandle
+                                        != object.handle)
+                                    return reject(
+                                        ExtensionGraphFailure::InvalidGraph,
+                                        "ACDBASSOC2DCONSTRAINTGROUP action is not an owned AC1024 geometry dependency");
+                            }
+                            for (const DRW_AssociativeConstraintNode& node :
+                                 object.m_constraintNodes) {
+                                if (!node.m_classDataParsed
+                                    || node.m_dataKind
+                                        != DRW_AssociativeConstraintNode::DataKind::ImplicitPoint
+                                    || node.m_className
+                                        != "AcConstrainedImplicitPoint"
+                                    || !node.m_hasGeometryDependency
+                                    || node.m_geometryDependencyHandle == 0u
+                                    || node.m_hasValueDependencyHandle
+                                    || node.m_hasDimensionDependencyHandle)
+                                    return reject(
+                                        ExtensionGraphFailure::InvalidGraph,
+                                        "ACDBASSOC2DCONSTRAINTGROUP node is outside the AC1024 implicit-point geometry-dependency profile");
+                                if (node.m_geometryDependencyCode
+                                        != DRW::DwgSoftPointer
+                                    || node.m_geometryDependencyHandle
+                                        > std::numeric_limits<std::uint32_t>::max()
+                                    || actionHandles.count(
+                                        static_cast<std::uint32_t>(
+                                            node.m_geometryDependencyHandle))
+                                        != 1u)
+                                    return reject(
+                                        ExtensionGraphFailure::InvalidGraph,
+                                        "ACDBASSOC2DCONSTRAINTGROUP node geometry reference is not a listed owned action");
+                                ++geometryNodeReferences;
+                            }
+                            if (geometryNodeReferences
+                                != actionHandles.size())
+                                return reject(
+                                    ExtensionGraphFailure::InvalidGraph,
+                                    "ACDBASSOC2DCONSTRAINTGROUP action list and inline geometry references do not close");
+                        } else if (layoutSymbolKey(object.m_recordName)
+                                   == "ACDBASSOCGEOMDEPENDENCY") {
+                            const auto owner = associativeRecords.find(
+                                static_cast<std::uint32_t>(object.parentHandle));
+                            const DRW_AssociativeObject* ownerGroup =
+                                owner == associativeRecords.end()
+                                    ? nullptr : owner->second;
+                            const auto groupActionCount =
+                                ownerGroup == nullptr ? 0u
+                                : static_cast<std::size_t>(std::count(
+                                    ownerGroup->m_constraintActions.begin(),
+                                    ownerGroup->m_constraintActions.end(),
+                                    object.handle));
+                            const auto groupNodeReferenceCount =
+                                ownerGroup == nullptr ? 0u
+                                : static_cast<std::size_t>(std::count_if(
+                                    ownerGroup->m_constraintNodes.begin(),
+                                    ownerGroup->m_constraintNodes.end(),
+                                    [&object](
+                                        const DRW_AssociativeConstraintNode& node) {
+                                        return node.m_hasGeometryDependency
+                                            && node.m_geometryDependencyHandle
+                                                == object.handle;
+                                    }));
+                            const auto dependentEntity =
+                                associativeEntityTargets.find(
+                                    object.m_dependencyHandle);
+                            const std::size_t dependentEntityBacklinks =
+                                dependentEntity == associativeEntityTargets.end()
+                                    ? 0u
+                                    : static_cast<std::size_t>(std::count(
+                                        dependentEntity->second->reactorHandles.begin(),
+                                        dependentEntity->second->reactorHandles.end(),
+                                        object.handle));
+                            if (!object.m_dependencyFieldsParsed
+                                || !object.m_dependencyWireComplete
+                                || object.m_classVersion != 1u
+                                || object.m_dependencyOrder != 0
+                                || object.m_dependencyHandle == 0u
+                                || object.m_dependencyHandle == DRW::NoHandle
+                                || object.m_dependencyBodyHandle != 0u
+                                || object.m_dependencyNamePresent
+                                || !object.m_dependencyName.empty()
+                                || object.m_readDependencyHandle != 0u
+                                || object.m_dependencyNodeHandle != 0u
+                                || object.m_writeDependencyHandle != 0u
+                                || !object.m_geomDependencyFieldsParsed
+                                || object.m_geomClassVersion != 0
+                                || !object.m_geomEnabled
+                                || object.m_geomPersistentSubentityClassName
+                                    != "AcDbAssocSingleEdgePersSubentId"
+                                || object.m_geomDependentOnCompoundObject
+                                || object.m_prefixStatuses.size() != 2u
+                                || !completePrefix(
+                                    DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency,
+                                    1u, 4u, 0u, 0)
+                                || !completePrefix(
+                                    DRW_AssociativePrefixStatus::Kind::AcDbAssocGeomDependency,
+                                    0u, 0u, 4u, 0)
+                                || ownerGroup == nullptr
+                                || layoutSymbolKey(ownerGroup->m_recordName)
+                                    != "ACDBASSOC2DCONSTRAINTGROUP"
+                                || groupActionCount != 1u
+                                || groupNodeReferenceCount != 1u
+                                || dependentEntity
+                                    == associativeEntityTargets.end()
+                                || dependentEntityBacklinks != 1u)
+                                return reject(
+                                    ExtensionGraphFailure::InvalidGraph,
+                                    "ACDBASSOCGEOMDEPENDENCY is outside the fully consumed AC1024 SingleEdge group-owned profile");
                         } else if (layoutSymbolKey(object.m_recordName)
                                    == "ACDBASSOCVARIABLE") {
                             const auto network = associativeRecords.find(
@@ -8809,6 +9044,22 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         const std::uint32_t actionHandle =
                             frame.associative->m_actions[frame.index++]
                                 .m_handle;
+                        if (!examineEdge())
+                            return false;
+                        if (visiting.count(actionHandle) == 0u
+                            && visitedAssociatives.count(actionHandle) == 0u
+                            && !queueTarget(actionHandle, false))
+                            return false;
+                        break;
+                    }
+                    if (layoutSymbolKey(frame.associative->m_recordName)
+                            == "ACDBASSOC2DCONSTRAINTGROUP"
+                        && frame.index
+                            < frame.associative
+                                   ->m_constraintActions.size()) {
+                        const std::uint32_t actionHandle =
+                            frame.associative->m_constraintActions[
+                                frame.index++];
                         if (!examineEdge())
                             return false;
                         if (visiting.count(actionHandle) == 0u
@@ -44746,6 +44997,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             if (matches != 1u || selected == nullptr
                 || (selected->m_recordName != "ACDBASSOCNETWORK"
                     && selected->m_recordName != "ACDBASSOCVARIABLE"
+                    && selected->m_recordName
+                        != "ACDBASSOC2DCONSTRAINTGROUP"
+                    && selected->m_recordName
+                        != "ACDBASSOCGEOMDEPENDENCY"
                     && selected->m_recordName
                         != "ACDBASSOCVALUEDEPENDENCY"))
                 return false;

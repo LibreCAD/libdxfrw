@@ -25598,6 +25598,14 @@ void DRW_AssociativeObject::reset() {
     m_dxfAssociativeVariableDiscriminatorSeen = false;
     m_dxfAssociativeVariableBoolIndex = 0;
     m_dxfAssociativeVariableUnexpectedField = false;
+    m_dxfAssociativeConstraintGroupSubclass = false;
+    m_dxfConstraintGroupStage = 0u;
+    m_dxfConstraintGroupActionsRemaining = 0u;
+    m_dxfConstraintGroupNodesRemaining = 0u;
+    m_dxfConstraintGroupConnectionsRemaining = 0u;
+    m_dxfConstraintGroupPointIndex = 0u;
+    m_dxfConstraintNode = {};
+    m_dxfConstraintGroupUnexpectedField = false;
     m_dxfAssociativeDependencyIntIndex = 0;
     m_dxfAssociativeDependencyBoolIndex = 0;
     m_dxfAssociativeDependencyHandleIndex = 0;
@@ -25623,6 +25631,8 @@ bool DRW_AssociativeObject::parseCode(
             && m_dxfGeomEnabledPresent
             && m_dxfGeomSubentityClassNamePresent
             && m_dxfGeomDependentOnCompoundObjectPresent;
+        if (m_geomDependencyFieldsParsed)
+            m_dependencyWireComplete = m_dependencyFieldsParsed;
     };
     const auto updateAssociativeNetworkStatus = [this]() {
         const bool actionPrefixComplete =
@@ -25680,6 +25690,7 @@ bool DRW_AssociativeObject::parseCode(
         m_dxfAssociativeVariableSubclass = false;
         m_dxfAssociativeDependencySubclass = false;
         m_dxfAssociativeValueDependencySubclass = false;
+        m_dxfAssociativeConstraintGroupSubclass = false;
         m_dxfAssociativeGeomSubclass = 0;
         m_dxfPersistentSubentityBody = false;
         if (subclass == "AcDbAssocAction") {
@@ -25714,6 +25725,21 @@ bool DRW_AssociativeObject::parseCode(
             m_variableValueParsed = false;
             m_variableValueKind = EvalVariantKind::Missing;
             m_variableValueCode = 0;
+            return true;
+        }
+        if (subclass == "AcDbAssoc2dConstraintGroup") {
+            m_dxfAssociativeConstraintGroupSubclass = true;
+            m_dxfConstraintGroupStage = 1u;
+            m_dxfConstraintGroupActionsRemaining = 0u;
+            m_dxfConstraintGroupNodesRemaining = 0u;
+            m_dxfConstraintGroupConnectionsRemaining = 0u;
+            m_dxfConstraintGroupPointIndex = 0u;
+            m_dxfConstraintGroupUnexpectedField = false;
+            m_constraintGroupBodyParsed = false;
+            m_constraintActionsParsed = false;
+            m_constraintActions.clear();
+            m_constraintNodesParsed = false;
+            m_constraintNodes.clear();
             return true;
         }
         if (subclass == "AcDbAssocDependency") {
@@ -25763,6 +25789,356 @@ bool DRW_AssociativeObject::parseCode(
             return true;
         }
         return true;
+    }
+    // The AcDbAssoc2dConstraintGroup DXF body follows AcDbAssocAction without
+    // an additional subclass marker in the emitted form. Switch parsers at
+    // the first group-body code once the shared action prefix is complete.
+    if (!m_dxfAssociativeConstraintGroupSubclass
+        && m_dxfAssociativeActionSubclass
+        && m_recordName == "ACDBASSOC2DCONSTRAINTGROUP"
+        && m_dxfAssociativeActionIntIndex == 5u && code == 90) {
+        m_dxfAssociativeActionSubclass = false;
+        m_dxfAssociativeConstraintGroupSubclass = true;
+        m_dxfConstraintGroupStage = 1u;
+        m_dxfConstraintGroupActionsRemaining = 0u;
+        m_dxfConstraintGroupNodesRemaining = 0u;
+        m_dxfConstraintGroupConnectionsRemaining = 0u;
+        m_dxfConstraintGroupPointIndex = 0u;
+        m_dxfConstraintGroupUnexpectedField =
+            m_dxfAssociativeActionUnexpectedField
+            || !m_dxfAssociativeActionOwnerSeen
+            || !m_dxfAssociativeActionBodySeen
+            || m_dxfAssociativeActionDependencyCount != 0
+            || !m_dependencies.empty();
+        m_constraintGroupBodyParsed = false;
+        m_constraintActionsParsed = false;
+        m_constraintActions.clear();
+        m_constraintNodesParsed = false;
+        m_constraintNodes.clear();
+        if (m_dxfConstraintGroupUnexpectedField) {
+            m_dxfConstraintGroupStage = 0xFFu;
+            return true;
+        }
+    }
+    if (m_dxfAssociativeConstraintGroupSubclass) {
+        constexpr std::uint8_t kGroupVersion = 1u;
+        constexpr std::uint8_t kGroupFlag = 2u;
+        constexpr std::uint8_t kWorkplane = 3u;
+        constexpr std::uint8_t kGroupReference = 4u;
+        constexpr std::uint8_t kActionCount = 5u;
+        constexpr std::uint8_t kActions = 6u;
+        constexpr std::uint8_t kNextNodeId = 7u;
+        constexpr std::uint8_t kNodeCount = 8u;
+        constexpr std::uint8_t kNodeClass = 9u;
+        constexpr std::uint8_t kNodeOwner = 10u;
+        constexpr std::uint8_t kNodeId = 11u;
+        constexpr std::uint8_t kNodeConnectionCount = 12u;
+        constexpr std::uint8_t kNodeConnections = 13u;
+        constexpr std::uint8_t kNodeGeometryHandle = 14u;
+        constexpr std::uint8_t kNodeGeometryId = 15u;
+        constexpr std::uint8_t kNodePointOrType = 16u;
+        constexpr std::uint8_t kNodePointY = 17u;
+        constexpr std::uint8_t kNodePointZ = 18u;
+        constexpr std::uint8_t kNodePointType = 19u;
+        constexpr std::uint8_t kNodePointIndex = 20u;
+        constexpr std::uint8_t kNodeCurveNodeId = 21u;
+        constexpr std::uint8_t kComplete = 22u;
+        const auto failProfile = [this]() {
+            m_dxfConstraintGroupUnexpectedField = true;
+            m_constraintGroupBodyParsed = false;
+            m_constraintActionsParsed = false;
+            m_constraintNodesParsed = false;
+            m_dxfConstraintGroupStage = 0xFFu;
+        };
+        const auto readLong = [&reader, code](std::int32_t& value) {
+            if (code != 90)
+                return false;
+            value = reader->getInt32();
+            return true;
+        };
+        const auto readHandle = [&reader, code](std::uint32_t& value,
+                                                 int expectedCode) {
+            if (code != expectedCode || !reader->isValidHandleString())
+                return false;
+            value = reader->getHandleString();
+            return true;
+        };
+        if (m_dxfConstraintGroupStage == 0xFFu)
+            return true;
+        switch (m_dxfConstraintGroupStage) {
+        case kGroupVersion: {
+            std::int32_t value = 0;
+            if (!readLong(value) || value != 2) {
+                failProfile();
+                return true;
+            }
+            m_constraintGroupVersion = value;
+            m_dxfConstraintGroupStage = kGroupFlag;
+            return true;
+        }
+        case kGroupFlag: {
+            if (code != 70) {
+                failProfile();
+                return true;
+            }
+            const std::int32_t value = reader->getInt32();
+            if (value != 0 && value != 1) {
+                failProfile();
+                return true;
+            }
+            m_constraintGroupFlag = value != 0;
+            m_dxfConstraintGroupPointIndex = 0u;
+            m_dxfConstraintGroupStage = kWorkplane;
+            return true;
+        }
+        case kWorkplane: {
+            static constexpr std::array<int, 3> kPointCodes{{10, 20, 30}};
+            const std::size_t point = m_dxfConstraintGroupPointIndex / 3u;
+            const std::size_t coordinate =
+                m_dxfConstraintGroupPointIndex % 3u;
+            if (point >= m_constraintWorkplane.size()
+                || code != kPointCodes[coordinate]) {
+                failProfile();
+                return true;
+            }
+            const double value = reader->getDouble();
+            DRW_Coord& target = m_constraintWorkplane[point];
+            if (coordinate == 0u)
+                target.x = value;
+            else if (coordinate == 1u)
+                target.y = value;
+            else
+                target.z = value;
+            if (++m_dxfConstraintGroupPointIndex == 9u)
+                m_dxfConstraintGroupStage = kGroupReference;
+            return true;
+        }
+        case kGroupReference:
+            if (!readHandle(m_constraintGroupReference, 360)) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintGroupStage = kActionCount;
+            return true;
+        case kActionCount: {
+            std::int32_t count = 0;
+            if (!readLong(count) || count < 0
+                || count > kMaxAssociativeDxfReferences) {
+                failProfile();
+                return true;
+            }
+            m_constraintActionCount = count;
+            m_dxfConstraintGroupActionsRemaining =
+                static_cast<std::size_t>(count);
+            m_dxfConstraintGroupStage = count == 0
+                ? kNextNodeId : kActions;
+            if (count == 0)
+                m_constraintActionsParsed = true;
+            return true;
+        }
+        case kActions: {
+            std::uint32_t action = 0u;
+            if (!readHandle(action, 360)
+                || action == 0u || action == DRW::NoHandle) {
+                failProfile();
+                return true;
+            }
+            m_constraintActions.push_back(action);
+            if (--m_dxfConstraintGroupActionsRemaining == 0u) {
+                m_constraintActionsParsed = true;
+                m_dxfConstraintGroupStage = kNextNodeId;
+            }
+            return true;
+        }
+        case kNextNodeId: {
+            if (!readLong(m_constraintNextNodeId)
+                || m_constraintNextNodeId < 0) {
+                failProfile();
+                return true;
+            }
+            m_constraintNextNodeIdRead = true;
+            m_dxfConstraintGroupStage = kNodeCount;
+            return true;
+        }
+        case kNodeCount: {
+            std::int32_t count = 0;
+            if (!readLong(count) || count < 0
+                || count > kMaxAssociativeDxfReferences) {
+                failProfile();
+                return true;
+            }
+            m_constraintNodeCount = count;
+            m_dxfConstraintGroupNodesRemaining =
+                static_cast<std::size_t>(count);
+            if (count == 0) {
+                m_constraintNodesParsed = true;
+                m_constraintGroupBodyParsed = true;
+                m_dxfConstraintGroupStage = kComplete;
+            } else {
+                m_dxfConstraintGroupStage = kNodeClass;
+            }
+            return true;
+        }
+        case kNodeClass: {
+            if (code != 1) {
+                failProfile();
+                return true;
+            }
+            const std::string nodeClass = reader->getUtf8String();
+            if (nodeClass != "AcConstrainedImplicitPoint") {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintNode = {};
+            m_dxfConstraintNode.m_className = nodeClass;
+            m_dxfConstraintNode.m_dataKind =
+                DRW_AssociativeConstraintNode::DataKind::ImplicitPoint;
+            m_dxfConstraintNode.m_classDataParsed = true;
+            m_dxfConstraintGroupStage = kNodeOwner;
+            return true;
+        }
+        case kNodeOwner: {
+            std::uint32_t owner = 0u;
+            if (!readHandle(owner, 330) || owner != handle) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintGroupStage = kNodeId;
+            return true;
+        }
+        case kNodeId: {
+            if (!readLong(m_dxfConstraintNode.m_nodeId)
+                || m_dxfConstraintNode.m_nodeId < 0) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintGroupStage = kNodeConnectionCount;
+            return true;
+        }
+        case kNodeConnectionCount: {
+            std::int32_t count = 0;
+            if (!readLong(count) || count < 0
+                || count > kMaxAssociativeDxfReferences) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintGroupConnectionsRemaining =
+                static_cast<std::size_t>(count);
+            m_dxfConstraintGroupStage = count == 0
+                ? kNodeGeometryHandle : kNodeConnections;
+            return true;
+        }
+        case kNodeConnections: {
+            std::int32_t connection = 0;
+            if (!readLong(connection) || connection < 0) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintNode.m_connections.push_back(connection);
+            if (--m_dxfConstraintGroupConnectionsRemaining == 0u)
+                m_dxfConstraintGroupStage = kNodeGeometryHandle;
+            return true;
+        }
+        case kNodeGeometryHandle: {
+            std::uint32_t dependency = 0u;
+            if (!readHandle(dependency, 330)) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintNode.m_hasGeometryDependency = true;
+            m_dxfConstraintNode.m_geometryDependencyCode =
+                DRW::DwgSoftPointer;
+            m_dxfConstraintNode.m_geometryDependencyHandle = dependency;
+            m_dxfConstraintGroupStage = kNodeGeometryId;
+            return true;
+        }
+        case kNodeGeometryId:
+            if (!readLong(m_dxfConstraintNode.m_geometryNodeId)) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintGroupStage = kNodePointOrType;
+            return true;
+        case kNodePointOrType:
+            if (code == 10) {
+                m_dxfConstraintNode.m_point.x = reader->getDouble();
+                m_dxfConstraintNode.m_hasPoint = true;
+                m_dxfConstraintGroupStage = kNodePointY;
+                return true;
+            }
+            if (code == 280) {
+                const std::int32_t value = reader->getInt32();
+                if (value < 0 || value > 255) {
+                    failProfile();
+                    return true;
+                }
+                m_dxfConstraintNode.m_pointType =
+                    static_cast<std::uint8_t>(value);
+                m_dxfConstraintGroupStage = kNodePointIndex;
+                return true;
+            }
+            failProfile();
+            return true;
+        case kNodePointY:
+            if (code != 20) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintNode.m_point.y = reader->getDouble();
+            m_dxfConstraintGroupStage = kNodePointZ;
+            return true;
+        case kNodePointZ:
+            if (code != 30) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintNode.m_point.z = reader->getDouble();
+            m_dxfConstraintGroupStage = kNodePointType;
+            return true;
+        case kNodePointType: {
+            if (code != 280) {
+                failProfile();
+                return true;
+            }
+            const std::int32_t value = reader->getInt32();
+            if (value < 0 || value > 255) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintNode.m_pointType =
+                static_cast<std::uint8_t>(value);
+            m_dxfConstraintGroupStage = kNodePointIndex;
+            return true;
+        }
+        case kNodePointIndex:
+            if (!readLong(m_dxfConstraintNode.m_pointIndex)) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintGroupStage = kNodeCurveNodeId;
+            return true;
+        case kNodeCurveNodeId:
+            if (!readLong(m_dxfConstraintNode.m_curveNodeId)) {
+                failProfile();
+                return true;
+            }
+            m_constraintNodes.push_back(m_dxfConstraintNode);
+            if (--m_dxfConstraintGroupNodesRemaining == 0u) {
+                m_constraintNodesParsed = true;
+                m_constraintGroupBodyParsed = true;
+                m_dxfConstraintGroupStage = kComplete;
+            } else {
+                m_dxfConstraintNode = {};
+                m_dxfConstraintGroupStage = kNodeClass;
+            }
+            return true;
+        case kComplete:
+            failProfile();
+            return true;
+        default:
+            failProfile();
+            return true;
+        }
     }
     if (m_dxfAssociativeActionSubclass) {
         if (code == 90) {

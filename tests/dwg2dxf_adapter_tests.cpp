@@ -28359,6 +28359,269 @@ bool associativeSourceHandleReservation() {
     return true;
 }
 
+bool associativeDwgGeometryDependencyGraphExport() {
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    const auto directory = std::filesystem::temp_directory_path();
+    for (const bool binary : {false, true}) {
+        const auto path = directory / ("libdxfrw-associative-geometry-"
+            + std::to_string(nonce)
+            + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{path};
+
+        dx_data source;
+        source.sourceFormat = dx_source_format::DWG;
+        source.sourceVersion = DRW::AC1024;
+        source.importGeneration = 1u;
+        source.hasNamedObjectDictionary = true;
+        source.namedObjectDictionary.handle = 0x900u;
+        source.namedObjectDictionary.name = "NOD";
+        source.namedObjectDictionary.m_entries.push_back(
+            {"ACAD_ASSOCNETWORK", 0x901u});
+
+        DRW_Dictionary associationDictionary;
+        associationDictionary.handle = 0x901u;
+        associationDictionary.parentHandle =
+            source.namedObjectDictionary.handle;
+        associationDictionary.m_entries.push_back(
+            {"ACAD_ASSOCNETWORK", 0x902u});
+        source.dictionaries.push_back(associationDictionary);
+
+        auto* line = new DRW_Line();
+        line->handle = 0x905u;
+        line->layer = "0";
+        line->basePoint = DRW_Coord(1.0, 2.0, 0.0);
+        line->secPoint = DRW_Coord(3.0, 4.0, 0.0);
+        line->reactorHandles.push_back(0x904u);
+        source.mBlock->ent.push_back(line);
+
+        DRW_AssociativeObject network("ACDBASSOCNETWORK");
+        network.handle = 0x902u;
+        network.parentHandle = associationDictionary.handle;
+        network.reactorHandles.push_back(associationDictionary.handle);
+        network.m_classVersion = 1u;
+        network.m_networkFieldsParsed = true;
+        network.m_networkVersion = 0;
+        network.m_networkActionIndex = 1;
+        network.m_actions.push_back({true, 0x903u});
+        network.m_prefixStatuses.push_back({
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
+            0u, 0u, 1u,
+            DRW_AssociativePrefixStatus::ParseStatus::Complete,
+            2u, 0u, 0, "authored root-network action profile"});
+        network.m_prefixStatuses.push_back({
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocNetwork,
+            0u, 0u, 1u,
+            DRW_AssociativePrefixStatus::ParseStatus::Complete,
+            1u, 0u, 1, "authored root-network group membership"});
+
+        DRW_AssociativeObject group("ACDBASSOC2DCONSTRAINTGROUP");
+        group.handle = 0x903u;
+        group.parentHandle = network.handle;
+        group.m_classVersion = 1u;
+        group.m_owningNetworkHandle = network.handle;
+        group.m_constraintGroupBodyParsed = true;
+        group.m_constraintGroupVersion = 0;
+        group.m_constraintActionsParsed = true;
+        group.m_constraintActionCount = 1;
+        group.m_constraintActions.push_back(0x904u);
+        group.m_constraintNextNodeIdRead = true;
+        group.m_constraintNextNodeId = 2;
+        group.m_constraintNodesParsed = true;
+        group.m_constraintNodeCount = 1;
+        DRW_AssociativeConstraintNode node;
+        node.m_className = "AcConstrainedImplicitPoint";
+        node.m_nodeId = 1;
+        node.m_dataKind =
+            DRW_AssociativeConstraintNode::DataKind::ImplicitPoint;
+        node.m_hasGeometryDependency = true;
+        node.m_geometryDependencyCode = DRW::DwgSoftPointer;
+        node.m_geometryDependencyHandle = 0x904u;
+        node.m_geometryNodeId = 7;
+        node.m_classDataParsed = true;
+        group.m_constraintNodes.push_back(node);
+        group.m_prefixStatuses.push_back({
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
+            0u, 0u, 1u,
+            DRW_AssociativePrefixStatus::ParseStatus::Complete,
+            2u, 0u, 0, "authored constraint-group action profile"});
+        group.m_prefixStatuses.push_back({
+            DRW_AssociativePrefixStatus::Kind::AcDbAssoc2dConstraintGroup,
+            0u, 0u, 1u,
+            DRW_AssociativePrefixStatus::ParseStatus::Complete,
+            2u, 1u, 1, "authored inline implicit-point profile"});
+
+        DRW_AssociativeObject dependency("ACDBASSOCGEOMDEPENDENCY");
+        dependency.handle = 0x904u;
+        dependency.parentHandle = group.handle;
+        dependency.m_classVersion = 1u;
+        dependency.m_dependencyFieldsParsed = true;
+        dependency.m_dependencyWireComplete = true;
+        dependency.m_dependencyIsRead = true;
+        dependency.m_dependencyIsAttachedToObject = true;
+        dependency.m_dependencyIsDelegatingToOwningAction = true;
+        dependency.m_dependencyHandle = line->handle;
+        dependency.m_geomDependencyFieldsParsed = true;
+        dependency.m_geomClassVersion = 0;
+        dependency.m_geomEnabled = true;
+        dependency.m_geomPersistentSubentityClassName =
+            "AcDbAssocSingleEdgePersSubentId";
+        dependency.m_prefixStatuses.push_back({
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency,
+            0u, 0u, 1u,
+            DRW_AssociativePrefixStatus::ParseStatus::Complete,
+            4u, 0u, 0, "authored geometry-dependency prefix"});
+        dependency.m_prefixStatuses.push_back({
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocGeomDependency,
+            0u, 0u, 0u,
+            DRW_AssociativePrefixStatus::ParseStatus::Complete,
+            0u, 4u, 0, "authored SingleEdge subclass profile"});
+
+        source.dwgAssociativeObjects = {network, group, dependency};
+        dx_associativeDwgImportReceipt& receipt =
+            source.associativeDwgImport;
+        receipt.generation = source.importGeneration;
+        receipt.sourceVersion = source.sourceVersion;
+        receipt.typedRange.begin = 0u;
+        receipt.typedRange.end = source.dwgAssociativeObjects.size();
+        receipt.typedCallbacks = source.dwgAssociativeObjects.size();
+        receipt.successful = true;
+        receipt.captureComplete = true;
+
+        dx_iface exporter;
+        const auto retainedDestination = [&path](const std::string& marker) {
+            std::ifstream input(path, std::ios::binary);
+            const std::string contents{
+                std::istreambuf_iterator<char>(input),
+                std::istreambuf_iterator<char>()};
+            return contents == marker;
+        };
+        const std::string sentinel = "associative graph destination sentinel";
+        {
+            std::ofstream output(path, std::ios::binary | std::ios::trunc);
+            if (!output || !(output << sentinel))
+                return fail("could not seed geometry-associative output sentinel");
+        }
+        source.dwgAssociativeObjects[1].m_constraintActions.front() = 0xDEADu;
+        if (exporter.fileExport(path.string(), DRW::AC1024, binary, &source,
+                false, true, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete)
+            || !retainedDestination(sentinel))
+            return fail("unresolved geometry-dependency action did not refuse atomically");
+        source.dwgAssociativeObjects[1].m_constraintActions.front() = 0x904u;
+        if (!exporter.fileExport(path.string(), DRW::AC1024, binary, &source,
+                false, true, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete))
+            return fail("corrected geometry-dependency graph could not retry: "
+                + std::string(exporter.extensionGraphFailureName()) + ": "
+                + exporter.extensionGraphFailureDetail());
+
+        if (countDxfRecord(path, binary, "ACDBASSOCNETWORK") != 1u
+            || countDxfRecord(path, binary,
+                              "ACDBASSOC2DCONSTRAINTGROUP") != 1u
+            || countDxfRecord(path, binary,
+                              "ACDBASSOCGEOMDEPENDENCY") != 1u)
+            return fail("geometry-associative graph output has missing or duplicate records");
+
+        dx_data readback;
+        dx_iface reader;
+        if (!reader.fileImport(path.string(), &readback, false)
+            || readback.associativeObjects.size() != 3u
+            || readback.mBlock == nullptr)
+            return fail("geometry-associative graph output did not re-import");
+        const auto readNetwork = std::find_if(
+            readback.associativeObjects.begin(),
+            readback.associativeObjects.end(),
+            [](const DRW_AssociativeObject& object) {
+                return object.m_recordName == "ACDBASSOCNETWORK";
+            });
+        const auto readGroup = std::find_if(
+            readback.associativeObjects.begin(),
+            readback.associativeObjects.end(),
+            [](const DRW_AssociativeObject& object) {
+                return object.m_recordName
+                    == "ACDBASSOC2DCONSTRAINTGROUP";
+            });
+        const auto readDependency = std::find_if(
+            readback.associativeObjects.begin(),
+            readback.associativeObjects.end(),
+            [](const DRW_AssociativeObject& object) {
+                return object.m_recordName
+                    == "ACDBASSOCGEOMDEPENDENCY";
+            });
+        const DRW_Line* readLine = nullptr;
+        std::size_t lineCount = 0u;
+        for (const DRW_Entity* entity : readback.mBlock->ent) {
+            if (entity != nullptr && entity->eType == DRW::LINE) {
+                readLine = dynamic_cast<const DRW_Line*>(entity);
+                ++lineCount;
+            }
+        }
+        if (readNetwork == readback.associativeObjects.end()
+            || readGroup == readback.associativeObjects.end()
+            || readDependency == readback.associativeObjects.end()
+            || readLine == nullptr || lineCount != 1u)
+            return fail("geometry-associative graph is missing a network, group, dependency, or LINE after readback");
+        if (readNetwork->m_actions.size() != 1u
+            || !readNetwork->m_actions.front().m_isOwned
+            || readNetwork->m_actions.front().m_handle != readGroup->handle
+            || readGroup->parentHandle != readNetwork->handle)
+            return fail("geometry-associative network to group ownership changed on readback");
+        if (readGroup->m_constraintActions !=
+                std::vector<std::uint32_t>{readDependency->handle}
+            || readGroup->m_constraintNodes.size() != 1u
+            || !readGroup->m_constraintNodes.front().m_hasGeometryDependency
+            || readGroup->m_constraintNodes.front().m_geometryDependencyHandle
+                != readDependency->handle)
+            return fail("geometry-associative group action or inline node reference changed on readback: actions="
+                + std::to_string(readGroup->m_constraintActions.size())
+                + " expected-action=" + std::to_string(readDependency->handle)
+                + " nodes=" + std::to_string(readGroup->m_constraintNodes.size())
+                + (readGroup->m_constraintNodes.empty() ? std::string()
+                    : " has-geometry="
+                        + std::to_string(readGroup->m_constraintNodes.front()
+                                .m_hasGeometryDependency)
+                        + " geometry="
+                        + std::to_string(readGroup->m_constraintNodes.front()
+                                .m_geometryDependencyHandle)));
+        if (readDependency->parentHandle != readGroup->handle
+            || !readDependency->m_dependencyWireComplete
+            || readDependency->m_dependencyHandle != readLine->handle
+            || !readDependency->m_geomDependencyFieldsParsed
+            || readDependency->m_geomClassVersion != 0
+            || readDependency->m_geomPersistentSubentityClassName
+                != "AcDbAssocSingleEdgePersSubentId")
+            return fail("geometry-associative dependency owner, target, or subclass fields changed on readback: owner="
+                + std::to_string(readDependency->parentHandle)
+                + " expected-owner=" + std::to_string(readGroup->handle)
+                + " wire-complete="
+                + std::to_string(readDependency->m_dependencyWireComplete)
+                + " target=" + std::to_string(readDependency->m_dependencyHandle)
+                + " expected-target=" + std::to_string(readLine->handle)
+                + " geom-parsed="
+                + std::to_string(readDependency->m_geomDependencyFieldsParsed)
+                + " geom-version="
+                + std::to_string(readDependency->m_geomClassVersion)
+                + " subentity="
+                + readDependency->m_geomPersistentSubentityClassName);
+        if (readLine->reactorHandles
+            != std::vector<std::uint32_t>{readDependency->handle})
+            return fail("geometry-associative target reactor backlink changed on readback");
+    }
+    return true;
+}
+
 bool associativeDwgRootNetworkValueDependencyExport() {
     const auto nonce = std::chrono::steady_clock::now()
                            .time_since_epoch()
@@ -40347,6 +40610,10 @@ int main(int argc, char** argv) {
         && std::string(argv[1])
             == "--associative-dwg-root-network-value-dependency-export")
         return associativeDwgRootNetworkValueDependencyExport() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1])
+            == "--associative-geometry-dependency-graph-export")
+        return associativeDwgGeometryDependencyGraphExport() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--table-content-style-reference-census")
         return tableContentStyleReferenceCensus() ? 0 : 1;

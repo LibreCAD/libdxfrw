@@ -2345,6 +2345,18 @@ set_tests_properties(dwg2dxf_associative_dwg_root_network_value_dependency_expor
     TIMEOUT 30
 )
 
+# Exercise the AC1024 network -> inline constraint group -> SingleEdge geometry
+# dependency route through strict output, readback, atomic refusal, and retry.
+add_test(
+    NAME dwg2dxf_associative_geometry_dependency_graph_export
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --associative-geometry-dependency-graph-export
+)
+set_tests_properties(dwg2dxf_associative_geometry_dependency_graph_export PROPERTIES
+    LABELS "fast;dxf;adapter;objects;associative;strict;writer"
+    TIMEOUT 30
+)
+
 if(TARGET dwg2dxf)
     # Keep the concrete adapter's modern custom-class 3DLINE subtype and payload
     # through generated DXF, two exact FreeCAD-argv CLI passes, and public readback.

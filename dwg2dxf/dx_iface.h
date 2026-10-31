@@ -1883,10 +1883,14 @@ public:
             bool written = false;
             if (object->m_recordName == "ACDBASSOCNETWORK")
                 written = dxfW->writeAssociativeNetwork(object);
+            else if (object->m_recordName
+                     == "ACDBASSOC2DCONSTRAINTGROUP")
+                written = dxfW->writeAssociativeConstraintGroup(object);
             else if (object->m_recordName == "ACDBASSOCVARIABLE")
                 written = dxfW->writeAssociativeVariable(object);
-            else if (object->m_recordName
-                     == "ACDBASSOCVALUEDEPENDENCY")
+            else if (object->m_recordName == "ACDBASSOCGEOMDEPENDENCY"
+                     || object->m_recordName
+                         == "ACDBASSOCVALUEDEPENDENCY")
                 written = dxfW->writeAssociativeDependency(object);
             if (!written)
                 return;
