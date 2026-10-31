@@ -20704,6 +20704,46 @@ bool dxfRW::processDynamicBlockObject() {
                 return setError(DRW::BAD_CODE_PARSED);
             data.handle = raw.handle;
             data.parentHandle = raw.parentHandle;
+            if (data.m_kind == DRW_DynamicBlockObject::Kind::PurgePreventer
+                && data.m_recordName
+                    == "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION") {
+                bool inPurgeSubclass = false;
+                bool sawPurgeSubclass = false;
+                bool sawPurgeFlag = false;
+                bool completeBody = true;
+                for (const DRW_Variant& group : raw.groups) {
+                    if (group.code() == 100
+                        && group.type() == DRW_Variant::STRING) {
+                        const char* marker = group.c_str();
+                        if (marker != nullptr
+                            && std::string_view(marker)
+                                == "AcDbDynamicBlockPurgePreventer") {
+                            if (sawPurgeSubclass)
+                                completeBody = false;
+                            sawPurgeSubclass = true;
+                            inPurgeSubclass = true;
+                        } else if (inPurgeSubclass) {
+                            completeBody = false;
+                        }
+                        continue;
+                    }
+                    if (!inPurgeSubclass)
+                        continue;
+                    if (group.code() != 70 || sawPurgeFlag
+                        || group.type() != DRW_Variant::INTEGER
+                        || group.i_val() < 0
+                        || group.i_val()
+                            > std::numeric_limits<std::int16_t>::max()) {
+                        completeBody = false;
+                        continue;
+                    }
+                    data.m_purgeFlag = static_cast<std::uint16_t>(
+                        group.i_val());
+                    sawPurgeFlag = true;
+                }
+                data.m_bodyFullyDecoded = completeBody
+                    && sawPurgeSubclass && sawPurgeFlag;
+            }
             iface->addDynamicBlockObject(data);
             iface->addRawDxfObject(raw);
             return true;
@@ -30535,6 +30575,63 @@ bool dxfRW::writeEvaluationGraph(DRW_EvaluationGraph *ent,
         m_writeError = true;
         return false;
     }
+    return true;
+}
+
+// AcDbDynamicBlockPurgePreventer (AC1024 source-backed profile). Both
+// LibreDWG's DWG->DXF output and ACadSharp's DXF writer emit the custom
+// subclass plus group 70 only. The DWG code-5 block handle is represented by
+// the owning extension dictionary's BLOCK_RECORD edge; the adapter validates
+// that edge before admitting this writer. Do not emit the DWG-only handle as
+// an invented DXF reference.
+bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
+    static constexpr char recordName[] =
+        "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION";
+    static constexpr char subclassName[] =
+        "AcDbDynamicBlockPurgePreventer";
+    if (!preflightTableEntry(ent) || ent == nullptr || writer == nullptr
+        || version < DRW::AC1024
+        || ent->m_kind != DRW_DynamicBlockObject::Kind::PurgePreventer
+        || ent->m_recordName != recordName || !ent->m_bodyFullyDecoded
+        || ent->m_purgeFlag
+            > static_cast<std::uint16_t>(
+                std::numeric_limits<std::int16_t>::max())
+        || ent->handle == 0 || ent->handle == DRW::NoHandle
+        || ent->parentHandle == 0 || ent->parentHandle == DRW::NoHandle
+        || ent->m_purgeBlockHandle == 0
+        || ent->m_purgeBlockHandle == DRW::NoHandle
+        || ent->reactorHandles.size() != 1u
+        || ent->reactorHandles.front() != ent->parentHandle
+        || ent->xDictHandle != 0 || !ent->appData.empty()
+        || !ent->extData.empty()) {
+        return failDxfWrite();
+    }
+
+    RecordStateScope state(*this, ent);
+    const std::uint32_t emittedHandle = remapObjectHandle(ent->handle);
+    const std::uint32_t emittedOwner =
+        remapObjectHandle(static_cast<std::uint32_t>(ent->parentHandle));
+    if (emittedHandle == 0 || emittedOwner == 0
+        || isDxfFixedOutputHandle(emittedHandle)
+        || !reserveHandle(emittedHandle)) {
+        return failDxfWrite();
+    }
+
+    DxfWriterRecordScope record(*writer);
+    bool written = writer->writeString(0, recordName)
+        && writer->writeString(5, toHexStr(emittedHandle))
+        && writeTableEntryAppData(*ent)
+        && writer->writeString(330, toHexStr(emittedOwner))
+        && writer->writeString(100, subclassName)
+        && writer->writeInt16(70, static_cast<std::int16_t>(ent->m_purgeFlag));
+    if (written && !ent->extData.empty())
+        written = writeExtData(ent->extData);
+    if (!written || writer->hasWriteError() || !preflightDxfWrite()
+        || !bindDxfWriteSourceObjectHandle(ent->handle, emittedHandle)
+        || !record.commit()) {
+        return failDxfWrite();
+    }
+    state.commit();
     return true;
 }
 

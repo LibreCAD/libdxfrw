@@ -1214,6 +1214,7 @@ public:
             || !hasUnchangedDxfAssociativeGeometrySources()
             || !hasUnchangedDxfAssociativeValueSources()
             || !hasUnchangedExtensionDictionaryOwnerSources()
+            || !hasUnchangedDynamicBlockOutputProfile()
             || !hasUnchangedExtensionMaterialSources()
             || !hasUnchangedDxfDictionaryVars() || !hasUnchangedDxfScales()
             || !hasUnchangedDwgDictionaryVars()
@@ -1968,6 +1969,11 @@ public:
                     return;
                 }
             }
+        }
+        objectWritePhase = "dynamic-block purge-preventer records";
+        for (DRW_DynamicBlockObject& object : cData->dynamicBlockObjects) {
+            if (!dxfW->writeDynamicBlockObject(&object))
+                return;
         }
         objectWritePhase = "sort-entity tables and data links";
         for (DRW_SortEntsTable& table : m_sortEmissionTables) {
@@ -3025,6 +3031,7 @@ private:
     const dx_data* m_extensionDictionaryOwnerSourceOwner{nullptr};
     std::uint64_t m_extensionDictionaryOwnerSourceGeneration{0u};
     bool hasUnchangedExtensionDictionaryOwnerSources() const noexcept;
+    bool hasUnchangedDynamicBlockOutputProfile() const noexcept;
 
     std::vector<std::uint32_t> m_extensionDictionaryHandles;
     std::vector<std::uint32_t> m_extensionAssociativeHandles;

@@ -57,17 +57,21 @@ P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
 **P4 next packet — AC1024 dynamic-block closure.** The existing
-`title_block-arch.dwg` input fails strict export at SORTENTSTABLE
+`title_block-arch.dwg` input still fails strict export at SORTENTSTABLE
 extension-DICTIONARY reciprocity. Its Title_Block-ARCH BLOCK_RECORD dictionary
 `0x1116` contains `ACAD_ENHANCEDBLOCK` → `0x1117`, `ACAD_SORTENTS` → `0x111C`,
-and `AcDbDynamicBlockRoundTripPurgePreventer` → `0x1122`. The dynamic-block
-objects do not yet have a qualified DXF serializer. Bind these targets to their
-exact source callbacks and determine one complete source-backed output profile.
-Keep the sort-table refusal until each required body and edge has staged-output
-proof and fresh readback. Do not repeat the closed mechanical AC1024 witness
-work. Current evidence is in
+and `AcDbDynamicBlockRoundTripPurgePreventer` → `0x1122`. The PurgePreventer
+group-70 body and its isolated, single-entry owner-DICTIONARY/BLOCK_RECORD edge
+now pass exact ASCII/Binary output and fresh readback. The real sample's owner
+DICTIONARY has all three entries, so this isolated profile deliberately does
+not admit the source graph. Compose `ACAD_ENHANCEDBLOCK` → EvaluationGraph,
+`ACAD_SORTENTS` → SORTENTSTABLE and the purge-preventer target in one closed
+graph; bind each to its source callback and prove staged fields, roles, owners,
+reactors and handle remaps before relaxing the refusal. Do not repeat the
+closed mechanical AC1024 witness work. Current evidence is in
 [`p4-ac1024-sortents-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-sortents-output-qualification-2026-10-31.json),
 [`p4-ac1024-dictionary-identity-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-dictionary-identity-output-qualification-2026-10-31.json),
+[`p5-dynamic-block-purge-preventer-record-output-2026-10-31.json`](docs/research/p5-dynamic-block-purge-preventer-record-output-2026-10-31.json),
 and [`p4-existing-dwg-corpus-strict-sweep-2026-10-31.json`](docs/research/p4-existing-dwg-corpus-strict-sweep-2026-10-31.json).
 
 ## P4 — original bodies and complete document closure
@@ -113,15 +117,19 @@ output gates are met.
 
 ## P5 — rendering and TABLE
 
-**Dynamic-block source/output profiles:** the current AC1024 corpus exposes
-owner-linked dynamic-block objects through `ACAD_ENHANCEDBLOCK` and
-`AcDbDynamicBlockRoundTripPurgePreventer` dictionary entries. Implement one
-source-backed subclass/profile at a time, including its complete body, owner
-dictionary/key, reactors and referenced graph. Pair each with a staged writer
-record proof and fresh ASCII/Binary readback. Keep other dynamic-block profiles
-and the whole conversion explicitly refused until their required records are
-preserved; do not relax SORTENTSTABLE owner validation to bypass missing
-children.
+**Dynamic-block source/output profiles:** close the actual AC1024
+`Title_Block-ARCH` mixed-key owner graph rooted at BLOCK_RECORD `0x127`: emit
+`ACAD_ENHANCEDBLOCK` → EvaluationGraph `0x1117`, `ACAD_SORTENTS` → SORTENTSTABLE
+`0x111C`, and `AcDbDynamicBlockRoundTripPurgePreventer` → `0x1122` together.
+Prove every entry, body, owner, reactor and remapped handle in staged output and
+fresh ASCII/Binary readback. The current PurgePreventer gate admits only a
+single-entry dictionary; keep it closed for the real three-entry dictionary
+until each sibling target is selected and emitted exactly once. DXF-origin
+typed/raw replay is also unqualified; establish exact source pairing and one
+emission before admitting it. Then qualify other source-backed subclasses one
+at a time. Keep unqualified profiles and the whole conversion refused until
+their required records are preserved; do not relax SORTENTSTABLE owner
+validation to bypass missing children.
 
 **Rendering:** close remaining engine/class-revision/schema and optional-presence
 profiles; active/global/environment, background/live-section/sun relations; native

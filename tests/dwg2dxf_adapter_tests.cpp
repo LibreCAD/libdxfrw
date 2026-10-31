@@ -980,6 +980,9 @@ bool namedObjectRootCardinalityAndRetry(
 bool readDxfEvaluationGraphWireGroups(
     const std::filesystem::path& path, bool binary,
     std::vector<std::pair<int, std::string>>& groups);
+bool readDxfDynamicBlockPurgeWireGroups(
+        const std::filesystem::path& path, bool binary,
+        std::vector<std::pair<int, std::string>>& groups);
 
 bool fail(const std::string& message) {
     std::cerr << message << '\n';
@@ -7994,36 +7997,214 @@ bool reject3DLineBeforeAC1015(const std::string& path) {
     return true;
 }
 
-bool rejectDynamicBlockWithoutSerializer() {
-    dx_data data;
-    dx_iface iface;
-    iface.cData = &data;
-
-    DRW_DynamicBlockObject object("BLOCKVISIBILITYPARAMETER");
-    object.handle = 0xD701u;
-    iface.addDynamicBlockObject(object);
-    if (data.dynamicBlockObjects.size() != 1u
-        || data.dynamicBlockObjects.front().handle != object.handle
-        || data.dynamicBlockObjects.front().m_recordName != object.m_recordName) {
-        return fail("dynamic-block callback was not retained by the adapter");
-    }
-
+bool dynamicBlockPurgePreventerOutputProfile() {
     const auto nonce = std::chrono::steady_clock::now()
                            .time_since_epoch()
                            .count();
-    const std::filesystem::path output =
-        std::filesystem::temp_directory_path()
-        / ("libdxfrw-dynamic-block-guard-" + std::to_string(nonce)
-           + ".dxf");
-    if (std::filesystem::exists(output))
-        return fail("dynamic-block guard test output path unexpectedly exists");
-    if (iface.fileExport(output.string(), DRW::AC1027, false, &data, true))
-        return fail("dynamic-block export unexpectedly passed without a serializer");
-    if (std::filesystem::exists(output)) {
+    const auto populate = [](dx_data& data, dx_iface& iface,
+                             std::uint16_t flag,
+                             std::uint32_t blockHandle) {
+        iface.cData = &data;
+        DRW_Block_Record block;
+        block.handle = blockHandle;
+        block.name = "PURGE_PROFILE_BLOCK";
+        block.xDictHandle = blockHandle + 1u;
+        data.blockRecords.push_back(block);
+        dx_ifaceBlock* definition = new dx_ifaceBlock();
+        definition->name = block.name;
+        definition->parentHandle = blockHandle;
+        data.blocks.push_back(definition);
+
+        DRW_Dictionary dictionary;
+        dictionary.handle = blockHandle + 1u;
+        dictionary.parentHandle = blockHandle;
+        dictionary.hardOwner = 1;
+        dictionary.cloning = 1;
+        const std::uint32_t objectHandle = blockHandle + 2u;
+        dictionary.m_entries.push_back(
+            {"AcDbDynamicBlockRoundTripPurgePreventer", objectHandle});
+        data.dictionaries.push_back(dictionary);
+
+        DRW_DynamicBlockObject object(
+            "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION");
+        object.handle = objectHandle;
+        object.parentHandle = dictionary.handle;
+        object.reactorHandles.push_back(dictionary.handle);
+        object.m_purgeFlag = flag;
+        object.m_purgeBlockHandle = blockHandle;
+        object.m_bodyFullyDecoded = true;
+        iface.addDynamicBlockObject(object);
+        return !data.dynamicBlockCaptureFailed
+            && data.dynamicBlockObjects.size() == 1u;
+    };
+
+    for (const bool binary : {false, true}) {
+        const std::string encoding = binary ? "binary" : "ascii";
+        const std::filesystem::path output =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-dynamic-purge-preventer-" + encoding + "-"
+               + std::to_string(nonce) + ".dxf");
+        dx_data data;
+        dx_iface iface;
+        if (!populate(data, iface, 1u, 0xE700u))
+            return fail("PurgePreventer input was not retained by the adapter");
+        if (!iface.fileExport(output.string(), DRW::AC1024, binary,
+                              &data, false)) {
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+            return fail("closed PurgePreventer profile did not export: "
+                + iface.extensionGraphFailureDetail());
+        }
+
+        std::vector<std::pair<int, std::string>> wireGroups;
+        const bool exactWire = readDxfDynamicBlockPurgeWireGroups(
+            output, binary, wireGroups)
+            && wireGroups == std::vector<std::pair<int, std::string>>{
+                {5, "59138"}, {102, "{ACAD_REACTORS"}, {330, "59137"},
+                {102, "}"}, {330, "59137"},
+                {100, "AcDbDynamicBlockPurgePreventer"}, {70, "1"}};
+
+        dx_data readback;
+        dx_iface rereader;
+        const bool imported = rereader.fileImport(
+            output.string(), &readback, false);
+        const auto importedDictionary = std::find_if(
+            readback.dictionaries.begin(), readback.dictionaries.end(),
+            [](const DRW_Dictionary& dictionary) {
+                return dictionary.handle == 0xE701u;
+            });
+        const auto importedBlock = std::find_if(
+            readback.blockRecords.begin(), readback.blockRecords.end(),
+            [](const DRW_Block_Record& block) {
+                return block.name == "PURGE_PROFILE_BLOCK";
+            });
         std::error_code ignored;
         std::filesystem::remove(output, ignored);
-        return fail("rejected dynamic-block export published a DXF");
+        if (!exactWire)
+            return fail("PurgePreventer exact output field sequence changed on "
+                        + encoding + " encoding");
+        if (!imported || readback.dynamicBlockObjects.size() != 1u
+            || readback.dynamicBlockObjects.front().handle != 0xE702u
+            || readback.dynamicBlockObjects.front().parentHandle != 0xE701u
+            || readback.dynamicBlockObjects.front().m_purgeFlag != 1u
+            || !readback.dynamicBlockObjects.front().m_bodyFullyDecoded
+            || importedDictionary == readback.dictionaries.end()
+            || importedBlock == readback.blockRecords.end()
+            || importedDictionary->parentHandle != importedBlock->handle
+            || importedDictionary->m_entries.size() != 1u
+            || importedDictionary->m_entries.front().m_name
+                != "AcDbDynamicBlockRoundTripPurgePreventer"
+            || importedDictionary->m_entries.front().m_handle != 0xE702u
+            || importedBlock->xDictHandle != 0xE701u
+            || std::count_if(readback.dxfClasses.begin(),
+                readback.dxfClasses.end(), [](const DRW_Class& cls) {
+                    return cls.recName
+                        == "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION"
+                        && cls.instanceCount == 1;
+                }) != 1) {
+            return fail("PurgePreventer fields, identity, owner/reactor, "
+                        "dictionary edge or CLASS changed on " + encoding
+                        + " output/readback (imported="
+                        + (imported ? "true" : "false") + ", dynamic="
+                        + std::to_string(readback.dynamicBlockObjects.size())
+                        + ", dictionaries="
+                        + std::to_string(readback.dictionaries.size())
+                        + ", blocks="
+                        + std::to_string(readback.blockRecords.size()) + ")");
+        }
     }
+
+    dx_data incompleteGraph;
+    dx_iface incompleteGraphIface;
+    if (!populate(incompleteGraph, incompleteGraphIface, 1u, 0xE708u))
+        return fail("could not construct incomplete mixed-key profile");
+    incompleteGraph.dictionaries.front().m_entries.push_back(
+        {"ACAD_ENHANCEDBLOCK", 0xE711u});
+    const std::filesystem::path incompleteGraphPath =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-dynamic-purge-preventer-incomplete-"
+           + std::to_string(nonce) + ".dxf");
+    const bool incompleteGraphRefused = !incompleteGraphIface.fileExport(
+        incompleteGraphPath.string(), DRW::AC1024, false,
+        &incompleteGraph, false)
+        && !std::filesystem::exists(incompleteGraphPath);
+    std::error_code ignored;
+    std::filesystem::remove(incompleteGraphPath, ignored);
+    if (!incompleteGraphRefused)
+        return fail("mixed-key owner dictionary was emitted without its child graph");
+
+    dx_data oldVersion;
+    dx_iface oldVersionIface;
+    if (!populate(oldVersion, oldVersionIface, 1u, 0xE718u))
+        return fail("could not construct old-version profile control");
+    const std::filesystem::path oldVersionPath =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-dynamic-purge-preventer-old-version-"
+           + std::to_string(nonce) + ".dxf");
+    const bool oldVersionRefused = !oldVersionIface.fileExport(
+        oldVersionPath.string(), DRW::AC1021, false, &oldVersion, false)
+        && !std::filesystem::exists(oldVersionPath);
+    std::filesystem::remove(oldVersionPath, ignored);
+    if (!oldVersionRefused)
+        return fail("PurgePreventer profile was emitted before AC1024 evidence");
+
+    dx_data invalid;
+    dx_iface invalidIface;
+    if (!populate(invalid, invalidIface, 32768u, 0xE710u))
+        return fail("invalid PurgePreventer control was not retained");
+    const std::filesystem::path sentinelPath =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-dynamic-purge-preventer-sentinel-"
+           + std::to_string(nonce) + ".dxf");
+    const std::string sentinel = "existing destination survives\n";
+    { std::ofstream existing(sentinelPath, std::ios::binary); existing << sentinel; }
+    if (invalidIface.fileExport(sentinelPath.string(), DRW::AC1024, false,
+                                &invalid, false)) {
+        std::error_code ignored;
+        std::filesystem::remove(sentinelPath, ignored);
+        return fail("out-of-range PurgePreventer flag was accepted");
+    }
+    std::ifstream sentinelInput(sentinelPath, std::ios::binary);
+    const std::string preserved{
+        std::istreambuf_iterator<char>(sentinelInput),
+        std::istreambuf_iterator<char>()};
+    std::filesystem::remove(sentinelPath, ignored);
+    if (preserved != sentinel)
+        return fail("invalid PurgePreventer replaced the destination");
+
+    invalid.dynamicBlockObjects.front().m_purgeFlag = 2u;
+    const std::filesystem::path retryPath =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-dynamic-purge-preventer-retry-"
+           + std::to_string(nonce) + ".dxf");
+    dx_data retryReadback;
+    dx_iface retryReader;
+    if (!invalidIface.fileExport(retryPath.string(), DRW::AC1024, false,
+                                 &invalid, false)
+        || !retryReader.fileImport(retryPath.string(), &retryReadback, false)
+        || retryReadback.dynamicBlockObjects.size() != 1u
+        || retryReadback.dynamicBlockObjects.front().m_purgeFlag != 2u) {
+        std::filesystem::remove(retryPath, ignored);
+        return fail("corrected PurgePreventer failed same-adapter retry");
+    }
+    std::filesystem::remove(retryPath, ignored);
+
+    dx_data unsupported;
+    dx_iface unsupportedIface;
+    unsupportedIface.cData = &unsupported;
+    DRW_DynamicBlockObject other("BLOCKVISIBILITYPARAMETER");
+    other.handle = 0xE720u;
+    unsupportedIface.addDynamicBlockObject(other);
+    const std::filesystem::path unsupportedPath =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-dynamic-block-unsupported-"
+           + std::to_string(nonce) + ".dxf");
+    const bool unsupportedRejected = !unsupportedIface.fileExport(
+        unsupportedPath.string(), DRW::AC1024, false, &unsupported, false)
+        && !std::filesystem::exists(unsupportedPath);
+    std::filesystem::remove(unsupportedPath, ignored);
+    if (!unsupportedRejected)
+        return fail("unqualified dynamic-block subclass bypassed refusal");
     return true;
 }
 
@@ -18268,6 +18449,45 @@ bool readDxfEvaluationGraphWireGroups(
         }
     }
     return inGraph && inGraphBody && !groups.empty() && !stream.bad();
+}
+
+bool readDxfDynamicBlockPurgeWireGroups(
+        const std::filesystem::path& path, bool binary,
+        std::vector<std::pair<int, std::string>>& groups) {
+    std::ifstream stream(path, std::ios::binary);
+    if (!stream)
+        return false;
+    if (binary)
+        stream.seekg(22);
+    if (!stream)
+        return false;
+    std::unique_ptr<dxfReader> reader = binary
+        ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
+        : std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+    bool inObject = false;
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            if (inObject)
+                return !groups.empty() && !stream.bad();
+            inObject = reader->getString()
+                == "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION";
+            continue;
+        }
+        if (!inObject)
+            continue;
+        if (code == 5 || code == 330) {
+            groups.emplace_back(code,
+                std::to_string(reader->getHandleString()));
+        } else if (code == 70) {
+            groups.emplace_back(code, std::to_string(reader->getInt32()));
+        } else if (code == 100 || code == 102) {
+            groups.emplace_back(code, reader->getString());
+        } else {
+            return false;
+        }
+    }
+    return inObject && !groups.empty() && !stream.bad();
 }
 
 bool seqEndTableRoundTrip() {
@@ -48243,8 +48463,9 @@ int main(int argc, char** argv) {
         return extensionDictionaryOwnerGraphs()
                 && layerTableControlDictionaryOwnerOutput()
             ? 0 : 1;
-    if (argc == 2 && std::string(argv[1]) == "--reject-dynamic-block")
-        return rejectDynamicBlockWithoutSerializer() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1]) == "--dynamic-block-purge-preventer")
+        return dynamicBlockPurgePreventerOutputProfile() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--object-context-data-loss-refusal")
         return objectContextDataLossRefusesExport() ? 0 : 1;

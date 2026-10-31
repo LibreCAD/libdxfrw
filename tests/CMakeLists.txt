@@ -1431,15 +1431,15 @@ set_tests_properties(dwg2dxf_modeler_dxf_move_dispatch PROPERTIES
     TIMEOUT 10
 )
 
-# Dynamic-block objects are retained by the converter adapter and must block
-# publication until a semantics-qualified DXF writer exists.
+# The bounded ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION profile round-trips in
+# ASCII and Binary DXF; other dynamic-block subclasses remain fail-closed.
 add_test(
-    NAME dwg2dxf_dynamic_block_fail_closed
-    COMMAND libdxfrw_dwg2dxf_adapter_tests --reject-dynamic-block
+    NAME dwg2dxf_dynamic_block_purge_preventer
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --dynamic-block-purge-preventer
 )
-set_tests_properties(dwg2dxf_dynamic_block_fail_closed PROPERTIES
+set_tests_properties(dwg2dxf_dynamic_block_purge_preventer PROPERTIES
     LABELS "fast;dxf;adapter;dynamic-block"
-    TIMEOUT 10
+    TIMEOUT 30
 )
 
 # File-format dispatch folds only ASCII extension letters; non-ASCII suffix

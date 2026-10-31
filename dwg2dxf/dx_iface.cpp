@@ -80,6 +80,96 @@ constexpr std::size_t kMaxAcdsDxfHistoryGroups = 4000000u;
 constexpr std::size_t kMaxAdapterCellStyleMapItems = 4000000u;
 constexpr std::size_t kMaxAdapterCellStyleMapRetainedBytes =
     DRW::kMaxDxfBinaryPayloadBytes;
+constexpr std::size_t kMaxAdapterDynamicBlockRecords = 100000u;
+
+bool hasClosedDynamicBlockPurgePreventerProfile(
+        const dx_data& data) noexcept {
+    if (data.dynamicBlockObjects.empty())
+        return true;
+    if (data.sourceFormat == dx_source_format::DXF
+        || data.dynamicBlockObjects.size() > kMaxAdapterDynamicBlockRecords
+        || data.dictionaries.size() > kMaxAdapterDynamicBlockRecords
+        || data.blockRecords.size() > kMaxAdapterDynamicBlockRecords)
+        return false;
+
+    try {
+        std::unordered_map<std::uint32_t, const DRW_Dictionary*> dictionaries;
+        std::unordered_map<std::uint32_t, const DRW_Block_Record*> blocks;
+        std::unordered_set<std::uint32_t> objectHandles;
+        std::unordered_set<std::uint32_t> matchedDictionaries;
+        dictionaries.reserve(data.dictionaries.size());
+        blocks.reserve(data.blockRecords.size());
+        objectHandles.reserve(data.dynamicBlockObjects.size());
+        matchedDictionaries.reserve(data.dynamicBlockObjects.size());
+
+        for (const DRW_Dictionary& dictionary : data.dictionaries) {
+            if (dictionary.handle == 0
+                || dictionary.handle == DRW::NoHandle
+                || !dictionaries.emplace(dictionary.handle, &dictionary).second)
+                return false;
+        }
+        for (const DRW_Block_Record& block : data.blockRecords) {
+            if (block.handle == 0 || block.handle == DRW::NoHandle
+                || !blocks.emplace(block.handle, &block).second)
+                return false;
+        }
+
+        for (const DRW_DynamicBlockObject& object : data.dynamicBlockObjects) {
+            if (object.m_kind
+                    != DRW_DynamicBlockObject::Kind::PurgePreventer
+                || object.m_recordName
+                    != "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION"
+                || !object.m_bodyFullyDecoded
+                || object.m_purgeFlag
+                    > static_cast<std::uint16_t>(
+                        std::numeric_limits<std::int16_t>::max())
+                || object.handle == 0 || object.handle == DRW::NoHandle
+                || object.parentHandle == 0
+                || object.parentHandle == DRW::NoHandle
+                || object.m_purgeBlockHandle == 0
+                || object.m_purgeBlockHandle == DRW::NoHandle
+                || object.xDictHandle != 0 || !object.appData.empty()
+                || !object.extData.empty()
+                || object.reactorHandles.size() != 1u
+                || object.reactorHandles.front() != object.parentHandle
+                || !objectHandles.insert(object.handle).second)
+                return false;
+
+            const auto dictionary = dictionaries.find(object.parentHandle);
+            const auto block = blocks.find(object.m_purgeBlockHandle);
+            if (dictionary == dictionaries.end() || block == blocks.end())
+                return false;
+            const DRW_Dictionary& owner = *dictionary->second;
+            if (owner.parentHandle != object.m_purgeBlockHandle
+                || owner.xDictHandle != 0 || owner.hardOwner != 1
+                || owner.cloning < 0
+                || owner.cloning > std::numeric_limits<std::int16_t>::max()
+                || !owner.appData.empty() || !owner.extData.empty()
+                || !owner.reactorHandles.empty()
+                || !owner.hasCompleteDwgEntries()
+                || !owner.hasCompleteDxfEntries()
+                || owner.m_entries.size() != 1u
+                || owner.m_entries.front().m_name
+                    != "AcDbDynamicBlockRoundTripPurgePreventer"
+                || owner.m_entries.front().m_handle != object.handle
+                || block->second->xDictHandle != owner.handle
+                || !matchedDictionaries.insert(owner.handle).second)
+                return false;
+        }
+
+        for (const DRW_Dictionary& dictionary : data.dictionaries) {
+            for (const DRW_Dictionary::Entry& entry : dictionary.m_entries) {
+                if (entry.m_name
+                        == "AcDbDynamicBlockRoundTripPurgePreventer"
+                    && matchedDictionaries.count(dictionary.handle) == 0u)
+                    return false;
+            }
+        }
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
 
 bool estimateCellStyleMapTypedBytes(const DRW_CellStyleMap& styleMap,
                                     std::size_t& estimate,
@@ -6870,6 +6960,11 @@ bool dx_iface::inspectAcdsDxfHistory(const dxfRW::DxfObjectsWriteView& view) noe
     } catch (...) { return false; }
 }
 
+bool dx_iface::hasUnchangedDynamicBlockOutputProfile() const noexcept {
+    return cData != nullptr
+        && hasClosedDynamicBlockPurgePreventerProfile(*cData);
+}
+
 bool dx_iface::hasUnchangedExtensionDictionaryOwnerSources() const noexcept {
     if (m_extensionDictionaryOwnerSourceOwner == nullptr)
         return m_extensionDictionaryOwnerSources.empty();
@@ -8034,6 +8129,16 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         if (renderSettings.size() != rawRenderSettings.size()) {
             inventoryFamily = "RenderSettings typed/raw carrier coverage";
             return reject();
+        }
+        inventoryFamily = "dynamic-block object records";
+        for (const DRW_DynamicBlockObject& object : data->dynamicBlockObjects) {
+            if (!examineSourceRecord())
+                return false;
+            if (object.handle == 0 || object.handle == DRW::NoHandle
+                || !sourceHandles.insert(object.handle).second)
+                return reject(ExtensionGraphFailure::InvalidGraph,
+                    "invalid or duplicate dynamic-block object handle "
+                    + std::to_string(object.handle));
         }
         inventoryFamily = "EvaluationGraph records";
         for (const DRW_EvaluationGraph& graph : data->evaluationGraphs) {
@@ -12087,7 +12192,6 @@ constexpr std::size_t kMaxAdapterAcDsHistoryDwgFrameRetainedBytes =
 constexpr std::size_t kMaxAdapterEvaluationGraphRecords = 100000u;
 constexpr std::size_t kMaxAdapterEvaluationGraphRetainedBytes =
     DRW::kMaxDxfBinaryPayloadBytes;
-constexpr std::size_t kMaxAdapterDynamicBlockRecords = 100000u;
 constexpr std::size_t kMaxAdapterDynamicBlockRetainedBytes =
     DRW::kMaxDxfBinaryPayloadBytes;
 constexpr std::size_t kMaxAdapterProxyObjectRecords = 100000u;
@@ -53884,7 +53988,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                      m_hatchOwnerBlocks, m_hatchOwnerContext, m_hatchPlanningFailed,
                      m_preserveGraphSourceIdentities};
     cData = fData;
-    std::map<std::uint32_t,std::uint32_t> selectedLegacyBlockRecordXdicts;
+    std::map<std::uint32_t,std::uint32_t> selectedBlockRecordXdicts;
     m_acdsHistoryObjects.clear();
     m_acdsDxfHistoryObjects.clear();
     m_acdsDxfHistoryClasses.clear();
@@ -54921,9 +55025,9 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             "typed named-object callback capture exceeded its bounded retention budget");
         return false;
     }
-    if (!cData->dynamicBlockObjects.empty()) {
+    if (!hasClosedDynamicBlockPurgePreventerProfile(*cData)) {
         reportPreflightFailure(
-            "dynamic-block objects have no qualified DXF serializer");
+            "dynamic-block objects are outside the closed purge-preventer profile");
         return false;
     }
     const auto hasVisualStyleEdges = [this]() {
@@ -55128,7 +55232,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                     reportPreflightFailure("selected AC1018 ATTDEF XDICTIONARY live-source binding changed");
                     return false;
                 }
-                const auto inserted=selectedLegacyBlockRecordXdicts.emplace(
+                const auto inserted=selectedBlockRecordXdicts.emplace(
                     join->origin->blockRecord,join->extensionDictionaryHandle);
                 if(!inserted.second&&inserted.first->second!=join->extensionDictionaryHandle) {
                     reportPreflightFailure("selected AC1018 BLOCK_RECORD has conflicting XDICTIONARY targets");
@@ -55142,6 +55246,31 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             reportPreflightFailure("selected AC1018 XDICTIONARY staging allocation failed");
             return false;
         }
+    }
+    // The closed PurgePreventer profile is rooted by its BLOCK_RECORD's
+    // extension DICTIONARY. Stage both edges so the normal BLOCK_RECORD and
+    // object writers emit the same validated graph.
+    try {
+        for (const DRW_DynamicBlockObject& object :
+             cData->dynamicBlockObjects) {
+            const auto inserted = selectedBlockRecordXdicts.emplace(
+                object.m_purgeBlockHandle, object.parentHandle);
+            if (!inserted.second
+                && inserted.first->second != object.parentHandle) {
+                reportPreflightFailure(
+                    "dynamic-block BLOCK_RECORD has conflicting XDICTIONARY targets");
+                return false;
+            }
+            if (std::find(m_extensionDictionaryHandles.begin(),
+                          m_extensionDictionaryHandles.end(),
+                          object.parentHandle)
+                == m_extensionDictionaryHandles.end())
+                m_extensionDictionaryHandles.push_back(object.parentHandle);
+        }
+    } catch (...) {
+        reportPreflightFailure(
+            "dynamic-block XDICTIONARY staging allocation failed");
+        return false;
     }
     if(!prepareDxfDictionaryVars(v,binary,targetTextPolicy)) {
         reportPreflightFailure("DICTIONARYVAR current source/body transaction");
@@ -56359,7 +56488,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     };
     std::vector<DRW_Block_Record> sourceBlockRecords;
     sourceBlockRecords.reserve(cData->blockRecords.size());
-    for (const auto& selected : selectedLegacyBlockRecordXdicts) {
+    for (const auto& selected : selectedBlockRecordXdicts) {
         const DRW_Block_Record* sourceRecord = nullptr;
         std::size_t matches = 0u;
         for (const DRW_Block_Record& candidate : cData->blockRecords) {
@@ -56372,7 +56501,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             || (sourceRecord->xDictHandle != 0u
                 && sourceRecord->xDictHandle != selected.second)) {
             reportPreflightFailure(
-                "selected AC1018 XDICTIONARY owner identity is missing or ambiguous");
+                "selected BLOCK_RECORD XDICTIONARY owner identity is missing or ambiguous");
             return false;
         }
     }
@@ -56385,8 +56514,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         identity.name = source.name;
         identity.layoutHandle = source.layoutHandle;
         identity.xDictHandle = source.xDictHandle;
-        const auto selected = selectedLegacyBlockRecordXdicts.find(source.handle);
-        if (selected != selectedLegacyBlockRecordXdicts.end())
+        const auto selected = selectedBlockRecordXdicts.find(source.handle);
+        if (selected != selectedBlockRecordXdicts.end())
             identity.xDictHandle = selected->second;
         sourceBlockRecords.push_back(std::move(identity));
     }
@@ -56403,8 +56532,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     std::unordered_set<std::uint32_t> sortOwners(
         m_sortOwnerHandles.begin(), m_sortOwnerHandles.end());
     for (DRW_Block_Record& record : sourceBlockRecords) {
-        const auto selected = selectedLegacyBlockRecordXdicts.find(record.handle);
-        if (selected != selectedLegacyBlockRecordXdicts.end())
+        const auto selected = selectedBlockRecordXdicts.find(record.handle);
+        if (selected != selectedBlockRecordXdicts.end())
             record.xDictHandle = selected->second;
         else if (sortOwners.count(record.handle) == 0)
             record.xDictHandle = 0;
@@ -56719,6 +56848,35 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 cData->evaluationGraphs.size());
             classes.push_back(std::move(evaluationGraphClass));
         }
+        if (!cData->dynamicBlockObjects.empty()) {
+            const auto isPurgePreventerClass = [](const DRW_Class& cls) {
+                return sameAsciiName(
+                           cls.recName,
+                           "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION")
+                    || sameAsciiName(
+                           cls.className,
+                           "AcDbDynamicBlockPurgePreventer");
+            };
+            classes.erase(
+                std::remove_if(classes.begin(), classes.end(),
+                               isPurgePreventerClass),
+                classes.end());
+            DRW_Class purgePreventerClass;
+            if (!dxfRW::dxfClassForRecordName(
+                    "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION",
+                    purgePreventerClass)
+                || cData->dynamicBlockObjects.size()
+                    > static_cast<std::size_t>(
+                        std::numeric_limits<int>::max())) {
+                delete dxfW;
+                dxfW = nullptr;
+                return false;
+            }
+            purgePreventerClass.instanceCount = static_cast<int>(
+                cData->dynamicBlockObjects.size());
+            purgePreventerClass.wasaProxyFlag = 0;
+            classes.push_back(std::move(purgePreventerClass));
+        }
         const auto rejectClassRegistration = [this, &reportPreflightFailure](
                 const std::string& reason) {
             reportPreflightFailure(reason);
@@ -56921,6 +57079,15 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             return false;
         }
     }
+    for (const DRW_DynamicBlockObject& object : cData->dynamicBlockObjects) {
+        if (object.handle == 0 || object.handle == DRW::NoHandle
+            || !proxyHandles.insert(object.handle).second
+            || !dxfW->reserveHandle(object.handle)) {
+            delete dxfW;
+            dxfW = nullptr;
+            return false;
+        }
+    }
     for (const auto& row : m_acdsDxfHistoryObjects) {
         if (!dxfW->reserveHandle(row.handle)) {
             delete dxfW; dxfW = nullptr; return false;
@@ -57075,6 +57242,13 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     };
     for (const DRW_Dictionary& dictionary : cData->dictionaries) {
         if (!remapFixedCollision(dictionary.handle)) {
+            delete dxfW;
+            dxfW = nullptr;
+            return false;
+        }
+    }
+    for (const DRW_DynamicBlockObject& object : cData->dynamicBlockObjects) {
+        if (!remapFixedCollision(object.handle)) {
             delete dxfW;
             dxfW = nullptr;
             return false;
