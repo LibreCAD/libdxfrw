@@ -56,7 +56,7 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next action — reconcile the existing physical coverage ledger.** Use the
+**P4 next action — publish the residual census-to-receipt delta.** Use the
 228-identity census and the committed P4 receipts as inputs; do not recollect
 the census or reopen any profile whose source identities, admitted fields,
 reference roles, emitted records and required readback are already proved.
@@ -66,9 +66,8 @@ highest-incidence uncovered required profile and close only its missing source,
 graph, output or readback edge. Keep strict admission closed until this join
 proves complete required coverage. Add no investigation DWG/DXF fixture;
 preserve refusal, atomic publication and corrected retry for the selected
-slice. Include physical receipts added since the census, including the narrow
-dictionary/default output proof, but do not count their closed records as open
-implementation work. The original identity inventory is
+slice. Assign residual rows already owned by P5 to P5 instead of duplicating
+them in P4. The original identity inventory is
 [`p4-ac1024-opaque-callback-census-2026-10-30.json`](docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json).
 
 The last physical partial-output observation is recorded in

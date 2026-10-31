@@ -28888,6 +28888,512 @@ bool physicalXRecordOutputReadback(
     return outputEncoding(false) && outputEncoding(true);
 }
 
+bool physicalSortEntsOutputReadback(
+        const std::filesystem::path& sourcePath) {
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024
+        || source.sortEntsTables.size() != 1u
+        || source.dwgSortEntsMemberships.size() != 1u
+        || source.sortEntsCaptureFailed
+        || source.dwgSortEntsMemberships.front().m_version != DRW::AC1024
+        || source.dwgSortEntsMemberships.front().m_tableHandle != 0x354u
+        || source.dwgSortEntsMemberships.front().m_recordName != "SORTENTSTABLE"
+        || source.dwgSortEntsMemberships.front().m_className != "AcDbSortentsTable")
+        return fail("physical AC1024 SORTENTSTABLE source is not the admitted single-record profile");
+
+    const DRW_SortEntsTable& sourceTable = source.sortEntsTables.front();
+    const DRW_DwgSortEntsMembership& sourceMembership =
+        source.dwgSortEntsMemberships.front();
+    const auto sourceDictionary = std::find_if(
+        source.dictionaries.begin(), source.dictionaries.end(),
+        [&sourceTable](const DRW_Dictionary& dictionary) {
+            return dictionary.handle == sourceTable.parentHandle;
+        });
+    const auto sourceBlockOwner = std::find_if(
+        source.blockRecords.begin(), source.blockRecords.end(),
+        [&sourceTable](const DRW_Block_Record& record) {
+            return record.handle == sourceTable.m_blockOwnerHandle;
+        });
+    const bool hasUniqueSourceSortEntry =
+        sourceDictionary != source.dictionaries.end()
+        && std::count_if(sourceDictionary->m_entries.begin(),
+                         sourceDictionary->m_entries.end(), [&sourceTable](
+                const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "ACAD_SORTENTS"
+                        && entry.m_handle == sourceTable.handle;
+                }) == 1;
+    if (sourceTable.handle != 0x354u
+        || !sourceTable.hasCompleteDwgEntries()
+        || sourceTable.m_entityHandles.size() != 88u
+        || sourceTable.m_sortHandles.size() != sourceTable.m_entityHandles.size()
+        || sourceMembership.m_tableHandle != sourceTable.handle
+        || !sourceMembership.m_complete
+        || sourceMembership.m_blockOwnerHandle
+            != sourceTable.m_blockOwnerHandle
+        || sourceMembership.m_entries.size() != sourceTable.m_entityHandles.size()
+        || sourceDictionary == source.dictionaries.end()
+        || !hasUniqueSourceSortEntry
+        || sourceDictionary->m_entries.size() != 2u
+        || sourceDictionary->m_entries[0].m_name != "ACAD_ASSOCNETWORK"
+        || sourceDictionary->m_entries[1].m_name != "ACAD_SORTENTS"
+        || sourceDictionary->m_entries[1].m_handle != sourceTable.handle
+        || sourceTable.parentHandle != sourceDictionary->handle
+        || sourceTable.reactorHandles
+            != std::vector<std::uint32_t>{sourceDictionary->handle}
+        || sourceBlockOwner == source.blockRecords.end()
+        || sourceBlockOwner->xDictHandle != sourceDictionary->handle)
+        return fail("physical SORTENTSTABLE source membership, owner dictionary or block-owner roles are incomplete");
+    const auto ownerEntities = [](const dx_data& data,
+                                  const DRW_Block_Record& blockOwner) {
+        std::vector<const DRW_Entity*> result;
+        const bool mainModel = blockOwner.name == "*Model_Space";
+        const bool mainPaper = blockOwner.name == "*Paper_Space"
+            || blockOwner.name == "*Paper_Space0";
+        if (mainModel || mainPaper) {
+            if (data.mBlock != nullptr) {
+                const DRW::Space expectedSpace = mainPaper
+                    ? DRW::PaperSpace : DRW::ModelSpace;
+                for (const DRW_Entity* entity : data.mBlock->ent)
+                    if (entity != nullptr && entity->space == expectedSpace)
+                        result.push_back(entity);
+            }
+        } else {
+            const auto found = std::find_if(data.blocks.begin(),
+                data.blocks.end(), [&blockOwner](const dx_ifaceBlock* block) {
+                    return block != nullptr && block->name == blockOwner.name
+                        && block->parentHandle == blockOwner.handle;
+                });
+            if (found != data.blocks.end())
+                for (const DRW_Entity* entity : (*found)->ent)
+                    if (entity != nullptr)
+                        result.push_back(entity);
+        }
+        return result;
+    };
+    const std::vector<const DRW_Entity*> sourceOwnerEntities =
+        ownerEntities(source, *sourceBlockOwner);
+    if (sourceOwnerEntities.empty())
+        return fail("physical SORTENTSTABLE owner has no retained ordered entities");
+    const auto findNetwork = [](const std::vector<DRW_AssociativeObject>& records,
+                                std::uint32_t handle)
+            -> const DRW_AssociativeObject* {
+        const DRW_AssociativeObject* result = nullptr;
+        for (const DRW_AssociativeObject& record : records) {
+            if (record.handle != handle
+                || record.m_recordName != "ACDBASSOCNETWORK")
+                continue;
+            if (result != nullptr)
+                return nullptr;
+            result = &record;
+        }
+        return result;
+    };
+    const auto sourceNestedDictionaryEntry = std::find_if(
+        sourceDictionary->m_entries.begin(), sourceDictionary->m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == "ACAD_ASSOCNETWORK";
+        });
+    const auto sourceNamedNetworkEntry = std::find_if(
+        source.namedObjectDictionary.m_entries.begin(),
+        source.namedObjectDictionary.m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == "ACAD_ASSOCNETWORK";
+        });
+    const auto sourceNestedDictionary = sourceNestedDictionaryEntry
+            == sourceDictionary->m_entries.end()
+        ? source.dictionaries.end()
+        : std::find_if(source.dictionaries.begin(), source.dictionaries.end(),
+            [&sourceNestedDictionaryEntry](const DRW_Dictionary& dictionary) {
+                return dictionary.handle == sourceNestedDictionaryEntry->m_handle;
+            });
+    const auto sourceRootDictionary = sourceNamedNetworkEntry
+            == source.namedObjectDictionary.m_entries.end()
+        ? source.dictionaries.end()
+        : std::find_if(source.dictionaries.begin(), source.dictionaries.end(),
+            [&sourceNamedNetworkEntry](const DRW_Dictionary& dictionary) {
+                return dictionary.handle == sourceNamedNetworkEntry->m_handle;
+            });
+    const DRW_AssociativeObject* sourceChildNetwork =
+        sourceNestedDictionary == source.dictionaries.end()
+            || sourceNestedDictionary->m_entries.size() != 1u
+            || sourceNestedDictionary->m_entries.front().m_name
+                != "ACAD_ASSOCNETWORK"
+        ? nullptr : findNetwork(source.dwgAssociativeObjects,
+            sourceNestedDictionary->m_entries.front().m_handle);
+    const DRW_AssociativeObject* sourceRootNetwork = sourceChildNetwork == nullptr
+        ? nullptr : findNetwork(source.dwgAssociativeObjects,
+            sourceChildNetwork->m_owningNetworkHandle);
+    const std::size_t sourceNetworkCount = static_cast<std::size_t>(
+        std::count_if(source.dwgAssociativeObjects.begin(),
+            source.dwgAssociativeObjects.end(), [](
+                const DRW_AssociativeObject& record) {
+                    return record.m_recordName == "ACDBASSOCNETWORK";
+                }));
+    if (sourceNetworkCount != 2u
+        || sourceNestedDictionaryEntry == sourceDictionary->m_entries.end()
+        || std::count_if(sourceDictionary->m_entries.begin(),
+                         sourceDictionary->m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_ASSOCNETWORK";
+            }) != 1
+        || sourceNamedNetworkEntry
+            == source.namedObjectDictionary.m_entries.end()
+        || std::count_if(source.namedObjectDictionary.m_entries.begin(),
+                         source.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_ASSOCNETWORK";
+            }) != 1
+        || sourceNestedDictionary == source.dictionaries.end()
+        || sourceRootDictionary == source.dictionaries.end()
+        || sourceChildNetwork == nullptr || sourceRootNetwork == nullptr
+        || sourceNestedDictionary->parentHandle != sourceDictionary->handle
+        || sourceNestedDictionary->reactorHandles
+            != std::vector<std::uint32_t>{sourceDictionary->handle}
+        || sourceRootDictionary->parentHandle
+            != source.namedObjectDictionary.handle
+        || sourceRootNetwork->parentHandle != sourceRootDictionary->handle
+        || sourceRootNetwork->reactorHandles
+            != std::vector<std::uint32_t>{sourceRootDictionary->handle}
+        || sourceChildNetwork->parentHandle != sourceNestedDictionary->handle
+        || sourceChildNetwork->reactorHandles
+            != std::vector<std::uint32_t>{sourceNestedDictionary->handle}
+        || sourceChildNetwork->m_owningNetworkHandle
+            != sourceRootNetwork->handle
+        || !sourceRootNetwork->m_networkFieldsParsed
+        || !sourceChildNetwork->m_networkFieldsParsed
+        || std::count_if(sourceRootNetwork->m_actions.begin(),
+                         sourceRootNetwork->m_actions.end(),
+            [sourceChildNetwork](const DRW_AssociativeHandleRef& action) {
+                return !action.m_isOwned
+                    && action.m_handle == sourceChildNetwork->handle;
+            }) != 1)
+        return fail("physical SORTENTSTABLE associative-network sibling source graph is not uniquely closed");
+
+    for (std::size_t index = 0;
+         index < sourceMembership.m_entries.size(); ++index) {
+        const auto& receipt = sourceMembership.m_entries[index];
+        if (receipt.m_ordinal != index
+            || receipt.m_entityHandle != sourceTable.m_entityHandles[index]
+            || receipt.m_sortHandle != sourceTable.m_sortHandles[index]
+            || receipt.m_sortFallsBackToEntity
+                != (receipt.m_sortHandle == DRW::NoHandle))
+            return fail("physical SORTENTSTABLE typed pairs differ from parser-owned source membership receipt");
+    }
+
+    for (const bool binary : {false, true}) {
+        const auto nonce = std::chrono::steady_clock::now()
+                               .time_since_epoch().count();
+        const std::filesystem::path outputPath =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-sortents-physical-"
+               + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{outputPath};
+        const std::string sentinel = "preserve physical SORTENTSTABLE destination\n";
+        {
+            std::ofstream existing(outputPath, std::ios::binary | std::ios::trunc);
+            if (!existing || !(existing << sentinel))
+                return fail("could not seed physical SORTENTSTABLE destination sentinel");
+        }
+        dx_iface writer;
+        const auto exportPartial = [&]() {
+            return writer.fileExport(
+                outputPath.string(), DRW::AC1024, binary, &source, false, true,
+                dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::AllowPartial);
+        };
+        DRW_SortEntsTable& mutableTable = source.sortEntsTables.front();
+        const std::uint32_t originalFirstEntity =
+            mutableTable.m_entityHandles.front();
+        mutableTable.m_entityHandles.front() = DRW::NoHandle;
+        const bool invalidGraphRejected = !exportPartial();
+        std::ifstream invalidOutput(outputPath, std::ios::binary);
+        const std::string invalidDestination{
+            std::istreambuf_iterator<char>{invalidOutput}, {}};
+        mutableTable.m_entityHandles.front() = originalFirstEntity;
+        if (!invalidGraphRejected || invalidDestination != sentinel)
+            return fail("invalid physical SORTENTSTABLE target was not refused atomically");
+        if (!exportPartial())
+            return fail("corrected physical SORTENTSTABLE could not retry on the same adapter");
+
+        dx_iface outputReader;
+        dx_data output;
+        if (!outputReader.fileImport(outputPath.string(), &output, false)
+            || output.sourceFormat != dx_source_format::DXF
+            || output.sourceVersion != DRW::AC1024
+            || output.sortEntsTables.size() != 1u
+            || output.rawSortEntsTables.size() != 1u
+            || output.dictionaryCaptureFailed
+            || output.sortEntsCaptureFailed)
+            return fail("physical SORTENTSTABLE output readback mismatch: imported="
+                + std::to_string(output.sourceFormat == dx_source_format::DXF)
+                + " version=" + std::to_string(output.sourceVersion)
+                + " typed=" + std::to_string(output.sortEntsTables.size())
+                + " raw=" + std::to_string(output.rawSortEntsTables.size())
+                + " dictFailed=" + std::to_string(output.dictionaryCaptureFailed)
+                + " typedFailed=" + std::to_string(output.sortEntsCaptureFailed));
+
+        const DRW_SortEntsTable& outputTable = output.sortEntsTables.front();
+        const DRW_RawDxfObject& outputRaw = output.rawSortEntsTables.front();
+        const auto outputDictionary = std::find_if(
+            output.dictionaries.begin(), output.dictionaries.end(),
+            [&outputTable](const DRW_Dictionary& dictionary) {
+                return dictionary.handle == outputTable.parentHandle;
+            });
+        const auto outputBlockOwner = std::find_if(
+            output.blockRecords.begin(), output.blockRecords.end(),
+            [&sourceBlockOwner](const DRW_Block_Record& record) {
+                return record.name == sourceBlockOwner->name;
+            });
+        const std::vector<const DRW_Entity*> outputOwnerEntities =
+            outputBlockOwner == output.blockRecords.end()
+                ? std::vector<const DRW_Entity*>{}
+                : ownerEntities(output, *outputBlockOwner);
+        if (outputOwnerEntities.size() != sourceOwnerEntities.size())
+            return fail("physical SORTENTSTABLE owner entity count changed on readback");
+
+        const auto outputNestedDictionaryEntry =
+            std::find_if(outputDictionary->m_entries.begin(),
+                         outputDictionary->m_entries.end(),
+                [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "ACAD_ASSOCNETWORK";
+                });
+        const auto outputNamedNetworkEntry =
+            std::find_if(output.namedObjectDictionary.m_entries.begin(),
+                         output.namedObjectDictionary.m_entries.end(),
+                [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "ACAD_ASSOCNETWORK";
+                });
+        const auto outputNestedDictionary = outputNestedDictionaryEntry
+                == outputDictionary->m_entries.end()
+            ? output.dictionaries.end()
+            : std::find_if(output.dictionaries.begin(), output.dictionaries.end(),
+                [&outputNestedDictionaryEntry](const DRW_Dictionary& dictionary) {
+                    return dictionary.handle
+                        == outputNestedDictionaryEntry->m_handle;
+                });
+        const auto outputRootDictionary = outputNamedNetworkEntry
+                == output.namedObjectDictionary.m_entries.end()
+            ? output.dictionaries.end()
+            : std::find_if(output.dictionaries.begin(), output.dictionaries.end(),
+                [&outputNamedNetworkEntry](const DRW_Dictionary& dictionary) {
+                    return dictionary.handle
+                        == outputNamedNetworkEntry->m_handle;
+                });
+        const DRW_AssociativeObject* outputChildNetwork =
+            outputNestedDictionary == output.dictionaries.end()
+                || outputNestedDictionary->m_entries.size() != 1u
+                || outputNestedDictionary->m_entries.front().m_name
+                    != "ACAD_ASSOCNETWORK"
+            ? nullptr : findNetwork(output.associativeObjects,
+                outputNestedDictionary->m_entries.front().m_handle);
+        const DRW_AssociativeObject* outputRootNetwork =
+            outputChildNetwork == nullptr ? nullptr
+            : findNetwork(output.associativeObjects,
+                outputChildNetwork->m_owningNetworkHandle);
+        const auto sameNetwork = [](const DRW_AssociativeObject& expected,
+                                    const DRW_AssociativeObject& actual) {
+            if (expected.handle != actual.handle
+                || expected.m_recordName != actual.m_recordName
+                || expected.parentHandle != actual.parentHandle
+                || expected.reactorHandles != actual.reactorHandles
+                || expected.xDictHandle != actual.xDictHandle
+                || expected.m_classVersion != actual.m_classVersion
+                || expected.m_geometryStatus != actual.m_geometryStatus
+                || expected.m_owningNetworkHandle
+                    != actual.m_owningNetworkHandle
+                || expected.m_actionBodyHandle != actual.m_actionBodyHandle
+                || expected.m_actionIndex != actual.m_actionIndex
+                || expected.m_maxDependencyIndex
+                    != actual.m_maxDependencyIndex
+                || expected.m_networkVersion != actual.m_networkVersion
+                || expected.m_networkActionIndex
+                    != actual.m_networkActionIndex
+                || !actual.m_networkFieldsParsed
+                || expected.m_dependencies.size()
+                    != actual.m_dependencies.size()
+                || expected.m_actions.size() != actual.m_actions.size()
+                || expected.m_ownedParams != actual.m_ownedParams
+                || expected.m_ownedActions != actual.m_ownedActions)
+                return false;
+            for (std::size_t index = 0;
+                 index < expected.m_dependencies.size(); ++index)
+                if (expected.m_dependencies[index].m_isOwned
+                        != actual.m_dependencies[index].m_isOwned
+                    || expected.m_dependencies[index].m_handle
+                        != actual.m_dependencies[index].m_handle)
+                    return false;
+            for (std::size_t index = 0;
+                 index < expected.m_actions.size(); ++index)
+                if (expected.m_actions[index].m_isOwned
+                        != actual.m_actions[index].m_isOwned
+                    || expected.m_actions[index].m_handle
+                        != actual.m_actions[index].m_handle)
+                    return false;
+            return true;
+        };
+        const std::size_t outputNetworkCount = static_cast<std::size_t>(
+            std::count_if(output.associativeObjects.begin(),
+                output.associativeObjects.end(), [](
+                    const DRW_AssociativeObject& record) {
+                        return record.m_recordName == "ACDBASSOCNETWORK";
+                    }));
+        if (!output.hasNamedObjectDictionary || outputNetworkCount != 2u
+            || outputNestedDictionaryEntry == outputDictionary->m_entries.end()
+            || std::count_if(outputDictionary->m_entries.begin(),
+                             outputDictionary->m_entries.end(),
+                [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "ACAD_ASSOCNETWORK";
+                }) != 1
+            || outputNamedNetworkEntry
+                == output.namedObjectDictionary.m_entries.end()
+            || std::count_if(output.namedObjectDictionary.m_entries.begin(),
+                             output.namedObjectDictionary.m_entries.end(),
+                [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "ACAD_ASSOCNETWORK";
+                }) != 1
+            || outputNestedDictionary == output.dictionaries.end()
+            || outputRootDictionary == output.dictionaries.end()
+            || outputChildNetwork == nullptr || outputRootNetwork == nullptr
+            || outputRootDictionary->parentHandle
+                != output.namedObjectDictionary.handle
+            || outputRootNetwork->parentHandle != outputRootDictionary->handle
+            || outputRootNetwork->reactorHandles
+                != std::vector<std::uint32_t>{outputRootDictionary->handle}
+            || outputNestedDictionary->parentHandle != outputDictionary->handle
+            || outputNestedDictionary->reactorHandles
+                != std::vector<std::uint32_t>{outputDictionary->handle}
+            || outputChildNetwork->parentHandle
+                != outputNestedDictionary->handle
+            || outputChildNetwork->reactorHandles
+                != std::vector<std::uint32_t>{outputNestedDictionary->handle}
+            || outputChildNetwork->m_owningNetworkHandle
+                != outputRootNetwork->handle
+            || !sameNetwork(*sourceRootNetwork, *outputRootNetwork)
+            || !sameNetwork(*sourceChildNetwork, *outputChildNetwork)
+            || std::count_if(outputRootNetwork->m_actions.begin(),
+                             outputRootNetwork->m_actions.end(),
+                [outputChildNetwork](const DRW_AssociativeHandleRef& action) {
+                    return !action.m_isOwned
+                        && action.m_handle == outputChildNetwork->handle;
+                }) != 1)
+            return fail("physical SORTENTSTABLE output did not retain the exact root/child associative-network dictionary and action roles");
+
+        std::map<std::uint32_t, std::uint32_t> sourceToOutputEntity;
+        for (std::size_t index = 0; index < sourceOwnerEntities.size(); ++index) {
+            if (sourceOwnerEntities[index]->eType != outputOwnerEntities[index]->eType
+                || !sourceToOutputEntity.emplace(
+                    sourceOwnerEntities[index]->handle,
+                    outputOwnerEntities[index]->handle).second)
+                return fail("physical SORTENTSTABLE owner entity order/type is not stable across output");
+        }
+        if (outputTable.handle != sourceTable.handle
+            || outputTable.parentHandle != sourceTable.parentHandle
+            || outputTable.m_blockOwnerHandle != sourceTable.m_blockOwnerHandle
+            || outputTable.reactorHandles != sourceTable.reactorHandles
+            || outputTable.m_sortHandles.size() != sourceMembership.m_entries.size()
+            || outputDictionary == output.dictionaries.end()
+            || outputBlockOwner == output.blockRecords.end()
+            || outputBlockOwner->xDictHandle != outputDictionary->handle
+            || outputDictionary->parentHandle != outputBlockOwner->handle
+            || outputDictionary->m_entries.size() != sourceDictionary->m_entries.size())
+            return fail("physical SORTENTSTABLE identity/owner readback mismatch: table="
+                + std::to_string(outputTable.handle) + "/"
+                + std::to_string(sourceTable.handle)
+                + " parent=" + std::to_string(outputTable.parentHandle) + "/"
+                + std::to_string(sourceTable.parentHandle)
+                + " blockOwner=" + std::to_string(outputTable.m_blockOwnerHandle) + "/"
+                + std::to_string(sourceTable.m_blockOwnerHandle)
+                + " reactors=" + std::to_string(outputTable.reactorHandles.size()) + "/"
+                + std::to_string(sourceTable.reactorHandles.size()) + " eq="
+                + std::to_string(outputTable.reactorHandles == sourceTable.reactorHandles)
+                + " entities=" + std::to_string(outputTable.m_entityHandles.size()) + "/"
+                + std::to_string(sourceTable.m_entityHandles.size())
+                + " first=" + std::to_string(outputTable.m_entityHandles.empty()
+                    ? 0u : outputTable.m_entityHandles.front())
+                + "/" + std::to_string(sourceTable.m_entityHandles.empty()
+                    ? 0u : sourceTable.m_entityHandles.front())
+                + " sorts=" + std::to_string(outputTable.m_sortHandles.size()) + "/"
+                + std::to_string(sourceMembership.m_entries.size())
+                + " dictionary=" + std::to_string(outputDictionary != output.dictionaries.end())
+                + " outputBlock=" + std::to_string(outputBlockOwner != output.blockRecords.end())
+                + " xdict=" + std::to_string(outputBlockOwner == output.blockRecords.end()
+                    ? 0u : outputBlockOwner->xDictHandle)
+                + "/" + std::to_string(outputDictionary == output.dictionaries.end()
+                    ? 0u : outputDictionary->handle)
+                + " dictParent=" + std::to_string(outputDictionary == output.dictionaries.end()
+                    ? 0u : outputDictionary->parentHandle)
+                + " dictOwner=" + std::to_string(outputBlockOwner == output.blockRecords.end()
+                    ? 0u : outputBlockOwner->handle)
+                + " entries=" + std::to_string(outputDictionary == output.dictionaries.end()
+                    ? 0u : outputDictionary->m_entries.size())
+                + "/" + std::to_string(sourceDictionary->m_entries.size()));
+        for (std::size_t index = 0;
+             index < sourceDictionary->m_entries.size(); ++index) {
+            const DRW_Dictionary::Entry& expected =
+                sourceDictionary->m_entries[index];
+            const DRW_Dictionary::Entry& actual =
+                outputDictionary->m_entries[index];
+            if (actual.m_name != expected.m_name
+                || actual.m_handle != expected.m_handle)
+                return fail("physical SORTENTSTABLE owner dictionary ordered entries changed on readback");
+        }
+        std::map<std::uint32_t, std::vector<std::uint32_t>> sortKeysBySourceEntity;
+        for (std::size_t index = 0;
+             index < sourceMembership.m_entries.size(); ++index) {
+            const auto& receipt = sourceMembership.m_entries[index];
+            if (sourceToOutputEntity.count(receipt.m_entityHandle) == 0u)
+                return fail("physical SORTENTSTABLE source target has no output entity identity binding");
+            const std::uint32_t expectedSortKey = receipt.m_sortFallsBackToEntity
+                ? receipt.m_entityHandle : receipt.m_sortHandle;
+            sortKeysBySourceEntity[receipt.m_entityHandle].push_back(
+                expectedSortKey);
+        }
+        std::vector<std::uint32_t> expectedOutputEntities;
+        std::vector<std::uint32_t> expectedOutputSortKeys;
+        for (const DRW_Entity* sourceEntity : sourceOwnerEntities) {
+            const auto mapped = sourceToOutputEntity.find(sourceEntity->handle);
+            if (mapped == sourceToOutputEntity.end())
+                return fail("physical SORTENTSTABLE owner entity identity binding disappeared");
+            const auto keys = sortKeysBySourceEntity.find(sourceEntity->handle);
+            if (keys == sortKeysBySourceEntity.end()) {
+                expectedOutputEntities.push_back(mapped->second);
+                expectedOutputSortKeys.push_back(sourceEntity->handle);
+                continue;
+            }
+            for (const std::uint32_t key : keys->second) {
+                expectedOutputEntities.push_back(mapped->second);
+                expectedOutputSortKeys.push_back(key);
+            }
+        }
+        if (outputTable.m_entityHandles != expectedOutputEntities
+            || outputTable.m_sortHandles != expectedOutputSortKeys)
+            return fail("physical SORTENTSTABLE mapped ordered output pairs or null-sort fallback keys changed");
+        if (outputRaw.name != "SORTENTSTABLE"
+            || outputRaw.handle != outputTable.handle
+            || outputRaw.parentHandle != outputTable.parentHandle)
+            return fail("physical SORTENTSTABLE raw companion identity changed on readback");
+
+        std::cerr << "Physical SORTENTSTABLE "
+                  << (binary ? "binary" : "ASCII")
+                  << " readback passed: 88 ordered pairs, source membership, "
+                     "owner/dictionary roles, null-sort fallback, atomic "
+                     "refusal and same-adapter retry.\n";
+    }
+    return true;
+}
+
 bool physicalDictionaryDefaultOutputReadback(
         const std::filesystem::path& sourcePath) {
     dx_iface sourceReader;
@@ -46388,6 +46894,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--xrecord-physical-output-readback")
         return physicalXRecordOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--sortents-physical-output-readback")
+        return physicalSortEntsOutputReadback(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--dictionary-default-physical-output-readback")
         return physicalDictionaryDefaultOutputReadback(argv[2]) ? 0 : 1;
