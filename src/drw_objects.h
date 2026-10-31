@@ -7256,6 +7256,9 @@ public:
       m_dxfConstraintGroupNodesRemaining = 0u;
       m_dxfConstraintGroupConnectionsRemaining = 0u;
       m_dxfConstraintGroupPointIndex = 0u;
+      m_dxfConstraintGroupPointTarget = 0u;
+      m_dxfConstraintGroupPointBaseCode = 10;
+      m_dxfConstraintGroupPointAfterStage = 0u;
       m_dxfConstraintNode = {};
       m_dxfConstraintGroupUnexpectedField = false;
       m_dxfAssociativeDimDependencyBodyStage = 0u;
@@ -7526,6 +7529,9 @@ private:
   std::size_t m_dxfConstraintGroupNodesRemaining = 0u;
   std::size_t m_dxfConstraintGroupConnectionsRemaining = 0u;
   std::size_t m_dxfConstraintGroupPointIndex = 0u;
+  std::uint8_t m_dxfConstraintGroupPointTarget = 0u;
+  int m_dxfConstraintGroupPointBaseCode = 10;
+  std::uint8_t m_dxfConstraintGroupPointAfterStage = 0u;
   DRW_AssociativeConstraintNode m_dxfConstraintNode;
   bool m_dxfConstraintGroupUnexpectedField = false;
   std::uint8_t m_dxfAssociativeActionIntIndex = 0;

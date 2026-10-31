@@ -31084,6 +31084,123 @@ bool physicalAssociativeDimensionDependencyOutputReadback(
         || sourceGroups.empty())
         return fail("physical dependency source census differs from 17 linked pairs");
 
+    const auto sameCoord = [](const DRW_Coord& left,
+                              const DRW_Coord& right) {
+        return std::memcmp(&left.x, &right.x, sizeof(double)) == 0
+            && std::memcmp(&left.y, &right.y, sizeof(double)) == 0
+            && std::memcmp(&left.z, &right.z, sizeof(double)) == 0;
+    };
+    const auto sameConstraintNode = [&sameCoord](
+            const DRW_AssociativeConstraintNode& left,
+            const DRW_AssociativeConstraintNode& right) {
+        return left.m_className == right.m_className
+            && left.m_nodeId == right.m_nodeId
+            && left.m_connections == right.m_connections
+            && left.m_dataKind == right.m_dataKind
+            && left.m_ownerId == right.m_ownerId
+            && left.m_isImplied == right.m_isImplied
+            && left.m_hasActiveFlag == right.m_hasActiveFlag
+            && left.m_isActive == right.m_isActive
+            && left.m_hasDatumLineIndex == right.m_hasDatumLineIndex
+            && left.m_datumLineIndex == right.m_datumLineIndex
+            && left.m_hasGeometryDependency
+                == right.m_hasGeometryDependency
+            && left.m_geometryDependencyCode
+                == right.m_geometryDependencyCode
+            && left.m_geometryDependencyHandle
+                == right.m_geometryDependencyHandle
+            && left.m_hasValueDependencyHandle
+                == right.m_hasValueDependencyHandle
+            && left.m_valueDependencyCode == right.m_valueDependencyCode
+            && left.m_valueDependencyHandle
+                == right.m_valueDependencyHandle
+            && left.m_hasDimensionDependencyHandle
+                == right.m_hasDimensionDependencyHandle
+            && left.m_dimensionDependencyCode
+                == right.m_dimensionDependencyCode
+            && left.m_dimensionDependencyHandle
+                == right.m_dimensionDependencyHandle
+            && left.m_geometryNodeId == right.m_geometryNodeId
+            && left.m_hasPoint == right.m_hasPoint
+            && sameCoord(left.m_point, right.m_point)
+            && sameCoord(left.m_center, right.m_center)
+            && sameCoord(left.m_normal, right.m_normal)
+            && sameCoord(left.m_direction, right.m_direction)
+            && left.m_isRay == right.m_isRay
+            && left.m_radius == right.m_radius
+            && left.m_startParameter == right.m_startParameter
+            && left.m_endParameter == right.m_endParameter
+            && left.m_directionType == right.m_directionType
+            && left.m_radiusDiameterMode == right.m_radiusDiameterMode
+            && left.m_hasDistance == right.m_hasDistance
+            && sameCoord(left.m_distance, right.m_distance)
+            && left.m_hasReserved == right.m_hasReserved
+            && left.m_reserved == right.m_reserved
+            && sameCoord(left.m_startPoint, right.m_startPoint)
+            && sameCoord(left.m_endPoint, right.m_endPoint)
+            && left.m_pointType == right.m_pointType
+            && left.m_pointIndex == right.m_pointIndex
+            && left.m_curveNodeId == right.m_curveNodeId
+            && left.m_classDataParsed == right.m_classDataParsed
+            && left.m_hasRigidSetReservedFlag
+                == right.m_hasRigidSetReservedFlag
+            && left.m_rigidSetReservedFlag == right.m_rigidSetReservedFlag
+            && left.m_hasRigidSetTransform == right.m_hasRigidSetTransform
+            && left.m_rigidSetTransform == right.m_rigidSetTransform
+            && left.m_rigidSetGeometryIds == right.m_rigidSetGeometryIds;
+    };
+    const auto sameConstraintGroup = [&sameCoord, &sameConstraintNode](
+            const DRW_AssociativeObject& expected,
+            const DRW_AssociativeObject& actual) {
+        if (expected.handle != actual.handle
+            || expected.parentHandle != actual.parentHandle
+            || expected.reactorHandles != actual.reactorHandles
+            || expected.m_recordName != actual.m_recordName
+            || expected.m_classVersion != actual.m_classVersion
+            || expected.m_constraintGroupBodyParsed
+                != actual.m_constraintGroupBodyParsed
+            || actual.m_constraintGroupVersion != 2
+            || expected.m_constraintGroupFlag != actual.m_constraintGroupFlag
+            || expected.m_constraintGroupReference
+                != actual.m_constraintGroupReference
+            || expected.m_constraintActionCount
+                != actual.m_constraintActionCount
+            || expected.m_constraintActionsParsed
+                != actual.m_constraintActionsParsed
+            || expected.m_constraintActions != actual.m_constraintActions
+            || expected.m_constraintNextNodeIdRead
+                != actual.m_constraintNextNodeIdRead
+            || expected.m_constraintNextNodeId
+                != actual.m_constraintNextNodeId
+            || expected.m_constraintNodeCount
+                != actual.m_constraintNodeCount
+            || expected.m_constraintNodesParsed
+                != actual.m_constraintNodesParsed
+            || expected.m_constraintNodes.size()
+                != actual.m_constraintNodes.size()
+            || expected.m_status != actual.m_status
+            || expected.m_geometryStatus != actual.m_geometryStatus
+            || expected.m_owningNetworkHandle
+                != actual.m_owningNetworkHandle
+            || expected.m_actionBodyHandle != actual.m_actionBodyHandle
+            || expected.m_actionIndex != actual.m_actionIndex
+            || expected.m_maxDependencyIndex
+                != actual.m_maxDependencyIndex
+            || expected.m_constraintGroupVersion != 0)
+            return false;
+        for (std::size_t index = 0u;
+             index < expected.m_constraintWorkplane.size(); ++index)
+            if (!sameCoord(expected.m_constraintWorkplane[index],
+                           actual.m_constraintWorkplane[index]))
+                return false;
+        for (std::size_t index = 0u;
+             index < expected.m_constraintNodes.size(); ++index)
+            if (!sameConstraintNode(expected.m_constraintNodes[index],
+                                    actual.m_constraintNodes[index]))
+                return false;
+        return true;
+    };
+
     const auto runOutputEncoding = [&](bool binary) {
         const auto nonce = std::chrono::steady_clock::now()
                                .time_since_epoch()
@@ -31120,19 +31237,38 @@ bool physicalAssociativeDimensionDependencyOutputReadback(
         public:
             bool mutateAfterObjects{false};
             std::uint32_t targetBody{0u};
+            bool mutateConstraintNodeAfterObjects{false};
+            std::uint32_t targetConstraintGroup{0u};
+            std::size_t targetConstraintNode{0u};
             void writeObjects() override {
                 dx_iface::writeObjects();
-                if (!mutateAfterObjects || cData == nullptr)
+                if (cData == nullptr)
                     return;
-                for (DRW_AssociativeObject& object :
-                     cData->dwgAssociativeObjects) {
-                    if (object.handle == targetBody
-                        && (object.m_recordName
-                                == "ASSOCDIMDEPENDENCYBODY"
-                            || object.m_recordName
-                                == "ACDBASSOCDIMDEPENDENCYBODY")) {
-                        object.name += " late mutation";
-                        return;
+                if (mutateAfterObjects) {
+                    for (DRW_AssociativeObject& object :
+                         cData->dwgAssociativeObjects) {
+                        if (object.handle == targetBody
+                            && (object.m_recordName
+                                    == "ASSOCDIMDEPENDENCYBODY"
+                                || object.m_recordName
+                                    == "ACDBASSOCDIMDEPENDENCYBODY")) {
+                            object.name += " late mutation";
+                            break;
+                        }
+                    }
+                }
+                if (mutateConstraintNodeAfterObjects) {
+                    for (DRW_AssociativeObject& object :
+                         cData->dwgAssociativeObjects) {
+                        if (object.handle == targetConstraintGroup
+                            && object.m_recordName
+                                == "ACDBASSOC2DCONSTRAINTGROUP"
+                            && targetConstraintNode
+                                < object.m_constraintNodes.size()) {
+                            ++object.m_constraintNodes[
+                                targetConstraintNode].m_nodeId;
+                            break;
+                        }
                     }
                 }
             }
@@ -31164,6 +31300,38 @@ bool physicalAssociativeDimensionDependencyOutputReadback(
         writer.mutateAfterObjects = false;
         if (!exportPartial())
             return fail("corrected physical dependency graph could not retry on the same adapter");
+
+        if (sourceGroups.begin()->second->m_constraintNodes.empty())
+            return fail("physical constraint group has no typed nodes to mutate");
+        const DRW_AssociativeObject& firstGroup = *sourceGroups.begin()->second;
+        const std::int32_t originalNodeId =
+            firstGroup.m_constraintNodes.front().m_nodeId;
+        if (originalNodeId == std::numeric_limits<std::int32_t>::max())
+            return fail("physical constraint node ID cannot be safely mutated");
+        {
+            std::ofstream existing(outputPath,
+                                   std::ios::binary | std::ios::trunc);
+            if (!existing || !(existing << sentinel))
+                return fail("could not reseed physical group refusal sentinel");
+        }
+        writer.targetConstraintGroup = firstGroup.handle;
+        writer.targetConstraintNode = 0u;
+        writer.mutateConstraintNodeAfterObjects = true;
+        if (exportPartial() || !destinationEquals(sentinel))
+            return fail("late physical constraint-node mutation did not refuse atomically");
+        const auto restoredGroup = std::find_if(
+            source.dwgAssociativeObjects.begin(),
+            source.dwgAssociativeObjects.end(),
+            [&firstGroup](const DRW_AssociativeObject& object) {
+                return object.handle == firstGroup.handle;
+            });
+        if (restoredGroup == source.dwgAssociativeObjects.end()
+            || restoredGroup->m_constraintNodes.empty())
+            return fail("physical constraint-group mutation target disappeared");
+        restoredGroup->m_constraintNodes.front().m_nodeId = originalNodeId;
+        writer.mutateConstraintNodeAfterObjects = false;
+        if (!exportPartial())
+            return fail("corrected physical constraint group could not retry on the same adapter");
 
         dx_iface outputReader;
         dx_data output;
@@ -31295,6 +31463,9 @@ bool physicalAssociativeDimensionDependencyOutputReadback(
                 std::cerr << '\n';
                 return fail("physical constraint-group owner/action role changed on readback");
             }
+            if (!sameConstraintGroup(*sourceGroup->second,
+                                     *actualGroup->second))
+                return fail("physical constraint-group fields or inline node bodies changed on fresh readback");
 
             const auto actualDimension = outputDimensions.find(
                 actualDependency.m_dependencyHandle);
@@ -31310,7 +31481,9 @@ bool physicalAssociativeDimensionDependencyOutputReadback(
             return fail("physical dependency/body readback did not close all 17 pairs");
         std::cerr << "Physical ACDBASSOCDEPENDENCY "
                   << (binary ? "binary" : "ASCII")
-                  << " readback passed: 17 linked dependency/body pairs, group and dimension roles, atomic refusal and same-adapter retry.\n";
+                  << " readback passed: 17 linked dependency/body pairs and all "
+                  << sourceGroups.begin()->second->m_constraintNodes.size()
+                  << " constraint nodes, group and dimension roles, atomic refusal and same-adapter retry.\n";
         return true;
     };
     return runOutputEncoding(false) && runOutputEncoding(true);

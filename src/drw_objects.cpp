@@ -25978,6 +25978,9 @@ void DRW_AssociativeObject::reset() {
     m_dxfConstraintGroupNodesRemaining = 0u;
     m_dxfConstraintGroupConnectionsRemaining = 0u;
     m_dxfConstraintGroupPointIndex = 0u;
+    m_dxfConstraintGroupPointTarget = 0u;
+    m_dxfConstraintGroupPointBaseCode = 10;
+    m_dxfConstraintGroupPointAfterStage = 0u;
     m_dxfConstraintNode = {};
     m_dxfConstraintGroupUnexpectedField = false;
     m_dxfAssociativeDependencyIntIndex = 0;
@@ -26137,6 +26140,9 @@ bool DRW_AssociativeObject::parseCode(
             m_dxfConstraintGroupNodesRemaining = 0u;
             m_dxfConstraintGroupConnectionsRemaining = 0u;
             m_dxfConstraintGroupPointIndex = 0u;
+            m_dxfConstraintGroupPointTarget = 0u;
+            m_dxfConstraintGroupPointBaseCode = 10;
+            m_dxfConstraintGroupPointAfterStage = 0u;
             m_dxfConstraintGroupUnexpectedField = false;
             m_constraintGroupBodyParsed = false;
             m_constraintActionsParsed = false;
@@ -26251,6 +26257,9 @@ bool DRW_AssociativeObject::parseCode(
         m_dxfConstraintGroupNodesRemaining = 0u;
         m_dxfConstraintGroupConnectionsRemaining = 0u;
         m_dxfConstraintGroupPointIndex = 0u;
+        m_dxfConstraintGroupPointTarget = 0u;
+        m_dxfConstraintGroupPointBaseCode = 10;
+        m_dxfConstraintGroupPointAfterStage = 0u;
         m_dxfConstraintGroupUnexpectedField =
             m_dxfAssociativeActionUnexpectedField
             || !m_dxfAssociativeActionOwnerSeen
@@ -26283,13 +26292,33 @@ bool DRW_AssociativeObject::parseCode(
         constexpr std::uint8_t kNodeConnections = 13u;
         constexpr std::uint8_t kNodeGeometryHandle = 14u;
         constexpr std::uint8_t kNodeGeometryId = 15u;
-        constexpr std::uint8_t kNodePointOrType = 16u;
-        constexpr std::uint8_t kNodePointY = 17u;
-        constexpr std::uint8_t kNodePointZ = 18u;
-        constexpr std::uint8_t kNodePointType = 19u;
-        constexpr std::uint8_t kNodePointIndex = 20u;
-        constexpr std::uint8_t kNodeCurveNodeId = 21u;
-        constexpr std::uint8_t kComplete = 22u;
+        constexpr std::uint8_t kNodeOwnerId = 17u;
+        constexpr std::uint8_t kNodeImplied = 18u;
+        constexpr std::uint8_t kNodeActivePlaceholder = 19u;
+        constexpr std::uint8_t kNodeDatumLineIndex = 20u;
+        constexpr std::uint8_t kNodeValueDependency = 21u;
+        constexpr std::uint8_t kNodeDimensionDependency = 22u;
+        constexpr std::uint8_t kNodeRadiusDiameterMode = 23u;
+        constexpr std::uint8_t kNodePoint = 24u;
+        constexpr std::uint8_t kNodeOptionalPointOrType = 25u;
+        constexpr std::uint8_t kNodePointType = 26u;
+        constexpr std::uint8_t kNodePointIndex = 27u;
+        constexpr std::uint8_t kNodeCurveNodeId = 28u;
+        constexpr std::uint8_t kNodeBoundedRay = 29u;
+        constexpr std::uint8_t kNodeCircleValues = 30u;
+        constexpr std::uint8_t kNodeDirectionType = 31u;
+        constexpr std::uint8_t kNodeRigidFlag = 32u;
+        constexpr std::uint8_t kNodeRigidTransform = 33u;
+        constexpr std::uint8_t kNodeRigidGeometryCount = 34u;
+        constexpr std::uint8_t kNodeRigidGeometryIds = 35u;
+        constexpr std::uint8_t kNodeFinish = 36u;
+        constexpr std::uint8_t kAfterLinePoint = 37u;
+        constexpr std::uint8_t kAfterBoundedLinePoint = 38u;
+        constexpr std::uint8_t kAfterCircleCenter = 39u;
+        constexpr std::uint8_t kAfterCircleNormal = 40u;
+        constexpr std::uint8_t kAfterArcStartPoint = 41u;
+        constexpr std::uint8_t kAfterBoundedStartPoint = 42u;
+        constexpr std::uint8_t kComplete = 43u;
         const auto failProfile = [this]() {
             m_dxfConstraintGroupUnexpectedField = true;
             m_constraintGroupBodyParsed = false;
@@ -26309,6 +26338,83 @@ bool DRW_AssociativeObject::parseCode(
                 return false;
             value = reader->getHandleString();
             return true;
+        };
+        const auto finishNode = [this]() {
+            m_constraintNodes.push_back(m_dxfConstraintNode);
+            if (m_dxfConstraintGroupNodesRemaining == 0u) {
+                m_dxfConstraintGroupUnexpectedField = true;
+                m_constraintNodesParsed = false;
+                m_constraintGroupBodyParsed = false;
+                m_dxfConstraintGroupStage = 0xFFu;
+                return;
+            }
+            if (--m_dxfConstraintGroupNodesRemaining == 0u) {
+                m_constraintNodesParsed = true;
+                m_constraintGroupBodyParsed = true;
+                m_dxfConstraintGroupStage = kComplete;
+            } else {
+                m_dxfConstraintNode = {};
+                m_dxfConstraintGroupStage = kNodeClass;
+            }
+        };
+        const auto startPoint = [this](std::uint8_t target, int baseCode,
+                                       std::uint8_t afterStage) {
+            m_dxfConstraintGroupPointTarget = target;
+            m_dxfConstraintGroupPointBaseCode = baseCode;
+            m_dxfConstraintGroupPointIndex = 0u;
+            m_dxfConstraintGroupPointAfterStage = afterStage;
+            m_dxfConstraintGroupStage = kNodePoint;
+        };
+        const auto nodeKind = [](std::string_view className)
+                -> DRW_AssociativeConstraintNode::DataKind {
+            using Kind = DRW_AssociativeConstraintNode::DataKind;
+            if (isPlainAssociativeGeometricalConstraint(className))
+                return Kind::Geometrical;
+            if (isAssociativeHorizontalConstraint(className))
+                return Kind::Horizontal;
+            if (isAssociativeVerticalConstraint(className))
+                return Kind::Vertical;
+            if (isAssociativeRadiusDiameterConstraint(className))
+                return Kind::RadiusDiameter;
+            if (isAssociativeConstrainedDatumLine(className))
+                return Kind::Line;
+            if (isAssociativeConstrainedImplicitPoint(className))
+                return Kind::ImplicitPoint;
+            if (isAssociativeConstrainedBoundedLine(className))
+                return Kind::BoundedLine;
+            if (isAssociativeConstrainedCircle(className))
+                return Kind::Circle;
+            if (isAssociativeConstrainedArc(className))
+                return Kind::Arc;
+            if (isAssociativeDistanceConstraint(className))
+                return Kind::Distance;
+            if (isAssociativeConstrainedRigidSet(className))
+                return Kind::RigidSet;
+            return Kind::Unsupported;
+        };
+        const auto beginNodeData = [this]() {
+            using Kind = DRW_AssociativeConstraintNode::DataKind;
+            switch (m_dxfConstraintNode.m_dataKind) {
+            case Kind::Geometrical:
+            case Kind::Horizontal:
+            case Kind::Vertical:
+            case Kind::RadiusDiameter:
+            case Kind::Distance:
+                m_dxfConstraintGroupStage = kNodeOwnerId;
+                break;
+            case Kind::Line:
+            case Kind::ImplicitPoint:
+            case Kind::BoundedLine:
+            case Kind::Circle:
+            case Kind::Arc:
+            case Kind::RigidSet:
+                m_dxfConstraintGroupStage = kNodeGeometryHandle;
+                break;
+            case Kind::Unsupported:
+                m_dxfConstraintGroupStage = 0xFFu;
+                m_dxfConstraintGroupUnexpectedField = true;
+                break;
+            }
         };
         if (m_dxfConstraintGroupStage == 0xFFu)
             return true;
@@ -26432,14 +26538,15 @@ bool DRW_AssociativeObject::parseCode(
                 return true;
             }
             const std::string nodeClass = reader->getUtf8String();
-            if (nodeClass != "AcConstrainedImplicitPoint") {
+            const DRW_AssociativeConstraintNode::DataKind kind =
+                nodeKind(nodeClass);
+            if (kind == DRW_AssociativeConstraintNode::DataKind::Unsupported) {
                 failProfile();
                 return true;
             }
             m_dxfConstraintNode = {};
             m_dxfConstraintNode.m_className = nodeClass;
-            m_dxfConstraintNode.m_dataKind =
-                DRW_AssociativeConstraintNode::DataKind::ImplicitPoint;
+            m_dxfConstraintNode.m_dataKind = kind;
             m_dxfConstraintNode.m_classDataParsed = true;
             m_dxfConstraintGroupStage = kNodeOwner;
             return true;
@@ -26471,8 +26578,10 @@ bool DRW_AssociativeObject::parseCode(
             }
             m_dxfConstraintGroupConnectionsRemaining =
                 static_cast<std::size_t>(count);
-            m_dxfConstraintGroupStage = count == 0
-                ? kNodeGeometryHandle : kNodeConnections;
+            if (count == 0)
+                beginNodeData();
+            else
+                m_dxfConstraintGroupStage = kNodeConnections;
             return true;
         }
         case kNodeConnections: {
@@ -26483,7 +26592,102 @@ bool DRW_AssociativeObject::parseCode(
             }
             m_dxfConstraintNode.m_connections.push_back(connection);
             if (--m_dxfConstraintGroupConnectionsRemaining == 0u)
-                m_dxfConstraintGroupStage = kNodeGeometryHandle;
+                beginNodeData();
+            return true;
+        }
+        case kNodeOwnerId:
+            if (!readLong(m_dxfConstraintNode.m_ownerId)) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintGroupStage = kNodeImplied;
+            return true;
+        case kNodeImplied: {
+            if (code != 290) {
+                failProfile();
+                return true;
+            }
+            const std::int32_t value = reader->getInt32();
+            if (value != 0 && value != 1) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintNode.m_isImplied = value != 0;
+            m_dxfConstraintGroupStage = kNodeActivePlaceholder;
+            return true;
+        }
+        case kNodeActivePlaceholder: {
+            if (code != 290 || reader->getInt32() != 0) {
+                failProfile();
+                return true;
+            }
+            switch (m_dxfConstraintNode.m_dataKind) {
+            case DRW_AssociativeConstraintNode::DataKind::Geometrical:
+                finishNode();
+                break;
+            case DRW_AssociativeConstraintNode::DataKind::Horizontal:
+            case DRW_AssociativeConstraintNode::DataKind::Vertical:
+                m_dxfConstraintGroupStage = kNodeDatumLineIndex;
+                break;
+            case DRW_AssociativeConstraintNode::DataKind::RadiusDiameter:
+            case DRW_AssociativeConstraintNode::DataKind::Distance:
+                m_dxfConstraintGroupStage = kNodeValueDependency;
+                break;
+            default:
+                failProfile();
+                break;
+            }
+            return true;
+        }
+        case kNodeDatumLineIndex:
+            if (!readLong(m_dxfConstraintNode.m_datumLineIndex)) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintNode.m_hasDatumLineIndex = true;
+            finishNode();
+            return true;
+        case kNodeValueDependency: {
+            std::uint32_t dependency = 0u;
+            if (!readHandle(dependency, 340)) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintNode.m_hasValueDependencyHandle = true;
+            m_dxfConstraintNode.m_valueDependencyCode = DRW::DwgHardPointer;
+            m_dxfConstraintNode.m_valueDependencyHandle = dependency;
+            m_dxfConstraintGroupStage = kNodeDimensionDependency;
+            return true;
+        }
+        case kNodeDimensionDependency: {
+            std::uint32_t dependency = 0u;
+            if (!readHandle(dependency, 340)) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintNode.m_hasDimensionDependencyHandle = true;
+            m_dxfConstraintNode.m_dimensionDependencyCode =
+                DRW::DwgHardPointer;
+            m_dxfConstraintNode.m_dimensionDependencyHandle = dependency;
+            m_dxfConstraintGroupStage =
+                m_dxfConstraintNode.m_dataKind
+                    == DRW_AssociativeConstraintNode::DataKind::RadiusDiameter
+                ? kNodeRadiusDiameterMode : kNodeDirectionType;
+            return true;
+        }
+        case kNodeRadiusDiameterMode: {
+            if (code != 280) {
+                failProfile();
+                return true;
+            }
+            const std::int32_t value = reader->getInt32();
+            if (value < 0 || value > 255) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintNode.m_radiusDiameterMode =
+                static_cast<std::uint8_t>(value);
+            finishNode();
             return true;
         }
         case kNodeGeometryHandle: {
@@ -26504,13 +26708,39 @@ bool DRW_AssociativeObject::parseCode(
                 failProfile();
                 return true;
             }
-            m_dxfConstraintGroupStage = kNodePointOrType;
+            switch (m_dxfConstraintNode.m_dataKind) {
+            case DRW_AssociativeConstraintNode::DataKind::Line:
+                startPoint(1u, 10, kAfterLinePoint);
+                break;
+            case DRW_AssociativeConstraintNode::DataKind::ImplicitPoint:
+                m_dxfConstraintGroupStage = kNodeOptionalPointOrType;
+                break;
+            case DRW_AssociativeConstraintNode::DataKind::BoundedLine:
+                startPoint(1u, 10, kAfterBoundedLinePoint);
+                break;
+            case DRW_AssociativeConstraintNode::DataKind::Circle:
+            case DRW_AssociativeConstraintNode::DataKind::Arc:
+                startPoint(3u, 10, kAfterCircleCenter);
+                break;
+            case DRW_AssociativeConstraintNode::DataKind::RigidSet:
+                m_dxfConstraintGroupStage = kNodeRigidFlag;
+                break;
+            default:
+                failProfile();
+                break;
+            }
             return true;
-        case kNodePointOrType:
+        case kNodeOptionalPointOrType:
             if (code == 10) {
-                m_dxfConstraintNode.m_point.x = reader->getDouble();
+                startPoint(1u, 10, kNodePointType);
                 m_dxfConstraintNode.m_hasPoint = true;
-                m_dxfConstraintGroupStage = kNodePointY;
+                const double value = reader->getDouble();
+                if (!std::isfinite(value)) {
+                    failProfile();
+                    return true;
+                }
+                m_dxfConstraintNode.m_point.x = value;
+                m_dxfConstraintGroupPointIndex = 1u;
                 return true;
             }
             if (code == 280) {
@@ -26522,26 +26752,12 @@ bool DRW_AssociativeObject::parseCode(
                 m_dxfConstraintNode.m_pointType =
                     static_cast<std::uint8_t>(value);
                 m_dxfConstraintGroupStage = kNodePointIndex;
-                return true;
-            }
-            failProfile();
-            return true;
-        case kNodePointY:
-            if (code != 20) {
+            } else {
                 failProfile();
-                return true;
             }
-            m_dxfConstraintNode.m_point.y = reader->getDouble();
-            m_dxfConstraintGroupStage = kNodePointZ;
             return true;
-        case kNodePointZ:
-            if (code != 30) {
-                failProfile();
-                return true;
-            }
-            m_dxfConstraintNode.m_point.z = reader->getDouble();
-            m_dxfConstraintGroupStage = kNodePointType;
-            return true;
+        case kNodePoint:
+            break;
         case kNodePointType: {
             if (code != 280) {
                 failProfile();
@@ -26569,21 +26785,213 @@ bool DRW_AssociativeObject::parseCode(
                 failProfile();
                 return true;
             }
-            m_constraintNodes.push_back(m_dxfConstraintNode);
-            if (--m_dxfConstraintGroupNodesRemaining == 0u) {
-                m_constraintNodesParsed = true;
-                m_constraintGroupBodyParsed = true;
-                m_dxfConstraintGroupStage = kComplete;
-            } else {
-                m_dxfConstraintNode = {};
-                m_dxfConstraintGroupStage = kNodeClass;
+            finishNode();
+            return true;
+        case kNodeBoundedRay: {
+            if (code != 290) {
+                failProfile();
+                return true;
             }
+            const std::int32_t value = reader->getInt32();
+            if (value != 0 && value != 1) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintNode.m_isRay = value != 0;
+            startPoint(5u, 10, kAfterBoundedStartPoint);
+            return true;
+        }
+        case kNodeCircleValues: {
+            if (code != 40) {
+                failProfile();
+                return true;
+            }
+            const double value = reader->getDouble();
+            if (!std::isfinite(value)) {
+                failProfile();
+                return true;
+            }
+            if (m_dxfConstraintGroupPointIndex == 0u)
+                m_dxfConstraintNode.m_radius = value;
+            else if (m_dxfConstraintGroupPointIndex == 1u)
+                m_dxfConstraintNode.m_startParameter = value;
+            else if (m_dxfConstraintGroupPointIndex == 2u)
+                m_dxfConstraintNode.m_endParameter = value;
+            else {
+                failProfile();
+                return true;
+            }
+            if (++m_dxfConstraintGroupPointIndex == 3u) {
+                if (m_dxfConstraintNode.m_dataKind
+                    == DRW_AssociativeConstraintNode::DataKind::Arc)
+                    startPoint(5u, 10, kAfterArcStartPoint);
+                else
+                    finishNode();
+            }
+            return true;
+        }
+        case kNodeDirectionType: {
+            if (code != 280) {
+                failProfile();
+                return true;
+            }
+            const std::int32_t value = reader->getInt32();
+            if (value < 0 || value > 255) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintNode.m_directionType =
+                static_cast<std::uint8_t>(value);
+            if (m_dxfConstraintNode.m_directionType != 0u) {
+                m_dxfConstraintNode.m_hasDistance = true;
+                startPoint(7u, 10, kNodeFinish);
+            } else {
+                finishNode();
+            }
+            return true;
+        }
+        case kNodeRigidFlag: {
+            if (code != 290) {
+                failProfile();
+                return true;
+            }
+            const std::int32_t value = reader->getInt32();
+            if (value != 0 && value != 1) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintNode.m_hasRigidSetReservedFlag = true;
+            m_dxfConstraintNode.m_rigidSetReservedFlag = value != 0;
+            m_dxfConstraintGroupPointIndex = 0u;
+            m_dxfConstraintGroupStage = kNodeRigidTransform;
+            return true;
+        }
+        case kNodeRigidTransform: {
+            if (code != 40 || m_dxfConstraintGroupPointIndex >= 16u) {
+                failProfile();
+                return true;
+            }
+            const double value = reader->getDouble();
+            if (!std::isfinite(value)) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintNode.m_rigidSetTransform[
+                m_dxfConstraintGroupPointIndex++] = value;
+            if (m_dxfConstraintGroupPointIndex == 16u) {
+                m_dxfConstraintNode.m_hasRigidSetTransform = true;
+                m_dxfConstraintGroupStage = kNodeRigidGeometryCount;
+            }
+            return true;
+        }
+        case kNodeRigidGeometryCount: {
+            std::int32_t count = 0;
+            if (!readLong(count) || count < 0
+                || count > kMaxAssociativeDxfReferences) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintGroupConnectionsRemaining =
+                static_cast<std::size_t>(count);
+            if (count == 0)
+                finishNode();
+            else
+                m_dxfConstraintGroupStage = kNodeRigidGeometryIds;
+            return true;
+        }
+        case kNodeRigidGeometryIds: {
+            std::int32_t geometryId = 0;
+            if (!readLong(geometryId)) {
+                failProfile();
+                return true;
+            }
+            m_dxfConstraintNode.m_rigidSetGeometryIds.push_back(geometryId);
+            if (--m_dxfConstraintGroupConnectionsRemaining == 0u)
+                finishNode();
+            return true;
+        }
+        case kNodeFinish:
+            finishNode();
             return true;
         case kComplete:
             failProfile();
             return true;
         default:
             failProfile();
+            return true;
+        }
+        if (m_dxfConstraintGroupStage == kNodePoint) {
+            const std::size_t coordinate = m_dxfConstraintGroupPointIndex;
+            const int expectedCode = m_dxfConstraintGroupPointBaseCode
+                + static_cast<int>(coordinate) * 10;
+            if (coordinate >= 3u || code != expectedCode) {
+                failProfile();
+                return true;
+            }
+            const double value = reader->getDouble();
+            if (!std::isfinite(value)) {
+                failProfile();
+                return true;
+            }
+            DRW_Coord* target = nullptr;
+            switch (m_dxfConstraintGroupPointTarget) {
+            case 1u: target = &m_dxfConstraintNode.m_point; break;
+            case 2u: target = &m_dxfConstraintNode.m_direction; break;
+            case 3u: target = &m_dxfConstraintNode.m_center; break;
+            case 4u: target = &m_dxfConstraintNode.m_normal; break;
+            case 5u: target = &m_dxfConstraintNode.m_startPoint; break;
+            case 6u: target = &m_dxfConstraintNode.m_endPoint; break;
+            case 7u: target = &m_dxfConstraintNode.m_distance; break;
+            default: break;
+            }
+            if (target == nullptr) {
+                failProfile();
+                return true;
+            }
+            if (coordinate == 0u)
+                target->x = value;
+            else if (coordinate == 1u)
+                target->y = value;
+            else
+                target->z = value;
+            if (++m_dxfConstraintGroupPointIndex == 3u) {
+                if (m_dxfConstraintGroupPointTarget == 1u
+                    || m_dxfConstraintGroupPointTarget == 7u)
+                    m_dxfConstraintNode.m_hasPoint =
+                        m_dxfConstraintGroupPointTarget == 1u;
+                if (m_dxfConstraintGroupPointTarget == 7u)
+                    m_dxfConstraintNode.m_hasDistance = true;
+                const std::uint8_t after =
+                    m_dxfConstraintGroupPointAfterStage;
+                if (after == kAfterLinePoint) {
+                    startPoint(2u, 10, kNodeFinish);
+                } else if (after == kAfterBoundedLinePoint) {
+                    startPoint(2u, 10, kNodeBoundedRay);
+                } else if (after == kAfterCircleCenter) {
+                    startPoint(4u, 10, kAfterCircleNormal);
+                } else if (after == kAfterCircleNormal) {
+                    startPoint(2u, 10, kNodeCircleValues);
+                } else if (after == kNodeCircleValues) {
+                    m_dxfConstraintGroupPointIndex = 0u;
+                    m_dxfConstraintGroupStage = kNodeCircleValues;
+                } else if (after == kAfterArcStartPoint) {
+                    if (m_dxfConstraintNode.m_dataKind
+                        == DRW_AssociativeConstraintNode::DataKind::Arc)
+                        startPoint(6u, 11, kNodeFinish);
+                    else
+                        failProfile();
+                } else if (after == kAfterBoundedStartPoint) {
+                    if (m_dxfConstraintNode.m_dataKind
+                        == DRW_AssociativeConstraintNode::DataKind::BoundedLine)
+                        startPoint(6u, 11, kNodeFinish);
+                    else
+                        failProfile();
+                } else {
+                    m_dxfConstraintGroupStage = after;
+                }
+                if (m_dxfConstraintGroupStage == kNodeFinish)
+                    finishNode();
+            }
             return true;
         }
     }

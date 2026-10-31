@@ -2889,6 +2889,7 @@ private:
     struct DwgAssociativeDimensionDependencySource {
         DRW_AssociativeObject dependency;
         DRW_AssociativeObject body;
+        DRW_AssociativeObject constraintGroup;
         std::uint32_t constraintGroupHandle{0u};
         std::uint32_t constraintGroupOwnerHandle{0u};
         std::string constraintGroupRecordName;

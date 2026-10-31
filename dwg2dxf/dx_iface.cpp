@@ -14835,6 +14835,211 @@ bool associativeNetworkSourceModelEqual(
             left.m_prefixStatuses, right.m_prefixStatuses);
 }
 
+bool associativeConstraintCoordEqual(
+        const DRW_Coord& left, const DRW_Coord& right) noexcept {
+    return retainedDoubleEqual(left.x, right.x)
+        && retainedDoubleEqual(left.y, right.y)
+        && retainedDoubleEqual(left.z, right.z);
+}
+
+template <class Mapper>
+bool associativeConstraintNodeModelEqual(
+        const DRW_AssociativeConstraintNode& source,
+        const DRW_AssociativeConstraintNode& actual,
+        Mapper& mapHandle, int* failure = nullptr) noexcept {
+    const auto mappedReference = [&mapHandle](bool present,
+                                               std::uint64_t sourceHandle,
+                                               std::uint64_t actualHandle) {
+        if (!present)
+            return sourceHandle == actualHandle;
+        if (sourceHandle > (std::numeric_limits<std::uint32_t>::max)()
+            || actualHandle > (std::numeric_limits<std::uint32_t>::max)())
+            return false;
+        std::uint32_t mapped = 0u;
+        return mapHandle(static_cast<std::uint32_t>(sourceHandle), mapped)
+            && mapped == actualHandle;
+    };
+    const bool scalarFields = source.m_className == actual.m_className
+        && source.m_nodeId == actual.m_nodeId
+        && source.m_connections == actual.m_connections
+        && source.m_dataKind == actual.m_dataKind
+        && source.m_ownerId == actual.m_ownerId
+        && source.m_isImplied == actual.m_isImplied
+        && source.m_hasActiveFlag == actual.m_hasActiveFlag
+        && source.m_isActive == actual.m_isActive
+        && source.m_hasDatumLineIndex == actual.m_hasDatumLineIndex
+        && source.m_datumLineIndex == actual.m_datumLineIndex
+        && source.m_geometryNodeId == actual.m_geometryNodeId
+        && source.m_hasPoint == actual.m_hasPoint
+        && source.m_isRay == actual.m_isRay
+        && source.m_directionType == actual.m_directionType
+        && source.m_radiusDiameterMode == actual.m_radiusDiameterMode
+        && source.m_hasDistance == actual.m_hasDistance
+        && source.m_hasReserved == actual.m_hasReserved
+        && source.m_pointType == actual.m_pointType
+        && source.m_pointIndex == actual.m_pointIndex
+        && source.m_curveNodeId == actual.m_curveNodeId
+        && source.m_classDataParsed == actual.m_classDataParsed
+        && source.m_hasRigidSetReservedFlag
+            == actual.m_hasRigidSetReservedFlag
+        && source.m_rigidSetReservedFlag == actual.m_rigidSetReservedFlag
+        && source.m_hasRigidSetTransform == actual.m_hasRigidSetTransform
+        && source.m_rigidSetGeometryIds == actual.m_rigidSetGeometryIds;
+    const bool referenceFields =
+        source.m_hasGeometryDependency == actual.m_hasGeometryDependency
+        && source.m_geometryDependencyCode
+            == actual.m_geometryDependencyCode
+        && mappedReference(source.m_hasGeometryDependency,
+                           source.m_geometryDependencyHandle,
+                           actual.m_geometryDependencyHandle)
+        && source.m_hasValueDependencyHandle
+            == actual.m_hasValueDependencyHandle
+        && source.m_valueDependencyCode == actual.m_valueDependencyCode
+        && mappedReference(source.m_hasValueDependencyHandle,
+                           source.m_valueDependencyHandle,
+                           actual.m_valueDependencyHandle)
+        && source.m_hasDimensionDependencyHandle
+            == actual.m_hasDimensionDependencyHandle
+        && source.m_dimensionDependencyCode
+            == actual.m_dimensionDependencyCode
+        && mappedReference(source.m_hasDimensionDependencyHandle,
+                           source.m_dimensionDependencyHandle,
+                           actual.m_dimensionDependencyHandle);
+    const bool payloadFields =
+        associativeConstraintCoordEqual(source.m_point, actual.m_point)
+        && associativeConstraintCoordEqual(source.m_center, actual.m_center)
+        && associativeConstraintCoordEqual(source.m_normal, actual.m_normal)
+        && associativeConstraintCoordEqual(source.m_direction,
+                                             actual.m_direction)
+        && retainedDoubleEqual(source.m_radius, actual.m_radius)
+        && retainedDoubleEqual(source.m_startParameter,
+                               actual.m_startParameter)
+        && retainedDoubleEqual(source.m_endParameter,
+                               actual.m_endParameter)
+        && associativeConstraintCoordEqual(source.m_distance,
+                                             actual.m_distance)
+        && retainedDoubleEqual(source.m_reserved, actual.m_reserved)
+        && associativeConstraintCoordEqual(source.m_startPoint,
+                                             actual.m_startPoint)
+        && associativeConstraintCoordEqual(source.m_endPoint,
+                                             actual.m_endPoint);
+    bool transformFields = true;
+    for (std::size_t index = 0u;
+         index < source.m_rigidSetTransform.size(); ++index)
+        transformFields = transformFields
+            && retainedDoubleEqual(source.m_rigidSetTransform[index],
+                                   actual.m_rigidSetTransform[index]);
+    if (!scalarFields || !referenceFields || !payloadFields
+        || !transformFields) {
+        if (failure != nullptr)
+            *failure = !scalarFields ? 1 : !referenceFields ? 2
+                : !payloadFields ? 3 : 4;
+        return false;
+    }
+    return true;
+}
+
+template <class Mapper>
+bool associativeConstraintGroupTypedEqual(
+        const DRW_AssociativeObject& source,
+        const DRW_AssociativeObject& actual, Mapper& mapHandle,
+        bool comparePrefixStatuses) noexcept {
+    const auto mappedHandle = [&mapHandle](std::uint32_t sourceHandle,
+                                            std::uint32_t actualHandle) {
+        if (sourceHandle == DRW::NoHandle
+            || actualHandle == DRW::NoHandle)
+            return sourceHandle == actualHandle;
+        std::uint32_t mapped = 0u;
+        return mapHandle(sourceHandle, mapped) && mapped == actualHandle;
+    };
+    const auto mappedRefList = [&mapHandle](
+            const std::vector<DRW_AssociativeHandleRef>& sourceRefs,
+            const std::vector<DRW_AssociativeHandleRef>& actualRefs) {
+        if (sourceRefs.size() != actualRefs.size())
+            return false;
+        for (std::size_t index = 0u; index < sourceRefs.size(); ++index) {
+            std::uint32_t mapped = 0u;
+            if (sourceRefs[index].m_isOwned
+                    != actualRefs[index].m_isOwned
+                || !mapHandle(sourceRefs[index].m_handle, mapped)
+                || mapped != actualRefs[index].m_handle)
+                return false;
+        }
+        return true;
+    };
+    const auto mappedHandleList = [&mapHandle](
+            const std::vector<std::uint32_t>& sourceHandles,
+            const std::vector<std::uint32_t>& actualHandles) {
+        if (sourceHandles.size() != actualHandles.size())
+            return false;
+        for (std::size_t index = 0u; index < sourceHandles.size(); ++index) {
+            std::uint32_t mapped = 0u;
+            if (!mapHandle(sourceHandles[index], mapped)
+                || mapped != actualHandles[index])
+                return false;
+        }
+        return true;
+    };
+    if (source.m_recordName != actual.m_recordName
+        || source.m_classVersion != actual.m_classVersion
+        || source.m_constraintGroupBodyParsed
+            != actual.m_constraintGroupBodyParsed
+        || source.m_constraintGroupVersion != actual.m_constraintGroupVersion
+        || source.m_constraintGroupFlag != actual.m_constraintGroupFlag
+        || !mappedHandle(source.m_constraintGroupReference,
+                         actual.m_constraintGroupReference)
+        || source.m_constraintActionCount != actual.m_constraintActionCount
+        || source.m_constraintActionsParsed
+            != actual.m_constraintActionsParsed
+        || !mappedHandleList(source.m_constraintActions,
+                             actual.m_constraintActions)
+        || source.m_constraintNextNodeIdRead
+            != actual.m_constraintNextNodeIdRead
+        || source.m_constraintNextNodeId != actual.m_constraintNextNodeId
+        || source.m_constraintNodeCount != actual.m_constraintNodeCount
+        || source.m_constraintNodesParsed != actual.m_constraintNodesParsed
+        || source.m_constraintNodes.size() != actual.m_constraintNodes.size()
+        || source.m_status != actual.m_status
+        || source.m_geometryStatus != actual.m_geometryStatus
+        || !mappedHandle(source.m_owningNetworkHandle,
+                         actual.m_owningNetworkHandle)
+        || !mappedHandle(source.m_actionBodyHandle, actual.m_actionBodyHandle)
+        || source.m_actionIndex != actual.m_actionIndex
+        || source.m_maxDependencyIndex != actual.m_maxDependencyIndex
+        || !mappedRefList(source.m_dependencies, actual.m_dependencies)
+        || !mappedRefList(source.m_actions, actual.m_actions)
+        || !mappedHandleList(source.m_ownedParams, actual.m_ownedParams)
+        || !mappedHandleList(source.m_ownedActions, actual.m_ownedActions))
+        return false;
+    for (std::size_t index = 0u; index < source.m_constraintWorkplane.size();
+         ++index)
+        if (!associativeConstraintCoordEqual(
+                source.m_constraintWorkplane[index],
+                actual.m_constraintWorkplane[index]))
+            return false;
+    for (std::size_t index = 0u; index < source.m_constraintNodes.size();
+         ++index)
+        if (!associativeConstraintNodeModelEqual(
+                source.m_constraintNodes[index], actual.m_constraintNodes[index],
+                mapHandle))
+            return false;
+    return !comparePrefixStatuses
+        || retainedAssociativePrefixStatusesEqual(
+            source.m_prefixStatuses, actual.m_prefixStatuses);
+}
+
+bool associativeConstraintGroupSourceModelEqual(
+        const DRW_AssociativeObject& left,
+        const DRW_AssociativeObject& right) noexcept {
+    const auto identity = [](std::uint32_t source,
+                             std::uint32_t& actual) {
+        actual = source;
+        return true;
+    };
+    return standardDwgCommonEqual(left, right, DRW::AC1024)
+        && associativeConstraintGroupTypedEqual(left, right, identity, true);
+}
+
 bool associativeDimensionDependencySourceModelEqual(
         const DRW_AssociativeObject& left,
         const DRW_AssociativeObject& right) noexcept {
@@ -28868,6 +29073,7 @@ bool dx_iface::prepareDwgAssociativeDimensionDependencies(
             DwgAssociativeDimensionDependencySource source;
             source.dependency = dependency;
             source.body = *body->second;
+            source.constraintGroup = *owner->second;
             source.constraintGroupHandle = owner->second->handle;
             if (owner->second->parentHandle
                 > (std::numeric_limits<std::uint32_t>::max)())
@@ -28888,20 +29094,44 @@ bool dx_iface::prepareDwgAssociativeDimensionDependencies(
             if (dimensionSection == entitySections.end())
                 return reject("dimension target has no owning output section");
             source.dimensionSection = dimensionSection->second;
-            const std::size_t addition =
-                source.dependency.m_dependencyName.size()
-                + source.body.name.size()
-                + source.constraintGroupRecordName.size()
-                + source.constraintGroupActions.size()
-                    * sizeof(std::uint32_t)
-                + (source.dependency.m_prefixStatuses.size()
-                    + source.body.m_prefixStatuses.size()
-                    + source.constraintGroupPrefixStatuses.size())
-                    * sizeof(DRW_AssociativePrefixStatus);
-            if (addition > kMaxAssociativeDxfRetainedBytes
+            std::size_t groupSnapshotBytes = 0u;
+            if (!estimateAssociativeTypedBytes(
+                    source.constraintGroup, groupSnapshotBytes)
+                || !addAssociativeSlotBytes(
+                    source.constraintGroup.m_constraintNodes.size(),
+                    sizeof(DRW_AssociativeConstraintNode),
+                    groupSnapshotBytes))
+                return reject("constraint-group snapshot exceeds its byte bound");
+            for (const DRW_AssociativeConstraintNode& node :
+                 source.constraintGroup.m_constraintNodes) {
+                if (!addAssociativeRetainedBytes(
+                        node.m_className.size() + 1u,
+                        groupSnapshotBytes)
+                    || !addAssociativeSlotBytes(
+                        node.m_connections.size(), sizeof(std::int32_t),
+                        groupSnapshotBytes)
+                    || !addAssociativeSlotBytes(
+                        node.m_rigidSetGeometryIds.size(),
+                        sizeof(std::int32_t), groupSnapshotBytes))
+                    return reject("constraint-node snapshot exceeds its byte bound");
+            }
+            std::size_t addition = groupSnapshotBytes;
+            if (!addAssociativeRetainedBytes(
+                    source.dependency.m_dependencyName.size()
+                        + source.body.name.size()
+                        + source.constraintGroupRecordName.size(), addition)
+                || !addAssociativeSlotBytes(
+                    source.constraintGroupActions.size(),
+                    sizeof(std::uint32_t), addition)
+                || !addAssociativeSlotBytes(
+                    source.dependency.m_prefixStatuses.size()
+                        + source.body.m_prefixStatuses.size()
+                        + source.constraintGroupPrefixStatuses.size(),
+                    sizeof(DRW_AssociativePrefixStatus), addition)
+                || addition > kMaxAssociativeDxfRetainedBytes
                     - std::min(retainedBytes,
                                kMaxAssociativeDxfRetainedBytes))
-                return reject("retained dependency/body snapshot exceeds its byte bound");
+                return reject("retained dependency/body/group snapshot exceeds its byte bound");
             retainedBytes += addition;
             if (!m_dwgAssociativeDimensionDependencies.emplace(
                     dependency.handle, std::move(source)).second)
@@ -28916,7 +29146,9 @@ bool dx_iface::prepareDwgAssociativeDimensionDependencies(
         m_dwgAssociativeDimensionDependencySourceBytes = retainedBytes;
         m_dwgAssociativeDimensionDependencyOutputVersion = version;
         m_dwgAssociativeDimensionDependencyOutputBinary = binary;
-        return hasUnchangedDwgAssociativeDimensionDependencies()
+        const bool unchanged =
+            hasUnchangedDwgAssociativeDimensionDependencies();
+        return unchanged
             || reject("source changed while the output snapshot was prepared");
     } catch (...) {
         m_dwgAssociativeDimensionDependencies.clear();
@@ -29009,6 +29241,8 @@ bool dx_iface::hasUnchangedDwgAssociativeDimensionDependencies() const noexcept 
                     != group->second->m_classVersion
                 || source.constraintGroupVersion
                     != group->second->m_constraintGroupVersion
+                || !associativeConstraintGroupSourceModelEqual(
+                    source.constraintGroup, *group->second)
                 || !group->second->m_constraintGroupBodyParsed
                 || !group->second->m_constraintActionsParsed
                 || group->second->m_constraintActions
@@ -29060,19 +29294,35 @@ bool dx_iface::inspectDwgAssociativeDimensionDependencies(
         };
         std::unordered_map<std::uint32_t, Expected> expected;
         expected.reserve(m_dwgAssociativeDimensionDependencies.size() * 2u);
+        std::unordered_map<std::uint32_t,
+                           const DRW_AssociativeObject*> expectedGroups;
+        expectedGroups.reserve(m_dwgAssociativeDimensionDependencies.size());
         for (const auto& entry : m_dwgAssociativeDimensionDependencies) {
             const std::uint32_t dependency =
                 dxfW->remapHandle(entry.second.dependency.handle);
             const std::uint32_t body =
                 dxfW->remapHandle(entry.second.body.handle);
+            const std::uint32_t group =
+                dxfW->remapHandle(entry.second.constraintGroup.handle);
             if (dependency == 0u || dependency == DRW::NoHandle
                 || body == 0u || body == DRW::NoHandle
+                || group == 0u || group == DRW::NoHandle
                 || !expected.emplace(dependency,
                     Expected{&entry.second, false}).second
                 || !expected.emplace(body,
                     Expected{&entry.second, true}).second)
                 return reject("staged dependency/body handles are missing or aliased");
+            const auto insertedGroup = expectedGroups.emplace(
+                group, &entry.second.constraintGroup);
+            if (!insertedGroup.second
+                && !associativeConstraintGroupSourceModelEqual(
+                    *insertedGroup.first->second,
+                    entry.second.constraintGroup))
+                return reject("staged constraint-group source bindings disagree");
         }
+        for (const auto& group : expectedGroups)
+            if (expected.count(group.first) != 0u)
+                return reject("constraint-group handle aliases a dependency or body");
         const auto mapHandle = [this](std::uint32_t source,
                                       std::uint32_t& emitted) {
             emitted = source == 0u ? 0u : dxfW->remapHandle(source);
@@ -29081,21 +29331,33 @@ bool dx_iface::inspectDwgAssociativeDimensionDependencies(
         };
         std::unordered_set<std::uint32_t> seenDependencies;
         std::unordered_set<std::uint32_t> seenBodies;
+        std::unordered_set<std::uint32_t> seenGroups;
         seenDependencies.reserve(m_dwgAssociativeDimensionDependencies.size());
         seenBodies.reserve(m_dwgAssociativeDimensionDependencies.size());
+        seenGroups.reserve(expectedGroups.size());
         std::unordered_map<std::uint32_t, std::string_view> recordNames;
-        recordNames.reserve(expected.size());
+        recordNames.reserve(expected.size() + expectedGroups.size());
         bool namesMatch = true;
         const bool inspected = dx_standard_output::inspectSelected(
             view,
-            [&expected, &recordNames, &namesMatch](
+            [&expected, &expectedGroups, &recordNames, &namesMatch](
                     std::string_view name, std::uint32_t handle) {
                 const bool isDependency = asciiIdentifierEquals(
                     name, "ACDBASSOCDEPENDENCY");
                 const bool isBody = asciiIdentifierEquals(
                     name, "ASSOCDIMDEPENDENCYBODY");
+                const bool isGroup = asciiIdentifierEquals(
+                    name, "ACDBASSOC2DCONSTRAINTGROUP");
                 const auto found = expected.find(handle);
                 const bool expectedIdentity = found != expected.end();
+                const bool expectedGroup =
+                    expectedGroups.find(handle) != expectedGroups.end();
+                if (isGroup || expectedGroup) {
+                    if (!isGroup || !expectedGroup)
+                        namesMatch = false;
+                    recordNames.emplace(handle, name);
+                    return true;
+                }
                 if (isDependency || isBody || expectedIdentity) {
                     if (expectedIdentity) {
                         const bool expectedBody = found->second.body;
@@ -29109,18 +29371,80 @@ bool dx_iface::inspectDwgAssociativeDimensionDependencies(
                 return false;
             },
             [this, &expected, &recordNames, &seenDependencies,
-             &seenBodies, &mapHandle, &view, &debug](const auto& shape,
+             &seenBodies, &expectedGroups, &seenGroups, &mapHandle,
+             &view, &debug](const auto& shape,
                                       std::string_view body) {
-                const auto expectedRecord = expected.find(shape.handle);
                 const auto name = recordNames.find(shape.handle);
-                if (expectedRecord == expected.end()
-                    || expectedRecord->second.source == nullptr
-                    || name == recordNames.end()) {
+                if (name == recordNames.end()) {
                     if (debug)
                         std::cerr << "ACDBASSOCDEPENDENCY staged record has no source binding: handle="
                                   << shape.handle << '\n';
                     return false;
                 }
+                const auto expectedGroup = expectedGroups.find(shape.handle);
+                if (expectedGroup != expectedGroups.end()
+                    || asciiIdentifierEquals(name->second,
+                        "ACDBASSOC2DCONSTRAINTGROUP")) {
+                    if (expectedGroup == expectedGroups.end()
+                        || !asciiIdentifierEquals(name->second,
+                            "ACDBASSOC2DCONSTRAINTGROUP")
+                        || !seenGroups.insert(
+                            expectedGroup->second->handle).second)
+                        return false;
+                    const DRW_AssociativeObject& sourceGroup =
+                        *expectedGroup->second;
+                    dx_standard_output::Decoder decoder(view);
+                    if (!decoder.good())
+                        return false;
+                    return decoder.decodeAssociativeRecord(
+                        "ACDBASSOC2DCONSTRAINTGROUP", body,
+                        [&sourceGroup, &mapHandle, &debug](
+                                const DRW_AssociativeObject& actual) {
+                            // The AC1024 DWG source field is zero; the DXF
+                            // writer emits the fixed group-body version 2.
+                            DRW_AssociativeObject expectedGroup = sourceGroup;
+                            expectedGroup.m_constraintGroupVersion = 2;
+                            std::vector<std::uint32_t> references;
+                            dx_standard_output::NoLayerReferences noLayerRefs;
+                            const bool common = dx_standard_output::commonEqual(
+                                    expectedGroup, actual,
+                                    dx_standard_output::Family::Other,
+                                    mapHandle, references, noLayerRefs);
+                            const bool typed =
+                                associativeConstraintGroupTypedEqual(
+                                    expectedGroup, actual, mapHandle, false);
+                            if (debug && (!common || !typed)) {
+                                std::cerr << "constraint-group output mismatch: common="
+                                          << common << " typed=" << typed
+                                          << " handle=" << actual.handle << '\n';
+                                for (std::size_t index = 0u;
+                                     index < std::min(
+                                         expectedGroup.m_constraintNodes.size(),
+                                         actual.m_constraintNodes.size());
+                                     ++index) {
+                                    int failure = 0;
+                                    if (!associativeConstraintNodeModelEqual(
+                                            expectedGroup.m_constraintNodes[index],
+                                            actual.m_constraintNodes[index],
+                                            mapHandle, &failure)) {
+                                        std::cerr << "constraint node mismatch: index="
+                                                  << index << " field=" << failure
+                                                  << " class="
+                                                  << expectedGroup.m_constraintNodes[index].m_className
+                                                  << "/"
+                                                  << actual.m_constraintNodes[index].m_className
+                                                  << '\n';
+                                        break;
+                                    }
+                                }
+                            }
+                            return common && typed;
+                        }, debug);
+                }
+                const auto expectedRecord = expected.find(shape.handle);
+                if (expectedRecord == expected.end()
+                    || expectedRecord->second.source == nullptr)
+                    return false;
                 const DwgAssociativeDimensionDependencySource& source =
                     *expectedRecord->second.source;
                 dx_standard_output::Decoder decoder(view);
@@ -29286,6 +29610,7 @@ bool dx_iface::inspectDwgAssociativeDimensionDependencies(
                 != m_dwgAssociativeDimensionDependencies.size()
             || seenBodies.size()
                 != m_dwgAssociativeDimensionDependencies.size()
+            || seenGroups.size() != expectedGroups.size()
             || m_dwgAssociativeDimensionDependencyOutputProofs.size()
                 != m_dwgAssociativeDimensionDependencies.size()) {
             if (debug)
@@ -29295,10 +29620,12 @@ bool dx_iface::inspectDwgAssociativeDimensionDependencies(
                           << "/" << m_dwgAssociativeDimensionDependencies.size()
                           << " bodies=" << seenBodies.size() << "/"
                           << m_dwgAssociativeDimensionDependencies.size()
+                          << " groups=" << seenGroups.size() << "/"
+                          << expectedGroups.size()
                           << " pairs="
                           << m_dwgAssociativeDimensionDependencyOutputProofs.size()
                           << '\n';
-            return reject("staged OBJECTS output does not contain exact dependency/body pairs");
+            return reject("staged OBJECTS output does not contain exact dependency/body/group bindings");
         }
         m_dwgAssociativeDimensionDependenciesInspected = true;
         if (debug)

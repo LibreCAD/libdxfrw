@@ -354,6 +354,9 @@ public:
         if (m_recordName == "ASSOCDIMDEPENDENCYBODY"
             || m_recordName == "ACDBASSOCDIMDEPENDENCYBODY")
             return m_dimensionDependencyBodyParsed;
+        if (m_recordName == "ACDBASSOC2DCONSTRAINTGROUP")
+            return m_constraintGroupBodyParsed
+                && m_constraintActionsParsed && m_constraintNodesParsed;
         return false;
     }
 };
@@ -423,7 +426,8 @@ public:
                 && recordName != "ACDBASSOCDIMDEPENDENCYBODY"
                 && recordName != "ACDBASSOCVALUEDEPENDENCY"
                 && recordName != "ACDBASSOCNETWORK"
-                && recordName != "ACDBASSOCVARIABLE"))
+                && recordName != "ACDBASSOCVARIABLE"
+                && recordName != "ACDBASSOC2DCONSTRAINTGROUP"))
             return false;
         buffer.reset(bytes);
         input.clear();
@@ -450,7 +454,14 @@ public:
                           << " body-versions="
                           << record.m_dependencyBodyVersion << "/"
                           << record.m_dimBaseVersion << "/"
-                          << record.m_classVersion << '\n';
+                          << record.m_classVersion << " group="
+                          << record.m_constraintGroupBodyParsed << "/"
+                          << record.m_constraintActionsParsed << "/"
+                          << record.m_constraintNodesParsed << " counts="
+                          << record.m_constraintActionCount << ":"
+                          << record.m_constraintActions.size() << "/"
+                          << record.m_constraintNodeCount << ":"
+                          << record.m_constraintNodes.size() << '\n';
             return false;
         }
         return visit(static_cast<const DRW_AssociativeObject&>(record));
