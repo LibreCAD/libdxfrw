@@ -66,8 +66,9 @@ edges together. The EvaluationGraph `0x1117` has four nodes (IDs 16–19,
 targets `0x1118`–`0x111B`) and three source edges. Complete the
 `BLOCKVISIBILITYPARAMETER` `0x1118` body (states ARCH D/C/B/A, 29 state block
 references each, 117 source block handles total) and `BLOCKVISIBILITYGRIP`
-`0x1119` body (node 17, EvalExpr node IDs 18/19); bind every body, source
-identity, edge, owner and remapped reference in the composed output. Prove the
+`0x1119` body (node 17); compose them with the already-qualified isolated
+GripLocation bodies `0x111A` and `0x111B`, then bind all four source identities,
+graph nodes/edges, owners and remapped references in the output. Prove the
 SORTENTSTABLE's ordered membership plus reciprocal owner. Separately resolve
 `ACDB_BLOCKREPRESENTATION_DATA`
 `0xDD6` and owner `0xDD5`; do not infer that it belongs to `0x1116`. Bind every
@@ -126,9 +127,10 @@ output gates are met.
 **Dynamic-block output profiles:** compose the actual AC1024
 `Title_Block-ARCH` three-entry owner graph rooted at BLOCK_RECORD `0x127`.
 Complete the remaining source-backed `BLOCKVISIBILITYPARAMETER` `0x1118` and
-`BLOCKVISIBILITYGRIP` `0x1119` bodies, bind all four EvaluationGraph nodes
-(IDs 16–19) and three source edges, preserve all 117 visibility-parameter block
-handles and the grip's expression-node links, then close the SORTENTSTABLE
+`BLOCKVISIBILITYGRIP` `0x1119` bodies. Compose them with the already-qualified
+isolated GripLocation bodies for nodes 18 and 19; bind all four EvaluationGraph
+nodes (IDs 16–19), the three source edges and node 17's links to nodes 18 and 19.
+Preserve all 117 visibility-parameter block handles, then close the SORTENTSTABLE
 reciprocity. Emit all required graph targets with DICTIONARY edges, owners,
 reactors and remapped handles intact; prove staged bytes and fresh ASCII/Binary
 readback for the full closure. Keep the mixed-key graph refused until every
