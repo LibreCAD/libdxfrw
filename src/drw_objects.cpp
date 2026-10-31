@@ -31269,6 +31269,7 @@ void DRW_DynamicBlockObject::reset() {
     m_rotationValues.clear();
     m_linearDistanceName.clear();
     m_linearDistanceDescription.clear();
+    m_parameterValueDescription.clear();
     m_linearDistance = 0.0;
     m_linearValue96 = 0;
     m_linearValue141 = 0.0;

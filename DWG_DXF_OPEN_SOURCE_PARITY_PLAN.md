@@ -69,33 +69,36 @@ every required object/reference to emitted identities before widening output
 eligibility. Serializer readback does not prove native dynamic-block semantics.
 
 The remaining source-backed record projections in this inventory are
-`BLOCKFLIPPARAMETER` (3), `BLOCKHORIZONTALCONSTRAINTPARAMETER` (1),
-`BLOCKLINEARPARAMETER` (2), `BLOCKMOVEACTION` (2), `BLOCKSCALEACTION` (1),
-`BLOCKSTRETCHACTION` (6), and `BLOCKVERTICALCONSTRAINTPARAMETER` (1): seven
-record classes and 16 source records remain. The AC1024 `BLOCKALIGNMENTPARAMETER` and
-`BLOCKFLIPACTION` projections and ASCII/Binary typed readbacks are recorded in
+`BLOCKMOVEACTION` (2), `BLOCKSCALEACTION` (1), and `BLOCKSTRETCHACTION` (6):
+three record classes and nine source records remain. The four
+`AcDbBlock2PtParameter` subclasses (`BLOCKFLIPPARAMETER`,
+`BLOCKHORIZONTALCONSTRAINTPARAMETER`, `BLOCKLINEARPARAMETER`, and
+`BLOCKVERTICALCONSTRAINTPARAMETER`) now have bounded AC1024 read/write
+projections, exact ASCII/Binary typed/raw readback, and physical source-record
+round-trip evidence in [the two-point-parameter receipt](docs/research/p5-ac1024-two-point-parameter-output-qualification-2026-10-31.json).
+The AC1024 `BLOCKALIGNMENTPARAMETER` and `BLOCKFLIPACTION` projections and
+ASCII/Binary typed readbacks are recorded in
 [the alignment-parameter receipt](docs/research/p5-ac1024-alignment-parameter-output-qualification-2026-10-31.json)
 and [the flip-action receipt](docs/research/p5-ac1024-flip-action-output-qualification-2026-10-31.json).
 Implement the remaining bounded wire profiles from retained typed fields and
 exact physical source records; serializer readback alone does not establish
-native semantics.
+native semantics. These completed parameter profiles do not close either
+EvaluationGraph owner route, dependency target binding, whole-document output,
+or native dynamic-block semantics.
 
-Implementation order, grouped by shared wire layout to reduce duplicated
-parsing and test setup: (1) complete the four remaining two-point parameter
-classes (`BLOCKFLIPPARAMETER`, `BLOCKHORIZONTALCONSTRAINTPARAMETER`,
-`BLOCKLINEARPARAMETER`, `BLOCKVERTICALCONSTRAINTPARAMETER`) with one bounded
-`AcDbBlock2PtParameter` decoder/writer and exact per-subclass tails; (2)
-complete `BLOCKMOVEACTION`, `BLOCKSCALEACTION`, and `BLOCKSTRETCHACTION` by
-reusing the qualified `AcDbBlockAction` prefix and reference handling from
-`BLOCKFLIPACTION`, while keeping each action-specific body exact; (3) bind
+Implementation order, grouped by shared wire layout to reduce duplicate
+implementation and focused test setup: (1) complete
+`BLOCKMOVEACTION`, `BLOCKSCALEACTION`, and `BLOCKSTRECHACTION` by reusing the
+qualified `AcDbBlockAction` prefix and reference handling from
+`BLOCKFLIPACTION`, while keeping each action-specific body exact; (2) bind
 graph/object identities, action and reactor roles, EED APPID references,
 constraint dependencies, and projected `BLOCKPARAMDEPENDENCYBODY` records to
-emitted identities and their owning `ACDBASSOCDEPENDENCY` records; (4) close
+emitted identities and their owning `ACDBASSOCDEPENDENCY` records; (3) close
 both EvaluationGraph roots and owner-dictionary routes, bind both source
 purge-preventer instances through the already-qualified body profile, and
-resolve required output identities; (5) verify staged bytes and fresh
+resolve required output identities; (4) verify staged bytes and fresh
 ASCII/Binary readback, missing-edge refusal, destination atomicity, and
-corrected retry; (6) run one strict-complete conversion for this source.
+corrected retry; (5) run one strict-complete conversion for this source.
 Reuse providers only when source fields and roles match; keep unknown or
 partially represented descendants refused. Serializer readback does not prove
 native dynamic-block semantics.

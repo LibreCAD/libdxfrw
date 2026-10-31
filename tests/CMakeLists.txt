@@ -2436,6 +2436,19 @@ set_tests_properties(dwg2dxf_dynamic_block_flip_action_writer
     TIMEOUT 30
 )
 
+# Exercise the four AC1024 AcDbBlock2PtParameter subclasses with exact
+# ASCII/Binary field order, typed readback, and atomic rollback/retry.
+add_test(
+    NAME dwg2dxf_dynamic_block_two_point_parameter_writer
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --dynamic-block-two-point-parameter-dxf-writer
+)
+set_tests_properties(dwg2dxf_dynamic_block_two_point_parameter_writer
+    PROPERTIES
+    LABELS "fast;dxf;adapter;dynamic-block"
+    TIMEOUT 30
+)
+
 add_test(
     NAME dwg2dxf_proxy_object_capture_limits
     COMMAND libdxfrw_dwg2dxf_adapter_tests --proxy-object-capture-limits

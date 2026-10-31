@@ -15658,6 +15658,7 @@ bool estimateDynamicBlockTypedBytes(
         &object.m_rotationAngleDescription,
         &object.m_linearDistanceName,
         &object.m_linearDistanceDescription,
+        &object.m_parameterValueDescription,
         &object.m_polarAngleName,
         &object.m_polarAngleDescription,
         &object.m_polarDistanceName,
@@ -35141,15 +35142,29 @@ void appendDwgDynamicHandle(std::vector<DRW_Variant>& groups, int code,
 bool appendDwgDynamicObjectHeader(
         std::vector<DRW_Variant>& groups, const DRW_TableEntry& source,
         std::uint32_t owner, dxfRW& writer,
-        bool ownerBeforeAppData = false) {
+        bool ownerBeforeAppData = false,
+        bool allowReactorAppData = false,
+        bool allowExtendedData = false) {
     if (source.handle == 0u || source.handle == DRW::NoHandle
         || owner == 0u || owner == DRW::NoHandle || source.xDictHandle != 0u
-        || !source.appData.empty() || !source.extData.empty())
+        || (!allowReactorAppData && !source.appData.empty())
+        || (!allowExtendedData && !source.extData.empty()))
         return false;
+    bool hasReactorAppGroup = false;
+    if (allowReactorAppData) {
+        for (const auto& application : source.appData) {
+            if (dx_standard_output::appName(application) != "ACAD_REACTORS"
+                || hasReactorAppGroup
+                || !dx_standard_output::reservedGroupExact(
+                    application, source, true))
+                return false;
+            hasReactorAppGroup = true;
+        }
+    }
     appendDwgDynamicHandle(groups, 5, source.handle, writer);
     if (ownerBeforeAppData)
         appendDwgDynamicHandle(groups, 330, owner, writer);
-    if (!source.reactorHandles.empty()) {
+    if (!source.reactorHandles.empty() || hasReactorAppGroup) {
         appendDwgDynamicString(groups, 102, "{ACAD_REACTORS");
         for (const std::uint32_t reactor : source.reactorHandles) {
             if (reactor == 0u || reactor == DRW::NoHandle)
@@ -35161,6 +35176,318 @@ bool appendDwgDynamicObjectHeader(
     if (!ownerBeforeAppData)
         appendDwgDynamicHandle(groups, 330, owner, writer);
     return true;
+}
+
+bool appendDwgDynamicObjectXdata(
+        std::vector<DRW_Variant>& groups, const DRW_TableEntry& source,
+        dxfRW& writer) {
+    for (const DRW_Variant* value : source.extData) {
+        if (value == nullptr || value->code() < 1000 || value->code() > 1071)
+            return false;
+        if (value->code() >= 1010 && value->code() <= 1013) {
+            const DRW_Coord* point = value->coord();
+            if (value->type() != DRW_Variant::COORD || point == nullptr
+                || !std::isfinite(point->x) || !std::isfinite(point->y)
+                || !std::isfinite(point->z))
+                return false;
+            groups.emplace_back(value->code(), point->x);
+            groups.emplace_back(value->code() + 10, point->y);
+            groups.emplace_back(value->code() + 20, point->z);
+            continue;
+        }
+        if (value->code() != 1005) {
+            const bool valid =
+                ((value->code() == 1000 || value->code() == 1001
+                  || value->code() == 1002 || value->code() == 1003)
+                    && value->type() == DRW_Variant::STRING
+                    && value->c_str() != nullptr)
+                || (value->code() == 1004
+                    && ((value->type() == DRW_Variant::STRING
+                         && value->c_str() != nullptr)
+                        || (value->type() == DRW_Variant::BINARY
+                            && value->binary() != nullptr
+                            && value->binary()->size()
+                                <= DRW::kMaxDxfBinaryPayloadBytes)))
+                || ((value->code() == 1040 || value->code() == 1041
+                     || value->code() == 1042)
+                    && value->type() == DRW_Variant::DOUBLE
+                    && std::isfinite(value->d_val()))
+                || (value->code() == 1070
+                    && value->type() == DRW_Variant::INTEGER)
+                || (value->code() == 1071
+                    && (value->type() == DRW_Variant::INTEGER
+                        || value->type() == DRW_Variant::INTEGER64));
+            if (!valid)
+                return false;
+            groups.push_back(*value);
+            continue;
+        }
+        if (value->type() != DRW_Variant::STRING || value->c_str() == nullptr)
+            return false;
+        const std::string_view text(value->c_str());
+        std::uint64_t parsed = 0u;
+        const std::from_chars_result result = std::from_chars(
+            text.data(), text.data() + text.size(), parsed, 16);
+        if (result.ec != std::errc{} || result.ptr != text.data() + text.size()
+            || parsed > std::numeric_limits<std::uint32_t>::max())
+            return false;
+        groups.emplace_back(1005, writer.toHexStrHandle(
+            static_cast<std::uint32_t>(parsed)));
+    }
+    return true;
+}
+
+bool makeDwgDynamicTwoPointParameterGroups(
+        const DRW_DynamicBlockObject& source, dxfRW& writer,
+        std::vector<DRW_Variant>& groups) {
+    const bool flip = source.m_kind
+        == DRW_DynamicBlockObject::Kind::FlipParameter;
+    const bool linear = source.m_kind
+        == DRW_DynamicBlockObject::Kind::LinearParameter;
+    const bool horizontal = source.m_kind
+        == DRW_DynamicBlockObject::Kind::HorizontalConstraintParameter;
+    const bool vertical = source.m_kind
+        == DRW_DynamicBlockObject::Kind::VerticalConstraintParameter;
+    const bool constraint = horizontal || vertical;
+    const char* recordName = flip ? "BLOCKFLIPPARAMETER"
+        : linear ? "BLOCKLINEARPARAMETER"
+        : horizontal ? "BLOCKHORIZONTALCONSTRAINTPARAMETER"
+        : vertical ? "BLOCKVERTICALCONSTRAINTPARAMETER" : "";
+    const bool versions =
+        (source.m_major == 29u && source.m_minor == 2u
+            && source.m_elementMajor == 29u
+            && source.m_elementMinor == 2u)
+        || (source.m_major == 33u && source.m_minor == 29u
+            && source.m_elementMajor == 33u
+            && source.m_elementMinor == 29u);
+    if (recordName[0] == '\0' || source.m_recordName != recordName
+        || !source.m_bodyFullyDecoded || !source.m_evalExprParsed
+        || !source.m_elementParsed || !versions
+        || source.m_nodeId > static_cast<std::uint32_t>(
+               std::numeric_limits<std::int32_t>::max())
+        || source.m_valueCode != -9999 || source.m_hasValueDouble
+        || source.m_valueHandle != 0u
+        || (source.m_parentId != DRW::NoHandle
+            && source.m_parentId != std::numeric_limits<std::uint32_t>::max())
+        || source.m_twoPointPropertyCodes.size()
+            != source.m_twoPointPropertyNames.size()
+        || !std::isfinite(source.m_firstPoint.x)
+        || !std::isfinite(source.m_firstPoint.y)
+        || !std::isfinite(source.m_firstPoint.z)
+        || !std::isfinite(source.m_secondPoint.x)
+        || !std::isfinite(source.m_secondPoint.y)
+        || !std::isfinite(source.m_secondPoint.z))
+        return false;
+
+    std::size_t groupCount = 31u;
+    std::size_t stringBytes = source.m_elementName.size();
+    if (stringBytes > DRW::kMaxDxfBinaryPayloadBytes)
+        return false;
+    const auto addGroups = [&groupCount](std::size_t count) {
+        if (groupCount > DRW::kMaxDxfRawRecordGroups
+            || count > DRW::kMaxDxfRawRecordGroups - groupCount)
+            return false;
+        groupCount += count;
+        return true;
+    };
+    const auto addString = [&stringBytes](std::size_t bytes) {
+        if (stringBytes > DRW::kMaxDxfBinaryPayloadBytes
+            || bytes > DRW::kMaxDxfBinaryPayloadBytes - stringBytes)
+            return false;
+        stringBytes += bytes;
+        return true;
+    };
+    for (const auto& application : source.appData) {
+        if (!addGroups(application.size()))
+            return false;
+        for (const DRW_Variant& value : application) {
+            if (value.type() == DRW_Variant::STRING
+                && (value.c_str() == nullptr || !addString(
+                    std::strlen(value.c_str()))))
+                return false;
+        }
+    }
+    for (const DRW_Variant* value : source.extData) {
+        if (value == nullptr)
+            return false;
+        const bool point = value->code() >= 1010 && value->code() <= 1013
+            && value->type() == DRW_Variant::COORD;
+        if (!addGroups(point ? 3u : 1u))
+            return false;
+        if (value->type() == DRW_Variant::STRING
+            && (value->c_str() == nullptr
+                || !addString(std::strlen(value->c_str()))))
+            return false;
+        if (value->type() == DRW_Variant::BINARY
+            && (value->binary() == nullptr
+                || value->binary()->size()
+                    > DRW::kMaxDxfBinaryPayloadBytes))
+            return false;
+    }
+    for (std::size_t property = 0u;
+         property < source.m_twoPointPropertyCodes.size(); ++property) {
+        const auto& codes = source.m_twoPointPropertyCodes[property];
+        const auto& names = source.m_twoPointPropertyNames[property];
+        if (codes.size() != names.size()
+            || codes.size() > static_cast<std::size_t>(
+                   std::numeric_limits<std::int16_t>::max())
+            || !addGroups(1u + codes.size() * 2u))
+            return false;
+        for (const UTF8STRING& name : names)
+            if (!addString(name.size()))
+                return false;
+    }
+
+    if (flip) {
+        if (!addGroups(10u)
+            || !addString(source.m_flipCaption.size())
+            || !addString(source.m_flipDescription.size())
+            || !addString(source.m_flipBaseStateName.size())
+            || !addString(source.m_flipFlippedStateName.size())
+            || !addString(source.m_flipTooltip.size())
+            || !std::isfinite(source.m_flipCaptionLocation.x)
+            || !std::isfinite(source.m_flipCaptionLocation.y)
+            || !std::isfinite(source.m_flipCaptionLocation.z))
+            return false;
+    } else if (linear) {
+        if (source.m_linearDeclaredValueCount != source.m_linearValues.size()
+            || source.m_linearValues.size() > static_cast<std::size_t>(
+                   std::numeric_limits<std::int16_t>::max())
+            || !addGroups(10u + source.m_linearValues.size())
+            || !addString(source.m_linearDistanceName.size())
+            || !addString(source.m_linearDistanceDescription.size())
+            || !addString(source.m_parameterValueDescription.size())
+            || !std::isfinite(source.m_linearDistance)
+            || !std::isfinite(source.m_linearValue141)
+            || !std::isfinite(source.m_linearValue142)
+            || !std::isfinite(source.m_linearValue143)
+            || !std::all_of(source.m_linearValues.begin(),
+                source.m_linearValues.end(),
+                [](double value) { return std::isfinite(value); }))
+            return false;
+    } else if (constraint) {
+        // Keep the source identity in the projection. The staged-output
+        // inspector resolves it through the transaction's source-to-emitted
+        // binding when comparing the serialized 330 reference.
+        const std::uint32_t dependency =
+            source.m_constraintDependencyHandle;
+        if (source.m_constraintDependencyHandle == 0u
+            || source.m_constraintDependencyHandle == DRW::NoHandle
+            || dependency == 0u || dependency == DRW::NoHandle
+            || source.m_constraintDeclaredValueCount
+                != source.m_constraintValues.size()
+            || source.m_constraintValues.size() > static_cast<std::size_t>(
+                   std::numeric_limits<std::int16_t>::max())
+            || !addGroups(13u + source.m_constraintValues.size())
+            || !addString(source.m_constraintExpressionName.size())
+            || !addString(source.m_constraintExpressionDescription.size())
+            || !addString(source.m_parameterValueDescription.size())
+            || !std::isfinite(source.m_constraintValue)
+            || !std::isfinite(source.m_constraintMinimum)
+            || !std::isfinite(source.m_constraintMaximum)
+            || !std::isfinite(source.m_constraintIncrement)
+            || !std::all_of(source.m_constraintValues.begin(),
+                source.m_constraintValues.end(),
+                [](double value) { return std::isfinite(value); }))
+            return false;
+    }
+
+    if (source.parentHandle == 0u
+        || !appendDwgDynamicObjectHeader(
+            groups, source, source.parentHandle, writer, false, true, true))
+        return false;
+    appendDwgDynamicString(groups, 100, "AcDbEvalExpr");
+    appendDwgDynamicInt(groups, 90,
+                        static_cast<std::int32_t>(source.m_nodeId));
+    appendDwgDynamicInt(groups, 98, 33);
+    appendDwgDynamicInt(groups, 99, 29);
+    appendDwgDynamicString(groups, 100, "AcDbBlockElement");
+    appendDwgDynamicString(groups, 300, source.m_elementName);
+    appendDwgDynamicInt(groups, 98, 33);
+    appendDwgDynamicInt(groups, 99, 29);
+    appendDwgDynamicInt(groups, 1071, source.m_eed1071);
+    appendDwgDynamicString(groups, 100, "AcDbBlockParameter");
+    appendDwgDynamicInt(groups, 280, source.m_showProperties ? 1 : 0);
+    appendDwgDynamicInt(groups, 281, source.m_chainActions ? 1 : 0);
+    appendDwgDynamicString(groups, 100, "AcDbBlock2PtParameter");
+    groups.emplace_back(1010, source.m_firstPoint.x);
+    groups.emplace_back(1020, source.m_firstPoint.y);
+    groups.emplace_back(1030, source.m_firstPoint.z);
+    groups.emplace_back(1011, source.m_secondPoint.x);
+    groups.emplace_back(1021, source.m_secondPoint.y);
+    groups.emplace_back(1031, source.m_secondPoint.z);
+    appendDwgDynamicInt(groups, 170, 4);
+    for (const std::int32_t state : source.m_propertyStates)
+        appendDwgDynamicInt(groups, 91, state);
+    for (std::size_t property = 0u;
+         property < source.m_twoPointPropertyCodes.size(); ++property) {
+        const auto& codes = source.m_twoPointPropertyCodes[property];
+        const auto& names = source.m_twoPointPropertyNames[property];
+        appendDwgDynamicInt(groups,
+            171 + static_cast<int>(property),
+            static_cast<std::int32_t>(codes.size()));
+        for (std::size_t index = 0u; index < codes.size(); ++index) {
+            appendDwgDynamicInt(groups,
+                92 + static_cast<int>(property), codes[index]);
+            appendDwgDynamicString(groups,
+                301 + static_cast<int>(property), names[index]);
+        }
+    }
+    appendDwgDynamicInt(groups, 177, source.m_parameterBaseLocation);
+    if (flip) {
+        appendDwgDynamicString(groups, 100, "AcDbBlockFlipParameter");
+        appendDwgDynamicString(groups, 305, source.m_flipCaption);
+        appendDwgDynamicString(groups, 306, source.m_flipDescription);
+        appendDwgDynamicString(groups, 307, source.m_flipBaseStateName);
+        appendDwgDynamicString(groups, 308, source.m_flipFlippedStateName);
+        groups.emplace_back(1012, source.m_flipCaptionLocation.x);
+        groups.emplace_back(1022, source.m_flipCaptionLocation.y);
+        groups.emplace_back(1032, source.m_flipCaptionLocation.z);
+        appendDwgDynamicInt(groups, 96, source.m_flipValue96);
+        appendDwgDynamicString(groups, 309, source.m_flipTooltip);
+    } else if (linear) {
+        appendDwgDynamicString(groups, 100, "AcDbBlockLinearParameter");
+        appendDwgDynamicString(groups, 305, source.m_linearDistanceName);
+        appendDwgDynamicString(
+            groups, 306, source.m_linearDistanceDescription);
+        groups.emplace_back(140, source.m_linearDistance);
+        appendDwgDynamicString(
+            groups, 307, source.m_parameterValueDescription);
+        appendDwgDynamicInt(groups, 96, source.m_linearValue96);
+        groups.emplace_back(141, source.m_linearValue141);
+        groups.emplace_back(142, source.m_linearValue142);
+        groups.emplace_back(143, source.m_linearValue143);
+        appendDwgDynamicInt(groups, 175,
+            static_cast<std::int32_t>(source.m_linearDeclaredValueCount));
+        for (const double value : source.m_linearValues)
+            groups.emplace_back(144, value);
+    } else {
+        appendDwgDynamicString(
+            groups, 100, "AcDbBlockConstraintParameter");
+        appendDwgDynamicHandle(
+            groups, 330, source.m_constraintDependencyHandle, writer);
+        appendDwgDynamicString(
+            groups, 100, "AcDbBlockLinearConstraintParameter");
+        appendDwgDynamicString(
+            groups, 305, source.m_constraintExpressionName);
+        appendDwgDynamicString(
+            groups, 306, source.m_constraintExpressionDescription);
+        groups.emplace_back(140, source.m_constraintValue);
+        appendDwgDynamicString(
+            groups, 307, source.m_parameterValueDescription);
+        appendDwgDynamicInt(groups, 96, source.m_constraintValueSetFlags);
+        groups.emplace_back(128, source.m_constraintMinimum);
+        groups.emplace_back(129, source.m_constraintMaximum);
+        groups.emplace_back(130, source.m_constraintIncrement);
+        appendDwgDynamicInt(groups, 175,
+            static_cast<std::int32_t>(source.m_constraintDeclaredValueCount));
+        for (const double value : source.m_constraintValues)
+            groups.emplace_back(131, value);
+        appendDwgDynamicString(groups, 100,
+            horizontal ? "AcDbBlockHorizontalConstraintParameter"
+                       : "AcDbBlockVerticalConstraintParameter");
+    }
+    return appendDwgDynamicObjectXdata(groups, source, writer);
 }
 
 bool makeDwgDynamicOutputGroups(
@@ -35353,6 +35680,15 @@ bool makeDwgDynamicOutputGroups(
         groups.emplace_back(1032, source.m_basePoint.z);
         return true;
     }
+    if (source.m_kind
+            == DRW_DynamicBlockObject::Kind::FlipParameter
+        || source.m_kind
+            == DRW_DynamicBlockObject::Kind::LinearParameter
+        || source.m_kind
+            == DRW_DynamicBlockObject::Kind::HorizontalConstraintParameter
+        || source.m_kind
+            == DRW_DynamicBlockObject::Kind::VerticalConstraintParameter)
+        return makeDwgDynamicTwoPointParameterGroups(source, writer, groups);
     if (source.m_kind
             == DRW_DynamicBlockObject::Kind::AlignmentParameter) {
         const bool versions =
@@ -60037,7 +60373,21 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                     || sameAsciiName(
                         cls.className, "AcDbBlockAlignmentParameter")
                     || sameAsciiName(cls.recName, "BLOCKFLIPACTION")
-                    || sameAsciiName(cls.className, "AcDbBlockFlipAction");
+                    || sameAsciiName(cls.className, "AcDbBlockFlipAction")
+                    || sameAsciiName(cls.recName, "BLOCKFLIPPARAMETER")
+                    || sameAsciiName(
+                        cls.className, "AcDbBlockFlipParameter")
+                    || sameAsciiName(cls.recName, "BLOCKLINEARPARAMETER")
+                    || sameAsciiName(
+                        cls.className, "AcDbBlockLinearParameter")
+                    || sameAsciiName(
+                        cls.recName, "BLOCKHORIZONTALCONSTRAINTPARAMETER")
+                    || sameAsciiName(
+                        cls.className, "AcDbBlockHorizontalConstraintParameter")
+                    || sameAsciiName(
+                        cls.recName, "BLOCKVERTICALCONSTRAINTPARAMETER")
+                    || sameAsciiName(
+                        cls.className, "AcDbBlockVerticalConstraintParameter");
             };
             std::map<std::string, std::size_t> instanceCounts;
             for (const DRW_DynamicBlockObject& object :
@@ -60092,6 +60442,26 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                            && sameAsciiName(object.m_recordName,
                                "BLOCKFLIPACTION")) {
                     ++instanceCounts["BLOCKFLIPACTION"];
+                } else if (object.m_kind
+                               == DRW_DynamicBlockObject::Kind::FlipParameter
+                           && sameAsciiName(object.m_recordName,
+                               "BLOCKFLIPPARAMETER")) {
+                    ++instanceCounts["BLOCKFLIPPARAMETER"];
+                } else if (object.m_kind
+                               == DRW_DynamicBlockObject::Kind::LinearParameter
+                           && sameAsciiName(object.m_recordName,
+                               "BLOCKLINEARPARAMETER")) {
+                    ++instanceCounts["BLOCKLINEARPARAMETER"];
+                } else if (object.m_kind
+                               == DRW_DynamicBlockObject::Kind::HorizontalConstraintParameter
+                           && sameAsciiName(object.m_recordName,
+                               "BLOCKHORIZONTALCONSTRAINTPARAMETER")) {
+                    ++instanceCounts["BLOCKHORIZONTALCONSTRAINTPARAMETER"];
+                } else if (object.m_kind
+                               == DRW_DynamicBlockObject::Kind::VerticalConstraintParameter
+                           && sameAsciiName(object.m_recordName,
+                               "BLOCKVERTICALCONSTRAINTPARAMETER")) {
+                    ++instanceCounts["BLOCKVERTICALCONSTRAINTPARAMETER"];
                 } else {
                     delete dxfW;
                     dxfW = nullptr;

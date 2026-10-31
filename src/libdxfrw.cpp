@@ -21163,6 +21163,571 @@ bool dxfRW::processDynamicBlockObject() {
                     nameCheckpoint.commit();
                 }
                 data.m_bodyFullyDecoded = completeBody;
+            } else if (reader->getSourceVersion() == DRW::AC1024
+                       && (data.m_kind
+                               == DRW_DynamicBlockObject::Kind::FlipParameter
+                           || data.m_kind
+                               == DRW_DynamicBlockObject::Kind::LinearParameter
+                           || data.m_kind
+                               == DRW_DynamicBlockObject::Kind::HorizontalConstraintParameter
+                           || data.m_kind
+                               == DRW_DynamicBlockObject::Kind::VerticalConstraintParameter)) {
+                // These four AC1024 classes share the exact two-point
+                // parameter prefix. Their distinct subclass tails are kept
+                // separate so an unknown suffix cannot publish a partial
+                // typed body.
+                const bool flipParameter = data.m_kind
+                    == DRW_DynamicBlockObject::Kind::FlipParameter;
+                const bool linearParameter = data.m_kind
+                    == DRW_DynamicBlockObject::Kind::LinearParameter;
+                const bool horizontalConstraint = data.m_kind
+                    == DRW_DynamicBlockObject::Kind::HorizontalConstraintParameter;
+                const bool verticalConstraint = data.m_kind
+                    == DRW_DynamicBlockObject::Kind::VerticalConstraintParameter;
+                const bool constraintParameter = horizontalConstraint
+                    || verticalConstraint;
+                const auto integerGroup = [](const DRW_Variant* group,
+                                             int code,
+                                             std::int32_t& value) {
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::INTEGER
+                        || group->i_val()
+                            < std::numeric_limits<std::int32_t>::min()
+                        || group->i_val()
+                            > std::numeric_limits<std::int32_t>::max())
+                        return false;
+                    value = static_cast<std::int32_t>(group->i_val());
+                    return true;
+                };
+                const auto doubleGroup = [](const DRW_Variant* group,
+                                            int code, double& value) {
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::DOUBLE
+                        || !std::isfinite(group->d_val()))
+                        return false;
+                    value = group->d_val();
+                    return true;
+                };
+                const auto stringGroup = [](const DRW_Variant* group,
+                                            int code) {
+                    return group != nullptr && group->code() == code
+                        && group->type() == DRW_Variant::STRING
+                        && group->c_str() != nullptr;
+                };
+                const auto markerGroup = [&stringGroup](
+                        const DRW_Variant* group, std::string_view marker) {
+                    return stringGroup(group, 100)
+                        && std::string_view(group->c_str()) == marker;
+                };
+                std::size_t cursor = 0u;
+                bool headerValid = !raw.groups.empty()
+                    && raw.groups.front().code() == 5
+                    && raw.groups.front().type() == DRW_Variant::STRING;
+                bool sawOwner = false;
+                int headerApplicationDepth = 0;
+                while (cursor < raw.groups.size() && headerValid) {
+                    const DRW_Variant& group = raw.groups[cursor];
+                    if (group.code() == 100 && group.type() == DRW_Variant::STRING
+                        && group.c_str() != nullptr
+                        && std::string_view(group.c_str()) == "AcDbEvalExpr")
+                        break;
+                    if (group.code() == 102) {
+                        headerValid = updateRawDxfApplicationDepth(
+                            group, headerApplicationDepth);
+                    } else if (group.code() == 330) {
+                        if (headerApplicationDepth == 0) {
+                            headerValid = !sawOwner;
+                            sawOwner = true;
+                        }
+                    } else if (group.code() == 5) {
+                        headerValid = cursor == 0u;
+                    } else {
+                        headerValid = false;
+                    }
+                    ++cursor;
+                }
+                const auto takeGroup = [&raw, &cursor](int code)
+                        -> const DRW_Variant* {
+                    if (cursor >= raw.groups.size())
+                        return nullptr;
+                    const DRW_Variant* group = &raw.groups[cursor++];
+                    return group->code() == code ? group : nullptr;
+                };
+                const auto takeInteger = [&](int code,
+                                             std::int32_t& value) {
+                    return integerGroup(takeGroup(code), code, value);
+                };
+                const auto takeDouble = [&](int code, double& value) {
+                    return doubleGroup(takeGroup(code), code, value);
+                };
+                const auto takeString = [&](int code,
+                                            std::string_view& value) {
+                    const DRW_Variant* group = takeGroup(code);
+                    if (!stringGroup(group, code))
+                        return false;
+                    value = group->c_str();
+                    return true;
+                };
+                const auto takeMarker = [&](std::string_view marker) {
+                    return markerGroup(takeGroup(100), marker);
+                };
+                std::int32_t nodeId = 0;
+                std::int32_t evalMajor = 0;
+                std::int32_t evalMinor = 0;
+                std::int32_t elementMajor = 0;
+                std::int32_t elementMinor = 0;
+                std::int32_t eed1071 = 0;
+                std::int32_t showProperties = 0;
+                std::int32_t chainActions = 0;
+                std::int32_t stateCount = 0;
+                std::int32_t baseLocation = 0;
+                std::array<double, 6> points{};
+                std::array<std::int32_t, 4> propertyStates{};
+                std::array<std::vector<std::int32_t>, 4> propertyCodes;
+                std::array<std::vector<std::string_view>, 4> propertyNames;
+                std::string_view elementName;
+                bool completeBody = headerValid && sawOwner
+                    && headerApplicationDepth == 0
+                    && takeMarker("AcDbEvalExpr")
+                    && takeInteger(90, nodeId)
+                    && takeInteger(98, evalMajor)
+                    && takeInteger(99, evalMinor)
+                    && takeMarker("AcDbBlockElement")
+                    && takeString(300, elementName)
+                    && takeInteger(98, elementMajor)
+                    && takeInteger(99, elementMinor)
+                    && takeInteger(1071, eed1071)
+                    && takeMarker("AcDbBlockParameter")
+                    && takeInteger(280, showProperties)
+                    && takeInteger(281, chainActions)
+                    && takeMarker("AcDbBlock2PtParameter")
+                    && takeDouble(1010, points[0])
+                    && takeDouble(1020, points[1])
+                    && takeDouble(1030, points[2])
+                    && takeDouble(1011, points[3])
+                    && takeDouble(1021, points[4])
+                    && takeDouble(1031, points[5])
+                    && takeInteger(170, stateCount)
+                    && stateCount == 4;
+                for (std::size_t index = 0u;
+                     index < propertyStates.size() && completeBody; ++index)
+                    completeBody = takeInteger(91, propertyStates[index]);
+                for (std::size_t property = 0u;
+                     property < propertyCodes.size() && completeBody;
+                     ++property) {
+                    std::int32_t count = 0;
+                    completeBody = takeInteger(
+                        171 + static_cast<int>(property), count)
+                        && count >= 0
+                        && count <= std::numeric_limits<std::int16_t>::max();
+                    const std::size_t reserved =
+                        propertyCodes.size() - property - 1u + 1u;
+                    if (!completeBody || cursor > raw.groups.size()
+                        || raw.groups.size() - cursor < reserved
+                        || static_cast<std::size_t>(count)
+                            > (raw.groups.size() - cursor - reserved) / 2u) {
+                        completeBody = false;
+                        break;
+                    }
+                    try {
+                        propertyCodes[property].reserve(
+                            static_cast<std::size_t>(count));
+                        propertyNames[property].reserve(
+                            static_cast<std::size_t>(count));
+                    } catch (...) {
+                        return setError(DRW::BAD_CODE_PARSED);
+                    }
+                    for (std::int32_t index = 0;
+                         index < count && completeBody; ++index) {
+                        std::int32_t connection = 0;
+                        std::string_view name;
+                        completeBody = takeInteger(
+                                92 + static_cast<int>(property), connection)
+                            && takeString(
+                                301 + static_cast<int>(property), name);
+                        if (completeBody) {
+                            propertyCodes[property].push_back(connection);
+                            propertyNames[property].push_back(name);
+                        }
+                    }
+                }
+                completeBody = completeBody && takeInteger(177, baseLocation)
+                    && baseLocation
+                        >= std::numeric_limits<std::int16_t>::min()
+                    && baseLocation
+                        <= std::numeric_limits<std::int16_t>::max();
+                std::string_view flipCaption;
+                std::string_view flipDescription;
+                std::string_view flipBaseState;
+                std::string_view flipFlippedState;
+                std::string_view flipTooltip;
+                std::string_view linearName;
+                std::string_view linearDescription;
+                std::string_view valueDescription;
+                std::string_view constraintName;
+                std::string_view constraintDescription;
+                std::string_view constraintValueDescription;
+                std::array<double, 3> flipCaptionLocation{};
+                std::array<double, 3> linearSetValues{};
+                std::array<double, 3> constraintSetValues{};
+                std::vector<double> linearValues;
+                std::vector<double> constraintValues;
+                std::int32_t flipValue96 = 0;
+                std::int32_t linearFlags = 0;
+                std::int32_t linearCount = 0;
+                std::int32_t constraintFlags = 0;
+                std::int32_t constraintCount = 0;
+                double linearDistance = 0.0;
+                double constraintValue = 0.0;
+                std::uint32_t constraintDependency = 0u;
+                if (completeBody && flipParameter) {
+                    completeBody = takeMarker("AcDbBlockFlipParameter")
+                        && takeString(305, flipCaption)
+                        && takeString(306, flipDescription)
+                        && takeString(307, flipBaseState)
+                        && takeString(308, flipFlippedState)
+                        && takeDouble(1012, flipCaptionLocation[0])
+                        && takeDouble(1022, flipCaptionLocation[1])
+                        && takeDouble(1032, flipCaptionLocation[2])
+                        && takeInteger(96, flipValue96)
+                        && takeString(309, flipTooltip);
+                } else if (completeBody && linearParameter) {
+                    completeBody = takeMarker("AcDbBlockLinearParameter")
+                        && takeString(305, linearName)
+                        && takeString(306, linearDescription)
+                        && takeDouble(140, linearDistance)
+                        && takeString(307, valueDescription)
+                        && takeInteger(96, linearFlags)
+                        && takeDouble(141, linearSetValues[0])
+                        && takeDouble(142, linearSetValues[1])
+                        && takeDouble(143, linearSetValues[2])
+                        && takeInteger(175, linearCount)
+                        && linearCount >= 0
+                        && linearCount
+                            <= std::numeric_limits<std::int16_t>::max();
+                    if (completeBody) {
+                        const std::size_t remaining = raw.groups.size() - cursor;
+                        if (static_cast<std::size_t>(linearCount) > remaining)
+                            completeBody = false;
+                    }
+                    if (completeBody) {
+                        try {
+                            linearValues.reserve(
+                                static_cast<std::size_t>(linearCount));
+                        } catch (...) {
+                            return setError(DRW::BAD_CODE_PARSED);
+                        }
+                        for (std::int32_t index = 0;
+                             index < linearCount && completeBody; ++index) {
+                            double value = 0.0;
+                            completeBody = takeDouble(144, value);
+                            if (completeBody)
+                                linearValues.push_back(value);
+                        }
+                    }
+                } else if (completeBody && constraintParameter) {
+                    completeBody = takeMarker("AcDbBlockConstraintParameter");
+                    const DRW_Variant* dependency = completeBody
+                        ? takeGroup(330) : nullptr;
+                    std::uint64_t parsedDependency = 0u;
+                    completeBody = completeBody
+                        && stringGroup(dependency, 330)
+                        && parseRawDxfHandleLexeme(
+                            dependency->c_str(), parsedDependency)
+                        && parsedDependency != 0u
+                        && parsedDependency <= std::numeric_limits<std::uint32_t>::max()
+                        && parsedDependency != DRW::NoHandle;
+                    if (completeBody)
+                        constraintDependency = static_cast<std::uint32_t>(
+                            parsedDependency);
+                    completeBody = completeBody
+                        && takeMarker("AcDbBlockLinearConstraintParameter")
+                        && takeString(305, constraintName)
+                        && takeString(306, constraintDescription)
+                        && takeDouble(140, constraintValue)
+                        && takeString(307, constraintValueDescription)
+                        && takeInteger(96, constraintFlags)
+                        && takeDouble(128, constraintSetValues[0])
+                        && takeDouble(129, constraintSetValues[1])
+                        && takeDouble(130, constraintSetValues[2])
+                        && takeInteger(175, constraintCount)
+                        && constraintCount >= 0
+                        && constraintCount
+                            <= std::numeric_limits<std::int16_t>::max();
+                    if (completeBody) {
+                        const std::size_t remaining = raw.groups.size() - cursor;
+                        completeBody = remaining
+                                >= static_cast<std::size_t>(constraintCount) + 1u;
+                    }
+                    if (completeBody) {
+                        try {
+                            constraintValues.reserve(
+                                static_cast<std::size_t>(constraintCount));
+                        } catch (...) {
+                            return setError(DRW::BAD_CODE_PARSED);
+                        }
+                        for (std::int32_t index = 0;
+                             index < constraintCount && completeBody; ++index) {
+                            double value = 0.0;
+                            completeBody = takeDouble(131, value);
+                            if (completeBody)
+                                constraintValues.push_back(value);
+                        }
+                    }
+                    completeBody = completeBody
+                        && takeMarker(horizontalConstraint
+                            ? "AcDbBlockHorizontalConstraintParameter"
+                            : "AcDbBlockVerticalConstraintParameter");
+                }
+                // Any remaining groups must be a supported XDATA suffix.
+                // Unlike most object readers, this shell only captures raw
+                // groups in its loop, so build the typed EED payload here.
+                // DXF point components are three physical groups but one
+                // DRW coordinate variant.
+                std::vector<std::unique_ptr<DRW_Variant>> parsedExtData;
+                const auto appendXdataValue = [&](const DRW_Variant& value) {
+                    if (!reader->chargeTypedVariantNode())
+                        return false;
+                    if (value.type() == DRW_Variant::STRING) {
+                        if (value.c_str() == nullptr
+                            || !retainDxfReadBytes(
+                                data.m_dxfRetainedStringLease,
+                                reader->retainedByteBudget(),
+                                std::strlen(value.c_str())))
+                            return false;
+                    } else if (value.type() == DRW_Variant::BINARY) {
+                        const std::vector<std::uint8_t>* bytes =
+                            value.binary();
+                        if (bytes == nullptr
+                            || bytes->size()
+                                > DRW::kMaxDxfBinaryPayloadBytes
+                            || !retainDxfReadBytes(
+                                data.m_dxfRetainedStringLease,
+                                reader->retainedByteBudget(), bytes->size()))
+                            return false;
+                    }
+                    try {
+                        parsedExtData.emplace_back(
+                            std::make_unique<DRW_Variant>(value));
+                    } catch (...) {
+                        return false;
+                    }
+                    return parsedExtData.size()
+                        <= DRW_TableEntry::kMaxExtendedDataItems;
+                };
+                const auto parseXdataSuffix = [&]() {
+                    std::size_t rawIndex = cursor;
+                    while (rawIndex < raw.groups.size()) {
+                        const DRW_Variant& value = raw.groups[rawIndex];
+                        const int code = value.code();
+                        if (code < 1000 || code > 1071)
+                            return false;
+                        if (code >= 1010 && code <= 1013) {
+                            if (raw.groups.size() - rawIndex < 3u)
+                                return false;
+                            const DRW_Variant& y =
+                                raw.groups[rawIndex + 1u];
+                            const DRW_Variant& z =
+                                raw.groups[rawIndex + 2u];
+                            if (value.type() != DRW_Variant::DOUBLE
+                                || y.code() != code + 10
+                                || y.type() != DRW_Variant::DOUBLE
+                                || z.code() != code + 20
+                                || z.type() != DRW_Variant::DOUBLE
+                                || !std::isfinite(value.d_val())
+                                || !std::isfinite(y.d_val())
+                                || !std::isfinite(z.d_val()))
+                                return false;
+                            if (!reader->chargeTypedVariantNode())
+                                return false;
+                            try {
+                                parsedExtData.emplace_back(
+                                    std::make_unique<DRW_Variant>(code,
+                                        DRW_Coord(value.d_val(), y.d_val(),
+                                                  z.d_val())));
+                            } catch (...) {
+                                return false;
+                            }
+                            rawIndex += 3u;
+                            continue;
+                        }
+                        bool valid = false;
+                        switch (code) {
+                        case 1000:
+                        case 1001:
+                        case 1002:
+                        case 1003:
+                        case 1005:
+                            valid = value.type() == DRW_Variant::STRING;
+                            break;
+                        case 1004:
+                            valid = value.type() == DRW_Variant::BINARY
+                                || value.type() == DRW_Variant::STRING;
+                            break;
+                        case 1040:
+                        case 1041:
+                        case 1042:
+                            valid = value.type() == DRW_Variant::DOUBLE
+                                && std::isfinite(value.d_val());
+                            break;
+                        case 1070:
+                            valid = value.type() == DRW_Variant::INTEGER;
+                            break;
+                        case 1071:
+                            valid = value.type() == DRW_Variant::INTEGER
+                                || value.type() == DRW_Variant::INTEGER64;
+                            break;
+                        default:
+                            break;
+                        }
+                        if (!valid || !appendXdataValue(value))
+                            return false;
+                        ++rawIndex;
+                    }
+                    return true;
+                };
+                std::size_t eedGroupCount = 0u;
+                if (completeBody && cursor < raw.groups.size()) {
+                    eedGroupCount = raw.groups.size() - cursor;
+                    completeBody = parseXdataSuffix();
+                } else if (completeBody && !data.extData.empty()) {
+                    completeBody = false;
+                }
+                completeBody = completeBody && cursor + eedGroupCount
+                    == raw.groups.size()
+                    && nodeId >= 0 && evalMajor == 33 && evalMinor == 29
+                    && elementMajor == 33 && elementMinor == 29
+                    && (showProperties == 0 || showProperties == 1)
+                    && (chainActions == 0 || chainActions == 1);
+                if (completeBody) {
+                    std::size_t stringBytes = elementName.size();
+                    const auto addStringBytes = [&stringBytes](
+                            std::string_view value) {
+                        if (value.size()
+                            > DRW::kMaxDxfBinaryPayloadBytes - stringBytes)
+                            return false;
+                        stringBytes += value.size();
+                        return true;
+                    };
+                    bool stringsValid = stringBytes
+                        <= DRW::kMaxDxfBinaryPayloadBytes;
+                    if (stringsValid) {
+                        stringsValid = addStringBytes(flipCaption)
+                            && addStringBytes(flipDescription)
+                            && addStringBytes(flipBaseState)
+                            && addStringBytes(flipFlippedState)
+                            && addStringBytes(flipTooltip)
+                            && addStringBytes(linearName)
+                            && addStringBytes(linearDescription)
+                            && addStringBytes(valueDescription)
+                            && addStringBytes(constraintName)
+                            && addStringBytes(constraintDescription)
+                            && addStringBytes(constraintValueDescription);
+                    }
+                    DxfReadRetainedLeaseCheckpoint fieldCheckpoint(
+                        data.m_dxfRetainedStringLease);
+                    if (stringBytes > DRW::kMaxDxfBinaryPayloadBytes
+                        || !stringsValid
+                        || !retainDxfReadBytes(data.m_dxfRetainedStringLease,
+                            reader->retainedByteBudget(), stringBytes))
+                        return setError(DRW::BAD_CODE_PARSED);
+                    try {
+                        for (auto& value : parsedExtData) {
+                            if (!data.appendExtData(std::move(value)))
+                                return setError(DRW::BAD_CODE_PARSED);
+                        }
+                        data.m_nodeId = static_cast<std::uint32_t>(nodeId);
+                        data.m_major = static_cast<std::uint32_t>(evalMajor);
+                        data.m_minor = static_cast<std::uint32_t>(evalMinor);
+                        data.m_parentId =
+                            std::numeric_limits<std::uint32_t>::max();
+                        data.m_valueCode = -9999;
+                        data.m_evalExprParsed = true;
+                        data.m_elementParsed = true;
+                        data.m_elementName.assign(
+                            elementName.data(), elementName.size());
+                        data.m_elementMajor =
+                            static_cast<std::uint32_t>(elementMajor);
+                        data.m_elementMinor =
+                            static_cast<std::uint32_t>(elementMinor);
+                        data.m_eed1071 = eed1071;
+                        data.m_showProperties = showProperties != 0;
+                        data.m_chainActions = chainActions != 0;
+                        data.m_firstPoint = DRW_Coord(
+                            points[0], points[1], points[2]);
+                        data.m_secondPoint = DRW_Coord(
+                            points[3], points[4], points[5]);
+                        data.m_twoPointPropertyCodes = std::move(propertyCodes);
+                        for (std::size_t property = 0u;
+                             property < propertyNames.size(); ++property) {
+                            auto& names = data.m_twoPointPropertyNames[property];
+                            names.reserve(propertyNames[property].size());
+                            for (const std::string_view value :
+                                 propertyNames[property])
+                                names.emplace_back(value.data(), value.size());
+                        }
+                        data.m_propertyStates = propertyStates;
+                        data.m_parameterBaseLocation =
+                            static_cast<std::int16_t>(baseLocation);
+                        if (flipParameter) {
+                            data.m_flipCaption.assign(
+                                flipCaption.data(), flipCaption.size());
+                            data.m_flipDescription.assign(
+                                flipDescription.data(), flipDescription.size());
+                            data.m_flipBaseStateName.assign(
+                                flipBaseState.data(), flipBaseState.size());
+                            data.m_flipFlippedStateName.assign(
+                                flipFlippedState.data(), flipFlippedState.size());
+                            data.m_flipCaptionLocation = DRW_Coord(
+                                flipCaptionLocation[0], flipCaptionLocation[1],
+                                flipCaptionLocation[2]);
+                            data.m_flipTooltip.assign(
+                                flipTooltip.data(), flipTooltip.size());
+                            data.m_flipValue96 = flipValue96;
+                        } else if (linearParameter) {
+                            data.m_linearDistanceName.assign(
+                                linearName.data(), linearName.size());
+                            data.m_linearDistanceDescription.assign(
+                                linearDescription.data(),
+                                linearDescription.size());
+                            data.m_parameterValueDescription.assign(
+                                valueDescription.data(),
+                                valueDescription.size());
+                            data.m_linearDistance = linearDistance;
+                            data.m_linearValue96 = linearFlags;
+                            data.m_linearValue141 = linearSetValues[0];
+                            data.m_linearValue142 = linearSetValues[1];
+                            data.m_linearValue143 = linearSetValues[2];
+                            data.m_linearDeclaredValueCount =
+                                static_cast<std::uint16_t>(linearCount);
+                            data.m_linearValues = std::move(linearValues);
+                        } else {
+                            data.m_constraintDependencyHandle =
+                                constraintDependency;
+                            data.m_constraintExpressionName.assign(
+                                constraintName.data(), constraintName.size());
+                            data.m_constraintExpressionDescription.assign(
+                                constraintDescription.data(),
+                                constraintDescription.size());
+                            data.m_parameterValueDescription.assign(
+                                constraintValueDescription.data(),
+                                constraintValueDescription.size());
+                            data.m_constraintValue = constraintValue;
+                            data.m_constraintValueSetFlags = constraintFlags;
+                            data.m_constraintMinimum = constraintSetValues[0];
+                            data.m_constraintMaximum = constraintSetValues[1];
+                            data.m_constraintIncrement = constraintSetValues[2];
+                            data.m_constraintDeclaredValueCount =
+                                static_cast<std::uint16_t>(constraintCount);
+                            data.m_constraintValues =
+                                std::move(constraintValues);
+                        }
+                    } catch (...) {
+                        return setError(DRW::BAD_CODE_PARSED);
+                    }
+                    fieldCheckpoint.commit();
+                }
+                data.m_bodyFullyDecoded = completeBody;
             } else if (data.m_kind
                            == DRW_DynamicBlockObject::Kind::AlignmentParameter
                        && data.m_recordName == "BLOCKALIGNMENTPARAMETER"
@@ -32229,12 +32794,21 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         "BLOCKVISIBILITYGRIP";
     static constexpr char parameterDependencyBodyRecordName[] =
         "BLOCKPARAMDEPENDENCYBODY";
+    const bool twoPointParameterRecord = ent != nullptr
+        && version == DRW::AC1024
+        && (ent->m_kind == DRW_DynamicBlockObject::Kind::FlipParameter
+            || ent->m_kind == DRW_DynamicBlockObject::Kind::LinearParameter
+            || ent->m_kind
+                == DRW_DynamicBlockObject::Kind::HorizontalConstraintParameter
+            || ent->m_kind
+                == DRW_DynamicBlockObject::Kind::VerticalConstraintParameter);
     if (!preflightTableEntry(ent) || ent == nullptr || writer == nullptr
         || version < DRW::AC1024
         || ent->handle == 0 || ent->handle == DRW::NoHandle
         || ent->parentHandle == 0 || ent->parentHandle == DRW::NoHandle
-        || ent->xDictHandle != 0 || !ent->appData.empty()
-        || !ent->extData.empty())
+        || ent->xDictHandle != 0
+        || (!twoPointParameterRecord
+            && (!ent->appData.empty() || !ent->extData.empty())))
         return failDxfWrite();
 
     const bool purgePreventer = ent->m_kind
@@ -32425,6 +32999,148 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         && std::isfinite(ent->m_displayLocation.y)
         && std::isfinite(ent->m_displayLocation.z)
         && ent->reactorHandles.empty();
+    const bool twoPointParameterVersions =
+        (ent->m_major == 29u && ent->m_minor == 2u
+            && ent->m_elementMajor == 29u && ent->m_elementMinor == 2u)
+        || (ent->m_major == 33u && ent->m_minor == 29u
+            && ent->m_elementMajor == 33u && ent->m_elementMinor == 29u);
+    const bool flipParameter = ent->m_kind
+            == DRW_DynamicBlockObject::Kind::FlipParameter
+        && ent->m_recordName == "BLOCKFLIPPARAMETER";
+    const bool linearParameter = ent->m_kind
+            == DRW_DynamicBlockObject::Kind::LinearParameter
+        && ent->m_recordName == "BLOCKLINEARPARAMETER";
+    const bool horizontalConstraintParameter = ent->m_kind
+            == DRW_DynamicBlockObject::Kind::HorizontalConstraintParameter
+        && ent->m_recordName == "BLOCKHORIZONTALCONSTRAINTPARAMETER";
+    const bool verticalConstraintParameter = ent->m_kind
+            == DRW_DynamicBlockObject::Kind::VerticalConstraintParameter
+        && ent->m_recordName == "BLOCKVERTICALCONSTRAINTPARAMETER";
+    const bool constraintParameter = horizontalConstraintParameter
+        || verticalConstraintParameter;
+    std::size_t twoPointGroupCount = 31u;
+    std::size_t twoPointStringBytes = ent->m_elementName.size();
+    bool twoPointParameterShape =
+        (flipParameter || linearParameter || constraintParameter)
+        && ent->m_twoPointPropertyCodes.size()
+            == ent->m_twoPointPropertyNames.size();
+    const auto addTwoPointStringBytes = [&](std::size_t bytes) {
+        if (bytes > DRW::kMaxDxfBinaryPayloadBytes - twoPointStringBytes)
+            return false;
+        twoPointStringBytes += bytes;
+        return true;
+    };
+    twoPointParameterShape = twoPointParameterShape
+        && twoPointStringBytes <= DRW::kMaxDxfBinaryPayloadBytes;
+    for (std::size_t property = 0u;
+         property < ent->m_twoPointPropertyCodes.size()
+             && twoPointParameterShape;
+         ++property) {
+        const auto& codes = ent->m_twoPointPropertyCodes[property];
+        const auto& names = ent->m_twoPointPropertyNames[property];
+        if (codes.size() != names.size()
+            || codes.size() > static_cast<std::size_t>(
+                   std::numeric_limits<std::int16_t>::max())
+            || twoPointGroupCount >= DRW::kMaxDxfRawRecordGroups
+            || codes.size() > (DRW::kMaxDxfRawRecordGroups
+                - twoPointGroupCount - 1u) / 2u) {
+            twoPointParameterShape = false;
+            break;
+        }
+        twoPointGroupCount += 1u + codes.size() * 2u;
+        for (const UTF8STRING& name : names) {
+            if (!addTwoPointStringBytes(name.size())) {
+                twoPointParameterShape = false;
+                break;
+            }
+        }
+    }
+    const auto addTwoPointGroups = [&](std::size_t count) {
+        if (twoPointGroupCount > DRW::kMaxDxfRawRecordGroups
+            || count > DRW::kMaxDxfRawRecordGroups - twoPointGroupCount)
+            return false;
+        twoPointGroupCount += count;
+        return true;
+    };
+    for (const auto& application : ent->appData) {
+        if (!addTwoPointGroups(application.size()))
+            twoPointParameterShape = false;
+    }
+    if (!addTwoPointGroups(ent->extData.size()))
+        twoPointParameterShape = false;
+    if (flipParameter) {
+        twoPointParameterShape = twoPointParameterShape
+            && addTwoPointGroups(10u)
+            && addTwoPointStringBytes(ent->m_flipCaption.size())
+            && addTwoPointStringBytes(ent->m_flipDescription.size())
+            && addTwoPointStringBytes(ent->m_flipBaseStateName.size())
+            && addTwoPointStringBytes(ent->m_flipFlippedStateName.size())
+            && addTwoPointStringBytes(ent->m_flipTooltip.size())
+            && std::isfinite(ent->m_flipCaptionLocation.x)
+            && std::isfinite(ent->m_flipCaptionLocation.y)
+            && std::isfinite(ent->m_flipCaptionLocation.z);
+    } else if (linearParameter) {
+        twoPointParameterShape = twoPointParameterShape
+            && ent->m_linearDeclaredValueCount
+                == ent->m_linearValues.size()
+            && ent->m_linearValues.size()
+                <= static_cast<std::size_t>(
+                       std::numeric_limits<std::int16_t>::max())
+            && addTwoPointGroups(10u + ent->m_linearValues.size())
+            && addTwoPointStringBytes(ent->m_linearDistanceName.size())
+            && addTwoPointStringBytes(
+                ent->m_linearDistanceDescription.size())
+            && addTwoPointStringBytes(
+                ent->m_parameterValueDescription.size())
+            && std::isfinite(ent->m_linearDistance)
+            && std::isfinite(ent->m_linearValue141)
+            && std::isfinite(ent->m_linearValue142)
+            && std::isfinite(ent->m_linearValue143)
+            && std::all_of(ent->m_linearValues.begin(),
+                ent->m_linearValues.end(),
+                [](double value) { return std::isfinite(value); });
+    } else if (constraintParameter) {
+        const std::uint32_t dependencyOutput = remapObjectHandle(
+            ent->m_constraintDependencyHandle);
+        twoPointParameterShape = twoPointParameterShape
+            && ent->m_constraintDependencyHandle != 0u
+            && ent->m_constraintDependencyHandle != DRW::NoHandle
+            && dependencyOutput != 0u && dependencyOutput != DRW::NoHandle
+            && ent->m_constraintDeclaredValueCount
+                == ent->m_constraintValues.size()
+            && ent->m_constraintValues.size()
+                <= static_cast<std::size_t>(
+                       std::numeric_limits<std::int16_t>::max())
+            && addTwoPointGroups(13u + ent->m_constraintValues.size())
+            && addTwoPointStringBytes(ent->m_constraintExpressionName.size())
+            && addTwoPointStringBytes(
+                ent->m_constraintExpressionDescription.size())
+            && addTwoPointStringBytes(
+                ent->m_parameterValueDescription.size())
+            && std::isfinite(ent->m_constraintValue)
+            && std::isfinite(ent->m_constraintMinimum)
+            && std::isfinite(ent->m_constraintMaximum)
+            && std::isfinite(ent->m_constraintIncrement)
+            && std::all_of(ent->m_constraintValues.begin(),
+                ent->m_constraintValues.end(),
+                [](double value) { return std::isfinite(value); });
+    }
+    const bool twoPointParameter = twoPointParameterRecord
+        && ent->m_bodyFullyDecoded && ent->m_evalExprParsed
+        && ent->m_elementParsed && ent->m_nodeId <= static_cast<std::uint32_t>(
+               std::numeric_limits<std::int32_t>::max())
+        && (ent->m_parentId == DRW::NoHandle
+            || ent->m_parentId
+                == std::numeric_limits<std::uint32_t>::max())
+        && twoPointParameterVersions && ent->m_valueCode == -9999
+        && !ent->m_hasValueDouble && ent->m_valueHandle == 0u
+        && twoPointParameterShape
+        && std::isfinite(ent->m_firstPoint.x)
+        && std::isfinite(ent->m_firstPoint.y)
+        && std::isfinite(ent->m_firstPoint.z)
+        && std::isfinite(ent->m_secondPoint.x)
+        && std::isfinite(ent->m_secondPoint.y)
+        && std::isfinite(ent->m_secondPoint.z);
     const bool gripLocation = ent->m_kind
             == DRW_DynamicBlockObject::Kind::GripLocationComponent
         && ent->m_recordName == gripRecordName
@@ -32614,6 +33330,7 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
     }
     if (!purgePreventer && !parameterDependencyBody && !proxyNode
         && !basePointParameter && !alignmentParameter && !flipAction
+        && !twoPointParameter
         && !gripLocation
         && !visibilityGrip
         && !orientedGrip && !visibilityParameter)
@@ -32772,6 +33489,111 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
              index < ent->m_connectionNames.size() && written; ++index) {
             written = writer->writeUtf8String(
                 301 + static_cast<int>(index), ent->m_connectionNames[index]);
+        }
+    } else if (written && twoPointParameter) {
+        written = writer->writeString(100, "AcDbEvalExpr")
+            && writer->writeInt32(90,
+                static_cast<std::int32_t>(ent->m_nodeId))
+            && writer->writeInt32(98, 33)
+            && writer->writeInt32(99, 29)
+            && writer->writeString(100, "AcDbBlockElement")
+            && writer->writeUtf8String(300, ent->m_elementName)
+            && writer->writeInt32(98, 33)
+            && writer->writeInt32(99, 29)
+            && writer->writeInt32(1071, ent->m_eed1071)
+            && writer->writeString(100, "AcDbBlockParameter")
+            && writer->writeInt16(280,
+                static_cast<std::int16_t>(ent->m_showProperties ? 1 : 0))
+            && writer->writeInt16(281,
+                static_cast<std::int16_t>(ent->m_chainActions ? 1 : 0))
+            && writer->writeString(100, "AcDbBlock2PtParameter")
+            && writer->writeDouble(1010, ent->m_firstPoint.x)
+            && writer->writeDouble(1020, ent->m_firstPoint.y)
+            && writer->writeDouble(1030, ent->m_firstPoint.z)
+            && writer->writeDouble(1011, ent->m_secondPoint.x)
+            && writer->writeDouble(1021, ent->m_secondPoint.y)
+            && writer->writeDouble(1031, ent->m_secondPoint.z)
+            && writer->writeInt16(170, 4);
+        for (const std::int32_t stateValue : ent->m_propertyStates)
+            written = written && writer->writeInt32(91, stateValue);
+        for (std::size_t property = 0u;
+             property < ent->m_twoPointPropertyCodes.size() && written;
+             ++property) {
+            const auto& codes = ent->m_twoPointPropertyCodes[property];
+            const auto& names = ent->m_twoPointPropertyNames[property];
+            written = writer->writeInt16(
+                171 + static_cast<int>(property),
+                static_cast<std::int16_t>(codes.size()));
+            for (std::size_t index = 0u;
+                 index < codes.size() && written; ++index) {
+                written = writer->writeInt32(
+                        92 + static_cast<int>(property), codes[index])
+                    && writer->writeUtf8String(
+                        301 + static_cast<int>(property), names[index]);
+            }
+        }
+        written = written
+            && writer->writeInt16(177, ent->m_parameterBaseLocation);
+        if (written && flipParameter) {
+            written = writer->writeString(100, "AcDbBlockFlipParameter")
+                && writer->writeUtf8String(305, ent->m_flipCaption)
+                && writer->writeUtf8String(306, ent->m_flipDescription)
+                && writer->writeUtf8String(307, ent->m_flipBaseStateName)
+                && writer->writeUtf8String(308,
+                    ent->m_flipFlippedStateName)
+                && writer->writeDouble(1012,
+                    ent->m_flipCaptionLocation.x)
+                && writer->writeDouble(1022,
+                    ent->m_flipCaptionLocation.y)
+                && writer->writeDouble(1032,
+                    ent->m_flipCaptionLocation.z)
+                && writer->writeInt32(96, ent->m_flipValue96)
+                && writer->writeUtf8String(309, ent->m_flipTooltip);
+        } else if (written && linearParameter) {
+            written = writer->writeString(100, "AcDbBlockLinearParameter")
+                && writer->writeUtf8String(305, ent->m_linearDistanceName)
+                && writer->writeUtf8String(
+                    306, ent->m_linearDistanceDescription)
+                && writer->writeDouble(140, ent->m_linearDistance)
+                && writer->writeUtf8String(
+                    307, ent->m_parameterValueDescription)
+                && writer->writeInt32(96, ent->m_linearValue96)
+                && writer->writeDouble(141, ent->m_linearValue141)
+                && writer->writeDouble(142, ent->m_linearValue142)
+                && writer->writeDouble(143, ent->m_linearValue143)
+                && writer->writeInt16(175,
+                    static_cast<std::int16_t>(
+                        ent->m_linearDeclaredValueCount));
+            for (const double value : ent->m_linearValues)
+                written = written && writer->writeDouble(144, value);
+        } else if (written && constraintParameter) {
+            written = writer->writeString(100,
+                    "AcDbBlockConstraintParameter")
+                && writer->writeString(330, toHexStr(
+                    remapObjectHandle(ent->m_constraintDependencyHandle)))
+                && writer->writeString(100,
+                    "AcDbBlockLinearConstraintParameter")
+                && writer->writeUtf8String(
+                    305, ent->m_constraintExpressionName)
+                && writer->writeUtf8String(
+                    306, ent->m_constraintExpressionDescription)
+                && writer->writeDouble(140, ent->m_constraintValue)
+                && writer->writeUtf8String(
+                    307, ent->m_parameterValueDescription)
+                && writer->writeInt32(96,
+                    ent->m_constraintValueSetFlags)
+                && writer->writeDouble(128, ent->m_constraintMinimum)
+                && writer->writeDouble(129, ent->m_constraintMaximum)
+                && writer->writeDouble(130, ent->m_constraintIncrement)
+                && writer->writeInt16(175,
+                    static_cast<std::int16_t>(
+                        ent->m_constraintDeclaredValueCount));
+            for (const double value : ent->m_constraintValues)
+                written = written && writer->writeDouble(131, value);
+            written = written && writer->writeString(100,
+                horizontalConstraintParameter
+                    ? "AcDbBlockHorizontalConstraintParameter"
+                    : "AcDbBlockVerticalConstraintParameter");
         }
     } else if (written && gripLocation) {
         written = writer->writeString(100, "AcDbEvalExpr")

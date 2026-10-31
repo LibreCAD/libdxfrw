@@ -7929,6 +7929,7 @@ public:
   // AcDbBlockLinearParameter body.
   UTF8STRING m_linearDistanceName;
   UTF8STRING m_linearDistanceDescription;
+  UTF8STRING m_parameterValueDescription; /*!< DXF group 307 description */
   double m_linearDistance = 0.0;
   std::int32_t m_linearValue96 = 0;
   double m_linearValue141 = 0.0;

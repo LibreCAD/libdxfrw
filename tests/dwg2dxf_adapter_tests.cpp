@@ -11229,6 +11229,556 @@ bool dynamicBlockFlipActionDxfWriter(
     return true;
 }
 
+class DynamicBlockTwoPointParameterWriterProbe final : public dx_iface {
+public:
+    DRW_DynamicBlockObject object;
+    bool objectWritten{false};
+
+    void writeObjects() override {
+        objectWritten = dxfW != nullptr
+            && dxfW->writeDynamicBlockObject(&object);
+        if (!objectWritten && dxfW != nullptr)
+            dxfW->writeRawDxfObject(nullptr);
+    }
+};
+
+bool dynamicBlockTwoPointParameterDxfWriter(
+        const std::filesystem::path& physicalSource = {}) {
+    struct RemoveTemporaryFile {
+        std::filesystem::path path;
+        ~RemoveTemporaryFile() {
+            std::error_code ignored;
+            std::filesystem::remove(path, ignored);
+        }
+    };
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    const auto makeObject = [](DRW_DynamicBlockObject::Kind kind,
+                               bool dxfSource) {
+        const char* recordName = kind
+                == DRW_DynamicBlockObject::Kind::FlipParameter
+            ? "BLOCKFLIPPARAMETER"
+            : kind == DRW_DynamicBlockObject::Kind::LinearParameter
+                ? "BLOCKLINEARPARAMETER"
+                : kind == DRW_DynamicBlockObject::Kind::HorizontalConstraintParameter
+                    ? "BLOCKHORIZONTALCONSTRAINTPARAMETER"
+                    : "BLOCKVERTICALCONSTRAINTPARAMETER";
+        DRW_DynamicBlockObject object(recordName);
+        object.handle = 0x1135u;
+        object.parentHandle = 0x110Fu;
+        object.m_evalExprParsed = true;
+        object.m_parentId = std::numeric_limits<std::uint32_t>::max();
+        object.m_major = dxfSource ? 33u : 29u;
+        object.m_minor = dxfSource ? 29u : 2u;
+        object.m_valueCode = -9999;
+        object.m_nodeId = 54u;
+        object.m_elementParsed = true;
+        object.m_elementName = "Door Size";
+        object.m_elementMajor = dxfSource ? 33u : 29u;
+        object.m_elementMinor = dxfSource ? 29u : 2u;
+        object.m_showProperties = true;
+        object.m_chainActions = false;
+        object.m_firstPoint = DRW_Coord(1.25, -2.5, 3.75);
+        object.m_secondPoint = DRW_Coord(15.0, 4.5, -6.75);
+        object.m_propertyStates = {{55, 0, 7, -1}};
+        object.m_twoPointPropertyCodes[0] = {55, -4};
+        object.m_twoPointPropertyNames[0] = {"Distance", "Width"};
+        object.m_twoPointPropertyCodes[1] = {92};
+        object.m_twoPointPropertyNames[1] = {"Angle"};
+        object.m_twoPointPropertyCodes[3] = {301, 0};
+        object.m_twoPointPropertyNames[3] = {"Position", "Enabled"};
+        object.m_parameterBaseLocation = 2;
+        object.m_bodyFullyDecoded = true;
+        if (kind == DRW_DynamicBlockObject::Kind::FlipParameter) {
+            object.m_flipCaption = "Flip";
+            object.m_flipDescription = "Flip the door";
+            object.m_flipBaseStateName = "Base";
+            object.m_flipFlippedStateName = "Flipped";
+            object.m_flipCaptionLocation = DRW_Coord(2.0, 3.0, 4.0);
+            object.m_flipValue96 = 1;
+            object.m_flipTooltip = "Toggle door handing";
+        } else if (kind
+                   == DRW_DynamicBlockObject::Kind::LinearParameter) {
+            object.m_linearDistanceName = "Door Width";
+            object.m_linearDistanceDescription = "Opening width";
+            object.m_linearDistance = 36.0;
+            object.m_parameterValueDescription = "Distance value";
+            object.m_linearValue96 = 8;
+            object.m_linearValue141 = 24.0;
+            object.m_linearValue142 = 48.0;
+            object.m_linearValue143 = 2.0;
+            object.m_linearValues = {24.0, 36.0, 48.0};
+            object.m_linearDeclaredValueCount = 3;
+        } else {
+            object.m_constraintDependencyHandle = 0x114Bu;
+            object.m_constraintExpressionName = kind
+                    == DRW_DynamicBlockObject::Kind::HorizontalConstraintParameter
+                ? "W" : "H";
+            object.m_constraintExpressionDescription = "constraint value";
+            object.m_constraintValue = -15.25;
+            object.m_parameterValueDescription = "constraint description";
+            object.m_constraintValueSetFlags = 8;
+            object.m_constraintMinimum = 4.0;
+            object.m_constraintMaximum = 6.0;
+            object.m_constraintIncrement = 1.0;
+            object.m_constraintValues = {4.0, 5.0, 6.0};
+            object.m_constraintDeclaredValueCount = 3;
+        }
+        return object;
+    };
+    const auto expectedCodes = [](const DRW_DynamicBlockObject& object) {
+        std::vector<int> codes{5};
+        for (const auto& application : object.appData)
+            for (const DRW_Variant& value : application)
+                codes.push_back(value.code());
+        const bool reactorAppData = std::any_of(
+            object.appData.begin(), object.appData.end(),
+            [](const auto& application) {
+                return !application.empty()
+                    && application.front().code() == 102
+                    && application.front().c_str() != nullptr
+                    && std::string_view(application.front().c_str())
+                        == "{ACAD_REACTORS";
+            });
+        if (!object.reactorHandles.empty() && !reactorAppData) {
+            codes.push_back(102);
+            codes.insert(codes.end(), object.reactorHandles.size(), 330);
+            codes.push_back(102);
+        }
+        codes.push_back(330);
+        const std::vector<int> body{
+            100, 90, 98, 99, 100, 300, 98, 99, 1071, 100,
+            280, 281, 100, 1010, 1020, 1030, 1011, 1021, 1031, 170,
+            91, 91, 91, 91};
+        codes.insert(codes.end(), body.begin(), body.end());
+        for (std::size_t property = 0u;
+             property < object.m_twoPointPropertyCodes.size(); ++property) {
+            codes.push_back(171 + static_cast<int>(property));
+            for (std::size_t index = 0u;
+                 index < object.m_twoPointPropertyCodes[property].size();
+                 ++index) {
+                codes.push_back(92 + static_cast<int>(property));
+                codes.push_back(301 + static_cast<int>(property));
+            }
+        }
+        codes.push_back(177);
+        if (object.m_kind == DRW_DynamicBlockObject::Kind::FlipParameter) {
+            codes.insert(codes.end(), {100, 305, 306, 307, 308, 1012,
+                                       1022, 1032, 96, 309});
+        } else if (object.m_kind
+                   == DRW_DynamicBlockObject::Kind::LinearParameter) {
+            codes.insert(codes.end(), {100, 305, 306, 140, 307, 96, 141,
+                                       142, 143, 175});
+            codes.insert(codes.end(), object.m_linearValues.size(), 144);
+        } else {
+            codes.insert(codes.end(), {100, 330, 100, 305, 306, 140, 307,
+                                       96, 128, 129, 130, 175});
+            codes.insert(codes.end(), object.m_constraintValues.size(), 131);
+            codes.push_back(100);
+        }
+        for (const DRW_Variant* value : object.extData) {
+            if (value == nullptr)
+                continue;
+            const int code = value->code();
+            if (code >= 1010 && code <= 1013
+                && value->type() == DRW_Variant::COORD) {
+                codes.insert(codes.end(), {code, code + 10, code + 20});
+            } else {
+                codes.push_back(code);
+            }
+        }
+        return codes;
+    };
+    const auto sameCoord = [](const DRW_Coord& lhs, const DRW_Coord& rhs) {
+        return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
+    };
+    const auto matches = [&](const DRW_DynamicBlockObject& source,
+                             const DRW_DynamicBlockObject& output) {
+        if (source.m_kind != output.m_kind
+            || source.m_recordName != output.m_recordName
+            || source.handle != output.handle
+            || source.parentHandle != output.parentHandle
+            || !output.m_bodyFullyDecoded || !output.m_evalExprParsed
+            || !output.m_elementParsed || output.m_major != 33u
+            || output.m_minor != 29u || output.m_elementMajor != 33u
+            || output.m_elementMinor != 29u
+            || output.m_nodeId != source.m_nodeId
+            || output.m_valueCode != -9999
+            || output.m_elementName != source.m_elementName
+            || output.m_showProperties != source.m_showProperties
+            || output.m_chainActions != source.m_chainActions
+            || !sameCoord(output.m_firstPoint, source.m_firstPoint)
+            || !sameCoord(output.m_secondPoint, source.m_secondPoint)
+            || output.m_propertyStates != source.m_propertyStates
+            || output.m_twoPointPropertyCodes
+                != source.m_twoPointPropertyCodes
+            || output.m_twoPointPropertyNames
+                != source.m_twoPointPropertyNames
+            || output.m_parameterBaseLocation
+                != source.m_parameterBaseLocation)
+            return false;
+        if (source.m_kind == DRW_DynamicBlockObject::Kind::FlipParameter)
+            return output.m_flipCaption == source.m_flipCaption
+                && output.m_flipDescription == source.m_flipDescription
+                && output.m_flipBaseStateName == source.m_flipBaseStateName
+                && output.m_flipFlippedStateName
+                    == source.m_flipFlippedStateName
+                && sameCoord(output.m_flipCaptionLocation,
+                             source.m_flipCaptionLocation)
+                && output.m_flipValue96 == source.m_flipValue96
+                && output.m_flipTooltip == source.m_flipTooltip;
+        if (source.m_kind == DRW_DynamicBlockObject::Kind::LinearParameter)
+            return output.m_linearDistanceName
+                    == source.m_linearDistanceName
+                && output.m_linearDistanceDescription
+                    == source.m_linearDistanceDescription
+                && output.m_linearDistance == source.m_linearDistance
+                && output.m_parameterValueDescription
+                    == source.m_parameterValueDescription
+                && output.m_linearValue96 == source.m_linearValue96
+                && output.m_linearValue141 == source.m_linearValue141
+                && output.m_linearValue142 == source.m_linearValue142
+                && output.m_linearValue143 == source.m_linearValue143
+                && output.m_linearDeclaredValueCount
+                    == source.m_linearDeclaredValueCount
+                && output.m_linearValues == source.m_linearValues;
+        return output.m_constraintDependencyHandle
+                == source.m_constraintDependencyHandle
+            && output.m_constraintExpressionName
+                == source.m_constraintExpressionName
+            && output.m_constraintExpressionDescription
+                == source.m_constraintExpressionDescription
+            && output.m_constraintValue == source.m_constraintValue
+            && output.m_parameterValueDescription
+                == source.m_parameterValueDescription
+            && output.m_constraintValueSetFlags
+                == source.m_constraintValueSetFlags
+            && output.m_constraintMinimum == source.m_constraintMinimum
+            && output.m_constraintMaximum == source.m_constraintMaximum
+            && output.m_constraintIncrement == source.m_constraintIncrement
+            && output.m_constraintDeclaredValueCount
+                == source.m_constraintDeclaredValueCount
+            && output.m_constraintValues == source.m_constraintValues;
+    };
+    const auto sameXdata = [](const DRW_Variant& lhs,
+                              const DRW_Variant& rhs) {
+        if (lhs.code() != rhs.code() || lhs.type() != rhs.type())
+            return false;
+        switch (lhs.type()) {
+        case DRW_Variant::STRING:
+            return lhs.c_str() != nullptr && rhs.c_str() != nullptr
+                && std::string_view(lhs.c_str()) == rhs.c_str();
+        case DRW_Variant::INTEGER:
+            return lhs.i_val() == rhs.i_val();
+        case DRW_Variant::INTEGER64:
+            return lhs.i64_val() == rhs.i64_val();
+        case DRW_Variant::DOUBLE:
+            return lhs.d_val() == rhs.d_val();
+        case DRW_Variant::COORD: {
+            const DRW_Coord* left = lhs.coord();
+            const DRW_Coord* right = rhs.coord();
+            return left != nullptr && right != nullptr
+                && left->x == right->x && left->y == right->y
+                && left->z == right->z;
+        }
+        case DRW_Variant::BINARY:
+            return lhs.binary() != nullptr && rhs.binary() != nullptr
+                && *lhs.binary() == *rhs.binary();
+        case DRW_Variant::INVALID:
+            return false;
+        }
+        return false;
+    };
+    const auto writeAndRead = [&](DRW_DynamicBlockObject object,
+                                  bool dxfSource, bool binary,
+                                  const dx_data* sourceData,
+                                  bool testUnknownTail) {
+        const std::filesystem::path output =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-dynamic-two-point-parameter-"
+               + std::to_string(nonce) + "-"
+               + std::to_string(static_cast<unsigned>(object.m_kind))
+               + (dxfSource ? "-dxf" : "-dwg")
+               + (binary ? "-bin.dxf" : "-asc.dxf"));
+        const RemoveTemporaryFile outputCleanup{output};
+        dx_data writeData;
+        writeData.sourceFormat = dxfSource ? dx_source_format::DXF
+                                           : dx_source_format::DWG;
+        writeData.sourceVersion = DRW::AC1024;
+        if (sourceData != nullptr)
+            writeData.appIds = sourceData->appIds;
+        DynamicBlockTwoPointParameterWriterProbe iface;
+        iface.cData = &writeData;
+        iface.object = std::move(object);
+        dxfRW writer(output.string().c_str());
+        iface.dxfW = &writer;
+        const std::string sentinel =
+            "invalid two-point parameter must preserve this\n";
+        {
+            std::ofstream existing(output, std::ios::binary | std::ios::trunc);
+            existing << sentinel;
+            if (!existing)
+                return fail("could not create two-point parameter sentinel");
+        }
+        auto& names = iface.object.m_twoPointPropertyNames[0];
+        const auto originalNames = names;
+        const double originalPointX = iface.object.m_firstPoint.x;
+        if (names.empty())
+            iface.object.m_firstPoint.x =
+                std::numeric_limits<double>::infinity();
+        else
+            names.pop_back();
+        if (writer.write(&iface, DRW::AC1024, binary)
+            || iface.objectWritten)
+            return fail("mismatched two-point connection arrays were emitted");
+        {
+            std::ifstream existing(output, std::ios::binary);
+            const std::string preserved{
+                std::istreambuf_iterator<char>(existing),
+                std::istreambuf_iterator<char>()};
+            if (existing.bad() || preserved != sentinel)
+                return fail("failed two-point write replaced destination");
+        }
+        names = originalNames;
+        iface.object.m_firstPoint.x = originalPointX;
+        if (!writer.write(&iface, DRW::AC1024, binary)
+            || !iface.objectWritten)
+            return fail("corrected two-point parameter failed same-writer retry");
+
+        dx_data readback;
+        readback.sourceFormat = dx_source_format::DXF;
+        readback.sourceVersion = DRW::AC1024;
+        dx_iface readIface;
+        readIface.cData = &readback;
+        dxfRW reader(output.string().c_str());
+        if (!reader.read(&readIface, false)
+            || readback.dynamicBlockObjects.size() != 1u
+            || readback.rawDynamicBlockObjects.size() != 1u)
+            return fail(std::string("two-point parameter failed fresh typed ")
+                + "readback for " + iface.object.m_recordName + " (typed="
+                + std::to_string(readback.dynamicBlockObjects.size())
+                + ", raw="
+                + std::to_string(readback.rawDynamicBlockObjects.size())
+                + ")");
+        if (!matches(iface.object, readback.dynamicBlockObjects.front())) {
+            const auto& actual = readback.dynamicBlockObjects.front();
+            std::cerr << "two-point mismatch details: node "
+                      << iface.object.m_nodeId << '/' << actual.m_nodeId
+                      << " element " << iface.object.m_elementName << '/'
+                      << actual.m_elementName << " version " << actual.m_major
+                      << '/' << actual.m_minor << " states="
+                      << actual.m_propertyStates[0] << ','
+                      << actual.m_propertyStates[1] << ','
+                      << actual.m_propertyStates[2] << ','
+                      << actual.m_propertyStates[3] << " groups="
+                      << actual.m_twoPointPropertyCodes[0].size() << ','
+                      << actual.m_twoPointPropertyCodes[1].size() << ','
+                      << actual.m_twoPointPropertyCodes[2].size() << ','
+                      << actual.m_twoPointPropertyCodes[3].size() << " base="
+                      << actual.m_parameterBaseLocation << " flip="
+                      << actual.m_flipCaption << '/' << actual.m_flipDescription
+                      << '/' << actual.m_flipBaseStateName << '/'
+                      << actual.m_flipFlippedStateName << '/'
+                      << actual.m_flipTooltip << "\n";
+            for (const DRW_RawDxfObject& rawObject :
+                 readback.rawDynamicBlockObjects) {
+                std::cerr << "raw two-point codes:";
+                for (const DRW_Variant& value : rawObject.groups)
+                    std::cerr << ' ' << value.code();
+                std::cerr << " app=" << actual.appData.size()
+                          << " reactors=" << actual.reactorHandles.size()
+                          << " ext=" << actual.extData.size() << "\n";
+            }
+            return fail(std::string("two-point parameter typed fields changed ")
+                + "on readback for " + iface.object.m_recordName);
+        }
+        const DRW_DynamicBlockObject& typed =
+            readback.dynamicBlockObjects.front();
+        if (iface.object.extData.size() != typed.extData.size())
+            return fail("two-point parameter XDATA item count changed on readback");
+        for (std::size_t index = 0u;
+             index < iface.object.extData.size(); ++index) {
+            if (iface.object.extData[index] == nullptr
+                || typed.extData[index] == nullptr
+                || !sameXdata(*iface.object.extData[index],
+                              *typed.extData[index]))
+                return fail("two-point parameter XDATA value changed on readback");
+        }
+        const auto codes = expectedCodes(iface.object);
+        const DRW_RawDxfObject& raw = readback.rawDynamicBlockObjects.front();
+        if (raw.groups.size() != codes.size())
+            return fail(std::string("two-point parameter group count changed ")
+                + "on output for " + iface.object.m_recordName + " (expected="
+                + std::to_string(codes.size()) + ", actual="
+                + std::to_string(raw.groups.size()) + ")");
+        for (std::size_t index = 0u; index < codes.size(); ++index) {
+            if (raw.groups[index].code() != codes[index])
+            {
+                std::cerr << "expected codes:";
+                for (const int code : codes)
+                    std::cerr << ' ' << code;
+                std::cerr << "\nactual codes:";
+                for (const DRW_Variant& value : raw.groups)
+                    std::cerr << ' ' << value.code();
+                std::cerr << '\n';
+                return fail(std::string("two-point parameter DXF group order ")
+                    + "changed for " + iface.object.m_recordName + " at "
+                    + std::to_string(index) + " (expected="
+                    + std::to_string(codes[index]) + ", actual="
+                    + std::to_string(raw.groups[index].code()) + ")");
+            }
+        }
+        std::vector<std::uint32_t> emittedReactors;
+        bool inReactors = false;
+        for (const DRW_Variant& value : raw.groups) {
+            if (value.code() == 102 && value.type() == DRW_Variant::STRING
+                && value.c_str() != nullptr) {
+                const std::string_view marker(value.c_str());
+                if (marker == "{ACAD_REACTORS") {
+                    inReactors = true;
+                    continue;
+                }
+                if (inReactors && marker == "}") {
+                    inReactors = false;
+                    continue;
+                }
+            }
+            if (!inReactors || value.code() != 330)
+                continue;
+            if (value.type() != DRW_Variant::STRING || value.c_str() == nullptr)
+                return fail("two-point parameter reactor is not a handle string");
+            std::uint64_t parsed = 0u;
+            const char* begin = value.c_str();
+            const char* end = begin + std::strlen(begin);
+            const auto converted = std::from_chars(begin, end, parsed, 16);
+            if (converted.ec != std::errc{} || converted.ptr != end
+                || parsed > std::numeric_limits<std::uint32_t>::max())
+                return fail("two-point parameter reactor handle is malformed");
+            emittedReactors.push_back(static_cast<std::uint32_t>(parsed));
+        }
+        if (emittedReactors != iface.object.reactorHandles)
+            return fail("two-point parameter reactor targets changed on output");
+        if (testUnknownTail) {
+            std::ifstream input(output, std::ios::binary);
+            std::vector<std::string> lines;
+            std::string line;
+            while (std::getline(input, line))
+                lines.push_back(line);
+            std::size_t recordStart = lines.size();
+            std::size_t recordEnd = lines.size();
+            for (std::size_t index = 0u; index + 1u < lines.size();
+                 index += 2u) {
+                int code = -1;
+                try {
+                    code = std::stoi(lines[index]);
+                } catch (...) {
+                    break;
+                }
+                if (code != 0)
+                    continue;
+                if (lines[index + 1u] == iface.object.m_recordName) {
+                    recordStart = index;
+                    continue;
+                }
+                if (recordStart != lines.size()) {
+                    recordEnd = index;
+                    break;
+                }
+            }
+            if (input.bad() || recordStart == lines.size()
+                || recordEnd == lines.size())
+                return fail("could not locate two-point parser tail control");
+            lines.insert(lines.begin() + static_cast<std::ptrdiff_t>(recordEnd),
+                         {"70", "1"});
+            const std::filesystem::path tailedOutput =
+                output.string() + ".tail.dxf";
+            const RemoveTemporaryFile tailedCleanup{tailedOutput};
+            {
+                std::ofstream tailed(tailedOutput,
+                    std::ios::binary | std::ios::trunc);
+                for (const std::string& value : lines)
+                    tailed << value << '\n';
+                if (!tailed)
+                    return fail("could not write two-point parser tail control");
+            }
+            dx_data tailedReadback;
+            tailedReadback.sourceFormat = dx_source_format::DXF;
+            tailedReadback.sourceVersion = DRW::AC1024;
+            dx_iface tailedIface;
+            tailedIface.cData = &tailedReadback;
+            dxfRW tailedReader(tailedOutput.string().c_str());
+            if (!tailedReader.read(&tailedIface, false)
+                || tailedReadback.dynamicBlockObjects.size() != 1u
+                || tailedReadback.rawDynamicBlockObjects.size() != 1u
+                || tailedReadback.dynamicBlockObjects.front().m_bodyFullyDecoded
+                || tailedReadback.dynamicBlockObjects.front().m_evalExprParsed
+                || tailedReadback.rawDynamicBlockObjects.front().groups.size()
+                    != codes.size() + 1u)
+                return fail("unknown two-point tail did not remain raw-only");
+        }
+        return true;
+    };
+
+    const std::array<DRW_DynamicBlockObject::Kind, 4> kinds{{
+        DRW_DynamicBlockObject::Kind::FlipParameter,
+        DRW_DynamicBlockObject::Kind::LinearParameter,
+        DRW_DynamicBlockObject::Kind::HorizontalConstraintParameter,
+        DRW_DynamicBlockObject::Kind::VerticalConstraintParameter}};
+    for (const DRW_DynamicBlockObject::Kind kind : kinds) {
+        for (const auto& profile : std::array<std::pair<bool, bool>, 4>{{
+                 {false, false}, {false, true}, {true, false}, {true, true}}}) {
+            if (!writeAndRead(makeObject(kind, profile.first),
+                              profile.first, profile.second, nullptr,
+                              kind == DRW_DynamicBlockObject::Kind::FlipParameter
+                                  && profile.first && !profile.second))
+                return false;
+        }
+    }
+
+    if (!physicalSource.empty()) {
+        dx_iface sourceReader;
+        dx_data source;
+        if (!sourceReader.fileImport(physicalSource.string(), &source, false)
+            || source.sourceFormat != dx_source_format::DWG
+            || source.sourceVersion != DRW::AC1024)
+            return fail("two-point parameter witness is not an AC1024 DWG");
+        std::array<std::size_t, 4> counts{};
+        std::vector<DRW_DynamicBlockObject> physicalObjects;
+        for (const DRW_DynamicBlockObject& object : source.dynamicBlockObjects) {
+            const auto found = std::find_if(kinds.begin(), kinds.end(),
+                [&object](DRW_DynamicBlockObject::Kind kind) {
+                    return object.m_kind == kind;
+                });
+            if (found == kinds.end())
+                continue;
+            if (!object.m_bodyFullyDecoded || !object.m_evalExprParsed
+                || !object.m_elementParsed || object.m_nodeId == 0u)
+                return fail("physical two-point parameter is not fully typed");
+            const std::size_t index = static_cast<std::size_t>(
+                std::distance(kinds.begin(), found));
+            ++counts[index];
+            physicalObjects.push_back(object);
+        }
+        if (counts != std::array<std::size_t, 4>{{3u, 2u, 1u, 1u}})
+            return fail("physical source two-point record census changed");
+        for (const DRW_DynamicBlockObject& object : physicalObjects) {
+            for (const bool binary : {false, true}) {
+                if (!writeAndRead(object, false, binary, &source, false))
+                    return false;
+            }
+        }
+        std::cerr << "Physical AC1024 two-point parameters passed source "
+                     "capture and ASCII/Binary output/readback: flip=3, "
+                     "linear=2, horizontal=1, vertical=1.\n";
+    }
+    std::cerr << "AC1024 two-point parameter codecs passed across four "
+                 "record classes, DWG/DXF schema tags, ASCII/Binary, "
+                 "destination rollback, same-writer retry, and exact typed/raw "
+                 "readback.\n";
+    return true;
+}
+
 class DynamicBlockParameterDependencyBodyWriterProbe final : public dx_iface {
 public:
     std::vector<DRW_DynamicBlockObject> objects;
@@ -53794,6 +54344,12 @@ int main(int argc, char** argv) {
         && std::string(argv[1])
             == "--dynamic-block-flip-action-dxf-writer")
         return dynamicBlockFlipActionDxfWriter(
+            argc == 3 ? std::filesystem::path(argv[2])
+                      : std::filesystem::path{}) ? 0 : 1;
+    if ((argc == 2 || argc == 3)
+        && std::string(argv[1])
+            == "--dynamic-block-two-point-parameter-dxf-writer")
+        return dynamicBlockTwoPointParameterDxfWriter(
             argc == 3 ? std::filesystem::path(argv[2])
                       : std::filesystem::path{}) ? 0 : 1;
     if (argc == 2

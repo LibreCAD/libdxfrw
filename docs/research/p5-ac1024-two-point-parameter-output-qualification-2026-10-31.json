@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1024-two-point-parameter-output-qualification-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 two-point dynamic-block parameter DXF profiles",
+  "status": "AC1024_TWO_POINT_PARAMETER_PHYSICAL_OUTPUT_READBACK_PASS",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+    "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+    "version": "AC1024",
+    "physicalRecordCounts": {
+      "BLOCKFLIPPARAMETER": 3,
+      "BLOCKLINEARPARAMETER": 2,
+      "BLOCKHORIZONTALCONSTRAINTPARAMETER": 1,
+      "BLOCKVERTICALCONSTRAINTPARAMETER": 1
+    },
+    "fixturePolicy": "Used the existing local input only. No DWG/DXF fixture was added to Git. Selector-generated output files were temporary and removed."
+  },
+  "independentStructuralComparison": {
+    "implementation": "GNU LibreDWG dwgread/dwg2dxf 0.14",
+    "dxfOutput": {
+      "path": "/private/tmp/arch-libredwg-reference.dxf",
+      "sha256": "16587f4864d2dd0b704bd1992e482a0e80be0c7517ff4455584c97d5142312e5"
+    },
+    "jsonOutput": {
+      "path": "/private/tmp/arch-libredwg-reference.json",
+      "sha256": "da7a939d6542a9e7ef638d331c1dd7cdc90970858493124edbff7bac9f31d39f"
+    },
+    "observations": [
+      "BLOCKLINEARPARAMETER source handles 1110 and 1114 carry the shared AcDbBlock2PtParameter connection lists followed by the AcDbBlockLinearParameter fields and value sets.",
+      "BLOCKFLIPPARAMETER source handles 1118, 111D, and 1156 carry the flip caption/state/location/value/tooltip tail; handle 1156 also carries XDATA with a coordinate tuple.",
+      "BLOCKHORIZONTALCONSTRAINTPARAMETER handle 1165 and BLOCKVERTICALCONSTRAINTPARAMETER handle 1160 carry an AcDbBlockConstraintParameter dependency handle, the shared AcDbBlockLinearConstraintParameter body, value-set fields, and distinct final subclass markers.",
+      "The horizontal and vertical parameter records carry persistent reactors; independent JSON identifies their expression names and values as W/-19.6528394930898 and H/-15.19823363933608, respectively."
+    ],
+    "limits": "LibreDWG is an independent structural/field comparison only; it does not establish native dynamic-block semantics, full graph closure, or consumer acceptance."
+  },
+  "implementation": {
+    "dxfRead": "AC1024-only exact shared two-point prefix and per-subclass tails for FlipParameter, LinearParameter, HorizontalConstraintParameter, and VerticalConstraintParameter. Counts, schema tags, handles, finite values, trailing XDATA shapes, and group order are bounded. Unknown/malformed suffixes remain raw-only. DXF point components in trailing XDATA are reconstructed as one typed DRW coordinate while raw groups retain physical component order.",
+    "dxfWrite": "AC1024-only typed serializers validate shared connection code/name arrays, declared value-set counts, finite coordinates/scalars, handle domains, strings, and group/byte limits before atomic publication. Constraint dependency handles are remapped at serialization.",
+    "adapter": "Adds adapter-side projection helpers and dynamic-block DXF class metadata for these profiles to support later graph binding. The physical witness exercises the typed writer directly; it does not qualify staged whole-graph adapter emission. Complete-document admission remains closed.",
+    "notQualified": "No native dynamic-block semantic qualification, complete owner-graph conversion, whole-document output qualification, or format-wide support claim."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j4",
+      "result": "PASS with warning-as-error enabled."
+    },
+    "fastRegression": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_dynamic_block_(basepoint_parameter|alignment_parameter|flip_action|two_point_parameter)_writer$' --output-on-failure",
+      "result": "PASS, 4/4. The new two-point selector covered four record types, DWG/DXF schema tags, ASCII/Binary output, exact raw group order, typed fields and XDATA readback, reactor handles, unknown-tail raw-only fallback, failed-write destination preservation, and corrected same-writer retry."
+    },
+    "physicalWitness": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-two-point-parameter-dxf-writer tests/samples/AC1024/architectural_example-imperial.dwg",
+      "result": "PASS. All seven physical AC1024 parameter records were serialized individually to ASCII and Binary DXF and freshly re-imported. Typed body fields, XDATA values, reactor handles, constraint dependency values, and raw group order matched the source projection."
+    },
+    "fixturesAdded": 0,
+    "fullSuites": "NOT RUN; focused warning-as-error builds, four fast writer regressions, and the physical-source selector were sufficient for this bounded profile."
+  },
+  "externalItemsPromoted": 0
+}
