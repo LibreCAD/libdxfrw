@@ -81,6 +81,10 @@ constexpr std::size_t kMaxAdapterCellStyleMapItems = 4000000u;
 constexpr std::size_t kMaxAdapterCellStyleMapRetainedBytes =
     DRW::kMaxDxfBinaryPayloadBytes;
 constexpr std::size_t kMaxAdapterDynamicBlockRecords = 100000u;
+// The existing AC1024 title_block-arch.dwg witness assigns AcDbEvalGraph
+// source handle 0x1117 CLASS number 511. This is its observed source oType;
+// DRW_EvaluationGraph::kDwgClassNum is the writer's canonical class slot.
+constexpr std::int16_t kAc1024TitleBlockEvaluationGraphObjectType = 511;
 
 // This narrowly identifies the physical AC1024 Title_Block-ARCH mixed owner
 // dictionary. It lets SORTENTSTABLE and the generic extension-graph planner
@@ -26123,34 +26127,58 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
             != std::vector<std::uint32_t>{nod.handle})
         return skip("ACAD_LAYOUT dictionary source role/shape");
 
-    const std::array<std::pair<std::uint32_t, const char*>, 2> expected{{
-        {0x22u, "Model"}, {0x59u, "Layout1"}}};
+    const std::array<const char*, 3> expected{{
+        "Model", "Layout1", "Architectural Title Block"}};
     std::map<std::uint32_t, DwgLayoutOutputSource> selected;
+    std::set<std::string> selectedNames;
     try {
         for (const DRW_Layout& layout : cData->layouts) {
             const auto expectedLayout = std::find_if(expected.begin(), expected.end(),
                 [&layout](const auto& item) {
-                    return item.first == layout.handle
-                        && item.second == layout.name;
+                    return layout.name == item;
                 });
             if (expectedLayout == expected.end()
                 || selected.count(layout.handle) != 0u
-                || layout.parentHandle != layoutDictionary->handle
-                || layout.xDictHandle == 0u
-                || layout.xDictHandle == DRW::NoHandle
-                || layout.plotViewHandle.ref != 0u
+                || !selectedNames.insert(layout.name).second)
+                return skip("unique two-layout source identities");
+            if (layout.parentHandle != layoutDictionary->handle)
+                return skip("LAYOUT owner dictionary role");
+            if (layout.plotViewHandle.ref != 0u
                 || layout.shadePlotHandle.ref != 0u
                 || layout.baseUcsHandle.ref != 0u
-                || layout.namedUcsHandle.ref != 0u
-                || layout.hasDataStorageBinaryData()
+                || layout.namedUcsHandle.ref != 0u)
+                return skip("unqualified LAYOUT plot/UCS references");
+            if (layout.hasDataStorageBinaryData()
                 || layout.hasDwgCommonLinkTail()
                 || !layout.appData.empty()
-                || layout.extData.size() != 6u
-                || layout.viewportCount < 0
+                || (!layout.extData.empty()
+                    && layout.extData.size() != 6u)) {
+                if (debug)
+                    std::cerr << "LAYOUT common/EED shape: handle="
+                              << std::hex << layout.handle << std::dec
+                              << " name=" << layout.name
+                              << " data-storage="
+                              << layout.hasDataStorageBinaryData()
+                              << " common-tail="
+                              << layout.hasDwgCommonLinkTail()
+                              << " app-data=" << layout.appData.size()
+                              << " ext-data=" << layout.extData.size()
+                              << '\n';
+                return skip("unqualified LAYOUT common data or EED shape");
+            }
+            if (layout.viewportCount < 0
                 || layout.viewportCount > DRW_Layout::kMaxViewportCount
                 || layout.viewportCount
-                    != static_cast<std::int32_t>(layout.viewportHandles.size()))
-                return skip("layout identity, fields, or viewport shape");
+                    != static_cast<std::int32_t>(layout.viewportHandles.size())) {
+                if (debug)
+                    std::cerr << "LAYOUT viewport shape: handle="
+                              << std::hex << layout.handle << std::dec
+                              << " name=" << layout.name
+                              << " count=" << layout.viewportCount
+                              << " handles=" << layout.viewportHandles.size()
+                              << '\n';
+                return skip("LAYOUT viewport-list shape");
+            }
             const auto frame = cData->m_opaqueDwgSourceFrames.find(
                 {cData->importGeneration, layout.handle});
             if (frame == cData->m_opaqueDwgSourceFrames.end()
@@ -26184,32 +26212,85 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
                 findDictionary(layout.xDictHandle);
             if (blockRecord == nullptr
                 || blockRecord->layoutHandle != layout.handle
-                || extension == nullptr
-                || extension->parentHandle != layout.handle
-                || extension->hardOwner != 1 || extension->cloning != 1
-                || extension->countCap
-                || !extension->hasCompleteDwgEntries()
-                || extension->m_entries.size() != 1u
-                || !extension->appData.empty()
-                || !extension->extData.empty()
-                || extension->hasDataStorageBinaryData()
-                || extension->hasDwgCommonLinkTail()
-                || !extension->pendingAppIdResolutions.empty()
-                || !extension->pendingLayerRefResolutions.empty())
+                || ((layout.xDictHandle == 0u) != (extension == nullptr))
+                || (extension != nullptr
+                    && (extension->parentHandle != layout.handle
+                        || extension->hardOwner != 1
+                        || extension->cloning != 1
+                        || extension->countCap
+                        || !extension->hasCompleteDwgEntries()
+                        || extension->m_entries.empty()
+                        || extension->m_entries.size() > 2u
+                        || !extension->appData.empty()
+                        || !extension->extData.empty()
+                        || extension->hasDataStorageBinaryData()
+                        || extension->hasDwgCommonLinkTail()
+                        || !extension->pendingAppIdResolutions.empty()
+                        || !extension->pendingLayerRefResolutions.empty()))) {
+                if (debug) {
+                    std::cerr << "LAYOUT owner/dependency shape: layout="
+                              << std::hex << layout.handle << std::dec
+                              << " name=" << layout.name
+                              << " block-ref="
+                              << layout.paperSpaceBlockRecordHandle.ref
+                              << " block-found=" << (blockRecord != nullptr)
+                              << " block-layout="
+                              << (blockRecord == nullptr
+                                      ? 0u : blockRecord->layoutHandle)
+                              << " extension=" << std::hex
+                              << layout.xDictHandle << std::dec
+                              << " extension-found=" << (extension != nullptr);
+                    if (extension != nullptr)
+                        std::cerr << " parent=" << std::hex
+                                  << extension->parentHandle << std::dec
+                                  << " hard-owner=" << extension->hardOwner
+                                  << " cloning=" << extension->cloning
+                                  << " capped="
+                                  << extension->countCap.has_value()
+                                  << " entries=" << extension->m_entries.size()
+                                  << " app-data=" << extension->appData.size()
+                                  << " ext-data=" << extension->extData.size()
+                                  << " data-storage="
+                                  << extension->hasDataStorageBinaryData()
+                                  << " common-tail="
+                                  << extension->hasDwgCommonLinkTail()
+                                  << " pending-app/layer="
+                                  << extension->pendingAppIdResolutions.size()
+                                  << '/' << extension->pendingLayerRefResolutions.size();
+                    std::cerr << '\n';
+                }
                 return skip("BLOCK_RECORD backlink or extension dictionary shape");
-            const DRW_Dictionary::Entry& childEntry =
-                extension->m_entries.front();
-            const DRW_XRecord* thumbnail = findXRecord(childEntry.m_handle);
-            if (childEntry.m_name != "ADSK_XREC_LAYOUTTHUMBNAIL"
-                || thumbnail == nullptr
-                || thumbnail->parentHandle != extension->handle
-                || std::find(m_extensionDictionaryHandles.begin(),
-                    m_extensionDictionaryHandles.end(), extension->handle)
-                    == m_extensionDictionaryHandles.end()
-                || std::find(m_extensionXRecordHandles.begin(),
-                    m_extensionXRecordHandles.end(), thumbnail->handle)
-                    == m_extensionXRecordHandles.end())
-                return skip("layout thumbnail XRECORD dependency");
+            }
+            std::vector<std::uint32_t> extensionXRecordHandles;
+            if (extension != nullptr) {
+                if (std::find(m_extensionDictionaryHandles.begin(),
+                              m_extensionDictionaryHandles.end(),
+                              extension->handle)
+                    == m_extensionDictionaryHandles.end())
+                    return skip("LAYOUT extension dictionary closure");
+                std::set<std::string> childNames;
+                std::set<std::uint32_t> childHandles;
+                extensionXRecordHandles.reserve(extension->m_entries.size());
+                for (const DRW_Dictionary::Entry& childEntry :
+                     extension->m_entries) {
+                    if ((childEntry.m_name != "ADSK_XREC_LAYOUTTHUMBNAIL"
+                            && childEntry.m_name
+                                != "ImpressionDefaultExportArea")
+                        || !childNames.insert(childEntry.m_name).second
+                        || !childHandles.insert(childEntry.m_handle).second)
+                        return skip("LAYOUT extension key/target profile");
+                    const DRW_XRecord* child =
+                        findXRecord(childEntry.m_handle);
+                    if (child == nullptr
+                        || child->parentHandle != extension->handle
+                        || std::find(m_extensionXRecordHandles.begin(),
+                                     m_extensionXRecordHandles.end(),
+                                     child->handle)
+                            == m_extensionXRecordHandles.end())
+                        return skip("LAYOUT extension XRECORD dependency");
+                    extensionXRecordHandles.push_back(child->handle);
+                }
+            }
             for (const std::uint32_t viewport : layout.viewportHandles) {
                 if (viewport == 0u || viewport == DRW::NoHandle)
                     return skip("invalid layout viewport-list handle");
@@ -26217,12 +26298,19 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
             DwgLayoutOutputSource snapshot;
             snapshot.model = layout;
             snapshot.blockRecord = *blockRecord;
-            snapshot.extensionDictionary = *extension;
-            snapshot.thumbnailHandle = thumbnail->handle;
+            if (extension != nullptr)
+                snapshot.extensionDictionary = *extension;
+            snapshot.extensionXRecordHandles =
+                std::move(extensionXRecordHandles);
             if (!selected.emplace(layout.handle, std::move(snapshot)).second)
                 return skip("two unique physical layout identities");
         }
-        if (selected.size() != expected.size())
+        const std::size_t paperLayoutNames =
+            selectedNames.count("Layout1")
+            + selectedNames.count("Architectural Title Block");
+        if (selected.size() != 2u || selectedNames.size() != 2u
+            || selectedNames.count("Model") != 1u
+            || paperLayoutNames != 1u)
             return skip("not every witnessed layout identity was selected");
         m_dwgLayoutOutputSources = std::move(selected);
         m_dwgLayoutOutputDictionary = *layoutDictionary;
@@ -26393,24 +26481,61 @@ bool dx_iface::hasUnchangedDwgLayoutOutputSources(bool debug) const noexcept {
             for (const DRW_Block_Record& candidate : cData->blockRecords)
                 if (candidate.handle == row.second.blockRecord.handle)
                     liveBlockRecords[index] = &candidate;
-            const DRW_XRecord* liveThumbnail = nullptr;
-            for (const DRW_XRecord& candidate : cData->xRecords) {
-                if (candidate.handle != row.second.thumbnailHandle)
-                    continue;
-                if (liveThumbnail != nullptr)
-                    return fail("duplicate layout thumbnail XRECORD identity");
-                liveThumbnail = &candidate;
-            }
-            if (liveExtensions[index] == nullptr
-                || liveBlockRecords[index] == nullptr
-                || liveThumbnail == nullptr
-                || !sameDictionary(row.second.extensionDictionary,
-                                   *liveExtensions[index])
+            if (liveBlockRecords[index] == nullptr
                 || !sameBlockRecord(row.second.blockRecord,
-                                    *liveBlockRecords[index])
-                || liveThumbnail->parentHandle
-                    != row.second.extensionDictionary.handle)
-                return fail("layout extension DICTIONARY or thumbnail XRECORD edge changed");
+                                    *liveBlockRecords[index]))
+                return fail("LAYOUT BLOCK_RECORD snapshot changed");
+            if (row.second.extensionDictionary.handle == 0u) {
+                if (row.second.model.xDictHandle != 0u
+                    || liveExtensions[index] != nullptr
+                    || !row.second.extensionXRecordHandles.empty())
+                    return fail("LAYOUT without XDICTIONARY acquired extension data");
+            } else {
+                if (row.second.model.xDictHandle
+                        != row.second.extensionDictionary.handle
+                    || liveExtensions[index] == nullptr
+                    || !sameDictionary(row.second.extensionDictionary,
+                                       *liveExtensions[index])
+                    || row.second.extensionXRecordHandles.size()
+                        != row.second.extensionDictionary.m_entries.size())
+                    return fail("LAYOUT extension DICTIONARY snapshot changed");
+                for (const std::uint32_t handle :
+                     row.second.extensionXRecordHandles) {
+                    const DRW_XRecord* liveRecord = nullptr;
+                    const DRW_XRecord* frozenRecord = nullptr;
+                    std::size_t liveMatches = 0u;
+                    std::size_t frozenMatches = 0u;
+                    for (const DRW_XRecord& candidate : cData->xRecords) {
+                        if (candidate.handle != handle)
+                            continue;
+                        liveRecord = &candidate;
+                        ++liveMatches;
+                    }
+                    if (m_xrecordWriteSourceOwner != nullptr) {
+                        if (m_xrecordWriteSourceOwner != cData)
+                            return fail("LAYOUT XRECORD snapshot owner changed");
+                        for (const DRW_XRecord& candidate :
+                             m_xrecordWriteSources) {
+                            if (candidate.handle != handle)
+                                continue;
+                            frozenRecord = &candidate;
+                            ++frozenMatches;
+                        }
+                    }
+                    if (liveMatches != 1u || liveRecord == nullptr
+                        || (m_xrecordWriteSourceOwner != nullptr
+                            && (frozenMatches != 1u
+                                || frozenRecord == nullptr))
+                        || liveRecord->parentHandle
+                            != row.second.extensionDictionary.handle)
+                        return fail("LAYOUT extension XRECORD source role changed");
+                    if (frozenRecord != nullptr
+                        && !standardDwgModelsEqual(
+                            *frozenRecord, *liveRecord, DRW::AC1024,
+                            dwgObjType::XRECORD))
+                        return fail("LAYOUT extension XRECORD source snapshot changed");
+                }
+            }
             ++index;
         }
         if (index != m_dwgLayoutOutputSources.size()
@@ -26643,7 +26768,15 @@ bool dx_iface::inspectDwgLayouts(
 
         std::set<std::uint32_t> seenNod, seenRoot, seenLayouts;
         std::set<std::uint32_t> seenExtensions;
-        std::set<std::uint32_t> seenThumbnails;
+        std::set<std::uint32_t> seenXrecords;
+        std::size_t expectedExtensionCount = 0u;
+        std::size_t expectedXrecordCount = 0u;
+        for (const auto& row : m_dwgLayoutOutputSources) {
+            expectedExtensionCount +=
+                row.second.extensionDictionary.handle != 0u ? 1u : 0u;
+            expectedXrecordCount +=
+                row.second.extensionXRecordHandles.size();
+        }
         std::string_view selectedName;
         const char* stagedFailure = "selected OBJECTS records";
         const bool inspected = dx_standard_output::inspectSelected(
@@ -26653,17 +26786,26 @@ bool dx_iface::inspectDwgLayouts(
                 if (handle == emittedNod || handle == emittedLayoutDictionary)
                     return true;
                 for (const auto& row : m_dwgLayoutOutputSources) {
-                    std::uint32_t emittedLayout = 0u, emittedExtension = 0u;
-                    std::uint32_t emittedThumbnail = 0u;
+                    std::uint32_t emittedLayout = 0u;
+                    std::uint32_t emittedExtension = 0u;
                     if (!mapHandle(row.first, emittedLayout)
-                        || !mapHandle(row.second.extensionDictionary.handle,
-                                      emittedExtension)
-                        || !mapHandle(row.second.thumbnailHandle,
-                                      emittedThumbnail))
+                        || (row.second.extensionDictionary.handle != 0u
+                            && !mapHandle(
+                                row.second.extensionDictionary.handle,
+                                emittedExtension)))
                         return false;
-                    if (handle == emittedLayout || handle == emittedExtension
-                        || handle == emittedThumbnail)
+                    if (handle == emittedLayout
+                        || (emittedExtension != 0u
+                            && handle == emittedExtension))
                         return true;
+                    for (const std::uint32_t sourceXrecord :
+                         row.second.extensionXRecordHandles) {
+                        std::uint32_t emittedXrecord = 0u;
+                        if (!mapHandle(sourceXrecord, emittedXrecord))
+                            return false;
+                        if (handle == emittedXrecord)
+                            return true;
+                    }
                 }
                 return false;
             },
@@ -26723,30 +26865,52 @@ bool dx_iface::inspectDwgLayouts(
                 }
                 const DwgLayoutOutputSource* selected = nullptr;
                 bool extensionRecord = false;
-                bool thumbnailRecord = false;
+                const DRW_XRecord* selectedXrecord = nullptr;
                 for (const auto& row : m_dwgLayoutOutputSources) {
-                    std::uint32_t emittedLayout = 0u, emittedExtension = 0u;
-                    std::uint32_t emittedThumbnail = 0u;
+                    std::uint32_t emittedLayout = 0u;
+                    std::uint32_t emittedExtension = 0u;
                     if (!mapHandle(row.first, emittedLayout)
-                        || !mapHandle(row.second.extensionDictionary.handle,
-                                      emittedExtension)
-                        || !mapHandle(row.second.thumbnailHandle,
-                                      emittedThumbnail))
+                        || (row.second.extensionDictionary.handle != 0u
+                            && !mapHandle(
+                                row.second.extensionDictionary.handle,
+                                emittedExtension)))
                         return false;
                     if (shape.handle == emittedLayout) {
                         selected = &row.second;
                         break;
                     }
-                    if (shape.handle == emittedExtension) {
+                    if (emittedExtension != 0u
+                        && shape.handle == emittedExtension) {
                         selected = &row.second;
                         extensionRecord = true;
                         break;
                     }
-                    if (shape.handle == emittedThumbnail) {
+                    for (const std::uint32_t sourceXrecord :
+                         row.second.extensionXRecordHandles) {
+                        std::uint32_t emittedXrecord = 0u;
+                        if (!mapHandle(sourceXrecord, emittedXrecord))
+                            return false;
+                        if (shape.handle != emittedXrecord)
+                            continue;
+                        for (const DRW_XRecord& frozen :
+                             m_xrecordWriteSources) {
+                            if (frozen.handle != sourceXrecord)
+                                continue;
+                            if (selectedXrecord != nullptr) {
+                                stagedFailure = "duplicate LAYOUT extension XRECORD snapshot";
+                                return false;
+                            }
+                            selectedXrecord = &frozen;
+                        }
+                        if (selectedXrecord == nullptr) {
+                            stagedFailure = "missing LAYOUT extension XRECORD snapshot";
+                            return false;
+                        }
                         selected = &row.second;
-                        thumbnailRecord = true;
                         break;
                     }
+                    if (selected != nullptr)
+                        break;
                 }
                 if (selected == nullptr) {
                     stagedFailure = "unselected LAYOUT or extension record";
@@ -26767,32 +26931,18 @@ bool dx_iface::inspectDwgLayouts(
                                 mapHandle, references);
                         });
                     if (!decoded)
-                        stagedFailure = "LAYOUT extension dictionary and thumbnail entry";
+                        stagedFailure = "LAYOUT extension dictionary entries/roles";
                     return decoded;
                 }
-                if (thumbnailRecord) {
+                if (selectedXrecord != nullptr) {
                     if (selectedName != "XRECORD"
-                        || !seenThumbnails.insert(shape.handle).second) {
-                        stagedFailure = "duplicate or misnamed LAYOUT thumbnail XRECORD";
+                        || !seenXrecords.insert(shape.handle).second) {
+                        stagedFailure = "duplicate or misnamed LAYOUT extension XRECORD";
                         return false;
                     }
                     if (m_xrecordWriteSourceOwner != cData
                         || !hasUnchangedXrecordWriteSources()) {
-                        stagedFailure = "thumbnail XRECORD immutable source snapshot";
-                        return false;
-                    }
-                    const DRW_XRecord* frozenThumbnail = nullptr;
-                    for (const DRW_XRecord& source : m_xrecordWriteSources) {
-                        if (source.handle != selected->thumbnailHandle)
-                            continue;
-                        if (frozenThumbnail != nullptr) {
-                            stagedFailure = "duplicate thumbnail XRECORD source snapshot";
-                            return false;
-                        }
-                        frozenThumbnail = &source;
-                    }
-                    if (frozenThumbnail == nullptr) {
-                        stagedFailure = "missing thumbnail XRECORD source snapshot";
+                        stagedFailure = "LAYOUT extension XRECORD immutable source snapshot";
                         return false;
                     }
                     dx_standard_output::Decoder decoder(view);
@@ -26800,11 +26950,11 @@ bool dx_iface::inspectDwgLayouts(
                         body, [&](const DRW_XRecord& actual) {
                             std::vector<std::uint32_t> references;
                             return dx_standard_output::equal(
-                                *frozenThumbnail, actual, mapHandle,
+                                *selectedXrecord, actual, mapHandle,
                                 references);
                         });
                     if (!decoded)
-                        stagedFailure = "LAYOUT thumbnail XRECORD body";
+                        stagedFailure = "LAYOUT extension XRECORD body";
                     return decoded;
                 }
                 if (selectedName != "LAYOUT"
@@ -26823,10 +26973,11 @@ bool dx_iface::inspectDwgLayouts(
                         blockRecordHandle(selected->blockRecord)) == 0u
                     || emittedBlockRecord == DRW::NoHandle
                     || emittedLayout != shape.handle
-                    || !dxfW->dxfWriteRecordHasIdentity(
-                        emittedExtension, "DICTIONARY", "OBJECTS")
-                    || !dxfW->dxfWriteRecordHasOwner(
-                        emittedExtension, emittedLayout)) {
+                    || (emittedExtension != 0u
+                        && (!dxfW->dxfWriteRecordHasIdentity(
+                                emittedExtension, "DICTIONARY", "OBJECTS")
+                            || !dxfW->dxfWriteRecordHasOwner(
+                                emittedExtension, emittedLayout)))) {
                     stagedFailure = "LAYOUT identity, BLOCK_RECORD backlink, or extension owner role";
                     return false;
                 }
@@ -26957,8 +27108,11 @@ bool dx_iface::inspectDwgLayouts(
                             && actual.flags == expected.flags
                             && actual.xDictHandle == expected.xDictHandle
                             && actual.reactorHandles == expected.reactorHandles
-                            && actual.extensionDictionaryFlag()
-                                == expected.extensionDictionaryFlag()
+                            // This flag belongs to the DWG common-object
+                            // handle stream; DXF carries dictionary presence
+                            // in ACAD_XDICTIONARY instead. The DXF decoder
+                            // leaves this DWG-only field at its default.
+                            && actual.extensionDictionaryFlag() == 0u
                             && !actual.hasDataStorageBinaryData()
                             && !actual.hasDwgCommonLinkTail()
                             && actual.pendingAppIdResolutions.empty()
@@ -26980,6 +27134,16 @@ bool dx_iface::inspectDwgLayouts(
                                       << " output=" << actual.handle
                                       << " app/eed=" << actual.appData.size()
                                       << '/' << actual.extData.size()
+                                      << " xdict=" << expected.xDictHandle
+                                      << '/' << actual.xDictHandle
+                                      << " xflag="
+                                      << static_cast<unsigned>(
+                                             expected.extensionDictionaryFlag())
+                                      << '/' << static_cast<unsigned>(
+                                             actual.extensionDictionaryFlag())
+                                      << " reactors="
+                                      << expected.reactorHandles.size() << '/'
+                                      << actual.reactorHandles.size()
                                       << " refs="
                                       << actual.paperSpaceBlockRecordHandle.ref
                                       << '/' << emittedBlockRecord
@@ -26993,12 +27157,16 @@ bool dx_iface::inspectDwgLayouts(
                                       << (actual.reactorHandles == expected.reactorHandles) << '/'
                                       << (actual.reactorCount()
                                           == expected.reactorCount()) << '/'
-                                      << (actual.extensionDictionaryFlag() == expected.extensionDictionaryFlag()) << '/'
+                                      << (actual.extensionDictionaryFlag() == 0u) << '/'
                                       << !actual.hasDataStorageBinaryData() << '/'
                                       << !actual.hasDwgCommonLinkTail() << '/'
                                       << (actual.pendingAppIdResolutions.empty() && actual.pendingLayerRefResolutions.empty()) << '/'
                                       << reactorGroups << ':' << dictionaryGroups << ':' << reservedGroupsMatch << '/'
                                       << extendedDataMatches << '\n';
+                            for (const auto& group : actual.appData)
+                                std::cerr << "LAYOUT app-data group: name='"
+                                          << dx_standard_output::appName(group)
+                                          << "' fields=" << group.size() << '\n';
                         }
                         return common && fields;
                     });
@@ -27008,24 +27176,32 @@ bool dx_iface::inspectDwgLayouts(
             });
         if (!inspected || seenNod.size() != 1u || seenRoot.size() != 1u
             || seenLayouts.size() != m_dwgLayoutOutputSources.size()
-            || seenExtensions.size() != m_dwgLayoutOutputSources.size()
-            || seenThumbnails.size() != m_dwgLayoutOutputSources.size())
+            || seenExtensions.size() != expectedExtensionCount
+            || seenXrecords.size() != expectedXrecordCount)
             return reject(stagedFailure);
         for (const auto& row : m_dwgLayoutOutputSources) {
-            std::uint32_t emittedLayout = 0u, emittedExtension = 0u;
-            std::uint32_t emittedThumbnail = 0u;
+            std::uint32_t emittedLayout = 0u;
+            std::uint32_t emittedExtension = 0u;
             if (!mapHandle(row.first, emittedLayout)
-                || !mapHandle(row.second.extensionDictionary.handle,
-                              emittedExtension)
-                || !mapHandle(row.second.thumbnailHandle,
-                              emittedThumbnail)
-                || !dxfW->dxfWriteRecordHasIdentity(
-                    emittedThumbnail, "XRECORD", "OBJECTS")
-                || !dxfW->dxfWriteRecordHasOwner(
-                    emittedThumbnail, emittedExtension)
-                || !dxfW->dxfWriteRecordHasOwner(
+                || (row.second.extensionDictionary.handle != 0u
+                    && !mapHandle(
+                        row.second.extensionDictionary.handle,
+                        emittedExtension)))
+                return reject("LAYOUT output handle binding");
+            if (emittedExtension != 0u
+                && !dxfW->dxfWriteRecordHasOwner(
                     emittedExtension, emittedLayout))
-                return reject("LAYOUT thumbnail XRECORD output identity/owner closure");
+                return reject("LAYOUT extension DICTIONARY owner closure");
+            for (const std::uint32_t sourceXrecord :
+                 row.second.extensionXRecordHandles) {
+                std::uint32_t emittedXrecord = 0u;
+                if (!mapHandle(sourceXrecord, emittedXrecord)
+                    || !dxfW->dxfWriteRecordHasIdentity(
+                        emittedXrecord, "XRECORD", "OBJECTS")
+                    || !dxfW->dxfWriteRecordHasOwner(
+                        emittedXrecord, emittedExtension))
+                    return reject("LAYOUT extension XRECORD output identity/owner closure");
+            }
         }
         if (!hasUnchangedDwgLayoutOutputSources())
             return reject("source changed during staged OBJECTS inspection");
@@ -34758,7 +34934,918 @@ bool tableStyleSourceEqual(const DRW_TableStyle& a,const DRW_TableStyle& b,DRW::
     return true;
 }
 
+void appendDwgDynamicString(std::vector<DRW_Variant>& groups, int code,
+                            const std::string& value) {
+    groups.emplace_back(code, value);
+}
+
+void appendDwgDynamicInt(std::vector<DRW_Variant>& groups, int code,
+                         std::int32_t value) {
+    groups.emplace_back(code, value);
+}
+
+void appendDwgDynamicHandle(std::vector<DRW_Variant>& groups, int code,
+                            std::uint32_t value, dxfRW& writer) {
+    groups.emplace_back(code, writer.toHexStrHandle(value));
+}
+
+bool appendDwgDynamicObjectHeader(
+        std::vector<DRW_Variant>& groups, const DRW_TableEntry& source,
+        std::uint32_t owner, dxfRW& writer,
+        bool ownerBeforeAppData = false) {
+    if (source.handle == 0u || source.handle == DRW::NoHandle
+        || owner == 0u || owner == DRW::NoHandle || source.xDictHandle != 0u
+        || !source.appData.empty() || !source.extData.empty())
+        return false;
+    appendDwgDynamicHandle(groups, 5, source.handle, writer);
+    if (ownerBeforeAppData)
+        appendDwgDynamicHandle(groups, 330, owner, writer);
+    if (!source.reactorHandles.empty()) {
+        appendDwgDynamicString(groups, 102, "{ACAD_REACTORS");
+        for (const std::uint32_t reactor : source.reactorHandles) {
+            if (reactor == 0u || reactor == DRW::NoHandle)
+                return false;
+            appendDwgDynamicHandle(groups, 330, reactor, writer);
+        }
+        appendDwgDynamicString(groups, 102, "}");
+    }
+    if (!ownerBeforeAppData)
+        appendDwgDynamicHandle(groups, 330, owner, writer);
+    return true;
+}
+
+bool makeDwgDynamicOutputGroups(
+        const DRW_EvaluationGraph& source, dxfRW& writer,
+        std::vector<DRW_Variant>& groups) {
+    groups.clear();
+    groups.reserve(2u + source.m_nodes.size() * 8u
+                   + source.m_edges.size() * 10u + 8u);
+    // writeEvaluationGraph writes its owner handle before reserved app-data.
+    if (source.parentHandle == 0u
+        || !appendDwgDynamicObjectHeader(
+            groups, source, source.parentHandle, writer, true))
+        return false;
+    appendDwgDynamicString(groups, 100, "AcDbEvalGraph");
+    appendDwgDynamicInt(groups, 96, source.m_value96);
+    appendDwgDynamicInt(groups, 97, source.m_value97);
+    for (const DRW_EvaluationGraphNode& node : source.m_nodes) {
+        if (node.m_expressionHandle == 0u
+            || node.m_expressionHandle == DRW::NoHandle)
+            return false;
+        appendDwgDynamicInt(groups, 91, node.m_index);
+        appendDwgDynamicInt(groups, 93, node.m_flags);
+        appendDwgDynamicInt(groups, 95, node.m_nextNodeIndex);
+        appendDwgDynamicHandle(groups, 360, node.m_expressionHandle, writer);
+        appendDwgDynamicInt(groups, 92, node.m_data1);
+        appendDwgDynamicInt(groups, 92, node.m_data2);
+        appendDwgDynamicInt(groups, 92, node.m_data3);
+        appendDwgDynamicInt(groups, 92, node.m_data4);
+    }
+    for (const DRW_EvaluationGraphEdge& edge : source.m_edges) {
+        appendDwgDynamicInt(groups, 92, edge.m_value92);
+        appendDwgDynamicInt(groups, 93, edge.m_value93);
+        appendDwgDynamicInt(groups, 94, edge.m_value94);
+        appendDwgDynamicInt(groups, 91, edge.m_value91a);
+        appendDwgDynamicInt(groups, 91, edge.m_value91b);
+        appendDwgDynamicInt(groups, 92, edge.m_value92a);
+        appendDwgDynamicInt(groups, 92, edge.m_value92b);
+        appendDwgDynamicInt(groups, 92, edge.m_value92c);
+        appendDwgDynamicInt(groups, 92, edge.m_value92d);
+        appendDwgDynamicInt(groups, 92, edge.m_value92e);
+    }
+    return true;
+}
+
+bool makeDwgDynamicOutputGroups(
+        const DRW_DynamicBlockObject& source, dxfRW& writer,
+        std::vector<DRW_Variant>& groups) {
+    groups.clear();
+    groups.reserve(400u);
+    if (source.parentHandle == 0u
+        || !appendDwgDynamicObjectHeader(
+            groups, source, source.parentHandle, writer))
+        return false;
+    if (source.m_kind == DRW_DynamicBlockObject::Kind::PurgePreventer) {
+        appendDwgDynamicString(
+            groups, 100, "AcDbDynamicBlockPurgePreventer");
+        appendDwgDynamicInt(groups, 70, source.m_purgeFlag);
+        return true;
+    }
+    if (source.m_kind
+            == DRW_DynamicBlockObject::Kind::GripLocationComponent) {
+        appendDwgDynamicString(groups, 100, "AcDbEvalExpr");
+        appendDwgDynamicInt(groups, 90,
+                            static_cast<std::int32_t>(source.m_nodeId));
+        appendDwgDynamicInt(groups, 98, 33);
+        appendDwgDynamicInt(groups, 99, 29);
+        appendDwgDynamicString(groups, 1, "");
+        appendDwgDynamicInt(groups, 70, source.m_valueCode);
+        groups.emplace_back(40, source.m_valueDouble);
+        appendDwgDynamicString(groups, 100, "AcDbBlockGripExpr");
+        appendDwgDynamicInt(groups, 91, source.m_gripType);
+        appendDwgDynamicString(groups, 300, source.m_gripExpr);
+        return true;
+    }
+    if (source.m_kind == DRW_DynamicBlockObject::Kind::Grip) {
+        appendDwgDynamicString(groups, 100, "AcDbEvalExpr");
+        appendDwgDynamicInt(groups, 90,
+                            static_cast<std::int32_t>(source.m_nodeId));
+        appendDwgDynamicInt(groups, 98, 33);
+        appendDwgDynamicInt(groups, 99, 29);
+        appendDwgDynamicString(groups, 100, "AcDbBlockElement");
+        appendDwgDynamicString(groups, 300, source.m_elementName);
+        appendDwgDynamicInt(groups, 98, 33);
+        appendDwgDynamicInt(groups, 99, 29);
+        appendDwgDynamicInt(groups, 1071, source.m_eed1071);
+        appendDwgDynamicString(groups, 100, "AcDbBlockGrip");
+        appendDwgDynamicInt(groups, 91, source.m_gripValue91);
+        appendDwgDynamicInt(groups, 92, source.m_gripValue92);
+        groups.emplace_back(1010, source.m_gripLocation.x);
+        groups.emplace_back(1020, source.m_gripLocation.y);
+        groups.emplace_back(1030, source.m_gripLocation.z);
+        appendDwgDynamicInt(groups, 280,
+                            source.m_gripValue280 ? 1 : 0);
+        appendDwgDynamicInt(groups, 93, source.m_gripValue93);
+        appendDwgDynamicString(
+            groups, 100, "AcDbBlockVisibilityGrip");
+        return true;
+    }
+    if (source.m_kind
+            != DRW_DynamicBlockObject::Kind::VisibilityParameter)
+        return false;
+    appendDwgDynamicString(groups, 100, "AcDbEvalExpr");
+    appendDwgDynamicInt(groups, 90,
+                        static_cast<std::int32_t>(source.m_nodeId));
+    appendDwgDynamicInt(groups, 98, 33);
+    appendDwgDynamicInt(groups, 99, 29);
+    appendDwgDynamicString(groups, 100, "AcDbBlockElement");
+    appendDwgDynamicString(groups, 300, source.m_elementName);
+    appendDwgDynamicInt(groups, 98, 33);
+    appendDwgDynamicInt(groups, 99, 29);
+    appendDwgDynamicInt(groups, 1071, source.m_eed1071);
+    appendDwgDynamicString(groups, 100, "AcDbBlockParameter");
+    appendDwgDynamicInt(groups, 280, source.m_showProperties ? 1 : 0);
+    appendDwgDynamicInt(groups, 281, source.m_chainActions ? 1 : 0);
+    appendDwgDynamicString(groups, 100, "AcDbBlock1PtParameter");
+    groups.emplace_back(1010, source.m_defPoint.x);
+    groups.emplace_back(1020, source.m_defPoint.y);
+    groups.emplace_back(1030, source.m_defPoint.z);
+    appendDwgDynamicInt(groups, 93, source.m_propertyInfoCount);
+    appendDwgDynamicInt(groups, 170, source.m_propertyInfo1Count);
+    appendDwgDynamicInt(groups, 171, source.m_propertyInfo2Count);
+    appendDwgDynamicString(
+        groups, 100, "AcDbBlockVisibilityParameter");
+    appendDwgDynamicInt(groups, 281, source.m_isInitialized ? 1 : 0);
+    appendDwgDynamicString(groups, 301, source.m_visibilityName);
+    appendDwgDynamicString(groups, 302, source.m_visibilityDescription);
+    appendDwgDynamicInt(groups, 91, source.m_unknownBool ? 1 : 0);
+    appendDwgDynamicInt(groups, 93, source.m_blockCount);
+    for (const std::uint32_t handle : source.m_blockHandles)
+        appendDwgDynamicHandle(groups, 331, handle, writer);
+    appendDwgDynamicInt(groups, 92, source.m_stateCount);
+    for (std::size_t state = 0u;
+         state < source.m_stateNames.size(); ++state) {
+        const auto& handles = source.m_stateBlockHandles[state];
+        appendDwgDynamicString(groups, 303, source.m_stateNames[state]);
+        appendDwgDynamicInt(groups, 94,
+                            static_cast<std::int32_t>(handles.size()));
+        for (const std::uint32_t handle : handles)
+            appendDwgDynamicHandle(groups, 332, handle, writer);
+        appendDwgDynamicInt(groups, 95, static_cast<std::int32_t>(
+            source.m_stateParameterHandles[state].size()));
+    }
+    return true;
+}
+
+bool sameDwgDynamicSourceFrame(const DRW_UnsupportedObject& a,
+                               const DRW_UnsupportedObject& b) noexcept {
+    return a.m_objectType == b.m_objectType && a.m_handle == b.m_handle
+        && a.m_parentHandle == b.m_parentHandle
+        && a.m_commonHandleDataValidated == b.m_commonHandleDataValidated
+        && a.m_commonLinkEvidence == b.m_commonLinkEvidence
+        && a.m_reactorHandles == b.m_reactorHandles
+        && a.m_xDictHandle == b.m_xDictHandle
+        && a.m_numReactors == b.m_numReactors
+        && a.m_xDictFlag == b.m_xDictFlag
+        && a.m_blockOwnerHandle == b.m_blockOwnerHandle
+        && a.m_bodyBitSize == b.m_bodyBitSize
+        && a.m_objectOffset == b.m_objectOffset
+        && a.m_objectSize == b.m_objectSize
+        && a.m_isEntity == b.m_isEntity
+        && a.m_isCustomClass == b.m_isCustomClass
+        && a.m_recordName == b.m_recordName
+        && a.m_className == b.m_className
+        && a.m_rawBytes == b.m_rawBytes
+        && a.m_typedPayloadValidated == b.m_typedPayloadValidated
+        && a.m_version == b.m_version
+        && a.m_hasDataStorage == b.m_hasDataStorage
+        && a.m_hasClassDefinition == b.m_hasClassDefinition
+        && a.m_classProxyFlag == b.m_classProxyFlag
+        && a.m_classAppName == b.m_classAppName
+        && a.m_classWasProxy == b.m_classWasProxy
+        && a.m_classEntityFlagRaw == b.m_classEntityFlagRaw
+        && a.m_classDwgVersion == b.m_classDwgVersion
+        && a.m_classMaintenanceVersion == b.m_classMaintenanceVersion
+        && a.m_classUnknown1 == b.m_classUnknown1
+        && a.m_classUnknown2 == b.m_classUnknown2;
+}
+
 } // namespace
+
+bool dx_iface::prepareDwgDynamicBlockOutputSources(bool debug) noexcept {
+    m_dwgDynamicBlockOutputSources.clear();
+    m_dwgDynamicBlockSourceFrameSnapshots.clear();
+    m_dwgDynamicBlockEntityOutputSources.clear();
+    m_dwgDynamicBlockOutputSourceOwner = nullptr;
+    m_dwgDynamicBlockOutputGeneration = 0u;
+    m_dwgDynamicBlockOutputDictionary = 0u;
+    m_dwgDynamicBlockOutputBlock = 0u;
+    m_dwgDynamicBlockOutputPrepared = false;
+    m_dwgDynamicBlockOutputInspected = false;
+    if (cData == nullptr || dxfW == nullptr
+        || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024
+        || !cData->dwgReadOutcome.attempted
+        || cData->importGeneration == 0u
+        || !hasCompleteAc1024TitleBlockVisibilityProfile(*cData))
+        return true;
+    const auto reject = [debug](const char* stage) {
+        if (debug)
+            std::cerr << "dynamic-block output source preparation rejected: "
+                      << stage << '\n';
+        return false;
+    };
+
+    try {
+        const DRW_Dictionary* owner = nullptr;
+        std::size_t ownerCount = 0u;
+        for (const DRW_Dictionary& dictionary : cData->dictionaries) {
+            if (!hasAc1024TitleBlockVisibilityOwnerGraph(
+                    *cData, dictionary.handle))
+                continue;
+            owner = &dictionary;
+            ++ownerCount;
+        }
+        if (ownerCount != 1u || owner == nullptr)
+            return reject("unique enhanced-block owner DICTIONARY");
+
+        const DRW_EvaluationGraph* graph = nullptr;
+        std::size_t graphCount = 0u;
+        for (const DRW_EvaluationGraph& candidate : cData->evaluationGraphs) {
+            if (candidate.handle != owner->m_entries[0].m_handle)
+                continue;
+            graph = &candidate;
+            ++graphCount;
+        }
+        if (graphCount != 1u || graph == nullptr)
+            return reject("unique EvaluationGraph target");
+
+        const DRW_Block_Record* block = nullptr;
+        std::size_t blockCount = 0u;
+        for (const DRW_Block_Record& candidate : cData->blockRecords) {
+            if (candidate.handle != owner->parentHandle)
+                continue;
+            block = &candidate;
+            ++blockCount;
+        }
+        const dx_ifaceBlock* definition = nullptr;
+        std::size_t definitionCount = 0u;
+        for (const dx_ifaceBlock* candidate : cData->blocks) {
+            if (candidate == nullptr || block == nullptr
+                || candidate->parentHandle != block->handle
+                || candidate->name != block->name)
+                continue;
+            definition = candidate;
+            ++definitionCount;
+        }
+        if (blockCount != 1u || block == nullptr || definitionCount != 1u
+            || definition == nullptr)
+            return reject("unique owning BLOCK_RECORD and block definition");
+
+        std::map<std::uint32_t, const DRW_DynamicBlockObject*> objects;
+        for (const DRW_DynamicBlockObject& object :
+             cData->dynamicBlockObjects) {
+            if (!objects.emplace(object.handle, &object).second)
+                return reject("unique dynamic-block object identities");
+        }
+        std::set<std::uint32_t> expectedHandles;
+        expectedHandles.insert(graph->handle);
+        for (const DRW_EvaluationGraphNode& node : graph->m_nodes)
+            if (!expectedHandles.insert(node.m_expressionHandle).second)
+                return reject("unique EvaluationGraph expression identities");
+        if (!expectedHandles.insert(owner->m_entries[2].m_handle).second
+            || expectedHandles.size() != 6u)
+            return reject("six selected graph/object handles");
+
+        for (const std::uint32_t handle : expectedHandles) {
+            const dx_data::StandardDwgFrameKey key{
+                cData->importGeneration, handle};
+            if (cData->m_opaqueDwgSourceFrameIdentities.count(key) != 1u)
+                return true; // Keep partial export available; strict gate refuses.
+        }
+        const auto identityCount = [this](std::uint32_t handle) {
+            return cData->m_opaqueDwgSourceFrameIdentities.count(
+                {cData->importGeneration, handle});
+        };
+
+        DRW_UnsupportedObject graphFrame;
+        std::size_t graphFrameCount = 0u;
+        for (const DRW_UnsupportedObject& candidate :
+             cData->acdsHistoryDwgFrames) {
+            if (candidate.m_handle != graph->handle)
+                continue;
+            graphFrame = candidate;
+            ++graphFrameCount;
+        }
+        if (graphFrameCount != 1u
+            || graphFrame.m_objectType
+                != kAc1024TitleBlockEvaluationGraphObjectType
+            || graphFrame.m_version != DRW::AC1024
+            || graphFrame.m_recordName != "ACAD_EVALUATION_GRAPH"
+            || graphFrame.m_className != "AcDbEvalGraph"
+            || graphFrame.m_handle != graph->handle
+            || graphFrame.m_parentHandle != graph->parentHandle
+            || !graphFrame.m_isCustomClass
+            || graphFrame.m_isEntity
+            || graphFrame.m_rawBytes.size() != graphFrame.m_objectSize
+            || graphFrame.m_bodyBitSize
+                > static_cast<std::uint64_t>(graphFrame.m_objectSize) * 8u)
+            return reject("retained EvaluationGraph ACDS-history source frame");
+        m_dwgDynamicBlockSourceFrameSnapshots.emplace(
+            graphFrame.m_handle, graphFrame);
+
+        std::map<std::uint32_t, const DRW_DynamicBlockObject*> selected;
+        for (const std::uint32_t handle : graph->m_nodes.empty()
+                 ? std::vector<std::uint32_t>{}
+                 : std::vector<std::uint32_t>{
+                       graph->m_nodes[0].m_expressionHandle,
+                       graph->m_nodes[1].m_expressionHandle,
+                       graph->m_nodes[2].m_expressionHandle,
+                       graph->m_nodes[3].m_expressionHandle,
+                       owner->m_entries[2].m_handle}) {
+            const auto object = objects.find(handle);
+            if (object == objects.end()
+                || !selected.emplace(handle, object->second).second)
+                return reject("unique graph-node object binding");
+        }
+        if (selected.size() != 5u)
+            return reject("five graph-node object records");
+
+        for (const auto& item : selected) {
+            const DRW_DynamicBlockObject& object = *item.second;
+            int expectedType = 0;
+            switch (object.m_kind) {
+            case DRW_DynamicBlockObject::Kind::VisibilityParameter:
+                expectedType = 513;
+                break;
+            case DRW_DynamicBlockObject::Kind::Grip:
+                expectedType = 514;
+                break;
+            case DRW_DynamicBlockObject::Kind::GripLocationComponent:
+                expectedType = 515;
+                break;
+            case DRW_DynamicBlockObject::Kind::PurgePreventer:
+                expectedType = 519;
+                break;
+            default:
+                return reject("admitted dynamic-block object kind");
+            }
+            const dx_data::StandardDwgFrameKey key{
+                cData->importGeneration, object.handle};
+            const auto frame = cData->m_opaqueDwgSourceFrames.find(key);
+            if (identityCount(object.handle) != 1u
+                || frame == cData->m_opaqueDwgSourceFrames.end()
+                || frame->second.m_handle != object.handle
+                || frame->second.m_objectType != expectedType
+                || frame->second.m_version != DRW::AC1024
+                || frame->second.m_recordName != object.m_recordName
+                || frame->second.m_parentHandle != object.parentHandle
+                || !frame->second.m_isCustomClass
+                || frame->second.m_isEntity
+                || frame->second.m_rawBytes.size()
+                    != frame->second.m_objectSize
+                || frame->second.m_bodyBitSize
+                    > static_cast<std::uint64_t>(
+                           frame->second.m_objectSize) * 8u)
+                return reject("retained dynamic-block object source frame");
+            if (!m_dwgDynamicBlockSourceFrameSnapshots.emplace(
+                    object.handle, frame->second).second)
+                return false;
+
+            DwgDynamicBlockOutputSource output;
+            output.recordName = object.m_recordName;
+            output.ownerHandle = object.parentHandle;
+            if (!makeDwgDynamicOutputGroups(object, *dxfW, output.groups)
+                || !m_dwgDynamicBlockOutputSources.emplace(
+                    object.handle, std::move(output)).second)
+                return reject("dynamic-block object output field projection");
+        }
+
+        DwgDynamicBlockOutputSource graphOutput;
+        graphOutput.recordName = "ACAD_EVALUATION_GRAPH";
+        graphOutput.ownerHandle = graph->parentHandle;
+        if (!makeDwgDynamicOutputGroups(*graph, *dxfW, graphOutput.groups)
+            || !m_dwgDynamicBlockOutputSources.emplace(
+                    graph->handle, std::move(graphOutput)).second)
+            return reject("EvaluationGraph output field projection");
+
+        const DRW_DynamicBlockObject* visibility = nullptr;
+        for (const DRW_DynamicBlockObject& object :
+             cData->dynamicBlockObjects) {
+            if (object.handle == graph->m_nodes[0].m_expressionHandle
+                && object.m_kind
+                    == DRW_DynamicBlockObject::Kind::VisibilityParameter) {
+                visibility = &object;
+                break;
+            }
+        }
+        if (visibility == nullptr || visibility->m_blockHandles.size() != 117u)
+            return reject("117 source visibility targets");
+        m_dwgDynamicBlockEntityOutputSources.reserve(
+            visibility->m_blockHandles.size());
+        std::unordered_set<std::uint32_t> entityHandles;
+        entityHandles.reserve(visibility->m_blockHandles.size());
+        for (const std::uint32_t handle : visibility->m_blockHandles) {
+            if (!entityHandles.insert(handle).second)
+                return reject("unique visibility target handles");
+            const DRW_Entity* entity = nullptr;
+            std::size_t matches = 0u;
+            for (const DRW_Entity* candidate : definition->ent) {
+                if (candidate == nullptr)
+                    return false;
+                if (candidate->handle != handle)
+                    continue;
+                entity = candidate;
+                ++matches;
+            }
+            const char* recordName = entity == nullptr
+                ? nullptr : commonReferenceRecordName(*entity);
+            if (matches != 1u || entity == nullptr || recordName == nullptr)
+                return reject("unique emitted visibility target entity identity");
+            m_dwgDynamicBlockEntityOutputSources.push_back(
+                {handle, recordName});
+        }
+
+        m_dwgDynamicBlockOutputSourceOwner = cData;
+        m_dwgDynamicBlockOutputGeneration = cData->importGeneration;
+        m_dwgDynamicBlockOutputDictionary = owner->handle;
+        m_dwgDynamicBlockOutputBlock = block->handle;
+        m_dwgDynamicBlockOutputPrepared = true;
+        if (!hasUnchangedDwgDynamicBlockOutputSources()) {
+            return reject("immutable physical source snapshot closure");
+        }
+        return true;
+    } catch (...) {
+        m_dwgDynamicBlockOutputSources.clear();
+        m_dwgDynamicBlockSourceFrameSnapshots.clear();
+        m_dwgDynamicBlockEntityOutputSources.clear();
+        m_dwgDynamicBlockOutputSourceOwner = nullptr;
+        m_dwgDynamicBlockOutputGeneration = 0u;
+        m_dwgDynamicBlockOutputDictionary = 0u;
+        m_dwgDynamicBlockOutputBlock = 0u;
+        m_dwgDynamicBlockOutputPrepared = false;
+        m_dwgDynamicBlockOutputInspected = false;
+        return reject("allocation or source-projection exception");
+    }
+}
+
+bool dx_iface::hasUnchangedDwgDynamicBlockOutputSources() const noexcept {
+    if (!m_dwgDynamicBlockOutputPrepared)
+        return m_dwgDynamicBlockOutputSources.empty()
+            && m_dwgDynamicBlockSourceFrameSnapshots.empty()
+            && m_dwgDynamicBlockEntityOutputSources.empty()
+            && m_dwgDynamicBlockOutputSourceOwner == nullptr
+            && m_dwgDynamicBlockOutputGeneration == 0u
+            && m_dwgDynamicBlockOutputDictionary == 0u
+            && m_dwgDynamicBlockOutputBlock == 0u;
+    if (cData == nullptr || cData != m_dwgDynamicBlockOutputSourceOwner
+        || cData->importGeneration != m_dwgDynamicBlockOutputGeneration
+        || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024
+        || !cData->dwgReadOutcome.attempted
+        || cData->acdsHistoryDwgFrameCaptureFailed
+        || cData->dynamicBlockCaptureFailed
+        || !hasCompleteAc1024TitleBlockVisibilityProfile(*cData)
+        || m_dwgDynamicBlockOutputSources.size() != 6u
+        || m_dwgDynamicBlockSourceFrameSnapshots.size() != 6u
+        || m_dwgDynamicBlockEntityOutputSources.size() != 117u
+        || m_dwgDynamicBlockOutputDictionary == 0u
+        || m_dwgDynamicBlockOutputBlock == 0u)
+        return false;
+    try {
+        const DRW_Dictionary* owner = nullptr;
+        std::size_t ownerMatches = 0u;
+        for (const DRW_Dictionary& dictionary : cData->dictionaries) {
+            if (dictionary.handle != m_dwgDynamicBlockOutputDictionary)
+                continue;
+            owner = &dictionary;
+            ++ownerMatches;
+        }
+        if (ownerMatches != 1u || owner == nullptr
+            || owner->parentHandle != m_dwgDynamicBlockOutputBlock
+            || !hasAc1024TitleBlockVisibilityOwnerGraph(
+                *cData, m_dwgDynamicBlockOutputDictionary))
+            return false;
+        const DRW_Block_Record* ownerBlock = nullptr;
+        std::size_t ownerBlockMatches = 0u;
+        for (const DRW_Block_Record& block : cData->blockRecords) {
+            if (block.handle != m_dwgDynamicBlockOutputBlock)
+                continue;
+            ownerBlock = &block;
+            ++ownerBlockMatches;
+        }
+        if (ownerBlockMatches != 1u || ownerBlock == nullptr
+            || ownerBlock->name != "Title_Block-ARCH"
+            || ownerBlock->xDictHandle != owner->handle)
+            return false;
+        const DRW_EvaluationGraph* graph = nullptr;
+        std::size_t graphMatches = 0u;
+        for (const DRW_EvaluationGraph& candidate : cData->evaluationGraphs) {
+            if (candidate.handle != owner->m_entries[0].m_handle)
+                continue;
+            graph = &candidate;
+            ++graphMatches;
+        }
+        if (graphMatches != 1u || graph == nullptr
+            || graph->parentHandle != owner->handle)
+            return false;
+        std::set<std::uint32_t> sourceHandles;
+        for (const auto& source : m_dwgDynamicBlockOutputSources) {
+            if (source.first == 0u || source.first == DRW::NoHandle
+                || source.second.recordName.empty()
+                || source.second.ownerHandle == 0u
+                || source.second.ownerHandle == DRW::NoHandle
+                || !sourceHandles.insert(source.first).second
+                || cData->m_opaqueDwgSourceFrameIdentities.count(
+                       {cData->importGeneration, source.first}) != 1u)
+                return false;
+        }
+        std::set<std::uint32_t> expectedHandles{graph->handle};
+        for (const DRW_EvaluationGraphNode& node : graph->m_nodes)
+            if (!expectedHandles.insert(node.m_expressionHandle).second)
+                return false;
+        if (!expectedHandles.insert(owner->m_entries[2].m_handle).second
+            || expectedHandles != sourceHandles)
+            return false;
+        for (const auto& source : m_dwgDynamicBlockOutputSources) {
+            if (source.first == graph->handle) {
+                if (source.second.recordName != "ACAD_EVALUATION_GRAPH"
+                    || source.second.ownerHandle != graph->parentHandle)
+                    return false;
+                continue;
+            }
+            const DRW_DynamicBlockObject* object = nullptr;
+            std::size_t objectMatches = 0u;
+            for (const DRW_DynamicBlockObject& candidate :
+                 cData->dynamicBlockObjects) {
+                if (candidate.handle != source.first)
+                    continue;
+                object = &candidate;
+                ++objectMatches;
+            }
+            if (objectMatches != 1u || object == nullptr
+                || object->m_recordName != source.second.recordName
+                || object->parentHandle != source.second.ownerHandle)
+                return false;
+        }
+        std::size_t genericDynamicFrames = 0u;
+        for (const auto& item : cData->m_opaqueDwgSourceFrames) {
+            if (item.first.first != cData->importGeneration)
+                continue;
+            const DRW_UnsupportedObject& frame = item.second;
+            if (frame.m_objectType < 513 || frame.m_objectType > 519)
+                continue;
+            if (sourceHandles.count(frame.m_handle) != 1u)
+                return false;
+            ++genericDynamicFrames;
+        }
+        if (genericDynamicFrames != 5u)
+            return false;
+
+        for (const auto& snapshot : m_dwgDynamicBlockSourceFrameSnapshots) {
+            const dx_data::StandardDwgFrameKey key{
+                cData->importGeneration, snapshot.first};
+            if (snapshot.first == 0u || snapshot.first == DRW::NoHandle
+                || snapshot.second.m_handle != snapshot.first
+                || cData->m_opaqueDwgSourceFrameIdentities.count(key) != 1u)
+                return false;
+            const DRW_UnsupportedObject* current = nullptr;
+            std::size_t matches = 0u;
+            if (snapshot.second.m_objectType
+                == kAc1024TitleBlockEvaluationGraphObjectType) {
+                for (const DRW_UnsupportedObject& frame :
+                     cData->acdsHistoryDwgFrames) {
+                    if (frame.m_handle != snapshot.first)
+                        continue;
+                    current = &frame;
+                    ++matches;
+                }
+            } else {
+                const auto frame = cData->m_opaqueDwgSourceFrames.find(key);
+                if (frame != cData->m_opaqueDwgSourceFrames.end()) {
+                    current = &frame->second;
+                    matches = 1u;
+                }
+            }
+            if (matches != 1u || current == nullptr
+                || !sameDwgDynamicSourceFrame(snapshot.second, *current))
+                return false;
+        }
+
+        const DRW_DynamicBlockObject* visibility = nullptr;
+        for (const DRW_DynamicBlockObject& object : cData->dynamicBlockObjects) {
+            if (object.m_kind
+                    != DRW_DynamicBlockObject::Kind::VisibilityParameter)
+                continue;
+            if (visibility != nullptr)
+                return false;
+            visibility = &object;
+        }
+        if (visibility == nullptr
+            || visibility->m_blockHandles.size()
+                != m_dwgDynamicBlockEntityOutputSources.size())
+            return false;
+        std::set<std::uint32_t> entityHandles;
+        for (const DwgDynamicBlockEntityOutputSource& expected :
+             m_dwgDynamicBlockEntityOutputSources) {
+            if (expected.handle == 0u || expected.handle == DRW::NoHandle
+                || expected.recordName.empty()
+                || !entityHandles.insert(expected.handle).second
+                || std::find(visibility->m_blockHandles.begin(),
+                             visibility->m_blockHandles.end(), expected.handle)
+                    == visibility->m_blockHandles.end())
+                return false;
+        }
+        return entityHandles.size() == visibility->m_blockHandles.size();
+    } catch (...) {
+        return false;
+    }
+}
+
+bool dx_iface::inspectDwgDynamicBlockOutput(
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept {
+    m_dwgDynamicBlockOutputInspected = false;
+    if (!m_dwgDynamicBlockOutputPrepared)
+        return true;
+    const auto reject = [debug](const char* stage) {
+        if (debug)
+            std::cerr << "dynamic-block staged output rejected: " << stage
+                      << '\n';
+        return false;
+    };
+    if (dxfW == nullptr || cData == nullptr || view.version != DRW::AC1024
+        || !hasUnchangedDwgDynamicBlockOutputSources())
+        return reject("source snapshot/version");
+    try {
+        const DRW_WritingContext* context = dxfW->getWritingContext();
+        if (context == nullptr)
+            return reject("source/entity output registry");
+        const auto mapObjectHandle = [this, context](
+                std::uint32_t source, std::uint32_t& emitted) {
+            emitted = 0u;
+            if (source == 0u || source == DRW::NoHandle
+                || context->ambiguousSourceHandles.count(source) != 0u)
+                return false;
+            emitted = dxfW->remapHandle(source);
+            bool bound = emitted != source;
+            for (const auto* aliases : {
+                    &context->sourceHandleToWrittenTableMap,
+                    &context->sourceHandleToWrittenObjectMap,
+                    &context->sourceHandleToMintedMap}) {
+                const auto found = aliases->find(source);
+                if (found == aliases->end())
+                    continue;
+                if (bound && emitted != found->second)
+                    return false;
+                emitted = found->second;
+                bound = true;
+            }
+            return bound && emitted != 0u && emitted != DRW::NoHandle;
+        };
+        const std::uint32_t emittedBlock =
+            dxfW->getBlockRecordHandleToWrite("Title_Block-ARCH");
+        std::uint32_t emittedDictionary = 0u;
+        if (!mapObjectHandle(m_dwgDynamicBlockOutputDictionary,
+                             emittedDictionary))
+            return reject("source owner dictionary mapping");
+        if (emittedDictionary == 0u || emittedDictionary == DRW::NoHandle
+            || emittedBlock == 0u || emittedBlock == DRW::NoHandle
+            || dxfW->dxfWriteRecordHandleCount(emittedDictionary) != 1u
+            || !dxfW->dxfWriteRecordHasIdentity(
+                emittedDictionary, "DICTIONARY", "OBJECTS")
+            || !dxfW->dxfWriteRecordHasOwner(emittedDictionary, emittedBlock)
+            || dxfW->dxfWriteRecordHandleCount(emittedBlock) != 1u
+            || !dxfW->dxfWriteRecordHasIdentity(
+                emittedBlock, "BLOCK_RECORD", "TABLES"))
+            return reject("owner DICTIONARY/BLOCK_RECORD output roles");
+
+        struct Expected {
+            std::uint32_t source{0u};
+            std::uint32_t emitted{0u};
+            std::uint32_t owner{0u};
+            std::string recordName;
+            const std::vector<DRW_Variant>* groups{nullptr};
+        };
+        std::map<std::uint32_t, Expected> byEmitted;
+        std::set<std::uint32_t> identities;
+        std::unordered_map<std::uint32_t, std::uint32_t>
+            emittedHandleBySource;
+        emittedHandleBySource.reserve(
+            m_dwgDynamicBlockOutputSources.size()
+                + m_dwgDynamicBlockEntityOutputSources.size() + 2u);
+        emittedHandleBySource.emplace(m_dwgDynamicBlockOutputDictionary,
+                                      emittedDictionary);
+        emittedHandleBySource.emplace(m_dwgDynamicBlockOutputBlock,
+                                      emittedBlock);
+        for (const auto& source : m_dwgDynamicBlockOutputSources) {
+            Expected expected;
+            expected.source = source.first;
+            if (!mapObjectHandle(source.first, expected.emitted)
+                || !mapObjectHandle(source.second.ownerHandle,
+                                    expected.owner))
+                return reject("dynamic object source handle mapping");
+            expected.recordName = source.second.recordName;
+            expected.groups = &source.second.groups;
+            if (expected.emitted == 0u
+                || expected.emitted == DRW::NoHandle
+                || expected.owner == 0u || expected.owner == DRW::NoHandle
+                || !identities.insert(expected.emitted).second
+                || !byEmitted.emplace(expected.emitted, expected).second
+                || dxfW->dxfWriteRecordHandleCount(expected.emitted) != 1u
+                || !dxfW->dxfWriteRecordHasIdentity(
+                    expected.emitted, expected.recordName, "OBJECTS")
+                || !dxfW->dxfWriteRecordHasOwner(
+                    expected.emitted, expected.owner)
+                || !emittedHandleBySource.emplace(
+                    source.first, expected.emitted).second)
+                return reject("dynamic object identity/owner roles");
+        }
+        if (byEmitted.size() != 6u)
+            return reject("expected six source object identities");
+
+        std::unordered_set<std::uint32_t> emittedEntityHandles;
+        emittedEntityHandles.reserve(
+            m_dwgDynamicBlockEntityOutputSources.size());
+        const std::uint32_t emittedEntityOwner = emittedBlock;
+        for (const DwgDynamicBlockEntityOutputSource& source :
+             m_dwgDynamicBlockEntityOutputSources) {
+            const std::uint32_t emitted =
+                dxfW->remapEntityHandle(source.handle);
+            const auto binding = context->sourceHandleToMintedMap.find(
+                source.handle);
+            if (emitted == 0u || emitted == DRW::NoHandle
+                || !emittedEntityHandles.insert(emitted).second
+                || context->ambiguousSourceHandles.count(source.handle) != 0u
+                || context->writtenSourceEntityHandles.count(source.handle)
+                    != 1u
+                || binding == context->sourceHandleToMintedMap.end()
+                || binding->second != emitted
+                || dxfW->dxfWriteRecordHandleCount(emitted) != 1u
+                || !dxfW->dxfWriteRecordHasIdentity(
+                    emitted, source.recordName, "BLOCKS")
+                || !dxfW->dxfWriteRecordHasOwner(
+                    emitted, emittedEntityOwner)
+                || !emittedHandleBySource.emplace(
+                    source.handle, emitted).second)
+                return reject("visibility parameter entity target identity/owner");
+        }
+        if (emittedEntityHandles.size() != 117u)
+            return reject("visibility parameter flat target cardinality");
+
+        std::set<std::uint32_t> seen;
+        const auto sourceRecordNameMatches = [&byEmitted](
+                std::string_view name, std::uint32_t handle) {
+            const auto expected = byEmitted.find(handle);
+            if (expected != byEmitted.end())
+                return name == expected->second.recordName;
+            return std::any_of(
+                byEmitted.begin(), byEmitted.end(),
+                [name](const auto& item) {
+                    return std::string_view(
+                               item.second.recordName.data(),
+                               item.second.recordName.size()) == name;
+                });
+        };
+        const char* stagedFailure =
+            "exact graph/dynamic-block field and reference transport";
+        std::uint32_t failedSourceHandle = 0u;
+        std::size_t failedBodyBytes = 0u;
+        std::string failedRecordName;
+        const bool inspected = dx_standard_output::inspectSelected(
+            view,
+            sourceRecordNameMatches,
+            [&](const auto& shape, std::string_view body) {
+                const auto expected = byEmitted.find(shape.handle);
+                if (expected == byEmitted.end()
+                    || expected->second.recordName.empty()
+                    || !seen.insert(expected->second.source).second) {
+                    stagedFailure = "duplicate or unbound dynamic output identity";
+                    return false;
+                }
+                const bool equal = dx_standard_output::rawScalarTransportEqual(
+                    *expected->second.groups, body, view,
+                    [&emittedHandleBySource](
+                            std::uint32_t source,
+                            std::uint32_t& emitted) {
+                        const auto mapped =
+                            emittedHandleBySource.find(source);
+                        if (mapped == emittedHandleBySource.end())
+                            return false;
+                        emitted = mapped->second;
+                        return emitted != 0u && emitted != DRW::NoHandle;
+                    });
+                if (!equal) {
+                    failedSourceHandle = expected->second.source;
+                    failedBodyBytes = body.size();
+                    failedRecordName = expected->second.recordName;
+                    stagedFailure = "exact graph/dynamic-block field and reference transport";
+                }
+                return equal;
+            });
+        if (!inspected || seen.size() != m_dwgDynamicBlockOutputSources.size())
+        {
+            if (debug && failedSourceHandle != 0u)
+                std::cerr << "dynamic-block output mismatch: source=0x"
+                          << std::hex << failedSourceHandle << std::dec
+                          << " record=" << failedRecordName
+                          << " expected-groups="
+                          << m_dwgDynamicBlockOutputSources.at(
+                                 failedSourceHandle).groups.size()
+                          << " body-bytes=" << failedBodyBytes << '\n';
+            return reject(stagedFailure);
+        }
+
+        m_dwgDynamicBlockOutputInspected = true;
+        return true;
+    } catch (...) {
+        return reject("bounded staged output inspection");
+    }
+}
+
+bool dx_iface::finalizeDwgDynamicBlockOutput() const noexcept {
+    if (!m_dwgDynamicBlockOutputPrepared)
+        return true;
+    if (!m_dwgDynamicBlockOutputInspected || dxfW == nullptr
+        || !hasUnchangedDwgDynamicBlockOutputSources())
+        return false;
+    const DRW_WritingContext* context = dxfW->getWritingContext();
+    if (context == nullptr)
+        return false;
+    const auto mapObjectHandle = [this, context](
+            std::uint32_t source, std::uint32_t& emitted) {
+        emitted = 0u;
+        if (source == 0u || source == DRW::NoHandle
+            || context->ambiguousSourceHandles.count(source) != 0u)
+            return false;
+        emitted = dxfW->remapHandle(source);
+        bool bound = emitted != source;
+        for (const auto* aliases : {
+                &context->sourceHandleToWrittenTableMap,
+                &context->sourceHandleToWrittenObjectMap,
+                &context->sourceHandleToMintedMap}) {
+            const auto found = aliases->find(source);
+            if (found == aliases->end())
+                continue;
+            if (bound && emitted != found->second)
+                return false;
+            emitted = found->second;
+            bound = true;
+        }
+        return bound && emitted != 0u && emitted != DRW::NoHandle;
+    };
+    const DRW_Block_Record* sourceBlock = nullptr;
+    for (const DRW_Block_Record& block : cData->blockRecords) {
+        if (block.handle != m_dwgDynamicBlockOutputBlock)
+            continue;
+        if (sourceBlock != nullptr)
+            return false;
+        sourceBlock = &block;
+    }
+    const std::uint32_t emittedBlock = sourceBlock == nullptr
+        ? 0u : dxfW->getBlockRecordHandleToWrite(sourceBlock->name);
+    if (emittedBlock == 0u || emittedBlock == DRW::NoHandle)
+        return false;
+    for (const auto& source : m_dwgDynamicBlockOutputSources) {
+        std::uint32_t emitted = 0u, owner = 0u;
+        if (!mapObjectHandle(source.first, emitted)
+            || !mapObjectHandle(source.second.ownerHandle, owner)
+            || !dxfW->dxfWriteSourceObjectHasIdentity(
+                source.first, emitted, source.second.recordName, "OBJECTS",
+                owner))
+            return false;
+    }
+    for (const DwgDynamicBlockEntityOutputSource& source :
+         m_dwgDynamicBlockEntityOutputSources) {
+        const std::uint32_t emitted =
+            dxfW->remapEntityHandle(source.handle);
+        if (emitted == 0u || emitted == DRW::NoHandle
+            || !dxfW->dxfWriteSourceEntityHasIdentity(
+                source.handle, emitted, source.recordName, "BLOCKS",
+                emittedBlock))
+            return false;
+    }
+    return true;
+}
 
 bool dx_iface::hasUnchangedDwgSortEntsOutputSources() const noexcept {
     if (m_dwgSortEntsOutputSources.empty())
@@ -53843,6 +54930,8 @@ bool dx_iface::finalizeDxfWrite() {
         || !hasUnchangedDwgMLeaderStyleOutputSources()
         || !hasUnchangedDwgMLineStyleOutputSources()
         || !hasUnchangedDwgLayoutOutputSources()
+        || !hasUnchangedDwgDynamicBlockOutputSources()
+        || !finalizeDwgDynamicBlockOutput()
         || !finalizeDwgBlockRepresentationDataOutput()
         || (!m_dwgMLineStyleOutputSources.empty()
             && !m_dwgMLineStylesInspected)
@@ -54287,6 +55376,12 @@ bool dx_iface::finalizeDxfWrite() {
         }
         if (m_dwgSortEntsOutputInspected) {
             for (const auto& proof : m_dwgSortEntsOutputSources) {
+                if (!qualifyCapturedIdentity(proof.first))
+                    return false;
+            }
+        }
+        if (m_dwgDynamicBlockOutputInspected) {
+            for (const auto& proof : m_dwgDynamicBlockOutputSources) {
                 if (!qualifyCapturedIdentity(proof.first))
                     return false;
             }
@@ -55444,6 +56539,29 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                      m_hatchOwnerBlocks, m_hatchOwnerContext, m_hatchPlanningFailed,
                      m_preserveGraphSourceIdentities};
     cData = fData;
+    m_dwgDynamicBlockOutputSources.clear();
+    m_dwgDynamicBlockSourceFrameSnapshots.clear();
+    m_dwgDynamicBlockEntityOutputSources.clear();
+    m_dwgDynamicBlockOutputSourceOwner = nullptr;
+    m_dwgDynamicBlockOutputGeneration = 0u;
+    m_dwgDynamicBlockOutputDictionary = 0u;
+    m_dwgDynamicBlockOutputBlock = 0u;
+    m_dwgDynamicBlockOutputPrepared = false;
+    m_dwgDynamicBlockOutputInspected = false;
+    struct DwgDynamicBlockOutputScope {
+        dx_iface& owner;
+        ~DwgDynamicBlockOutputScope() {
+            owner.m_dwgDynamicBlockOutputSources.clear();
+            owner.m_dwgDynamicBlockSourceFrameSnapshots.clear();
+            owner.m_dwgDynamicBlockEntityOutputSources.clear();
+            owner.m_dwgDynamicBlockOutputSourceOwner = nullptr;
+            owner.m_dwgDynamicBlockOutputGeneration = 0u;
+            owner.m_dwgDynamicBlockOutputDictionary = 0u;
+            owner.m_dwgDynamicBlockOutputBlock = 0u;
+            owner.m_dwgDynamicBlockOutputPrepared = false;
+            owner.m_dwgDynamicBlockOutputInspected = false;
+        }
+    } dwgDynamicBlockOutputScope{*this};
     std::map<std::uint32_t,std::uint32_t> selectedBlockRecordXdicts;
     m_acdsHistoryObjects.clear();
     m_acdsDxfHistoryObjects.clear();
@@ -59106,10 +60224,17 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     const bool needsShadeOutput = m_dxfShadeConsumerEntities
         || std::any_of(m_dxfShadeConsumers.begin(), m_dxfShadeConsumers.end(),
             [](const auto& source) { return source.kind != DxfShadeConsumerSource::Viewport; });
+    if (!prepareDwgDynamicBlockOutputSources(
+            debug || requireResolvedOwners)) {
+        delete dxfW;
+        dxfW = nullptr;
+        return false;
+    }
     dxfW->setDxfWriteRecordInventoryEnabled(
         !m_hatchTargets.empty() || rawXdataHandleInventory || !m_acdsDxfHistoryObjects.empty()
         || !cData->m_standardDwgObjectFrames.empty()
         || !m_dwgLayoutOutputSources.empty()
+        || m_dwgDynamicBlockOutputPrepared
         || sourceImageDictionary != nullptr || !cData->imageDefinitions.empty()
         || cData->hasNamedObjectDictionary || needsShadeOutput || !m_dxfFullStyleState.sources.empty() || m_dxfLayerMaterialState.active
         || !m_dxfMLineLinetypes.empty()
@@ -59174,6 +60299,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         !m_dwgAssociativeDimensionDependencies.empty();
     const bool needsDwgBlockRepresentationDataOutput =
         !m_extensionBlockRepresentationDataHandles.empty();
+    const bool needsDwgDynamicBlockOutput =
+        m_dwgDynamicBlockOutputPrepared;
     if ((!cData->m_standardDwgObjectFrames.empty() || needsRasterOutput || needsGeneratedRoots || needsRenderingOutput || needsShadeOutput || !m_extensionDictionaryHandles.empty() || !m_acdsDxfHistoryObjects.empty()
             || !m_dxfScales.empty() || !m_dxfDictionaryVars.empty()
             || needsDwgDictionaryVarOutput
@@ -59192,8 +60319,9 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             || !m_dwgSortEntsOutputSources.empty()
             || !m_dxfAssociativeGeometrySources.empty()
             || !m_dxfAssociativeValueSources.empty()
-            || needsDwgBlockRepresentationDataOutput)
-        && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput, needsVisualStyleOutput, needsDwgDictionaryVarOutput, needsDwgScaleOutput, needsDwgMLeaderStyleOutput, needsDwgMLineStyleOutput, needsDwgLayoutsOutput, needsDwgAssociativeVariableOutput, needsDwgAssociativeDimensionDependencyOutput, needsDwgBlockRepresentationDataOutput, debug, requireResolvedOwners](const auto& view) {
+            || needsDwgBlockRepresentationDataOutput
+            || needsDwgDynamicBlockOutput)
+        && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput, needsVisualStyleOutput, needsDwgDictionaryVarOutput, needsDwgScaleOutput, needsDwgMLeaderStyleOutput, needsDwgMLineStyleOutput, needsDwgLayoutsOutput, needsDwgAssociativeVariableOutput, needsDwgAssociativeDimensionDependencyOutput, needsDwgBlockRepresentationDataOutput, needsDwgDynamicBlockOutput, debug, requireResolvedOwners](const auto& view) {
             const auto reject = [debug, requireResolvedOwners](
                     const char* stage) {
                 if (debug || requireResolvedOwners)
@@ -59267,6 +60395,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             if (!cData->m_standardDwgObjectFrames.empty()
                 && !inspectStandardDwgOutput(view))
                 return reject("standard DWG object frame");
+            if (needsDwgDynamicBlockOutput
+                && !inspectDwgDynamicBlockOutput(
+                    view, debug || requireResolvedOwners))
+                return reject(
+                    "dynamic-block graph/object/entity source-to-output binding");
             if (!inspectDwgViewportXrecords(view))
                 return reject("VIEWPORT extension XRECORD physical source/output binding");
             if (needsRasterOutput && !inspectRasterOutput(view))

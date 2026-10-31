@@ -52,7 +52,7 @@ action rather than evidence that earlier packets made no progress.
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
 | P4 | OPEN — source/graph closure | Close source-backed bodies, owner edges and dependencies still missing from existing inputs. | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN — broader rendering/TABLE and dynamic-block work | Close remaining rendering metadata/native rendering profiles, source-backed dynamic-block owner/object profiles, FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
+| P5 | OPEN — broader rendering/TABLE and dynamic-block work | Close remaining rendering metadata/native rendering profiles, native dynamic-block semantics and DXF-origin typed/raw replay, other source-required dynamic-block profiles, FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -61,15 +61,17 @@ action rather than evidence that earlier packets made no progress.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next packet — bind the 9 remaining callback identities to complete output.**
-These identities lack document-level output qualification; this does not imply
-that every source body remains unimplemented. For each identity, inspect the
-retained source record, owner/dependency roles and serializer route; implement
-only a missing provider or binding, and reuse existing qualified providers.
-Do not qualify from type/count or opaque-byte retention alone. The current
-identity census and exact nine-handle residual are in the
-[`P4 remaining-identity receipt`](docs/research/p4-ac1024-layer-control-dictionary-output-proof-2026-10-31.json).
-Keep strict refusal until the complete source identity set is covered.
+**P4 next packet — resolve the title-block strict-output residual.** The current
+physical AC1024 `title_block-arch.dwg` strict checkpoint qualifies 108 of 109
+opaque callbacks and refuses the remaining source identity `0x52` (observed
+type 34, VIEWPORT). Use the existing source and selector to prove its full
+source fields, owner/container role, remap, emitted record and fresh readback;
+qualify it only if the complete projection is closed. Then run the bounded fast
+strict-export/census sweep over the other existing repository and local DWG
+inputs and take only the first newly reproduced source-backed gap. The
+mechanical AC1024 witness already has all 228 opaque callbacks qualified; do
+not reopen that exact identity packet without a source mismatch. Keep strict
+refusal until each document's required graph is covered.
 
 ## P4 — original bodies and complete document closure
 
@@ -114,20 +116,9 @@ output gates are met.
 
 ## P5 — rendering and TABLE
 
-**Dynamic-block physical-source composition:** after the P4 source/output gap
-closes, complete staged-output qualification for the physical AC1024
-`Title_Block-ARCH` graph rooted at BLOCK_RECORD `0x127`. Establish the physical
-EvaluationGraph `0x1117` frame, node and edge values; verify the complete
-dynamic-graph owner/reactor and target-role relationships; bind the 117 flat and
-four visibility-state handle sets; and prove the composed source-to-staged-output
-graph with fresh ASCII/Binary readback. Reuse already-qualified record-body and
-reference providers; reopen them only if this physical source demonstrates a
-mismatch. Exercise atomic refusal/retry for a missing required physical target.
-Generated callback composition, isolated record readback and SORTENTSTABLE
-output receipts do not establish this physical graph. Native dynamic-block
-semantics and DXF-origin typed/raw replay remain separate open qualifications.
-Qualify other subclasses only when an existing source identifies a required
-profile.
+**Dynamic blocks:** qualify native dynamic-block semantics and DXF-origin
+typed/raw replay. Admit other physical subclasses only when an existing source
+identifies a required field, role, or output mismatch.
 
 **Rendering:** close remaining engine/class-revision/schema and optional-presence
 profiles; active/global/environment and background/live-section relations; and

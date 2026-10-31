@@ -2677,7 +2677,7 @@ private:
         DRW_Layout model;
         DRW_Block_Record blockRecord;
         DRW_Dictionary extensionDictionary;
-        std::uint32_t thumbnailHandle{0u};
+        std::vector<std::uint32_t> extensionXRecordHandles;
     };
     std::map<std::uint32_t,DwgLayoutOutputSource>
         m_dwgLayoutOutputSources;
@@ -3156,6 +3156,32 @@ private:
     bool hasUnchangedDwgSortEntsOutputSources() const noexcept;
     bool inspectDwgSortEntsOutput(
         const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept;
+    struct DwgDynamicBlockOutputSource {
+        std::string recordName;
+        std::uint32_t ownerHandle{0u};
+        std::vector<DRW_Variant> groups;
+    };
+    struct DwgDynamicBlockEntityOutputSource {
+        std::uint32_t handle{0u};
+        std::string recordName;
+    };
+    std::map<std::uint32_t, DwgDynamicBlockOutputSource>
+        m_dwgDynamicBlockOutputSources;
+    std::map<std::uint32_t, DRW_UnsupportedObject>
+        m_dwgDynamicBlockSourceFrameSnapshots;
+    std::vector<DwgDynamicBlockEntityOutputSource>
+        m_dwgDynamicBlockEntityOutputSources;
+    const dx_data* m_dwgDynamicBlockOutputSourceOwner{nullptr};
+    std::uint64_t m_dwgDynamicBlockOutputGeneration{0u};
+    std::uint32_t m_dwgDynamicBlockOutputDictionary{0u};
+    std::uint32_t m_dwgDynamicBlockOutputBlock{0u};
+    bool m_dwgDynamicBlockOutputPrepared{false};
+    bool m_dwgDynamicBlockOutputInspected{false};
+    bool prepareDwgDynamicBlockOutputSources(bool debug) noexcept;
+    bool hasUnchangedDwgDynamicBlockOutputSources() const noexcept;
+    bool inspectDwgDynamicBlockOutput(
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept;
+    bool finalizeDwgDynamicBlockOutput() const noexcept;
     bool inspectDwgBlockRepresentationDataOutput(
         const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept;
     bool finalizeDwgBlockRepresentationDataOutput() const noexcept;

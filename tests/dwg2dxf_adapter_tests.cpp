@@ -20560,6 +20560,8 @@ bool readDxfEvaluationGraphWireGroups(
     std::unique_ptr<dxfReader> reader = binary
         ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
         : std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+    reader->setAllowWideHandleLexemes(true);
+    reader->setVisualStyleUnsignedColorValues(true);
     bool inGraph = false;
     bool inGraphBody = false;
     int code = 0;
@@ -20610,13 +20612,16 @@ bool readDxfDynamicBlockPurgeWireGroups(
     std::unique_ptr<dxfReader> reader = binary
         ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
         : std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+    reader->setAllowWideHandleLexemes(true);
+    reader->setVisualStyleUnsignedColorValues(true);
     bool inObject = false;
     int code = 0;
     while (reader->readRec(&code)) {
         if (code == 0) {
             if (inObject)
                 return !groups.empty() && !stream.bad();
-            inObject = reader->getString()
+            const std::string recordName = reader->getString();
+            inObject = recordName
                 == "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION";
             continue;
         }
@@ -33199,6 +33204,552 @@ bool physicalViewportOutputReadback(
     return true;
 }
 
+bool physicalTitleBlockDynamicGraphReadback(
+        const dx_data& source, const dx_data& output,
+        const std::filesystem::path& outputPath, bool binary) {
+    const auto uniqueBlock = [](const dx_data& data, const char* name) {
+        const DRW_Block_Record* result = nullptr;
+        for (const DRW_Block_Record& block : data.blockRecords) {
+            if (block.name != name)
+                continue;
+            if (result != nullptr)
+                return static_cast<const DRW_Block_Record*>(nullptr);
+            result = &block;
+        }
+        return result;
+    };
+    const auto uniqueBlockDefinition = [](const dx_data& data,
+                                         const char* name) {
+        const dx_ifaceBlock* result = nullptr;
+        for (const dx_ifaceBlock* block : data.blocks) {
+            if (block == nullptr || block->name != name)
+                continue;
+            if (result != nullptr)
+                return static_cast<const dx_ifaceBlock*>(nullptr);
+            result = block;
+        }
+        return result;
+    };
+    const auto uniqueDictionary = [](const dx_data& data,
+                                     std::uint32_t handle) {
+        const DRW_Dictionary* result = nullptr;
+        for (const DRW_Dictionary& dictionary : data.dictionaries) {
+            if (dictionary.handle != handle)
+                continue;
+            if (result != nullptr)
+                return static_cast<const DRW_Dictionary*>(nullptr);
+            result = &dictionary;
+        }
+        return result;
+    };
+    const auto uniqueGraph = [](const dx_data& data, std::uint32_t handle) {
+        const DRW_EvaluationGraph* result = nullptr;
+        for (const DRW_EvaluationGraph& graph : data.evaluationGraphs) {
+            if (graph.handle != handle)
+                continue;
+            if (result != nullptr)
+                return static_cast<const DRW_EvaluationGraph*>(nullptr);
+            result = &graph;
+        }
+        return result;
+    };
+    const auto uniqueSortTable = [](const dx_data& data,
+                                    std::uint32_t handle) {
+        const DRW_SortEntsTable* result = nullptr;
+        for (const DRW_SortEntsTable& table : data.sortEntsTables) {
+            if (table.handle != handle)
+                continue;
+            if (result != nullptr)
+                return static_cast<const DRW_SortEntsTable*>(nullptr);
+            result = &table;
+        }
+        return result;
+    };
+    const auto uniqueDynamicObject = [](const dx_data& data,
+                                        std::uint32_t handle) {
+        const DRW_DynamicBlockObject* result = nullptr;
+        for (const DRW_DynamicBlockObject& object : data.dynamicBlockObjects) {
+            if (object.handle != handle)
+                continue;
+            if (result != nullptr)
+                return static_cast<const DRW_DynamicBlockObject*>(nullptr);
+            result = &object;
+        }
+        return result;
+    };
+    const auto sameDouble = [](double lhs, double rhs) {
+        return std::memcmp(&lhs, &rhs, sizeof(double)) == 0;
+    };
+    const auto sameCoord = [&sameDouble](const DRW_Coord& lhs,
+                                         const DRW_Coord& rhs) {
+        return sameDouble(lhs.x, rhs.x) && sameDouble(lhs.y, rhs.y)
+            && sameDouble(lhs.z, rhs.z);
+    };
+    const DRW_Block_Record* sourceBlock =
+        uniqueBlock(source, "Title_Block-ARCH");
+    const DRW_Block_Record* outputBlock =
+        uniqueBlock(output, "Title_Block-ARCH");
+    const dx_ifaceBlock* sourceDefinition =
+        uniqueBlockDefinition(source, "Title_Block-ARCH");
+    const dx_ifaceBlock* outputDefinition =
+        uniqueBlockDefinition(output, "Title_Block-ARCH");
+    const DRW_Dictionary* sourceOwner = sourceBlock == nullptr
+        ? nullptr : uniqueDictionary(source, sourceBlock->xDictHandle);
+    const DRW_Dictionary* outputOwner = outputBlock == nullptr
+        ? nullptr : uniqueDictionary(output, outputBlock->xDictHandle);
+    const DRW_SortEntsTable* sourceSortTable =
+        sourceOwner == nullptr || sourceOwner->m_entries.size() < 2u
+            ? nullptr : uniqueSortTable(source,
+                sourceOwner->m_entries[1].m_handle);
+    const DRW_SortEntsTable* outputSortTable =
+        outputOwner == nullptr || outputOwner->m_entries.size() < 2u
+            ? nullptr : uniqueSortTable(output,
+                outputOwner->m_entries[1].m_handle);
+    if (sourceBlock == nullptr || outputBlock == nullptr
+        || sourceDefinition == nullptr || outputDefinition == nullptr
+        || sourceDefinition->parentHandle != sourceBlock->handle
+        || outputDefinition->parentHandle != outputBlock->handle
+        || sourceOwner == nullptr || outputOwner == nullptr
+        || sourceOwner->parentHandle != sourceBlock->handle
+        || outputOwner->parentHandle != outputBlock->handle
+        || sourceBlock->xDictHandle != sourceOwner->handle
+        || outputBlock->xDictHandle != outputOwner->handle
+        || sourceOwner->m_entries.size() != 3u
+        || outputOwner->m_entries.size() != sourceOwner->m_entries.size()
+        || sourceOwner->m_entries[0].m_name != "ACAD_ENHANCEDBLOCK"
+        || sourceOwner->m_entries[1].m_name != "ACAD_SORTENTS"
+        || sourceOwner->m_entries[2].m_name
+            != "AcDbDynamicBlockRoundTripPurgePreventer"
+        || outputOwner->hardOwner != sourceOwner->hardOwner
+        || outputOwner->cloning != sourceOwner->cloning)
+        return fail("physical Title_Block-ARCH dynamic owner graph did not freshly reimport");
+    if (sourceSortTable == nullptr || outputSortTable == nullptr
+        || sourceSortTable->parentHandle != sourceOwner->handle
+        || outputSortTable->parentHandle != outputOwner->handle
+        || sourceSortTable->m_blockOwnerHandle != sourceBlock->handle
+        || outputSortTable->m_blockOwnerHandle != outputBlock->handle
+        || sourceSortTable->reactorHandles
+            != std::vector<std::uint32_t>{sourceOwner->handle}
+        || outputSortTable->reactorHandles
+            != std::vector<std::uint32_t>{outputOwner->handle}
+        || sourceSortTable->m_sortHandles.size()
+            != sourceSortTable->m_entityHandles.size()
+        || outputSortTable->m_sortHandles.size()
+            != outputSortTable->m_entityHandles.size()) {
+        std::ostringstream detail;
+        detail << "physical dynamic SORTENTSTABLE owner or target counts changed on readback"
+               << " source=" << (sourceSortTable != nullptr)
+               << " output=" << (outputSortTable != nullptr);
+        if (sourceSortTable != nullptr)
+            detail << " sourceParent=" << sourceSortTable->parentHandle
+                   << " sourceBlock=" << sourceSortTable->m_blockOwnerHandle
+                   << " sourceEntries=" << sourceSortTable->m_entityHandles.size()
+                   << " sourceSorts=" << sourceSortTable->m_sortHandles.size()
+                   << " sourceReactors=" << sourceSortTable->reactorHandles.size();
+        if (outputSortTable != nullptr)
+            detail << " outputParent=" << outputSortTable->parentHandle
+                   << " outputBlock=" << outputSortTable->m_blockOwnerHandle
+                   << " outputEntries=" << outputSortTable->m_entityHandles.size()
+                   << " outputSorts=" << outputSortTable->m_sortHandles.size()
+                   << " outputReactors=" << outputSortTable->reactorHandles.size();
+        return fail(detail.str());
+    }
+    for (std::size_t index = 0u; index < sourceOwner->m_entries.size();
+         ++index)
+        if (outputOwner->m_entries[index].m_name
+            != sourceOwner->m_entries[index].m_name)
+            return fail("physical dynamic owner dictionary key order changed on readback");
+
+    const DRW_EvaluationGraph* sourceGraph = uniqueGraph(
+        source, sourceOwner->m_entries[0].m_handle);
+    const DRW_EvaluationGraph* outputGraph = uniqueGraph(
+        output, outputOwner->m_entries[0].m_handle);
+    if (sourceGraph == nullptr || outputGraph == nullptr
+        || sourceGraph->parentHandle != sourceOwner->handle
+        || outputGraph->parentHandle != outputOwner->handle
+        || sourceGraph->reactorHandles
+            != std::vector<std::uint32_t>{sourceOwner->handle}
+        || outputGraph->reactorHandles
+            != std::vector<std::uint32_t>{outputOwner->handle}
+        || sourceGraph->m_value96 != outputGraph->m_value96
+        || sourceGraph->m_value97 != outputGraph->m_value97
+        || sourceGraph->m_nodes.size() != 4u
+        || outputGraph->m_nodes.size() != sourceGraph->m_nodes.size()
+        || outputGraph->m_edges.size() != sourceGraph->m_edges.size())
+        return fail("physical EvaluationGraph identity, owner/reactor, or cardinality changed on readback");
+    for (std::size_t index = 0u; index < sourceGraph->m_nodes.size(); ++index) {
+        const DRW_EvaluationGraphNode& before = sourceGraph->m_nodes[index];
+        const DRW_EvaluationGraphNode& after = outputGraph->m_nodes[index];
+        if (before.m_index != after.m_index
+            || before.m_flags != after.m_flags
+            || before.m_nextNodeIndex != after.m_nextNodeIndex
+            || before.m_data1 != after.m_data1
+            || before.m_data2 != after.m_data2
+            || before.m_data3 != after.m_data3
+            || before.m_data4 != after.m_data4
+            || before.m_expressionHandle == 0u
+            || before.m_expressionHandle == DRW::NoHandle
+            || after.m_expressionHandle == 0u
+            || after.m_expressionHandle == DRW::NoHandle)
+            return fail("physical EvaluationGraph node fields or expression identity changed on readback");
+    }
+    for (std::size_t index = 0u; index < sourceGraph->m_edges.size(); ++index) {
+        const DRW_EvaluationGraphEdge& before = sourceGraph->m_edges[index];
+        const DRW_EvaluationGraphEdge& after = outputGraph->m_edges[index];
+        if (before.m_value92 != after.m_value92
+            || before.m_value93 != after.m_value93
+            || before.m_value94 != after.m_value94
+            || before.m_value91a != after.m_value91a
+            || before.m_value91b != after.m_value91b
+            || before.m_value92a != after.m_value92a
+            || before.m_value92b != after.m_value92b
+            || before.m_value92c != after.m_value92c
+            || before.m_value92d != after.m_value92d
+            || before.m_value92e != after.m_value92e)
+            return fail("physical EvaluationGraph edge fields changed on readback");
+    }
+
+    std::unordered_set<std::uint32_t> outputEntityHandles;
+    outputEntityHandles.reserve(outputDefinition->ent.size());
+    for (const DRW_Entity* entity : outputDefinition->ent)
+        if (entity == nullptr || entity->handle == 0u
+            || entity->handle == DRW::NoHandle
+            || entity->parentHandle != outputBlock->handle
+            || !outputEntityHandles.insert(entity->handle).second)
+            return fail("physical dynamic block entity identity/owner is ambiguous on readback");
+
+    std::unordered_set<std::uint32_t> sourceEntityHandles;
+    sourceEntityHandles.reserve(sourceDefinition->ent.size());
+    for (const DRW_Entity* entity : sourceDefinition->ent)
+        if (entity == nullptr || entity->handle == 0u
+            || entity->handle == DRW::NoHandle
+            || entity->parentHandle != sourceBlock->handle
+            || !sourceEntityHandles.insert(entity->handle).second)
+            return fail("physical dynamic source entity identity/owner is ambiguous");
+    const std::unordered_set<std::uint32_t> sourceSortTargets(
+        sourceSortTable->m_entityHandles.begin(),
+        sourceSortTable->m_entityHandles.end());
+    const std::unordered_set<std::uint32_t> outputSortTargets(
+        outputSortTable->m_entityHandles.begin(),
+        outputSortTable->m_entityHandles.end());
+    if (sourceSortTargets.size() != sourceSortTable->m_entityHandles.size()
+        || outputSortTargets.size() != outputSortTable->m_entityHandles.size()
+        || !std::all_of(sourceSortTargets.begin(), sourceSortTargets.end(),
+            [&sourceEntityHandles](std::uint32_t handle) {
+                return sourceEntityHandles.count(handle) == 1u;
+            })
+        || !std::all_of(outputSortTargets.begin(), outputSortTargets.end(),
+            [&outputEntityHandles](std::uint32_t handle) {
+                return outputEntityHandles.count(handle) == 1u;
+            }))
+        return fail("physical dynamic SORTENTSTABLE target escapes its owning block definition");
+    const auto handlesBelongToBlock = [](
+            const std::vector<std::uint32_t>& handles,
+            const std::unordered_set<std::uint32_t>& entities) {
+        return std::all_of(handles.begin(), handles.end(),
+            [&entities](std::uint32_t handle) {
+                return handle != 0u && handle != DRW::NoHandle
+                    && entities.count(handle) == 1u;
+            });
+    };
+    if (!handlesBelongToBlock(sourceSortTable->m_entityHandles,
+                              sourceEntityHandles)
+        || !handlesBelongToBlock(outputSortTable->m_entityHandles,
+                                 outputEntityHandles))
+        return fail("physical dynamic SORTENTSTABLE targets escape their owning block definition");
+
+    if (source.dynamicBlockObjects.size() != 5u
+        || output.dynamicBlockObjects.size() != source.dynamicBlockObjects.size())
+        return fail("physical dynamic-block object count changed on readback");
+    const auto sameObjectBody = [&](const DRW_DynamicBlockObject& before,
+                                    const DRW_DynamicBlockObject& after) {
+        if (before.m_recordName != after.m_recordName
+            || before.m_kind != after.m_kind
+            || !before.m_bodyFullyDecoded || !after.m_bodyFullyDecoded
+            || before.xDictHandle != 0u || after.xDictHandle != 0u
+            || !before.extData.empty() || !after.extData.empty())
+            return false;
+        if (before.m_kind == DRW_DynamicBlockObject::Kind::PurgePreventer)
+            return before.m_purgeFlag == after.m_purgeFlag;
+        if (!before.m_evalExprParsed || !after.m_evalExprParsed
+            || before.m_major != 29u || before.m_minor != 2u
+            || before.m_nodeId != after.m_nodeId
+            || before.m_valueCode != after.m_valueCode
+            || before.m_hasValueDouble != after.m_hasValueDouble
+            || !sameDouble(before.m_valueDouble, after.m_valueDouble)
+            || before.m_valueHandle != after.m_valueHandle
+            || after.m_major != 33u || after.m_minor != 29u
+            || before.m_eed1071 != after.m_eed1071)
+            return false;
+        if (before.m_kind
+                == DRW_DynamicBlockObject::Kind::GripLocationComponent)
+            return before.m_gripType == after.m_gripType
+                && before.m_gripExpr == after.m_gripExpr;
+        if (before.m_elementParsed != after.m_elementParsed
+            || !before.m_elementParsed
+            || before.m_elementName != after.m_elementName
+            || before.m_elementMajor != 29u
+            || before.m_elementMinor != 2u
+            || after.m_elementMajor != 33u
+            || after.m_elementMinor != 29u)
+            return false;
+        if (before.m_kind
+                == DRW_DynamicBlockObject::Kind::VisibilityParameter) {
+            if (before.m_showProperties != after.m_showProperties
+                || before.m_chainActions != after.m_chainActions
+                || !sameCoord(before.m_defPoint, after.m_defPoint)
+                || before.m_propertyInfoCount != after.m_propertyInfoCount
+                || before.m_propertyInfo1Count != after.m_propertyInfo1Count
+                || before.m_propertyInfo1Codes != after.m_propertyInfo1Codes
+                || before.m_propertyInfo1Names != after.m_propertyInfo1Names
+                || before.m_propertyInfo2Count != after.m_propertyInfo2Count
+                || before.m_propertyInfo2Codes != after.m_propertyInfo2Codes
+                || before.m_propertyInfo2Names != after.m_propertyInfo2Names
+                || before.m_isInitialized != after.m_isInitialized
+                || before.m_visibilityName != after.m_visibilityName
+                || before.m_visibilityDescription
+                    != after.m_visibilityDescription
+                || before.m_unknownBool != after.m_unknownBool
+                || before.m_blockCount != after.m_blockCount
+                || before.m_stateCount != after.m_stateCount
+                || before.m_stateNames != after.m_stateNames
+                || before.m_stateBlockHandles.size()
+                    != after.m_stateBlockHandles.size()
+                || before.m_stateParameterHandles
+                    != after.m_stateParameterHandles
+                || before.m_blockHandles.size() != 117u
+                || after.m_blockHandles.size()
+                    != before.m_blockHandles.size()
+                || before.m_stateNames.size() != 4u
+                || after.m_stateNames.size() != before.m_stateNames.size())
+                return false;
+            std::unordered_set<std::uint32_t> flat;
+            flat.reserve(after.m_blockHandles.size());
+            if (!handlesBelongToBlock(before.m_blockHandles,
+                                      sourceEntityHandles))
+                return false;
+            for (const std::uint32_t handle : after.m_blockHandles)
+                if (!outputEntityHandles.count(handle)
+                    || !flat.insert(handle).second)
+                    return false;
+            std::unordered_set<std::uint32_t> states;
+            states.reserve(116u);
+            for (std::size_t index = 0u;
+                 index < before.m_stateBlockHandles.size(); ++index) {
+                const auto& beforeHandles = before.m_stateBlockHandles[index];
+                const auto& afterHandles = after.m_stateBlockHandles[index];
+                if (beforeHandles.size() != 29u
+                    || afterHandles.size() != beforeHandles.size())
+                    return false;
+                for (const std::uint32_t handle : afterHandles)
+                    if (!flat.count(handle) || !states.insert(handle).second)
+                        return false;
+            }
+            return states.size() == 116u;
+        }
+        if (before.m_kind == DRW_DynamicBlockObject::Kind::Grip)
+            return before.m_gripValue91 == after.m_gripValue91
+                && before.m_gripValue92 == after.m_gripValue92
+                && sameCoord(before.m_gripLocation, after.m_gripLocation)
+                && before.m_gripValue280 == after.m_gripValue280
+                && before.m_gripValue93 == after.m_gripValue93;
+        return false;
+    };
+    std::unordered_set<std::uint32_t> outputObjectHandles;
+    outputObjectHandles.reserve(output.dynamicBlockObjects.size());
+    for (const DRW_DynamicBlockObject& object : output.dynamicBlockObjects)
+        if (object.handle == 0u || object.handle == DRW::NoHandle
+            || !outputObjectHandles.insert(object.handle).second)
+            return fail("physical dynamic-block output object handles are missing or aliased");
+    for (std::size_t index = 0u; index < sourceGraph->m_nodes.size(); ++index) {
+        const DRW_EvaluationGraphNode& before = sourceGraph->m_nodes[index];
+        const DRW_EvaluationGraphNode& after = outputGraph->m_nodes[index];
+        const DRW_DynamicBlockObject* sourceObject = uniqueDynamicObject(
+            source, before.m_expressionHandle);
+        const DRW_DynamicBlockObject* outputObject = uniqueDynamicObject(
+            output, after.m_expressionHandle);
+        if (sourceObject == nullptr || outputObject == nullptr
+            || sourceObject->parentHandle != sourceGraph->handle
+            || outputObject->parentHandle != outputGraph->handle
+            || sourceObject->reactorHandles != std::vector<std::uint32_t>{}
+            || outputObject->reactorHandles != std::vector<std::uint32_t>{}
+            || sourceObject->m_nodeId
+                != static_cast<std::uint32_t>(before.m_nextNodeIndex)
+            || outputObject->m_nodeId
+                != static_cast<std::uint32_t>(after.m_nextNodeIndex)
+            || !sameObjectBody(*sourceObject, *outputObject)) {
+            std::ostringstream detail;
+            detail << "physical dynamic-block graph node/object binding or typed readback changed"
+                   << " node=" << index
+                   << " sourceHandle=" << before.m_expressionHandle
+                   << " outputHandle=" << after.m_expressionHandle;
+            if (sourceObject != nullptr && outputObject != nullptr)
+                detail << " sourceRecord=" << sourceObject->m_recordName
+                       << " outputRecord=" << outputObject->m_recordName
+                       << " sourceParent=" << sourceObject->parentHandle
+                       << " outputParent=" << outputObject->parentHandle
+                       << " sourceNode=" << sourceObject->m_nodeId
+                       << " outputNode=" << outputObject->m_nodeId
+                       << " sourceVersion=" << sourceObject->m_major << '/'
+                       << sourceObject->m_minor
+                       << " outputVersion=" << outputObject->m_major << '/'
+                       << outputObject->m_minor
+                       << " sourceElementVersion="
+                       << sourceObject->m_elementMajor << '/'
+                       << sourceObject->m_elementMinor
+                       << " outputElementVersion="
+                       << outputObject->m_elementMajor << '/'
+                       << outputObject->m_elementMinor
+                       << " sourceDecoded=" << sourceObject->m_bodyFullyDecoded
+                       << " outputDecoded=" << outputObject->m_bodyFullyDecoded;
+            return fail(detail.str());
+        }
+    }
+    const auto findVisibility = [](const dx_data& data) {
+        return std::find_if(data.dynamicBlockObjects.begin(),
+                            data.dynamicBlockObjects.end(),
+            [](const DRW_DynamicBlockObject& object) {
+                return object.m_kind
+                    == DRW_DynamicBlockObject::Kind::VisibilityParameter;
+            });
+    };
+    const auto sourceVisibility = findVisibility(source);
+    const auto outputVisibility = findVisibility(output);
+    if (sourceVisibility == source.dynamicBlockObjects.end()
+        || outputVisibility == output.dynamicBlockObjects.end()
+        || sourceVisibility->m_blockHandles.size()
+            != outputVisibility->m_blockHandles.size()
+        || sourceVisibility->m_stateBlockHandles.size()
+            != outputVisibility->m_stateBlockHandles.size())
+        return fail("physical dynamic visibility memberships do not compose on readback");
+    std::unordered_map<std::uint32_t, std::uint32_t> entityRemap;
+    entityRemap.reserve(sourceVisibility->m_blockHandles.size());
+    const std::unordered_set<std::uint32_t> sourceVisibilityTargets(
+        sourceVisibility->m_blockHandles.begin(),
+        sourceVisibility->m_blockHandles.end());
+    const std::unordered_set<std::uint32_t> outputVisibilityTargets(
+        outputVisibility->m_blockHandles.begin(),
+        outputVisibility->m_blockHandles.end());
+    if (sourceVisibilityTargets.size()
+            != sourceVisibility->m_blockHandles.size()
+        || outputVisibilityTargets.size()
+            != outputVisibility->m_blockHandles.size()
+        || sourceVisibilityTargets != sourceEntityHandles
+        || outputVisibilityTargets != outputEntityHandles)
+        return fail("physical dynamic visibility handles do not exactly cover the block entities");
+    for (std::size_t index = 0u;
+         index < sourceVisibility->m_blockHandles.size(); ++index)
+        if (!entityRemap.emplace(sourceVisibility->m_blockHandles[index],
+                                 outputVisibility->m_blockHandles[index]).second)
+            return fail("physical dynamic entity sequence contains a duplicate source handle");
+    for (const std::uint32_t sourceTarget :
+         sourceSortTable->m_entityHandles) {
+        const auto mapped = entityRemap.find(sourceTarget);
+        if (mapped == entityRemap.end()
+            || outputSortTargets.count(mapped->second) != 1u)
+            return fail("physical dynamic SORTENTSTABLE lost a source-backed target during visibility remapping");
+    }
+    for (std::size_t state = 0u;
+         state < sourceVisibility->m_stateBlockHandles.size(); ++state) {
+        const auto& sourceState =
+            sourceVisibility->m_stateBlockHandles[state];
+        const auto& outputState =
+            outputVisibility->m_stateBlockHandles[state];
+        if (sourceState.size() != outputState.size())
+            return fail("physical dynamic visibility-state membership count changed on readback");
+        for (std::size_t index = 0u; index < sourceState.size(); ++index) {
+            const auto mapped = entityRemap.find(sourceState[index]);
+            if (mapped == entityRemap.end()
+                || mapped->second != outputState[index])
+                return fail("physical dynamic visibility-state target roles changed on readback");
+        }
+    }
+    const DRW_DynamicBlockObject* sourcePurge = uniqueDynamicObject(
+        source, sourceOwner->m_entries[2].m_handle);
+    const DRW_DynamicBlockObject* outputPurge = uniqueDynamicObject(
+        output, outputOwner->m_entries[2].m_handle);
+    if (sourcePurge == nullptr || outputPurge == nullptr
+        || sourcePurge->parentHandle != sourceOwner->handle
+        || outputPurge->parentHandle != outputOwner->handle
+        || sourcePurge->reactorHandles
+            != std::vector<std::uint32_t>{sourceOwner->handle}
+        || !sameObjectBody(*sourcePurge, *outputPurge)) {
+        std::ostringstream detail;
+        detail << "physical dynamic purge-preventer owner/body changed on readback"
+               << " source=" << (sourcePurge != nullptr)
+               << " output=" << (outputPurge != nullptr);
+        if (sourcePurge != nullptr)
+            detail << " sourceHandle=" << sourcePurge->handle
+                   << " sourceParent=" << sourcePurge->parentHandle
+                   << " sourceReactors=" << sourcePurge->reactorHandles.size()
+                   << " sourceFlag=" << sourcePurge->m_purgeFlag
+                   << " sourceDecoded=" << sourcePurge->m_bodyFullyDecoded;
+        if (outputPurge != nullptr)
+            detail << " outputHandle=" << outputPurge->handle
+                   << " outputParent=" << outputPurge->parentHandle
+                   << " outputReactors=" << outputPurge->reactorHandles.size()
+                   << " outputFlag=" << outputPurge->m_purgeFlag
+                   << " outputDecoded=" << outputPurge->m_bodyFullyDecoded;
+        return fail(detail.str());
+    }
+    const std::vector<std::pair<int, std::string>> expectedPurgeWire{
+        {5, std::to_string(outputPurge->handle)},
+        {102, "{ACAD_REACTORS"},
+        {330, std::to_string(outputOwner->handle)},
+        {102, "}"},
+        {330, std::to_string(outputOwner->handle)},
+        {100, "AcDbDynamicBlockPurgePreventer"},
+        {70, std::to_string(outputPurge->m_purgeFlag)}};
+    std::vector<std::pair<int, std::string>> actualPurgeWire;
+    if (!readDxfDynamicBlockPurgeWireGroups(
+            outputPath, binary, actualPurgeWire)
+        || actualPurgeWire != expectedPurgeWire) {
+        std::ostringstream detail;
+        detail << "physical dynamic purge-preventer output wire fields or owner/reactor handles changed"
+               << " expected=";
+        for (const auto& group : expectedPurgeWire)
+            detail << '(' << group.first << ',' << group.second << ')';
+        detail << " actual=";
+        for (const auto& group : actualPurgeWire)
+            detail << '(' << group.first << ',' << group.second << ')';
+        return fail(detail.str());
+    }
+
+    std::vector<std::pair<int, std::string>> expectedGraphWire{
+        {96, std::to_string(outputGraph->m_value96)},
+        {97, std::to_string(outputGraph->m_value97)}};
+    for (const DRW_EvaluationGraphNode& node : outputGraph->m_nodes) {
+        expectedGraphWire.emplace_back(91, std::to_string(node.m_index));
+        expectedGraphWire.emplace_back(93, std::to_string(node.m_flags));
+        expectedGraphWire.emplace_back(95,
+                                      std::to_string(node.m_nextNodeIndex));
+        expectedGraphWire.emplace_back(
+            360, std::to_string(node.m_expressionHandle));
+        expectedGraphWire.emplace_back(92, std::to_string(node.m_data1));
+        expectedGraphWire.emplace_back(92, std::to_string(node.m_data2));
+        expectedGraphWire.emplace_back(92, std::to_string(node.m_data3));
+        expectedGraphWire.emplace_back(92, std::to_string(node.m_data4));
+    }
+    for (const DRW_EvaluationGraphEdge& edge : outputGraph->m_edges) {
+        expectedGraphWire.emplace_back(92, std::to_string(edge.m_value92));
+        expectedGraphWire.emplace_back(93, std::to_string(edge.m_value93));
+        expectedGraphWire.emplace_back(94, std::to_string(edge.m_value94));
+        expectedGraphWire.emplace_back(91, std::to_string(edge.m_value91a));
+        expectedGraphWire.emplace_back(91, std::to_string(edge.m_value91b));
+        expectedGraphWire.emplace_back(92, std::to_string(edge.m_value92a));
+        expectedGraphWire.emplace_back(92, std::to_string(edge.m_value92b));
+        expectedGraphWire.emplace_back(92, std::to_string(edge.m_value92c));
+        expectedGraphWire.emplace_back(92, std::to_string(edge.m_value92d));
+        expectedGraphWire.emplace_back(92, std::to_string(edge.m_value92e));
+    }
+    std::vector<std::pair<int, std::string>> actualGraphWire;
+    if (!readDxfEvaluationGraphWireGroups(
+            outputPath, binary, actualGraphWire)
+        || actualGraphWire != expectedGraphWire)
+        return fail("physical EvaluationGraph raw output disagrees with its typed readback");
+    return true;
+}
+
 bool physicalLayoutOutputReadback(
         const std::filesystem::path& sourcePath) {
     dx_iface sourceReader;
@@ -33210,8 +33761,24 @@ bool physicalLayoutOutputReadback(
         || !source.hasNamedObjectDictionary)
         return fail("physical LAYOUT source is not the admitted two-layout AC1024 graph");
 
-    const std::array<std::pair<std::uint32_t, const char*>, 2> expected{{
-        {0x22u, "Model"}, {0x59u, "Layout1"}}};
+    const auto hasIdentity = [&source](std::uint32_t handle,
+                                       const char* name) {
+        return std::count_if(source.layouts.begin(), source.layouts.end(),
+            [handle, name](const DRW_Layout& layout) {
+                return layout.handle == handle && layout.name == name;
+            }) == 1;
+    };
+    std::array<std::pair<std::uint32_t, const char*>, 2> expected{};
+    if (hasIdentity(0x22u, "Model") && hasIdentity(0x59u, "Layout1")) {
+        expected = {{{0x22u, "Model"}, {0x59u, "Layout1"}}};
+    } else if (hasIdentity(0xAu, "Model")
+               && hasIdentity(0xFu, "Architectural Title Block")) {
+        expected = {{{0xAu, "Model"}, {0xFu, "Architectural Title Block"}}};
+    } else {
+        return fail("physical LAYOUT source is outside the two admitted AC1024 identity pairs");
+    }
+    const std::string paperLayoutName = expected[1].second;
+    const bool titleBlockSource = expected[1].first == 0xFu;
     std::array<const DRW_Layout*, 2> sourceLayouts{{nullptr, nullptr}};
     for (const auto& layout : source.layouts) {
         const auto found = std::find_if(expected.begin(), expected.end(),
@@ -33302,6 +33869,37 @@ bool physicalLayoutOutputReadback(
     const auto sameCoord = [](const DRW_Coord& lhs, const DRW_Coord& rhs) {
         return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
     };
+    const auto sameVariant = [&sameCoord](const DRW_Variant& lhs,
+                                          const DRW_Variant& rhs) {
+        if (lhs.code() != rhs.code() || lhs.type() != rhs.type())
+            return false;
+        switch (lhs.type()) {
+        case DRW_Variant::STRING:
+            return lhs.content.s != nullptr && rhs.content.s != nullptr
+                && *lhs.content.s == *rhs.content.s;
+        case DRW_Variant::INTEGER:
+            return lhs.i_val() == rhs.i_val();
+        case DRW_Variant::INTEGER64:
+            return lhs.i64_val() == rhs.i64_val();
+        case DRW_Variant::DOUBLE:
+            return lhs.d_val() == rhs.d_val();
+        case DRW_Variant::COORD:
+            return lhs.coord() != nullptr && rhs.coord() != nullptr
+                && sameCoord(*lhs.coord(), *rhs.coord());
+        case DRW_Variant::BINARY:
+            return lhs.binary() != nullptr && rhs.binary() != nullptr
+                && *lhs.binary() == *rhs.binary();
+        case DRW_Variant::INVALID:
+            return true;
+        }
+        return false;
+    };
+    const auto sameVariants = [&sameVariant](
+            const std::vector<DRW_Variant>& lhs,
+            const std::vector<DRW_Variant>& rhs) {
+        return lhs.size() == rhs.size()
+            && std::equal(lhs.begin(), lhs.end(), rhs.begin(), sameVariant);
+    };
     const auto sameAsciiSymbol = [](const std::string& lhs,
                                     const std::string& rhs) {
         return lhs.size() == rhs.size()
@@ -33360,7 +33958,10 @@ bool physicalLayoutOutputReadback(
             && lhs.plotViewHandle.ref == rhs.plotViewHandle.ref
             && lhs.shadePlotHandle.ref == rhs.shadePlotHandle.ref
             && lhs.baseUcsHandle.ref == rhs.baseUcsHandle.ref
-            && lhs.namedUcsHandle.ref == rhs.namedUcsHandle.ref;
+            && lhs.namedUcsHandle.ref == rhs.namedUcsHandle.ref
+            // DXF carries extension-dictionary presence in the reserved
+            // ACAD_XDICTIONARY group, not in the DWG-only common-object flag.
+            && rhs.extensionDictionaryFlag() == 0u;
     };
     const auto sameViewportProjection = [&sameCoord](
             const DRW_Viewport& lhs, const DRW_Viewport& rhs) {
@@ -33453,8 +34054,14 @@ bool physicalLayoutOutputReadback(
                 }) != 1
             || blockRecord == nullptr
             || blockRecord->layoutHandle != layoutHandle
-            || extension == nullptr || extension->parentHandle != layoutHandle
-            || !extension->hasCompleteDwgEntries()
+            || ((layout->xDictHandle == 0u) != (extension == nullptr))
+            || (extension != nullptr
+                && (extension->parentHandle != layoutHandle
+                    || extension->hardOwner != 1
+                    || extension->cloning != 1
+                    || !extension->hasCompleteDwgEntries()
+                    || extension->m_entries.empty()
+                    || extension->m_entries.size() > 2u))
             || layout->viewportCount < 0
             || layout->viewportCount
                 != static_cast<std::int32_t>(layout->viewportHandles.size()))
@@ -33464,6 +34071,22 @@ bool physicalLayoutOutputReadback(
                 uniqueViewport(source, viewportHandle);
             if (viewport == nullptr || viewport->space != DRW::PaperSpace)
                 return fail("physical LAYOUT viewport list contains a missing or non-paperspace target");
+        }
+        if (extension != nullptr) {
+            std::set<std::string> names;
+            std::set<std::uint32_t> handles;
+            for (const DRW_Dictionary::Entry& entry : extension->m_entries) {
+                if ((entry.m_name != "ADSK_XREC_LAYOUTTHUMBNAIL"
+                        && entry.m_name != "ImpressionDefaultExportArea")
+                    || !names.insert(entry.m_name).second
+                    || !handles.insert(entry.m_handle).second)
+                    return fail("physical LAYOUT extension dictionary is outside the admitted key profile");
+                const DRW_XRecord* record = uniqueXRecord(source, entry.m_handle);
+                if (record == nullptr || record->parentHandle != extension->handle
+                    || record->m_rawDataValid
+                    || !record->m_handleValues.empty())
+                    return fail("physical LAYOUT extension XRECORD target is missing, ambiguous, or contains unqualified references");
+            }
         }
         if (layout->name == "Model") {
             const DRW_Vport* active =
@@ -33535,11 +34158,55 @@ bool physicalLayoutOutputReadback(
                 && DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
                     source, source.importGeneration, expected[index].first)
                     == qualifiedBeforeFailure[index];
+        if (titleBlockSource) {
+            auto visibility = std::find_if(
+                source.dynamicBlockObjects.begin(),
+                source.dynamicBlockObjects.end(),
+                [](const DRW_DynamicBlockObject& object) {
+                    return object.m_kind
+                        == DRW_DynamicBlockObject::Kind::VisibilityParameter;
+                });
+            if (visibility == source.dynamicBlockObjects.end()
+                || visibility->m_blockHandles.empty())
+                return fail("physical title-block visibility parameter could not be selected for refusal");
+            const std::size_t qualifiedBeforeVisibilityFailure =
+                DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                    source);
+            const std::uint32_t lastVisibilityHandle =
+                visibility->m_blockHandles.back();
+            visibility->m_blockHandles.pop_back();
+            const bool incompleteVisibilityRejected = !exportPartial();
+            std::ifstream visibilityRefusedOutput(
+                outputPath, std::ios::binary);
+            const std::string visibilityRefusedContents{
+                std::istreambuf_iterator<char>{visibilityRefusedOutput}, {}};
+            visibility->m_blockHandles.push_back(lastVisibilityHandle);
+            if (!incompleteVisibilityRejected
+                || visibilityRefusedContents != sentinel
+                || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                    source) != qualifiedBeforeVisibilityFailure)
+                return fail("incomplete physical visibility target set was not refused atomically");
+        }
         if (!invalidOwnerRejected || refusedContents != sentinel
             || !qualificationsUnchanged)
             return fail("invalid physical LAYOUT block-record target was not refused atomically");
         if (!exportPartial())
             return fail("corrected physical LAYOUT graph could not retry on the same adapter");
+        if (titleBlockSource) {
+            constexpr std::array<std::uint32_t, 9> qualifiedTitleGraph{{
+                0xAu, 0xFu, 0x1117u, 0x1118u, 0x1119u, 0x111Au, 0x111Bu,
+                0x111Cu, 0x1122u}};
+            for (const std::uint32_t handle : qualifiedTitleGraph)
+                if (!DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                        source, source.importGeneration, handle))
+                    return fail("physical Title_Block-ARCH retry did not qualify a required LAYOUT/dynamic graph callback identity");
+            if (source.dwgReadOutcome.opaqueViewCallbacks != 109u
+                || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                    source) != 108u
+                || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                    source, source.importGeneration, 0x52u))
+                return fail("physical Title_Block-ARCH retry changed the 108/109 qualification boundary or unexpectedly cleared VIEWPORT 0x52");
+        }
         for (const auto& identity : expected)
             if (!DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
                     source, source.importGeneration, identity.first))
@@ -33600,16 +34267,19 @@ bool physicalLayoutOutputReadback(
                 || sourceBlockRecord->name != outputBlockRecord->name
                 || sourceBlockRecord->layoutHandle != sourceLayout.handle
                 || outputBlockRecord->layoutHandle != outputMatch->handle
-                || sourceExtension == nullptr || outputExtension == nullptr
-                || sourceExtension->parentHandle != sourceLayout.handle
-                || outputExtension->parentHandle != outputMatch->handle
-                || sourceExtension->cloning != outputExtension->cloning
-                || sourceExtension->hardOwner != outputExtension->hardOwner
-                || sourceExtension->m_entries.size()
-                    != outputExtension->m_entries.size())
+                || ((sourceExtension == nullptr)
+                    != (outputExtension == nullptr))
+                || (sourceExtension != nullptr
+                    && (sourceExtension->parentHandle != sourceLayout.handle
+                        || outputExtension->parentHandle != outputMatch->handle
+                        || sourceExtension->cloning != outputExtension->cloning
+                        || sourceExtension->hardOwner != outputExtension->hardOwner
+                        || sourceExtension->m_entries.size()
+                            != outputExtension->m_entries.size())))
                 return fail("physical LAYOUT ACAD_LAYOUT membership, BLOCK_RECORD backlink, or extension owner changed on output/readback");
             for (std::size_t entry = 0;
-                 entry < sourceExtension->m_entries.size(); ++entry) {
+                 sourceExtension != nullptr
+                     && entry < sourceExtension->m_entries.size(); ++entry) {
                 const DRW_Dictionary::Entry& sourceEntry =
                     sourceExtension->m_entries[entry];
                 const DRW_Dictionary::Entry& outputEntry =
@@ -33622,9 +34292,18 @@ bool physicalLayoutOutputReadback(
                     || sourceChild == nullptr || outputChild == nullptr
                     || sourceChild->parentHandle != sourceExtension->handle
                     || outputChild->parentHandle != outputExtension->handle
-                    || sourceChild->m_dataEntries.size()
-                        != outputChild->m_dataEntries.size())
-                    return fail("physical LAYOUT extension key or thumbnail XRECORD owner edge changed on output/readback");
+                    || sourceChild->m_cloning != outputChild->m_cloning
+                    || sourceChild->m_handleValues.size()
+                        != outputChild->m_handleValues.size()
+                    || !sameVariants(sourceChild->m_values,
+                                     outputChild->m_values)
+                    || !sameVariants(sourceChild->m_dataEntries,
+                                     outputChild->m_dataEntries)
+                    || sourceChild->reactorHandles
+                        != std::vector<std::uint32_t>{sourceExtension->handle}
+                    || outputChild->reactorHandles
+                        != std::vector<std::uint32_t>{outputExtension->handle})
+                    return fail("physical LAYOUT extension key, XRECORD payload, reactor or owner edge changed on output/readback");
             }
 
             if (!sourceLayout.viewportHandles.empty()) {
@@ -33681,11 +34360,20 @@ bool physicalLayoutOutputReadback(
                     return fail("physical paper LAYOUT last-active VIEWPORT role or field identity changed on output/readback");
             }
         }
+        if (titleBlockSource
+            && !physicalTitleBlockDynamicGraphReadback(
+                source, output, outputPath, binary))
+            return false;
         std::cerr << "Physical LAYOUT " << (binary ? "binary" : "ASCII")
-                  << " readback passed: Model/Layout1 plot and layout fields, "
+                  << " readback passed: Model/" << paperLayoutName
+                  << " plot and layout fields, "
                      "ACAD_LAYOUT and BLOCK_RECORD links, extension dictionary/"
                      "XRECORD ownership, last-active target roles, atomic refusal "
-                     "and same-adapter retry.\n";
+                     "and same-adapter retry"
+                  << (titleBlockSource
+                        ? "; Title_Block-ARCH dynamic graph readback"
+                        : "")
+                  << ".\n";
     }
     return true;
 }

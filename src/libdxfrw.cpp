@@ -31223,11 +31223,20 @@ bool dxfRW::writeEvaluationGraph(DRW_EvaluationGraph *ent,
         return false;
     }
 
+    const std::uint32_t emittedHandle = remapObjectHandle(ent->handle);
+    if (emittedHandle == 0u || emittedHandle == DRW::NoHandle
+        || isDxfFixedOutputHandle(emittedHandle)
+        || !reserveHandle(emittedHandle))
+        return failDxfWrite();
+
+    RecordStateScope state(*this, ent);
+    DxfWriterRecordScope record(*writer);
+
     auto writeString = [this](int code, const std::string& value) {
         return writer->writeString(code, value);
     };
     bool written = writeString(0, recordName)
-        && writeString(5, toHexStr(ent->handle));
+        && writeString(5, toHexStr(emittedHandle));
     if (version > DRW::AC1014) {
         written = written && writeString(
             330, ent->parentHandle != 0
@@ -31269,8 +31278,14 @@ bool dxfRW::writeEvaluationGraph(DRW_EvaluationGraph *ent,
     }
     if (!written || (!ent->extData.empty() && !writeExtData(ent->extData))) {
         m_writeError = true;
-        return false;
+        return failDxfWrite();
     }
+
+    if (writer->hasWriteError() || !preflightDxfWrite()
+        || !bindDxfWriteSourceObjectHandle(ent->handle, emittedHandle)
+        || !record.commit())
+        return failDxfWrite();
+    state.commit();
     return true;
 }
 
