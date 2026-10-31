@@ -46,8 +46,8 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage. The explicit-partial witness now advances past TABLESTYLE handle `0x87` (`Standard`) and stops at `MATERIAL` output inspection. Resolve that source/output mismatch, close required descendants, then pass strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN | Close remaining rendering metadata and native rendering profiles, rich R24 TABLESTYLE typed-DXF readback, FIELDLIST/child graphs and other unclosed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. The physical R24 `Standard` writer is complete for its witnessed profile; see its receipt. |
+| P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage. The explicit-partial witness fails at `MATERIAL` output inspection. Resolve that source/output mismatch, close required descendants, then pass strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P5 | OPEN | Close remaining rendering metadata and native rendering profiles, rich R24 TABLESTYLE typed-DXF readback, FIELDLIST/child graphs and other unclosed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -59,26 +59,15 @@ independently ready local code work.
 **Next physical-witness packet:** resolve the first current output-inspection
 failure, `MATERIAL`, in the existing mechanical witness
 (`/Users/dli/doc/dwg/mechanical_example-imperial.dwg`, SHA-256
-`854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858`). The
-bounded AC1024 R24 TABLESTYLE writer for `Standard` handle `0x87` is implemented:
-the source CLASSES row is #504 `AcDbTableStyle`; its parsed model has no legacy
-row styles, three rich cell styles (IDs 1–3), and the populated Table style
-(ID 4). Independent LibreDWG conversion of the same source corroborates the
-R24 marker grammar. The focused local ASCII/Binary selector proves the emitted
-field spans, text-style handle mapping, raw DXF readback, refusal with
-destination preservation, and corrected retry. Rich R24 TABLESTYLE contents
-still read back as raw groups rather than a typed nested style model; retain
-that separate P5 task. Evidence is in
-`docs/research/p5-ac1024-tablestyle-r24-output-2026-10-31.json`.
-
-The physical explicit-partial conversion now passes TABLESTYLE and reports
-`DXF OBJECTS output inspection failed: MATERIAL`; no output DXF is published.
-Identify the exact MATERIAL source/output field or reference mismatch, repair
-only that witnessed profile, and rerun the same diagnostic. This run is not
-strict-complete evidence: `--allow-partial-dwg-read` does not satisfy the strict
-read gate, and the 228 typed-and-opaque callback identities across 21 profiles
-still need complete-output or proven replay mappings. Do not infer identities
-from adjacent handles, weaken graph closure, or commit investigation DWGs.
+`854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858`).
+The physical explicit-partial conversion fails `MATERIAL` output inspection;
+no output DXF is published. Identify the exact MATERIAL source/output field or
+reference mismatch, repair only that witnessed profile, and rerun the same
+diagnostic. This run is not strict-complete evidence:
+`--allow-partial-dwg-read` does not satisfy the strict read gate, and the 228
+typed-and-opaque callback identities across 21 profiles still need
+complete-output or proven replay mappings. Do not infer identities from
+adjacent handles, weaken graph closure, or commit investigation DWGs.
 
 ## P4 — original bodies and complete document closure
 
@@ -98,13 +87,9 @@ engines.
    identities and fields to planned records, emitted bytes and fresh readback.
    Strict complete-export of the physical mechanical source remains blocked:
    the global strict-read predicate rejects opaque callback views that are
-   not retained for output. The AC1024 R24 `TABLESTYLE` body for source handle
-   `0x87` now has a bounded output projection and passes its focused raw-DXF
-   proof. The latest explicit-partial physical diagnostic advances to
-   `MATERIAL` output inspection; diagnose that first and retain the strict gate.
-   Its evidence is recorded in
-   `docs/research/p5-ac1024-tablestyle-r24-output-2026-10-31.json` and the
-   preceding physical receipt
+   not retained for output. The latest explicit-partial physical diagnostic
+   fails `MATERIAL` output inspection; diagnose that mismatch and retain the
+   strict gate. The physical source receipt is
    `docs/research/p2-p4-ac1024-physical-mlinestyle-sentinel-output-2026-10-31.json`.
    The callback census is recorded in
    `docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json`. Use its
