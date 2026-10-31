@@ -63,20 +63,13 @@ independently ready local code work.
 
 **P4 next packet — bind the 9 remaining callback identities to complete output.**
 These identities lack document-level output qualification; this does not imply
-that every source body remains unimplemented. Reuse existing source-body,
-serializer, ownership and output receipts where they cover the exact identity
-and fields. For each uncovered identity, inspect the retained source record,
-owner/dependency roles and serializer route, then implement only the missing
-provider or binding. Do not qualify from type/count or opaque-byte retention
-alone. The current identity census is in the
+that every source body remains unimplemented. For each identity, inspect the
+retained source record, owner/dependency roles and serializer route; implement
+only a missing provider or binding, and reuse existing qualified providers.
+Do not qualify from type/count or opaque-byte retention alone. The current
+identity census and exact nine-handle residual are in the
 [`P4 remaining-identity receipt`](docs/research/p4-ac1024-layer-control-dictionary-output-proof-2026-10-31.json).
-Five standard DICTIONARY identities (`0x00F2`, `0x0107`, `0x1069`, `0x1116`,
-`0x121C`) now have source-bound body/reference output proof and owner-role
-closure; their local action is removed. The four named BLOCK_RECORD owners map
-through their emitted table identities. `0x0107` maps its LAYER_CONTROL owner to
-the `TABLE LAYER` header only after verifying that the header's extension
-dictionary link identifies the emitted OBJECTS `DICTIONARY`. Keep strict
-refusal until the complete source identity set is covered.
+Keep strict refusal until the complete source identity set is covered.
 
 ## P4 — original bodies and complete document closure
 
@@ -123,23 +116,18 @@ output gates are met.
 
 **Dynamic-block physical-source composition:** after the P4 source/output gap
 closes, complete staged-output qualification for the physical AC1024
-`Title_Block-ARCH` graph rooted at BLOCK_RECORD `0x127`. Reuse the isolated body
-providers already qualified for BLOCKVISIBILITYPARAMETER `0x1118`,
-BLOCKVISIBILITYGRIP `0x1119`, BLOCKGRIPLOCATIONCOMPONENT `0x111A`/`0x111B`, and
-PurgePreventer `0x1122`; do not re-implement those bodies absent a demonstrated
-physical-source mismatch. The source-bound body/reference output and
-BLOCK_RECORD owner-role proof for the three-entry DICTIONARY `0x1116` is complete
-([P4 receipt](docs/research/p4-ac1024-standard-dictionary-block-record-owner-output-proof-2026-10-31.json));
-do not repeat that action. The remaining work is to establish the physical
-EvaluationGraph `0x1117` frame, node and edge values, verify the complete
-dynamic-graph owner/reactor and target-role relationships, bind the 117 flat and
-four visibility-state handle sets, and prove the composed source-to-staged-output
-graph with fresh ASCII/Binary readback. Exercise atomic refusal/retry for a
-missing required physical target. Generated callback composition, isolated
-record readback and SORTENTSTABLE output receipts do not establish this
-physical graph. Native dynamic-block semantics and DXF-origin typed/raw replay
-remain separate open qualifications. Qualify other subclasses only when an
-existing source identifies a required profile.
+`Title_Block-ARCH` graph rooted at BLOCK_RECORD `0x127`. Establish the physical
+EvaluationGraph `0x1117` frame, node and edge values; verify the complete
+dynamic-graph owner/reactor and target-role relationships; bind the 117 flat and
+four visibility-state handle sets; and prove the composed source-to-staged-output
+graph with fresh ASCII/Binary readback. Reuse already-qualified record-body and
+reference providers; reopen them only if this physical source demonstrates a
+mismatch. Exercise atomic refusal/retry for a missing required physical target.
+Generated callback composition, isolated record readback and SORTENTSTABLE
+output receipts do not establish this physical graph. Native dynamic-block
+semantics and DXF-origin typed/raw replay remain separate open qualifications.
+Qualify other subclasses only when an existing source identifies a required
+profile.
 
 **Rendering:** close remaining engine/class-revision/schema and optional-presence
 profiles; active/global/environment and background/live-section relations; and
