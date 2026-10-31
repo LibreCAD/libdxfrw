@@ -10695,6 +10695,10 @@ void testOpaqueXRecordReplayGuards(TestContext& t) {
                      && parsed.m_rawData == xrecord_test::data(version)
                      && parsed.m_dataEntries.size() == 2u,
                  "from-scratch XRECORD frame retains a bounded opaque block and typed prefix");
+        t.expect(read
+                     && parsed.hasDwgCommonLinkTail()
+                         == (version > DRW::AC1018),
+                 "XRECORD marks only independently bounded R2007+ common link tails complete");
         if (!read)
             continue;
         dwgBufferW body;

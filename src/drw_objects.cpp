@@ -10415,6 +10415,10 @@ bool DRW_XRecord::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t b
     DRW_DBG(" handles: "); DRW_DBG(static_cast<int>(m_handleValues.size())); DRW_DBG("\n");
     if (!buf->isGood() || !bodyBuf->isGood() || !handleBuf->isGood())
         return fail();
+    // The common owner/reactor/extension-dictionary stream and the remaining
+    // object-handle tail were consumed above. R2007+ keeps this stream
+    // independently bounded; legacy inline tails remain unqualified.
+    setDwgCommonLinkTailValidated(version > DRW::AC1018);
     if (m_rawDataValid)
         m_rawDataSourceRecord = std::make_shared<DRW_XRecord>(*this);
     return true;

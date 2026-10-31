@@ -28258,6 +28258,635 @@ bool readbackPhysicalScaleOutput(const std::filesystem::path& sourcePath,
     return true;
 }
 
+bool physicalXRecordOutputReadback(
+        const std::filesystem::path& sourcePath) {
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024
+        || source.xRecords.size() != 8u)
+        return fail("physical XRECORD source is not the eight-record AC1024 profile");
+
+    using XRecordsByHandle = std::map<std::uint32_t, const DRW_XRecord*>;
+    using DictionariesByHandle =
+        std::map<std::uint32_t, const DRW_Dictionary*>;
+    const auto indexXRecords = [](const dx_data& data,
+                                 XRecordsByHandle& indexed) {
+        for (const DRW_XRecord& record : data.xRecords)
+            if (record.handle == 0u || record.handle == DRW::NoHandle
+                || !indexed.emplace(record.handle, &record).second)
+                return false;
+        return true;
+    };
+    const auto indexDictionaries = [](const dx_data& data,
+                                      DictionariesByHandle& indexed) {
+        if (data.hasNamedObjectDictionary
+            && (data.namedObjectDictionary.handle == 0u
+                || data.namedObjectDictionary.handle == DRW::NoHandle
+                || !indexed.emplace(data.namedObjectDictionary.handle,
+                    &data.namedObjectDictionary).second))
+            return false;
+        for (const DRW_Dictionary& dictionary : data.dictionaries)
+            if (dictionary.handle == 0u || dictionary.handle == DRW::NoHandle
+                || !indexed.emplace(dictionary.handle, &dictionary).second)
+                return false;
+        return true;
+    };
+    XRecordsByHandle sourceByHandle;
+    DictionariesByHandle sourceDictionaries;
+    if (!indexXRecords(source, sourceByHandle)
+        || !indexDictionaries(source, sourceDictionaries))
+        return fail("physical XRECORD or dictionary handles are ambiguous");
+
+    const auto isTranslatedHandleCode = [](int code) {
+        return (code >= 330 && code <= 369)
+            || (code >= 390 && code <= 399)
+            || (code >= 480 && code <= 481) || code == 1005;
+    };
+    struct XRecordOwner {
+        const DRW_XRecord* record{nullptr};
+        const DRW_Dictionary* dictionary{nullptr};
+        std::string key;
+    };
+    std::map<std::uint32_t, XRecordOwner> sourceOwners;
+    for (const DRW_XRecord& record : source.xRecords) {
+        const auto owner = sourceDictionaries.find(
+            static_cast<std::uint32_t>(record.parentHandle));
+        if (record.parentHandle == 0u
+            || owner == sourceDictionaries.end()
+            || !owner->second->hasCompleteDwgEntries()
+            || record.m_rawDataValid || record.hasDwgRawDataSourceRecord()
+            || !record.hasDwgCommonLinkTail()
+            || std::any_of(record.m_handleValues.begin(),
+                record.m_handleValues.end(), [](const auto& value) {
+                    return value.first == 0;
+                }))
+            return fail("physical XRECORD has an opaque body, incomplete common tail, or missing owner: handle="
+                + std::to_string(record.handle) + " parent="
+                + std::to_string(record.parentHandle) + " owner="
+                + std::to_string(owner != sourceDictionaries.end())
+                + " raw=" + std::to_string(record.m_rawDataValid)
+                + " raw-source="
+                + std::to_string(record.hasDwgRawDataSourceRecord())
+                + " common-tail="
+                + std::to_string(record.hasDwgCommonLinkTail())
+                + " unclassified-handles="
+                + std::to_string(std::count_if(record.m_handleValues.begin(),
+                    record.m_handleValues.end(), [](const auto& value) {
+                        return value.first == 0;
+                    })));
+
+        const DRW_Dictionary::Entry* ownerEntry = nullptr;
+        std::size_t allOwnerReferences = 0u;
+        for (const DRW_Dictionary::Entry& entry : owner->second->m_entries) {
+            if (entry.m_handle != record.handle)
+                continue;
+            if (ownerEntry != nullptr)
+                return fail("physical XRECORD has duplicate keys in its owner dictionary");
+            ownerEntry = &entry;
+        }
+        for (const auto& dictionary : sourceDictionaries)
+            allOwnerReferences += static_cast<std::size_t>(std::count_if(
+                dictionary.second->m_entries.begin(),
+                dictionary.second->m_entries.end(), [&record](
+                    const DRW_Dictionary::Entry& entry) {
+                    return entry.m_handle == record.handle;
+                }));
+        if (ownerEntry == nullptr || ownerEntry->m_name.empty()
+            || allOwnerReferences != 1u
+            || !sourceOwners.emplace(record.handle, XRecordOwner{
+                &record, owner->second, ownerEntry->m_name}).second)
+            return fail("physical XRECORD is not bound to one unique owner/key role");
+    }
+    if (sourceOwners.size() != 8u)
+        return fail("physical XRECORD owner census differs from eight records");
+
+    const auto sameVariant = [&isTranslatedHandleCode](
+            const DRW_Variant& expected, const DRW_Variant& actual,
+            const std::function<bool(std::uint32_t, std::uint32_t&)>& mapHandle) {
+        if (expected.code() != actual.code())
+            return false;
+        const int code = expected.code();
+        const auto readHandle = [](const DRW_Variant& value,
+                                   std::uint64_t& handle) {
+            switch (value.type()) {
+            case DRW_Variant::STRING: {
+                if (value.c_str() == nullptr || *value.c_str() == '\0')
+                    return false;
+                const char* first = value.c_str();
+                const char* last = first + std::char_traits<char>::length(first);
+                const auto parsed = std::from_chars(first, last, handle, 16);
+                return parsed.ec == std::errc{} && parsed.ptr == last;
+            }
+            case DRW_Variant::INTEGER:
+                if (value.i_val() < 0)
+                    return false;
+                handle = static_cast<std::uint64_t>(value.i_val());
+                return true;
+            case DRW_Variant::INTEGER64:
+                if (value.i64_val() < 0)
+                    return false;
+                handle = static_cast<std::uint64_t>(value.i64_val());
+                return true;
+            default:
+                return false;
+            }
+        };
+        if (isTranslatedHandleCode(code)) {
+            std::uint64_t sourceReference = 0u;
+            std::uint64_t actualReference = 0u;
+            std::uint32_t expectedReference = 0u;
+            return readHandle(expected, sourceReference)
+                && sourceReference <= (std::numeric_limits<std::uint32_t>::max)()
+                && mapHandle(static_cast<std::uint32_t>(sourceReference),
+                             expectedReference)
+                && readHandle(actual, actualReference)
+                && actualReference == expectedReference;
+        }
+        if (expected.type() != actual.type())
+            return false;
+        switch (expected.type()) {
+        case DRW_Variant::STRING:
+            return expected.c_str() != nullptr && actual.c_str() != nullptr
+                && std::string(expected.c_str()) == actual.c_str();
+        case DRW_Variant::INTEGER:
+            return expected.i_val() == actual.i_val();
+        case DRW_Variant::INTEGER64:
+            return expected.i64_val() == actual.i64_val();
+        case DRW_Variant::DOUBLE:
+            return expected.d_val() == actual.d_val();
+        case DRW_Variant::COORD: {
+            const DRW_Coord* left = expected.coord();
+            const DRW_Coord* right = actual.coord();
+            return left != nullptr && right != nullptr
+                && left->x == right->x && left->y == right->y
+                && left->z == right->z;
+        }
+        case DRW_Variant::BINARY:
+            return expected.binary() != nullptr && actual.binary() != nullptr
+                && *expected.binary() == *actual.binary();
+        case DRW_Variant::INVALID:
+            return false;
+        }
+        return false;
+    };
+
+    const auto outputEncoding = [&](bool binary) {
+        const auto nonce = std::chrono::steady_clock::now()
+                               .time_since_epoch()
+                               .count();
+        const std::filesystem::path outputPath =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-physical-xrecords-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{outputPath};
+        const std::string sentinel = "physical XRECORD destination sentinel\n";
+        const auto destinationEquals = [&outputPath](
+                const std::string& expected) {
+            std::ifstream input(outputPath, std::ios::binary);
+            if (!input)
+                return false;
+            return std::string{std::istreambuf_iterator<char>(input), {}}
+                == expected;
+        };
+        {
+            std::ofstream existing(outputPath,
+                                   std::ios::binary | std::ios::trunc);
+            if (!existing || !(existing << sentinel))
+                return fail("could not seed physical XRECORD destination sentinel");
+        }
+        class LateXRecordMutation final : public dx_iface {
+        public:
+            bool mutateAfterObjects{false};
+            std::uint32_t targetHandle{0u};
+            std::map<std::uint32_t, std::uint32_t> objectBindings;
+            std::map<std::uint32_t, std::uint32_t> tableBindings;
+            std::map<std::uint32_t, std::uint32_t> entityBindings;
+            std::set<std::uint32_t> ambiguousHandles;
+
+            void writeObjects() override {
+                dx_iface::writeObjects();
+                if (dxfW != nullptr) {
+                    const DRW_WritingContext* context =
+                        dxfW->getWritingContext();
+                    if (context != nullptr) {
+                        objectBindings =
+                            context->sourceHandleToWrittenObjectMap;
+                        tableBindings =
+                            context->sourceHandleToWrittenTableMap;
+                        entityBindings = context->sourceHandleToMintedMap;
+                        ambiguousHandles = context->ambiguousSourceHandles;
+                    }
+                }
+                if (!mutateAfterObjects || cData == nullptr)
+                    return;
+                for (DRW_XRecord& record : cData->xRecords) {
+                    if (record.handle != targetHandle)
+                        continue;
+                    record.m_cloning = record.m_cloning == 0 ? 1 : 0;
+                    return;
+                }
+            }
+        } writer;
+        const DRW_XRecord& first = *sourceOwners.begin()->second.record;
+        const int originalCloning = first.m_cloning;
+        writer.targetHandle = first.handle;
+        writer.mutateAfterObjects = true;
+        const auto exportPartial = [&]() {
+            return writer.fileExport(
+                outputPath.string(), DRW::AC1024, binary, &source,
+                false, true, dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::AllowPartial);
+        };
+        if (exportPartial() || !destinationEquals(sentinel))
+            return fail("late XRECORD mutation did not refuse atomically");
+        auto mutableRecord = std::find_if(
+            source.xRecords.begin(), source.xRecords.end(),
+            [&first](const DRW_XRecord& record) {
+                return record.handle == first.handle;
+            });
+        if (mutableRecord == source.xRecords.end())
+            return fail("physical XRECORD mutation target disappeared");
+        mutableRecord->m_cloning = originalCloning;
+        writer.mutateAfterObjects = false;
+        if (!exportPartial())
+            return fail("corrected physical XRECORD set could not retry on the same adapter");
+
+        const auto mapHandle = [&writer](std::uint32_t sourceHandle,
+                                         std::uint32_t& outputHandle) {
+            outputHandle = 0u;
+            if (sourceHandle == 0u) {
+                outputHandle = 0u;
+                return true;
+            }
+            if (sourceHandle == DRW::NoHandle
+                || writer.ambiguousHandles.count(sourceHandle) != 0u)
+                return false;
+            bool mapped = false;
+            const auto merge = [&outputHandle, &mapped, sourceHandle](
+                    const std::map<std::uint32_t, std::uint32_t>& bindings) {
+                const auto found = bindings.find(sourceHandle);
+                if (found == bindings.end())
+                    return true;
+                if (found->second == 0u || found->second == DRW::NoHandle
+                    || (mapped && outputHandle != found->second))
+                    return false;
+                outputHandle = found->second;
+                mapped = true;
+                return true;
+            };
+            if (!merge(writer.objectBindings) || !merge(writer.tableBindings)
+                || !merge(writer.entityBindings))
+                return false;
+            if (!mapped)
+                outputHandle = sourceHandle;
+            return outputHandle != 0u && outputHandle != DRW::NoHandle;
+        };
+        for (const auto& sourceEntry : sourceOwners) {
+            const auto written = writer.objectBindings.find(sourceEntry.first);
+            if (written == writer.objectBindings.end()
+                || written->second == 0u || written->second == DRW::NoHandle)
+                return fail("physical XRECORD source has no unique staged object identity");
+        }
+
+        dx_iface outputReader;
+        dx_data output;
+        XRecordsByHandle outputByHandle;
+        DictionariesByHandle outputDictionaries;
+        if (!outputReader.fileImport(outputPath.string(), &output, false)
+            || output.sourceFormat != dx_source_format::DXF
+            || output.sourceVersion != DRW::AC1024
+            || output.xRecords.size() != sourceOwners.size()
+            || !indexXRecords(output, outputByHandle)
+            || !indexDictionaries(output, outputDictionaries))
+            return fail("physical XRECORD output did not reimport with eight unique records and dictionaries");
+
+        const auto sameValues = [&sameVariant, &mapHandle](
+                const std::vector<DRW_Variant>& expected,
+                const std::vector<DRW_Variant>& actual) {
+            if (expected.size() != actual.size())
+                return false;
+            const std::function<bool(std::uint32_t, std::uint32_t&)> mapper =
+                mapHandle;
+            for (std::size_t index = 0; index < expected.size(); ++index)
+                if (!sameVariant(expected[index], actual[index], mapper))
+                    return false;
+            return true;
+        };
+        const auto sameCommon = [&sameVariant, &mapHandle](
+                const DRW_XRecord& expected, const DRW_XRecord& actual,
+                std::uint32_t outputOwner) {
+            std::uint32_t expectedParent = 0u;
+            std::uint32_t expectedXdict = 0u;
+            if (!mapHandle(expected.parentHandle, expectedParent)
+                || !mapHandle(expected.xDictHandle, expectedXdict)
+                || actual.parentHandle != outputOwner
+                || outputOwner != expectedParent
+                || actual.name != expected.name
+                || actual.flags != expected.flags
+                || actual.xDictHandle != expectedXdict
+                || actual.hasDataStorageBinaryData()
+                    != expected.hasDataStorageBinaryData()
+                || expected.reactorCount()
+                    != static_cast<std::int32_t>(expected.reactorHandles.size())
+                || actual.reactorHandles.size()
+                    != expected.reactorHandles.size())
+                return false;
+            for (std::size_t index = 0;
+                 index < expected.reactorHandles.size(); ++index) {
+                std::uint32_t mapped = 0u;
+                if (!mapHandle(expected.reactorHandles[index], mapped)
+                    || actual.reactorHandles[index] != mapped)
+                    return false;
+            }
+            const std::function<bool(std::uint32_t, std::uint32_t&)> mapper =
+                mapHandle;
+            using AppGroup = std::list<DRW_Variant>;
+            const auto groupNamed = [](const AppGroup& group,
+                                       std::string_view name) {
+                if (group.empty() || group.front().code() != 102
+                    || group.front().type() != DRW_Variant::STRING
+                    || group.front().c_str() == nullptr)
+                    return false;
+                std::string_view marker(group.front().c_str());
+                if (!marker.empty() && marker.front() == '{')
+                    marker.remove_prefix(1u);
+                return marker == name;
+            };
+            std::vector<const AppGroup*> expectedOther;
+            std::vector<const AppGroup*> actualOther;
+            std::vector<const AppGroup*> expectedReactors;
+            std::vector<const AppGroup*> actualReactors;
+            std::vector<const AppGroup*> expectedXdicts;
+            std::vector<const AppGroup*> actualXdicts;
+            const auto partitionAppData = [&](
+                    const std::list<AppGroup>& groups,
+                    std::vector<const AppGroup*>& other,
+                    std::vector<const AppGroup*>& reactors,
+                    std::vector<const AppGroup*>& xdicts) {
+                for (const AppGroup& group : groups) {
+                    if (groupNamed(group, "ACAD_REACTORS"))
+                        reactors.push_back(&group);
+                    else if (groupNamed(group, "ACAD_XDICTIONARY"))
+                        xdicts.push_back(&group);
+                    else
+                        other.push_back(&group);
+                }
+            };
+            partitionAppData(expected.appData, expectedOther,
+                             expectedReactors, expectedXdicts);
+            partitionAppData(actual.appData, actualOther,
+                             actualReactors, actualXdicts);
+            if (expectedOther.size() != actualOther.size()
+                || expectedReactors.size() > 1u || actualReactors.size() > 1u
+                || expectedXdicts.size() > 1u || actualXdicts.size() > 1u)
+                return false;
+            const auto sameAppGroup = [&sameVariant, &mapper](
+                    const AppGroup& left, const AppGroup& right) {
+                if (left.size() != right.size())
+                    return false;
+                auto a = left.begin();
+                auto b = right.begin();
+                for (; a != left.end(); ++a, ++b)
+                    if (!sameVariant(*a, *b, mapper))
+                        return false;
+                return true;
+            };
+            for (std::size_t index = 0; index < expectedOther.size(); ++index)
+                if (!sameAppGroup(*expectedOther[index], *actualOther[index]))
+                    return false;
+            const auto parseHandleText = [](const DRW_Variant& value,
+                                            std::uint32_t& handle) {
+                if (value.type() != DRW_Variant::STRING
+                    || value.c_str() == nullptr || *value.c_str() == '\0')
+                    return false;
+                const char* first = value.c_str();
+                const char* last = first + std::char_traits<char>::length(first);
+                std::uint64_t parsedHandle = 0u;
+                const auto parsed = std::from_chars(first, last, parsedHandle, 16);
+                if (parsed.ec != std::errc{} || parsed.ptr != last
+                    || parsedHandle > (std::numeric_limits<std::uint32_t>::max)())
+                    return false;
+                handle = static_cast<std::uint32_t>(parsedHandle);
+                return true;
+            };
+            const auto generatedReactorsMatch = [&expected, &actual,
+                    &expectedReactors, &actualReactors, &parseHandleText,
+                    &mapHandle]() {
+                if (!expectedReactors.empty()
+                    || expected.reactorHandles.empty())
+                    return false;
+                if (actualReactors.size() != 1u)
+                    return false;
+                const AppGroup& group = *actualReactors.front();
+                if (group.size() != actual.reactorHandles.size() + 2u
+                    || group.front().code() != 102
+                    || group.front().type() != DRW_Variant::STRING
+                    || group.front().c_str() == nullptr
+                    || std::string_view(group.front().c_str())
+                        != "ACAD_REACTORS"
+                    || group.back().code() != 102
+                    || group.back().type() != DRW_Variant::STRING
+                    || group.back().c_str() == nullptr
+                    || std::string_view(group.back().c_str()) != "}")
+                    return false;
+                auto item = std::next(group.begin());
+                for (std::size_t index = 0;
+                     index < expected.reactorHandles.size(); ++index, ++item) {
+                    std::uint32_t mapped = 0u;
+                    std::uint32_t emitted = 0u;
+                    if (item->code() != 330
+                        || !mapHandle(expected.reactorHandles[index], mapped)
+                        || !parseHandleText(*item, emitted)
+                        || emitted != mapped)
+                        return false;
+                }
+                return actual.reactorHandles.size()
+                    == expected.reactorHandles.size();
+            };
+            const auto generatedXdictMatches = [&expected, &actual,
+                    &expectedXdicts, &actualXdicts, &parseHandleText,
+                    expectedXdict]() {
+                if (!expectedXdicts.empty()
+                    || expected.xDictHandle == 0u)
+                    return false;
+                if (actualXdicts.size() != 1u)
+                    return false;
+                const AppGroup& group = *actualXdicts.front();
+                if (group.size() != 3u || group.front().code() != 102
+                    || group.front().type() != DRW_Variant::STRING
+                    || group.front().c_str() == nullptr
+                    || std::string_view(group.front().c_str())
+                        != "ACAD_XDICTIONARY")
+                    return false;
+                auto handleValue = std::next(group.begin());
+                auto close = std::next(handleValue);
+                std::uint32_t emitted = 0u;
+                return handleValue->code() == 360
+                    && parseHandleText(*handleValue, emitted)
+                    && emitted == expectedXdict
+                    && close->code() == 102
+                    && close->type() == DRW_Variant::STRING
+                    && close->c_str() != nullptr
+                    && std::string_view(close->c_str()) == "}"
+                    && actual.xDictHandle == expectedXdict;
+            };
+            const auto sourceHasReactorsGroup =
+                !expectedReactors.empty();
+            const auto sourceHasXdictGroup = !expectedXdicts.empty();
+            if (sourceHasReactorsGroup) {
+                if (actualReactors.size() != 1u
+                    || !sameAppGroup(*expectedReactors.front(),
+                                     *actualReactors.front()))
+                    return false;
+            } else if (!expected.reactorHandles.empty()) {
+                if (!generatedReactorsMatch())
+                    return false;
+            } else if (!actualReactors.empty()) {
+                return false;
+            }
+            if (sourceHasXdictGroup) {
+                if (actualXdicts.size() != 1u
+                    || !sameAppGroup(*expectedXdicts.front(),
+                                     *actualXdicts.front()))
+                    return false;
+            } else if (expected.xDictHandle != 0u) {
+                if (!generatedXdictMatches())
+                    return false;
+            } else if (!actualXdicts.empty()) {
+                return false;
+            }
+            if (expected.extData.size() != actual.extData.size())
+                return false;
+            for (std::size_t index = 0; index < expected.extData.size(); ++index)
+                if (expected.extData[index] == nullptr
+                    || actual.extData[index] == nullptr
+                    || !sameVariant(*expected.extData[index],
+                                    *actual.extData[index], mapper))
+                    return false;
+            return expected.extData.size() == actual.extData.size();
+        };
+        const auto samePayload = [&sameValues, &mapHandle](
+                const DRW_XRecord& expected, const DRW_XRecord& actual) {
+            if (expected.m_rawDataValid || actual.m_rawDataValid
+                || expected.hasDwgRawDataSourceRecord()
+                || actual.hasDwgRawDataSourceRecord()
+                || expected.m_rawData != actual.m_rawData
+                || expected.dwgRawDataVersion() != actual.dwgRawDataVersion()
+                || expected.m_cloning != actual.m_cloning
+                || expected.m_handleValues.size()
+                    != actual.m_handleValues.size())
+                return false;
+            for (std::size_t index = 0;
+                 index < expected.m_handleValues.size(); ++index) {
+                const auto& left = expected.m_handleValues[index];
+                const auto& right = actual.m_handleValues[index];
+                std::uint32_t mapped = 0u;
+                if (left.first != right.first
+                    || !mapHandle(left.second, mapped)
+                    || right.second != mapped)
+                    return false;
+            }
+            return sameValues(expected.m_values, actual.m_values)
+                && sameValues(expected.m_dataEntries, actual.m_dataEntries)
+                && expected.hasExactDxfCoordinateTuples()
+                    == actual.hasExactDxfCoordinateTuples();
+        };
+
+        std::set<std::uint32_t> emittedXRecords;
+        std::size_t verified = 0u;
+        for (const auto& sourceEntry : sourceOwners) {
+            const std::uint32_t sourceHandle = sourceEntry.first;
+            const XRecordOwner& expected = sourceEntry.second;
+            std::uint32_t outputOwnerHandle = 0u;
+            if (!mapHandle(expected.dictionary->handle, outputOwnerHandle))
+                return fail("physical XRECORD owner dictionary has no output binding");
+            const auto outputOwner = outputDictionaries.find(outputOwnerHandle);
+            const auto mappedRecord = writer.objectBindings.find(sourceHandle);
+            if (outputOwner == outputDictionaries.end()
+                || mappedRecord == writer.objectBindings.end()
+                || !emittedXRecords.insert(mappedRecord->second).second)
+                return fail("physical XRECORD source-to-output identity or owner is ambiguous");
+            const auto outputEntry = std::find_if(
+                outputOwner->second->m_entries.begin(),
+                outputOwner->second->m_entries.end(), [&expected](
+                    const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == expected.key;
+                });
+            if (outputEntry == outputOwner->second->m_entries.end()
+                || std::count_if(outputOwner->second->m_entries.begin(),
+                    outputOwner->second->m_entries.end(), [&expected](
+                        const DRW_Dictionary::Entry& entry) {
+                        return entry.m_name == expected.key;
+                    }) != 1
+                || outputEntry->m_handle != mappedRecord->second)
+                return fail("physical XRECORD owner key does not bind the staged output identity");
+            const auto actualRecord = outputByHandle.find(mappedRecord->second);
+            if (actualRecord == outputByHandle.end())
+                return fail("physical XRECORD staged identity is absent from readback");
+            const DRW_XRecord& actual = *actualRecord->second;
+            const bool commonEqual = sameCommon(
+                *expected.record, actual, outputOwnerHandle);
+            const bool payloadEqual = samePayload(*expected.record, actual);
+            if (actual.parentHandle != outputOwnerHandle || !commonEqual
+                || !payloadEqual)
+                return fail("physical XRECORD common fields or ordered payload changed on readback: source="
+                    + std::to_string(sourceHandle) + " output="
+                    + std::to_string(actual.handle) + " common="
+                    + std::to_string(commonEqual) + " payload="
+                    + std::to_string(payloadEqual) + " owner="
+                    + std::to_string(actual.parentHandle) + "/"
+                    + std::to_string(outputOwnerHandle) + " cloning="
+                    + std::to_string(expected.record->m_cloning) + "/"
+                    + std::to_string(actual.m_cloning) + " values="
+                    + std::to_string(expected.record->m_values.size()) + "/"
+                    + std::to_string(actual.m_values.size()) + " ordered="
+                    + std::to_string(expected.record->m_dataEntries.size()) + "/"
+                    + std::to_string(actual.m_dataEntries.size()) + " handles="
+                    + std::to_string(expected.record->m_handleValues.size()) + "/"
+                    + std::to_string(actual.m_handleValues.size()) + " name="
+                    + expected.record->name + "/" + actual.name + " flags="
+                    + std::to_string(expected.record->flags) + "/"
+                    + std::to_string(actual.flags) + " reactors="
+                    + std::to_string(expected.record->reactorCount()) + "/"
+                    + std::to_string(actual.reactorCount()) + " reactor-vectors="
+                    + std::to_string(expected.record->reactorHandles.size()) + "/"
+                    + std::to_string(actual.reactorHandles.size()) + " xdict="
+                    + std::to_string(expected.record->xDictHandle) + "/"
+                    + std::to_string(actual.xDictHandle) + " appdata="
+                    + std::to_string(expected.record->appData.size()) + "/"
+                    + std::to_string(actual.appData.size()) + " extdata="
+                    + std::to_string(expected.record->extData.size()) + "/"
+                    + std::to_string(actual.extData.size()) + " ds="
+                    + std::to_string(expected.record->hasDataStorageBinaryData())
+                    + "/" + std::to_string(actual.hasDataStorageBinaryData()));
+            ++verified;
+        }
+        if (verified != 8u || emittedXRecords.size() != outputByHandle.size())
+            return fail("physical XRECORD identity/readback did not close all eight records");
+        const std::size_t customXrecordClasses = static_cast<std::size_t>(
+            std::count_if(output.dxfClasses.begin(), output.dxfClasses.end(),
+                [](const DRW_Class& cls) { return cls.recName == "XRECORD"; }));
+        if (customXrecordClasses != 0u)
+            return fail("fixed XRECORD output unexpectedly registered a custom CLASS row");
+        std::cerr << "Physical XRECORD " << (binary ? "binary" : "ASCII")
+                  << " readback passed: 8 source identities, owner keys, "
+                     "reference roles, ordered payloads, atomic refusal and "
+                     "same-adapter retry.\n";
+        return true;
+    };
+    return outputEncoding(false) && outputEncoding(true);
+}
+
 bool physicalAssociativeVariableOutputReadback(
         const std::filesystem::path& sourcePath) {
     dx_iface sourceReader;
@@ -43756,6 +44385,9 @@ int main(int argc, char** argv) {
     if (argc == 4
         && std::string(argv[1]) == "--scale-physical-output-readback")
         return readbackPhysicalScaleOutput(argv[2], argv[3]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--xrecord-physical-output-readback")
+        return physicalXRecordOutputReadback(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--assocvariable-physical-output-readback")
         return physicalAssociativeVariableOutputReadback(argv[2]) ? 0 : 1;
