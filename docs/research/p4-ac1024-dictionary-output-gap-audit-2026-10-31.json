@@ -35,13 +35,13 @@
       {
         "handle": "28C",
         "owner": "28B",
-        "ownerRole": "CIRCLE",
+        "ownerRole": "VIEWPORT",
         "entries": [{"name": "ASDK_XREC_ANNOTATION_SCALE_INFO", "handle": "28D", "targetType": "XRECORD"}]
       },
       {
         "handle": "291",
         "owner": "290",
-        "ownerRole": "CIRCLE",
+        "ownerRole": "VIEWPORT",
         "entries": [{"name": "ASDK_XREC_ANNOTATION_SCALE_INFO", "handle": "292", "targetType": "XRECORD"}]
       },
       {
@@ -73,7 +73,7 @@
       "handles": ["28D", "292", "2A8", "352"],
       "typed": true,
       "rawDataValid": false,
-      "valueProfiles": "28D/292 each have one group-90 value and one group-340 handle; 2A8/352 each have 408 group-310 values representing thumbnail chunks.",
+      "valueProfiles": "28D/292 each have one group-90 value and one group-340 handle; 2A8 has 408 group-310 chunks (51,752 bytes), while 352 has 702 chunks (89,128 bytes).",
       "readback": "LAYOUT 59 and 22 retain nonzero extension-dictionary handles while the corresponding dictionary records are absent from output."
     }
   },

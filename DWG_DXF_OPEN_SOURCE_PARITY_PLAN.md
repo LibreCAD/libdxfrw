@@ -46,7 +46,7 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — physical profile output-coverage closure | Close only source-to-output gaps among the physical mechanical source's 228 callback identities across 21 record/type profiles; skip identities whose exact physical output proof already exists. The next known gap is seven missing DICTIONARY records and their reachable XRECORD children; then continue the remaining callback profiles and strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — physical profile output-coverage closure | Close only source-to-output gaps among the physical mechanical source's 228 callback identities across 21 record/type profiles; skip identities whose exact physical output proof already exists. The audited dictionary subset now emits 22/24 NOD-plus-DICTIONARY identities (20 exact records plus two verified VIEWPORT-owner handle remaps). The remaining dictionary gap is the Layer Table Control pair `2A2`/`2A3`; then continue the other unclosed callback profiles and strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN | Close remaining rendering metadata and native rendering profiles, rich R24 TABLESTYLE typed-DXF readback, FIELDLIST/child graphs and other unclosed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -56,33 +56,28 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next implementation packet — physical DICTIONARY closure:** the source-to-
-output audit receipt
-(`docs/research/p4-ac1024-dictionary-output-gap-audit-2026-10-31.json`)
-records 17/24 dictionary/NOD identities matched exactly. These seven source
-DICTIONARY records and their XRECORD descendants are absent from the partial
-DXF:
+**Next implementation packet — Layer Table Control DICTIONARY owner proof:**
+the implementation receipt
+(`docs/research/p4-ac1024-dictionary-owner-output-closure-2026-10-31.json`)
+records 22/24 source NOD-plus-DICTIONARY identities in fresh output readback.
+Twenty records match exactly; the two entity-owned dictionaries follow their
+remapped VIEWPORT owner handles through reciprocal emitted XDICTIONARY links.
+Only the following source records remain absent from partial DXF output:
 
 | Source handle | Source owner / role | Required contents | Implementation slice |
 | --- | --- | --- | --- |
-| `E6` | LAYER record `10` | Empty extension dictionary | Entity-independent table-record extension-dictionary route |
-| `28C` | CIRCLE `28B` | `ASDK_XREC_ANNOTATION_SCALE_INFO` → XRECORD `28D` | Entity extension-dictionary route and typed XRECORD output |
-| `291` | CIRCLE `290` | `ASDK_XREC_ANNOTATION_SCALE_INFO` → XRECORD `292` | Same route; retain separate source identity and owner proof |
-| `2A7` | LAYOUT `59` (`Layout1`) | `ADSK_XREC_LAYOUTTHUMBNAIL` → XRECORD `2A8` | LAYOUT extension-dictionary route and bounded binary chunks |
-| `351` | LAYOUT `22` (`Model`) | `ADSK_XREC_LAYOUTTHUMBNAIL` → XRECORD `352` | Same route; retain separate source identity and owner proof |
 | `2A2` | Layer Table Control `2` | `ACAD_LAYERSTATES` → dictionary `2A3` | First prove the TABLE-header/control-object DXF handle and extension-dictionary encoding; do not substitute NOD ownership |
 | `2A3` | DICTIONARY `2A2` | Empty child dictionary | Emit only with the proven Layer Table Control route above |
 
-Implement the entity-, LAYER-record-, and LAYOUT-owned groups first, with
-source-bound owner/target identities, bounded XRECORD values, staged output,
-final inventory checks, fresh readback, rollback and corrected-retry coverage.
-Treat the Layer Table Control pair as a separate short research gate: inspect
-the writer's TABLE header representation and authoritative DXF mapping, then
-add the pair only when its owner route is exact. The audit found all 17 emitted
-dictionary identities exact; do not rewrite or retest those identities without
-a changed dependency. The strict complete-export gate remains blocked by 228
-opaque callbacks and zero retained correlation frames. Do not infer identities
-from adjacent handles, weaken graph closure, or commit investigation DWGs.
+The entity-, LAYER-record-, and LAYOUT-owned routes, typed XRECORD payloads,
+bounded thumbnail chunks, fresh readback, rollback and corrected retry are
+implemented in commit `a53af55c`. Do not rewrite or retest these identities
+without a changed dependency. Research the Layer Table Control mapping in the
+TABLE-header writer and authoritative DXF mapping; add `2A2`/`2A3` only when
+the exact owner route is established. The strict complete-export gate remains
+blocked by 228 opaque callbacks and zero retained correlation frames. Do not
+infer identities from adjacent handles, weaken graph closure, or commit
+investigation DWGs.
 
 ## P4 — original bodies and complete document closure
 
