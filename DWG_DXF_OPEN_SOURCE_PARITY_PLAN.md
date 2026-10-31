@@ -48,7 +48,7 @@ close through ordinary local implementation work.
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
 | P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage; implement only missing required providers, close their required descendants, and pass strict complete-export admission. Its serializer checkpoint remains unreachable because no opaque callback frames are retained for replay. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN | Close remaining rendering metadata, imported FIELD/FIELDLIST body-proof and FIELD child/object-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Implement only source- or consumer-witnessed gaps; keep unsupported profiles refused until their schema and wire layout are established. |
+| P5 | OPEN | Close remaining rendering metadata, complex FIELD child/value/object-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Implement only source- or consumer-witnessed gaps; keep unsupported profiles refused until their schema and wire layout are established. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -138,14 +138,12 @@ missing provider, remap, collision or composed output failure.
 
 **TABLE:**
 
-1. **FIELDLIST and remaining FIELD profiles:** prove raw-to-typed FIELD and
-   FIELDLIST body equality for imported DXF before enabling those serializer
-   paths; close typed FIELD child/value/object graphs with the rooted reference
-   planner and handle remapping. Add other source/version body and value profiles
-   only when an independent source or consumer witness identifies the missing
-   behavior. Preserve unsupported compositions with explicit refusal. Native
-   expression evaluation and TABLE rendering remain separate semantic
-   qualifications.
+1. **Complex FIELD profiles:** close typed FIELD child/value/object graphs with
+   the rooted reference planner and handle remapping. Add other source/version
+   body and value profiles only when an independent source or consumer witness
+   identifies the missing behavior. Preserve unsupported compositions with
+   explicit refusal. Native expression evaluation and TABLE rendering remain
+   separate semantic qualifications.
 2. **Block geometry payloads:** find an independent source or consumer witness,
    bind the exact field layout and semantics, and implement only that witnessed
    profile. Keep unsupported geometry payloads refused while preserving current

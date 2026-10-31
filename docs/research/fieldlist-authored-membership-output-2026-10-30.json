@@ -75,5 +75,5 @@
     "This proves locally authored flat FIELD scalar values, NOD membership and TABLECONTENT references only.",
     "It does not qualify DXF-imported FIELD/FIELDLIST source-body fidelity, nested child/object graphs, DWG parity, native consumers or general support claims."
   ],
-  "nextAction": "Continue with the current source-bound VISUALSTYLE carrier coverage packet; do not enable imported FIELDLIST or complex FIELD graph output until raw-to-typed body evidence and complete graph serialization are independently verified."
+  "nextAction": "See fieldlist-imported-source-profile-2026-10-30.json for the imported raw-to-typed body proof; keep complex FIELD graph output refused until its complete rooted graph is independently verified. Continue with the plan's source-bound VISUALSTYLE carrier-coverage packet."
 }

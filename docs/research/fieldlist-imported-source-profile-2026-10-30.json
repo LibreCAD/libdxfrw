@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "fieldlist-imported-source-profile-2026-10-30",
+  "date": "2026-10-30",
+  "title": "Imported FIELD and FIELDLIST source-profile output",
+  "status": "QUALIFIED_LOCAL_GENERATED_AC1027_PROFILE",
+  "supportClaimEffect": "none",
+  "implementationCommit": "958f956592939af0d2f227db4618cfb85eed8efb",
+  "scope": {
+    "version": "AC1027",
+    "source": "ASCII and binary DXF written from locally authored in-memory data, imported through the production DXF path, then re-exported; no fixture file was committed.",
+    "profile": "Two flat scalar FIELD records, one FIELDLIST with complete unique membership rooted by the NOD ACAD_FIELDLIST entry, and standalone TABLECONTENT field references.",
+    "encodings": ["ASCII DXF", "binary DXF"]
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "Before admitting imported simple FIELD output, replay each retained raw FIELD body through the production FIELD decoder and compare the decoded source model to the typed record. Validate the raw FIELDLIST group sequence against its typed members, optional group-290 value, owner and NOD root. Preserve the imported ACAD_FIELDLIST edge during output closure.",
+    "failureRetry": "Mutating the typed FIELD value or retained raw FIELDLIST member causes export refusal while preserving a preexisting destination. Restoring the source values permits retry on the same adapter and fresh ASCII/binary readback.",
+    "fixturePolicy": "Test inputs are authored in memory; generated DXF files are temporary and deleted. No DWG/DXF fixture was committed."
+  },
+  "proof": {
+    "selectors": [
+      "libdxfrw_fieldlist_membership_output",
+      "libdxfrw_field_graph_export_refusal",
+      "dwg2dxf_field_dxf_multichunk_value"
+    ],
+    "checks": [
+      "raw FIELD body replay through the production decoder and exact typed-model comparison",
+      "raw FIELDLIST handle, owner, subclass sequence, member count, optional boolean and member handles match the typed record",
+      "exactly one NOD ACAD_FIELDLIST key resolves to the FIELDLIST owned by the NOD",
+      "ASCII and binary export followed by fresh import verifies FIELD, FIELDLIST and TABLECONTENT targets",
+      "typed FIELD mutation and raw FIELDLIST membership mutation refuse without replacing the destination",
+      "restored source permits same-adapter retry and readback"
+    ]
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "normalFocusedCtest": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_fieldlist_membership_output|libdxfrw_field_graph_export_refusal|dwg2dxf_field_dxf_multichunk_value)$' --output-on-failure",
+      "result": "PASS 3/3"
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "asanFocusedCtest": {
+      "command": "ctest --test-dir build-asan-custom -R '^(libdxfrw_fieldlist_membership_output|libdxfrw_field_graph_export_refusal|dwg2dxf_field_dxf_multichunk_value)$' --output-on-failure",
+      "result": "PASS 3/3"
+    },
+    "diffCheck": "PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "sourceBindings": {
+    "implementationCommit": "958f956592939af0d2f227db4618cfb85eed8efb",
+    "sourceSha256": {
+      "dwg2dxf/dx_iface.cpp": "968d297864c2ff6f1b4636a937c072e7ebcc015f07c0a6f7dc8164828ba936fb",
+      "tests/dwg2dxf_adapter_tests.cpp": "0643f33bc89a95f3b8478570b732ba9e8da0c62d8df9aa7eecb77d58828b2c68"
+    },
+    "normalArtifactSha256": {
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "70868e876c49436932d5688cd6b9e698c93aaaac3d4e9d9aa0ca251fb08d9bab"
+    },
+    "asanArtifactSha256": {
+      "build-asan-custom/tests/libdxfrw_dwg2dxf_adapter_tests": "4e76778943a9ad6e2a24984f8eff333286d101e002b62b7088b6ee21e302fb4f"
+    }
+  },
+  "limits": [
+    "This proves only the locally generated AC1027 flat scalar FIELD/FIELDLIST transport profile and its rooted references.",
+    "It does not qualify nested FIELD child/value/object graphs, DWG parity, native expression evaluation, TABLE rendering, native consumers or general support claims."
+  ],
+  "nextAction": "Continue with the plan's physical AC1024 VISUALSTYLE carrier-coverage packet; keep complex FIELD graph profiles refused until their full rooted graph is independently evidenced."
+}
