@@ -2547,6 +2547,7 @@ private:
         m_dwgMLeaderStyleOutputSources;
     const dx_data* m_dwgMLeaderStyleOutputOwner{nullptr};
     std::uint64_t m_dwgMLeaderStyleOutputGeneration{0u};
+    bool m_dwgMLeaderStylesInspected{false};
     DxfNamedResourceState m_dxfMLeaderStyleState;
     bool m_dxfMLeaderStylesInspected{false};
     bool prepareDxfMLeaderStyles(DRW::Version version, bool binary,
@@ -2554,6 +2555,7 @@ private:
     bool hasUnchangedDxfMLeaderStyles() const noexcept;
     bool hasUnchangedDwgMLeaderStyleOutputSources() const noexcept;
     bool inspectDxfMLeaderStyles(const dxfRW::DxfObjectsWriteView&) noexcept;
+    bool inspectDwgMLeaderStyles(const dxfRW::DxfObjectsWriteView&) noexcept;
     struct DxfMLineStyleSource {
         DRW_MLineStyle model, projection;
         DRW_RawDxfObject raw, output;
