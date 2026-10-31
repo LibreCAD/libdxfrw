@@ -3015,6 +3015,25 @@ private:
     bool hasUnchangedDwgTableStyleOutputSources() const noexcept;
     bool inspectDwgTableStylesOutput(
         const dxfRW::DxfObjectsWriteView& view) noexcept;
+    struct DwgDictionaryDefaultOutputSource {
+        DRW_DictionaryWithDefault dictionary;
+        DRW_AcDbPlaceholder placeholder;
+        DRW_Dictionary namedObjectDictionary;
+        int objectType{0};
+        std::string recordName;
+        std::string className;
+        int placeholderObjectType{0};
+        std::string placeholderRecordName;
+        std::string placeholderClassName;
+    };
+    std::map<std::uint32_t, DwgDictionaryDefaultOutputSource>
+        m_dwgDictionaryDefaultOutputSources;
+    const dx_data* m_dwgDictionaryDefaultOutputSourceOwner{nullptr};
+    std::uint64_t m_dwgDictionaryDefaultOutputGeneration{0u};
+    bool m_dwgDictionaryDefaultOutputInspected{false};
+    bool hasUnchangedDwgDictionaryDefaultOutputSources() const noexcept;
+    bool inspectDwgDictionaryDefaultOutput(
+        const dxfRW::DxfObjectsWriteView& view) noexcept;
     // Output-only DXF group 68/69 values for DWG-origin paper viewports.
     // Keys are borrowed source records and are cleared at fileExport exit.
     std::unordered_map<const DRW_Viewport*, std::pair<int, int>>

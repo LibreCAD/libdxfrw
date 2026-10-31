@@ -7014,6 +7014,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
     m_dwgTableStyleOutputSourceOwner = nullptr;
     m_dwgTableStyleOutputSourceGeneration = 0u;
     m_dwgTableStylesInspected = false;
+    m_dwgDictionaryDefaultOutputSources.clear();
+    m_dwgDictionaryDefaultOutputSourceOwner = nullptr;
+    m_dwgDictionaryDefaultOutputGeneration = 0u;
+    m_dwgDictionaryDefaultOutputInspected = false;
     m_extensionCellStyleMapHandles.clear();
     m_extensionTableStyleBaseIds.clear();
     m_extensionDetailViewStyleHandles.clear();
@@ -7089,6 +7093,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         m_dwgTableStyleOutputSourceOwner = nullptr;
         m_dwgTableStyleOutputSourceGeneration = 0u;
         m_dwgTableStylesInspected = false;
+        m_dwgDictionaryDefaultOutputSources.clear();
+        m_dwgDictionaryDefaultOutputSourceOwner = nullptr;
+        m_dwgDictionaryDefaultOutputGeneration = 0u;
+        m_dwgDictionaryDefaultOutputInspected = false;
         m_extensionCellStyleMapHandles.clear();
         m_extensionTableStyleBaseIds.clear();
         m_extensionDetailViewStyleHandles.clear();
@@ -11260,6 +11268,102 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 m_dwgTableStyleRootSourceCaptured = false;
                 m_dwgTableStyleOutputSourceOwner = nullptr;
                 m_dwgTableStyleOutputSourceGeneration = 0u;
+            }
+        }
+        // Bind the physical AC1024 ACDBDICTIONARYWDFLT callback to its
+        // typed dictionary/default pair and NOD root. This is deliberately
+        // limited to the independently read-back Normal/PLACEHOLDER profile.
+        if (data->sourceFormat == dx_source_format::DWG
+            && data->sourceVersion == DRW::AC1024
+            && data->dwgReadOutcome.attempted
+            && data->hasSingleSuccessfulDictionaryDefaultImport()
+            && data->hasNamedObjectDictionary
+            && m_extensionDictionaryWithDefaultHandles.size() == 1u
+            && m_extensionPlaceholderHandles.size() == 1u) {
+            const std::uint32_t dictionaryHandle =
+                m_extensionDictionaryWithDefaultHandles.front();
+            const std::uint32_t placeholderHandle =
+                m_extensionPlaceholderHandles.front();
+            const auto dictionary = dictionariesWithDefault.find(
+                dictionaryHandle);
+            const auto placeholder = placeholders.find(placeholderHandle);
+            const auto frame = data->m_opaqueDwgSourceFrames.find(
+                {data->importGeneration, dictionaryHandle});
+            const auto placeholderFrame =
+                data->m_opaqueDwgSourceFrames.find(
+                    {data->importGeneration, placeholderHandle});
+            const DRW_Dictionary::Entry* rootEntry = nullptr;
+            std::size_t rootMatches = 0u;
+            for (const DRW_Dictionary::Entry& entry :
+                 data->namedObjectDictionary.m_entries) {
+                if (layoutSymbolKey(entry.m_name)
+                    != "ACAD_PLOTSTYLENAME")
+                    continue;
+                rootEntry = &entry;
+                ++rootMatches;
+            }
+            if (dictionary != dictionariesWithDefault.end()
+                && placeholder != placeholders.end()
+                && frame != data->m_opaqueDwgSourceFrames.end()
+                && frame->second.m_objectType == 500
+                && frame->second.m_handle == dictionaryHandle
+                && frame->second.m_version == DRW::AC1024
+                && frame->second.m_className
+                    == "AcDbDictionaryWithDefault"
+                && asciiIdentifierEquals(frame->second.m_recordName,
+                                         "ACDBDICTIONARYWDFLT")
+                && placeholderFrame
+                    != data->m_opaqueDwgSourceFrames.end()
+                && placeholderFrame->second.m_objectType == 80
+                && placeholderFrame->second.m_handle == placeholderHandle
+                && placeholderFrame->second.m_version == DRW::AC1024
+                && placeholderFrame->second.m_recordName.empty()
+                && placeholderFrame->second.m_className.empty()
+                && rootMatches == 1u && rootEntry != nullptr
+                && rootEntry->m_handle == dictionaryHandle
+                && data->namedObjectDictionary.parentHandle == 0u
+                && data->namedObjectDictionary.hasCompleteDwgEntries()
+                && dictionary->second->parentHandle
+                    == data->namedObjectDictionary.handle
+                && dictionary->second->hasCompleteDwgEntries()
+                && dictionary->second->m_entries.size() == 1u
+                && dictionary->second->m_entries.front().m_name == "Normal"
+                && dictionary->second->m_entries.front().m_handle
+                    == placeholderHandle
+                && dictionary->second->m_defaultEntryHandle
+                    == placeholderHandle
+                && dictionary->second->reactorHandles
+                    == std::vector<std::uint32_t>{
+                        data->namedObjectDictionary.handle}
+                && dictionary->second->xDictHandle == 0u
+                && dictionary->second->appData.empty()
+                && dictionary->second->extData.empty()
+                && placeholder->second->parentHandle == dictionaryHandle
+                && placeholder->second->reactorHandles
+                    == std::vector<std::uint32_t>{dictionaryHandle}
+                && placeholder->second->xDictHandle == 0u
+                && placeholder->second->appData.empty()
+                && placeholder->second->extData.empty()) {
+                DwgDictionaryDefaultOutputSource source;
+                source.dictionary = *dictionary->second;
+                source.placeholder = *placeholder->second;
+                source.namedObjectDictionary =
+                    data->namedObjectDictionary;
+                source.objectType = frame->second.m_objectType;
+                source.recordName = frame->second.m_recordName;
+                source.className = frame->second.m_className;
+                source.placeholderObjectType =
+                    placeholderFrame->second.m_objectType;
+                source.placeholderRecordName =
+                    placeholderFrame->second.m_recordName;
+                source.placeholderClassName =
+                    placeholderFrame->second.m_className;
+                if (m_dwgDictionaryDefaultOutputSources.emplace(
+                        dictionaryHandle, std::move(source)).second) {
+                    m_dwgDictionaryDefaultOutputSourceOwner = data;
+                    m_dwgDictionaryDefaultOutputGeneration =
+                        data->importGeneration;
+                }
             }
         }
         m_extensionDictionaryOwnerSourceOwner = data;
@@ -32090,6 +32194,335 @@ bool tableStyleSourceEqual(const DRW_TableStyle& a,const DRW_TableStyle& b,DRW::
 
 } // namespace
 
+bool dx_iface::hasUnchangedDwgDictionaryDefaultOutputSources() const noexcept {
+    if (m_dwgDictionaryDefaultOutputSources.empty())
+        return m_dwgDictionaryDefaultOutputSourceOwner == nullptr
+            && m_dwgDictionaryDefaultOutputGeneration == 0u;
+    if (cData == nullptr
+        || cData != m_dwgDictionaryDefaultOutputSourceOwner
+        || cData->importGeneration
+            != m_dwgDictionaryDefaultOutputGeneration
+        || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024
+        || !cData->hasSingleSuccessfulDictionaryDefaultImport()
+        || !cData->hasNamedObjectDictionary
+        || m_dwgDictionaryDefaultOutputSources.size() != 1u
+        || cData->dictionaryWithDefaults.size() != 1u
+        || cData->placeholders.size() != 1u
+        || m_extensionDictionaryWithDefaultHandles.size() != 1u
+        || m_extensionPlaceholderHandles.size() != 1u)
+        return false;
+    try {
+        const auto& source =
+            *m_dwgDictionaryDefaultOutputSources.begin();
+        const DwgDictionaryDefaultOutputSource& proof = source.second;
+        if (source.first != proof.dictionary.handle
+            || m_extensionDictionaryWithDefaultHandles.front()
+                != proof.dictionary.handle
+            || m_extensionPlaceholderHandles.front()
+                != proof.placeholder.handle
+            || proof.dictionary.m_defaultEntryHandle
+                != proof.placeholder.handle
+            || !standardDwgModelsEqual(
+                proof.dictionary, cData->dictionaryWithDefaults.front(),
+                DRW::AC1024, dwgObjType::DICTIONARY)
+            || proof.dictionary.m_defaultEntryHandle
+                != cData->dictionaryWithDefaults.front()
+                    .m_defaultEntryHandle
+            || !standardDwgCommonEqual(
+                proof.placeholder, cData->placeholders.front(),
+                DRW::AC1024)
+            || !standardDwgModelsEqual(
+                proof.namedObjectDictionary,
+                cData->namedObjectDictionary, DRW::AC1024,
+                dwgObjType::DICTIONARY))
+            return false;
+
+        const auto rootMatches = static_cast<std::size_t>(std::count_if(
+            cData->namedObjectDictionary.m_entries.begin(),
+            cData->namedObjectDictionary.m_entries.end(),
+            [&proof](const DRW_Dictionary::Entry& entry) {
+                return layoutSymbolKey(entry.m_name)
+                        == "ACAD_PLOTSTYLENAME"
+                    && entry.m_handle == proof.dictionary.handle;
+            }));
+        if (rootMatches != 1u
+            || proof.dictionary.parentHandle
+                != proof.namedObjectDictionary.handle
+            || proof.dictionary.m_entries.size() != 1u
+            || proof.dictionary.m_entries.front().m_name != "Normal"
+            || proof.dictionary.m_entries.front().m_handle
+                != proof.placeholder.handle
+            || proof.placeholder.parentHandle != proof.dictionary.handle
+            || proof.dictionary.reactorHandles
+                != std::vector<std::uint32_t>{
+                    proof.namedObjectDictionary.handle}
+            || proof.placeholder.reactorHandles
+                != std::vector<std::uint32_t>{proof.dictionary.handle})
+            return false;
+
+        const auto frameMatches = [this](
+                std::uint32_t handle, int objectType,
+                const std::string& recordName,
+                const std::string& className) {
+            const auto found = cData->m_opaqueDwgSourceFrames.find(
+                {cData->importGeneration, handle});
+            return found != cData->m_opaqueDwgSourceFrames.end()
+                && found->second.m_handle == handle
+                && found->second.m_objectType == objectType
+                && found->second.m_version == DRW::AC1024
+                && found->second.m_recordName == recordName
+                && found->second.m_className == className;
+        };
+        return proof.objectType == 500
+            && asciiIdentifierEquals(proof.recordName,
+                                     "ACDBDICTIONARYWDFLT")
+            && proof.className == "AcDbDictionaryWithDefault"
+            && frameMatches(proof.dictionary.handle, proof.objectType,
+                            proof.recordName, proof.className)
+            && proof.placeholderObjectType == 80
+            && proof.placeholderRecordName.empty()
+            && proof.placeholderClassName.empty()
+            && frameMatches(proof.placeholder.handle,
+                            proof.placeholderObjectType,
+                            proof.placeholderRecordName,
+                            proof.placeholderClassName);
+    } catch (...) {
+        return false;
+    }
+}
+
+bool dx_iface::inspectDwgDictionaryDefaultOutput(
+        const dxfRW::DxfObjectsWriteView& view) noexcept {
+    m_dwgDictionaryDefaultOutputInspected = false;
+    if (m_dwgDictionaryDefaultOutputSources.empty())
+        return true;
+    if (dxfW == nullptr || cData == nullptr
+        || view.version != DRW::AC1024
+        || !hasUnchangedDwgDictionaryDefaultOutputSources())
+        return false;
+    try {
+        const auto mapHandle = [this](std::uint32_t source,
+                                      std::uint32_t& emitted) {
+            emitted = 0u;
+            if (source == 0u)
+                return true;
+            const DRW_WritingContext* context =
+                dxfW->getWritingContext();
+            if (source == DRW::NoHandle || context == nullptr
+                || context->ambiguousSourceHandles.count(source) != 0u)
+                return false;
+            emitted = dxfW->remapHandle(source);
+            bool bound = emitted != source;
+            for (const auto* aliases : {
+                    &context->sourceHandleToWrittenTableMap,
+                    &context->sourceHandleToWrittenObjectMap,
+                    &context->sourceHandleToMintedMap}) {
+                const auto found = aliases->find(source);
+                if (found == aliases->end())
+                    continue;
+                if (bound && emitted != found->second)
+                    return false;
+                emitted = found->second;
+                bound = true;
+            }
+            return emitted != 0u && emitted != DRW::NoHandle;
+        };
+        const auto& source =
+            *m_dwgDictionaryDefaultOutputSources.begin();
+        const DwgDictionaryDefaultOutputSource& proof = source.second;
+        std::uint32_t emittedDictionary = 0u;
+        std::uint32_t emittedPlaceholder = 0u;
+        std::uint32_t emittedNod = 0u;
+        if (!mapHandle(proof.dictionary.handle, emittedDictionary)
+            || !mapHandle(proof.placeholder.handle, emittedPlaceholder)
+            || !mapHandle(proof.namedObjectDictionary.handle, emittedNod)
+            || emittedDictionary == emittedPlaceholder
+            || emittedDictionary == emittedNod
+            || emittedPlaceholder == emittedNod
+            || !dxfW->dxfWriteRecordHasIdentity(
+                emittedDictionary, "DICTIONARYWDFLT", "OBJECTS")
+            || !dxfW->dxfWriteRecordHasOwner(
+                emittedDictionary, emittedNod)
+            || !dxfW->dxfWriteRecordHasIdentity(
+                emittedPlaceholder, "ACDBPLACEHOLDER", "OBJECTS")
+            || !dxfW->dxfWriteRecordHasOwner(
+                emittedPlaceholder, emittedDictionary)
+            || !dxfW->dxfWriteRecordHasIdentity(
+                emittedNod, "DICTIONARY", "OBJECTS")
+            || dxfW->dxfWriteRecordHandleCount(emittedDictionary) != 1u
+            || dxfW->dxfWriteRecordHandleCount(emittedPlaceholder) != 1u
+            || dxfW->dxfWriteRecordHandleCount(emittedNod) != 1u) {
+            return false;
+        }
+
+        DRW_DictionaryWithDefault expected = proof.dictionary;
+        if (!mapHandle(expected.handle, expected.handle)
+            || !mapHandle(static_cast<std::uint32_t>(expected.parentHandle),
+                          expected.parentHandle)
+            || !mapHandle(expected.m_defaultEntryHandle,
+                          expected.m_defaultEntryHandle)
+            || expected.m_defaultEntryHandle != emittedPlaceholder)
+            return false;
+        if (expected.xDictHandle != 0u
+            && !mapHandle(expected.xDictHandle, expected.xDictHandle))
+            return false;
+        for (std::uint32_t& reactor : expected.reactorHandles)
+            if (!mapHandle(reactor, reactor))
+                return false;
+        for (DRW_Dictionary::Entry& entry : expected.m_entries) {
+            if (!mapHandle(entry.m_handle, entry.m_handle))
+                return false;
+            entry.m_dxfHandleCode =
+                DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+        }
+        expected.setDwgCommonObjectState(0, 0u, false);
+        expected.setDwgCommonLinkTailValidated(false);
+        if (!expected.reactorHandles.empty()) {
+            std::list<DRW_Variant> reactors;
+            reactors.emplace_back(102, UTF8STRING("ACAD_REACTORS"));
+            for (const std::uint32_t handle : expected.reactorHandles)
+                reactors.emplace_back(330,
+                    UTF8STRING(proxyHandleString(handle)));
+            reactors.emplace_back(102, UTF8STRING("}"));
+            expected.appData.push_front(std::move(reactors));
+        }
+
+        const auto parseHandle = [](std::string_view text,
+                                    std::uint32_t& handle) {
+            std::uint64_t parsed = 0u;
+            const auto conversion = std::from_chars(
+                text.data(), text.data() + text.size(), parsed, 16);
+            if (text.empty() || conversion.ec != std::errc{}
+                || conversion.ptr != text.data() + text.size()
+                || parsed == 0u
+                || parsed > std::numeric_limits<std::uint32_t>::max())
+                return false;
+            handle = static_cast<std::uint32_t>(parsed);
+            return true;
+        };
+        dx_standard_output::Decoder decoder(view);
+        std::size_t dictionarySeen = 0u;
+        std::size_t placeholderSeen = 0u;
+        std::size_t nodSeen = 0u;
+        bool rootMatched = false;
+        bool namesMatch = true;
+        const bool inspected = dx_standard_output::inspectSelected(
+            view,
+            [&](std::string_view name, std::uint32_t handle) {
+                if ((handle == emittedDictionary
+                        && !asciiIdentifierEquals(
+                            name, "DICTIONARYWDFLT"))
+                    || (handle == emittedPlaceholder
+                        && !asciiIdentifierEquals(
+                            name, "ACDBPLACEHOLDER"))
+                    || (handle == emittedNod
+                        && !asciiIdentifierEquals(name, "DICTIONARY")))
+                    namesMatch = false;
+                return handle == emittedDictionary
+                    || handle == emittedPlaceholder
+                    || handle == emittedNod;
+            },
+            [&](const dx_standard_output::Shape& shape,
+                std::string_view body) {
+                if (shape.handle == emittedDictionary) {
+                    if (++dictionarySeen != 1u
+                        || shape.kind != dx_standard_output::Family::Other)
+                        return false;
+                    return decoder.decodeRecord<DRW_DictionaryWithDefault>(
+                        body, [&](const DRW_DictionaryWithDefault& actual) {
+                            if (!actual.hasCompleteDxfPayload()
+                                || actual.handle != expected.handle
+                                || actual.parentHandle
+                                    != expected.parentHandle
+                                || actual.m_defaultEntryHandle
+                                    != expected.m_defaultEntryHandle
+                                || actual.cloning != expected.cloning
+                                || actual.hardOwner != expected.hardOwner
+                                || actual.m_entries.size()
+                                    != expected.m_entries.size()
+                                || !standardDwgCommonEqual(
+                                    expected, actual, DRW::AC1024))
+                                return false;
+                            for (std::size_t index = 0u;
+                                 index < expected.m_entries.size(); ++index) {
+                                const DRW_Dictionary::Entry& left =
+                                    expected.m_entries[index];
+                                const DRW_Dictionary::Entry& right =
+                                    actual.m_entries[index];
+                                if (left.m_name != right.m_name
+                                    || left.m_handle != right.m_handle
+                                    || left.m_dxfHandleCode
+                                        != right.m_dxfHandleCode)
+                                    return false;
+                            }
+                            return true;
+                        });
+                }
+                if (shape.handle == emittedNod) {
+                    if (++nodSeen != 1u
+                        || shape.kind
+                            != dx_standard_output::Family::Dictionary)
+                        return false;
+                    return decoder.decodeRecord<DRW_Dictionary>(body,
+                        [&](const DRW_Dictionary& actual) {
+                            std::size_t matches = 0u;
+                            for (const DRW_Dictionary::Entry& entry :
+                                 actual.m_entries) {
+                                if (layoutSymbolKey(entry.m_name)
+                                    != "ACAD_PLOTSTYLENAME")
+                                    continue;
+                                if (entry.m_handle != emittedDictionary)
+                                    return false;
+                                ++matches;
+                            }
+                            rootMatched = matches == 1u
+                                && actual.handle == emittedNod
+                                && actual.parentHandle == 0u;
+                            return rootMatched;
+                        });
+                }
+                if (shape.handle != emittedPlaceholder
+                    || ++placeholderSeen != 1u
+                    || shape.kind != dx_standard_output::Family::Other)
+                    return false;
+                dx_standard_output::RecordCursor cursor(body, view);
+                const std::array<int, 5> expectedCodes{{
+                    5, 102, 330, 102, 330}};
+                const std::array<std::string_view, 5> expectedMarkers{{
+                    {}, "{ACAD_REACTORS", {}, "}", {}}};
+                for (std::size_t index = 0u;
+                     index < expectedCodes.size(); ++index) {
+                    dx_standard_output::RecordCursor::Token token;
+                    if (!cursor.next(token)
+                        || token.code != expectedCodes[index])
+                        return false;
+                    if (token.code == 102) {
+                        if (token.text != expectedMarkers[index])
+                            return false;
+                        continue;
+                    }
+                    std::uint32_t handle = 0u;
+                    if (!parseHandle(token.text, handle)
+                        || handle != (index == 0u
+                            ? emittedPlaceholder : emittedDictionary))
+                        return false;
+                }
+                return cursor.done();
+            });
+        if (!inspected || !namesMatch || !rootMatched
+            || dictionarySeen != 1u || placeholderSeen != 1u
+            || nodSeen != 1u) {
+            return false;
+        }
+        m_dwgDictionaryDefaultOutputInspected = true;
+        return true;
+    } catch (...) {
+        m_dwgDictionaryDefaultOutputInspected = false;
+        return false;
+    }
+}
+
 bool dx_iface::hasUnchangedDwgTableStyleOutputSources() const noexcept {
     if (m_dwgTableStyleOutputSources.empty())
         return m_dwgTableStyleOutputSourceOwner == nullptr
@@ -49656,6 +50089,10 @@ bool dx_iface::finalizeDxfWrite() {
         || (!m_dwgTableStyleOutputSources.empty()
             && !m_dwgTableStylesInspected))
         return false;
+    if (!hasUnchangedDwgDictionaryDefaultOutputSources()
+        || (!m_dwgDictionaryDefaultOutputSources.empty()
+            && !m_dwgDictionaryDefaultOutputInspected))
+        return false;
     for (const auto& source : m_dxfMaterialWriteSources) {
         const auto& raw = source.raw;
         const auto emitted = dxfW->remapHandle(raw.handle);
@@ -49872,6 +50309,15 @@ bool dx_iface::finalizeDxfWrite() {
         if (m_dwgTableStylesInspected) {
             for (const auto& proof : m_dwgTableStyleOutputSources) {
                 if (!qualifyCapturedIdentity(proof.first))
+                    return false;
+            }
+        }
+        if (m_dwgDictionaryDefaultOutputInspected) {
+            for (const auto& proof :
+                 m_dwgDictionaryDefaultOutputSources) {
+                if (!qualifyCapturedIdentity(proof.first)
+                    || !qualifyCapturedIdentity(
+                        proof.second.placeholder.handle))
                     return false;
             }
         }
@@ -50925,6 +51371,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     m_dwgTableStyleOutputSourceOwner = nullptr;
     m_dwgTableStyleOutputSourceGeneration = 0u;
     m_dwgTableStylesInspected = false;
+    m_dwgDictionaryDefaultOutputSources.clear();
+    m_dwgDictionaryDefaultOutputSourceOwner = nullptr;
+    m_dwgDictionaryDefaultOutputGeneration = 0u;
+    m_dwgDictionaryDefaultOutputInspected = false;
     m_sortDictionaryHandles.clear();
     m_sortOwnerHandles.clear();
     m_sortEmissionTables.clear();
@@ -54441,6 +54891,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             || needsDwgAssociativeDimensionDependencyOutput
             || !m_extensionMaterialHandles.empty()
             || !m_dxfMaterialWriteSources.empty()
+            || !m_dwgDictionaryDefaultOutputSources.empty()
             || !m_dwgTableStyleOutputSources.empty()
             || !m_dxfAssociativeGeometrySources.empty()
             || !m_dxfAssociativeValueSources.empty())
@@ -54465,6 +54916,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 return reject("MATERIAL");
             if (!inspectDwgTableStylesOutput(view))
                 return reject("TABLESTYLE DWG physical source/output binding");
+            if (!inspectDwgDictionaryDefaultOutput(view))
+                return reject("DICTIONARYWDFLT/PLACEHOLDER DWG physical source/output binding");
             if (!inspectDxfAssociativeGeometryOutput(view))
                 return reject("associative geometry-dependency source/reference mapping");
             if (!inspectDxfAssociativeValueOutput(view))
