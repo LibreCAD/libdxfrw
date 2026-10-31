@@ -56,25 +56,8 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next packet — finish physical output proof, then close the source graph.**
-On the existing `title_block-arch.dwg`, the former strict-export failure was
-dictionary owner `0xDD5` referencing untyped target `0xDD6`; that record now
-routes as `ACDB_BLOCKREPRESENTATION_DATA`. Keep this dictionary (`0xDD5`)
-distinct from the Title_Block-ARCH dictionary `0x1116`. The DWG body profile is
-now bounded:
-the AC1024 source readers agree on one bit-short flag followed by the common
-object handle stream and one block reference, and the local parser requires the
-body cursor to end exactly at the source body boundary. The remaining slice is
-implemented and covered by an isolated ASCII/Binary exact-wire and fresh
-readback selector, including rollback and corrected retry. The bounded DWG
-parser accepts only up to seven zero alignment bits; it does not accept an
-unknown suffix. Remove those body-decoding and isolated-serializer actions from
-the queue. The physical source now passes extension-graph admission and INSERT
-target resolution. The reader's anonymous INSERT name may be lossy (`*U`);
-strict output now binds its source `blockRecH` to the source BLOCK_RECORD's
-unique planned name, and refuses missing or wider-than-indexed handles. The
-focused ASCII/Binary selector proves exact group-2 binding, destination
-rollback and same-writer retry. The physical source currently stops before
+**P4 next packet — resolve the physical source's remaining strict-output blocker.**
+On the existing `title_block-arch.dwg`, strict conversion currently stops before
 OBJECTS staging at XRECORD `0x121F`: its payload contains group `1071`, outside
 the [documented normal XRECORD group-code domain](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm).
 Autodesk's [XRECORD group table](https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-F8B4190D-CCC6-4CAB-BDAE-71A7094FB442.htm)
@@ -82,28 +65,14 @@ documents group 90 as a legal 32-bit integer, and its
 [`AcDbXrecord::setFromRbChain` contract](https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbXrecord__setFromRbChain_resbuf__AcDbDatabase_.html)
 permits any valid group code appropriate to the value type. Type-width
 compatibility alone does not establish that changing this application-defined
-field from 1071 to 90 preserves its meaning. Keep the
-refusal until an independent semantics-backed representation exists; do not
-reinterpret it as XDATA or rely on a peer converter's emission as acceptance
-evidence. The physical BLOCKREPRESENTATIONDATA staged-byte and fresh readback
-proof remains pending.
-
-Then close the Title_Block-ARCH BLOCK_RECORD `0x127` three-entry DICTIONARY
-`0x1116`: `ACAD_ENHANCEDBLOCK` → EvaluationGraph `0x1117`, `ACAD_SORTENTS` →
-SORTENTSTABLE `0x111C`, and `AcDbDynamicBlockRoundTripPurgePreventer` →
-`0x1122`. The graph has four nodes (IDs 16–19, targets `0x1118`–`0x111B`) and
-three source edges. Bind source identities, nodes, edges, owners and remapped
-references in one output. Preserve the visibility parameter's 117 flat handles
-and 116 ordered state references; prove SORTENTSTABLE ordered membership and
-reciprocal owner. Admit no partial graph: require exact source fields, target
-roles and emitted references, then staged-byte and fresh ASCII/Binary readback
-proof before relaxing strict refusal. DXF-origin typed/raw replay remains
-unqualified. Current composition and source evidence is in
+field from 1071 to 90 preserves its meaning. Keep strict refusal until an
+independent semantics-backed representation exists; do not reinterpret the
+payload as XDATA or rely on peer-converter emission as acceptance evidence.
+After that blocker is resolved, complete the physical
+BLOCKREPRESENTATIONDATA staged-byte and fresh-readback proof. Source-specific
+evidence and bindings are recorded in:
 [`p4-ac1024-block-representation-data-output-2026-10-31.json`](docs/research/p4-ac1024-block-representation-data-output-2026-10-31.json),
-[`p4-ac1024-insert-block-record-source-handle-binding-2026-10-31.json`](docs/research/p4-ac1024-insert-block-record-source-handle-binding-2026-10-31.json),
-[`p4-ac1024-sortents-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-sortents-output-qualification-2026-10-31.json),
-[`p4-ac1024-dictionary-identity-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-dictionary-identity-output-qualification-2026-10-31.json),
-and [`p4-existing-dwg-corpus-strict-sweep-2026-10-31.json`](docs/research/p4-existing-dwg-corpus-strict-sweep-2026-10-31.json).
+[`p4-ac1024-insert-block-record-source-handle-binding-2026-10-31.json`](docs/research/p4-ac1024-insert-block-record-source-handle-binding-2026-10-31.json).
 
 ## P4 — original bodies and complete document closure
 
