@@ -26485,9 +26485,10 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         std::uint32_t nodeHandle = 0;
         std::uint32_t dependencyBodyHandle = 0;
         std::int32_t dependencyBodyId = 0;
-        // Three physical AC1024 inputs decode in LibreDWG's named fields as
-        // code values 4/4/4/3. This conflicts with its schema constants, so
-        // keep a mismatch readable but ineligible for complete output.
+        // The three physical AC1024 inputs decode as 4/4/4/3. Their target,
+        // reactor, and ownership relations corroborate these field roles,
+        // despite the conflicting LibreDWG schema constants. Keep mismatches
+        // readable but ineligible for complete output.
         const bool validateAc1024ValueDependencyHandleCodes =
             version == DRW::AC1024
             && m_recordName == "ACDBASSOCVALUEDEPENDENCY";

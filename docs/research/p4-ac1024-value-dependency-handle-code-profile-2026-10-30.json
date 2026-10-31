@@ -2,8 +2,8 @@
   "schema": "libdxfrw.research-receipt.v1",
   "id": "p4-ac1024-value-dependency-handle-code-profile-2026-10-30",
   "date": "2026-10-30",
-  "title": "AC1024 value-dependency handle-code census and schema conflict",
-  "status": "EVIDENCE_CENSUS_COMPLETE_SCHEMA_CONFLICT_OPEN",
+  "title": "AC1024 value-dependency handle-code role corroboration",
+  "status": "ROLE_MAPPING_CORROBORATED_3_INPUTS_SPANS_OPEN",
   "supportClaimEffect": "none",
   "scope": {
     "version": "AC1024",
@@ -57,20 +57,51 @@
         "4/4/4/3": 77
       },
       "projection": "For each OBJECTS record whose decoded object class is ASSOCVALUEDEPENDENCY, collect the first element of assocdep.dep_on, assocdep.readdep, assocdep.node, and assocdep.dep_body.",
-      "result": "The three JSON projections agree on observed decoded values. This is a census of one peer reader's interpretation, not independent proof of semantic field roles or source byte offsets."
+      "result": "The three JSON projections agree on observed decoded values. Cross-object target, reactor, and ownership relations corroborate the named field roles, but this remains a peer-decoded field projection rather than an independent raw bit-offset decode."
     },
     "conflictingSchema": {
       "repository": "LibreDWG 0.14 at commit 6d6a33987a1a97095b069c799c3d8a793320f812",
       "dwgSchema": "src/dwg2.spec:1874-1881 declares the ACDBASSOCDEPENDENCY base handle sequence as 3/4/3/4 for dep_on/readdep/node/dep_body.",
       "dxfMapping": "src/in_dxf.c:6619, 6625-6627 maps those same fields with codes 3/4/3/4.",
       "memoryLayoutCaveat": "include/dwg.h:6322-6328 declares dep_body before node in the C struct; that in-memory order is not evidence of DWG wire order.",
-      "interpretation": "The empirical peer JSON values and the peer's schema constants disagree. The schema source is not an independent semantic authority and does not resolve the physical field-to-code mapping."
+      "interpretation": "The peer JSON values and its schema constants disagree. Independent Autodesk object semantics and the physical cross-reference graph support 4/4/4/3 for these AC1024 sources; the conflicting schema constants do not describe these observed profiles. Do not generalize this result to other versions or producers without evidence."
+    },
+    "semanticCrossChecks": {
+      "counts": {
+        "dependencies": 77,
+        "depOnResolvesToVariable": 77,
+        "depOnHasReciprocalPersistentReactor": 77,
+        "nonzeroReaddepResolvesToDependency": 23,
+        "nonzeroReaddepTargetOwnedElsewhere": 23,
+        "nonzeroNodeResolvesToDependency": 23,
+        "nonzeroNodeTargetOwnedElsewhere": 23,
+        "nullDepBodyWithCode3": 77
+      },
+      "interpretation": "dep_on points to an ASSOCVARIABLE whose persistent-reactor list points back to the dependency; readdep and node point to dependency objects not owned by the current dependency; dep_body is null in these samples but its code 3 is consistent with the documented ownership contract when a body exists.",
+      "autodeskSources": [
+        {
+          "title": "AcDbAssocDependency Methods",
+          "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcDbAssocDependency.html",
+          "claims": "Every dependency is owned by an action; dependencies attach to dependent-on objects as persistent reactors; a dependency body is owned by the dependency."
+        },
+        {
+          "title": "AcDbAssocDependency::dependentOnObject Method",
+          "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbAssocDependency__dependentOnObject_const.html",
+          "claims": "Returns the object to which the dependency is attached as a persistent reactor."
+        },
+        {
+          "title": "AcDbAssocDependency::dependencyBody Method",
+          "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbAssocDependency__dependencyBody_const.html",
+          "claims": "Returns the dependency-body object owned by this dependency, or null."
+        }
+      ],
+      "conclusion": "Together, ODA's generic code meanings, physical decoded handle values, 77 reciprocal target/reactor joins, 46 non-owning dependency-to-dependency references, and Autodesk's object contract corroborate the AC1024 tuple 4/4/4/3 for the named fields. The raw physical field offsets have not been independently decoded outside LibreDWG."
     },
     "oda": {
       "document": "Open Design Specification for .dwg files, v5.4.1",
       "section": "2.13 HANDLE REFERENCES",
       "finding": "Generic code 3 denotes hard ownership and code 4 denotes a soft pointer. The inspected section does not establish the ACDBASSOCVALUEDEPENDENCY field-to-code sequence.",
-      "effect": "Generic meanings alone cannot resolve the observed/schema conflict."
+      "effect": "Generic meanings establish pointer versus ownership semantics; Autodesk's independent object contract and the physical cross-reference joins supply the class-specific role corroboration."
     }
   },
   "implementation": {
@@ -79,7 +110,7 @@
       "tests/dwg_object_vectors_tests.cpp"
     ],
     "summary": "The current AC1024 ACDBASSOCVALUEDEPENDENCY reader checks the observed 4/4/4/3 code tuple. A mismatch leaves parsed fields readable but marks the dependency wire incomplete; all body, string, and handle spans must also satisfy the existing bounded-padding check.",
-    "qualification": "This is a conservative provisional parser guard. The observed tuple does not qualify the class-specific semantic roles, physical suffix spans, or output profile."
+    "qualification": "The field-code check is corroborated for the three AC1024 sources in this receipt. It does not qualify physical body/text/handle suffix spans, other producer/version profiles, or output support."
   },
   "validation": {
     "build": {
@@ -120,23 +151,24 @@
     "fullSuites": "NOT_RUN"
   },
   "limitations": [
-    "The code census does not resolve whether the field roles or offsets assigned by the peer JSON correspond to the authoritative physical schema.",
+    "The field-role conclusion is corroborated from named peer fields, graph relationships, and Autodesk semantics; it is not an independent raw byte-offset decode.",
+    "All 77 dep_body references are null with encoded code 3; a non-null dep_body owner edge was not physically exercised in this corpus.",
     "The physical value-dependency body/text/handle suffixes remain incompletely decoded and bounded.",
     "The mechanical ACDBASSOCVARIABLE suffix remains unresolved.",
     "The physical samples are local investigation inputs and were not added as repository fixtures.",
     "No output support claim is promoted; strict physical export remains refused."
   ],
   "planImpact": {
-    "completedScopeRemovedFromQueue": "The 77-record peer handle-code census across the three local AC1024 sources is complete and recorded here.",
-    "remainingP4Scope": "Resolve the field-role/code disagreement using authoritative layout and offset evidence; decode and bound body/text/handle spans; then qualify required owners, descendants, emitted fields, and readback. The mechanical ACDBASSOCVARIABLE suffix also remains open.",
+    "completedScopeRemovedFromQueue": "The 77-record handle-code census and AC1024 field-role corroboration across the three local sources are complete and recorded here.",
+    "remainingP4Scope": "Decode and bound physical body/text/handle spans; qualify required owners, descendants, emitted fields, and readback. The mechanical ACDBASSOCVARIABLE suffix also remains open.",
     "externalDeferredItemsPromoted": 0
   },
   "sourceHashesSha256": {
-    "src/drw_objects.cpp": "b661c938cbdf38c6772d790b486db243b9a6c2227373d9c0d9e2f594a8460fdf",
+    "src/drw_objects.cpp": "74de0b7446b1e3cab1262aca95519ec9177d3bcedb011ed0058a3dc2b0d03096",
     "tests/dwg_object_vectors_tests.cpp": "dd820767449b3ce4482627b78d52d2752efb96bf87d9e06cb52c3fba9693c8cb",
-    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "752b650889ef229dc5225e61972fb753f8726766721645b316993c5cebba0f90",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "1cecef4b96eecb430f0d72660255c7c6bc0ddf10a66a22bff3535e2be5f3db6a",
     "build-gcc/dwg2dxf/dwg2dxf": "b2125d2741c410444a8775558abadfd7c64f98719c933d5adcfecb066e85975f"
   },
-  "commitCreated": false,
+  "commitCreated": true,
   "fixtureFilesAdded": 0
 }
