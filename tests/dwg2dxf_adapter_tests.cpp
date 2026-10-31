@@ -91,6 +91,11 @@ public:
     static std::size_t opaqueSourceFrameCount(const dx_data& data) {
         return data.m_opaqueDwgSourceFrames.size();
     }
+    static bool opaqueOutputQualified(const dx_data& data,
+            std::uint64_t generation, std::uint32_t handle) {
+        return data.m_opaqueDwgOutputQualifiedFrameIdentities.count(
+            {generation, handle}) == 1u;
+    }
     static bool stageOpaqueOutputQualification(dx_iface& iface,
                                                std::uint32_t handle) {
         return iface.recordOpaqueDwgOutputQualification(handle);
@@ -29930,6 +29935,9 @@ bool physicalMLineStyleOutputReadback(
                 dx_dwgReadCompletenessPolicy::AllowPartial);
         };
         DRW_MLineStyle& mutableStyle = source.mLineStyles.front();
+        const bool qualifiedBeforeFailure =
+            DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourceStyle.handle);
         const int originalIndex = mutableStyle.elements.front().linetypeIndex;
         mutableStyle.elements.front().linetypeIndex = 7;
         const bool unsupportedIndexRejected = !exportPartial();
@@ -29937,10 +29945,16 @@ bool physicalMLineStyleOutputReadback(
         const std::string refusedContents{
             std::istreambuf_iterator<char>{refusedOutput}, {}};
         mutableStyle.elements.front().linetypeIndex = originalIndex;
-        if (!unsupportedIndexRejected || refusedContents != sentinel)
+        if (!unsupportedIndexRejected || refusedContents != sentinel
+            || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourceStyle.handle)
+                != qualifiedBeforeFailure)
             return fail("unresolved physical MLINESTYLE linetype index was not refused atomically");
         if (!exportPartial())
             return fail("corrected physical MLINESTYLE could not retry on the same adapter");
+        if (!DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourceStyle.handle))
+            return fail("physical MLINESTYLE output identity was not committed with the successful export");
 
         dx_iface outputReader;
         dx_data output;

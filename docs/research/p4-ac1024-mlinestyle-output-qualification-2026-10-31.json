@@ -1,0 +1,105 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-mlinestyle-output-qualification-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Connect the physical AC1024 MLINESTYLE callback to strict output qualification",
+  "status": "1_MLINESTYLE_IDENTITY_QUALIFIED_STRICT_GATE_CLOSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "record": "MLINESTYLE / AcDbMlineStyle",
+    "objectType": 73,
+    "handle": "0x18",
+    "parentDictionary": "0x17",
+    "rootKey": "ACAD_MLINESTYLE",
+    "ownerKey": "Standard",
+    "rootDictionary": "0xC",
+    "sourceFrame": {
+      "isEntity": false,
+      "rawBytes": 83,
+      "parentHandle": "0x17",
+      "commonLinkEvidence": "validated"
+    },
+    "typedProfile": {
+      "name": "STANDARD",
+      "elementCount": 2,
+      "sourceLinetypeIndices": [32767, 32767],
+      "reactorRoles": ["MLINESTYLE -> ACAD_MLINESTYLE dictionary", "dictionary -> NOD"]
+    },
+    "profileEvidence": "docs/research/p4-ac1024-mline-style-physical-output-readback-2026-10-31.json",
+    "fixturePolicy": "Existing repository DWG only; temporary outputs and scratch programs stayed outside Git. No fixture was added."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "Freeze the witnessed AC1024 STANDARD MLINESTYLE source, its one-entry ACAD_MLINESTYLE dictionary and the NOD root-key edge. Serialize the frozen style and inspect the completed OBJECTS staging before the file transaction publishes. Match the type-73 opaque callback to the emitted MLINESTYLE handle, parent, dictionary root, owner-key role, reactor edges and decoded style body; stage callback qualification only after all checks pass.",
+    "fieldAndRoleProof": "The source envelope is restricted to the witnessed two-element BYLAYER sentinel profile with no extension dictionary, EED, data-storage payload, unresolved APPID/LAYER links or unknown common-link tail. The output inspector verifies the emitted NOD root key and handle role, the complete owner dictionary against its source snapshot, the MLINESTYLE owner and identity, its mapped reactor handles and exact ACAD_REACTORS group, plus all emitted style fields and ordered elements. DWG indexed-color metadata is projected to its DXF group-62 meaning; source index 32767 is verified as BYLAYER with no emitted linetype handle.",
+    "scope": "Qualifies the single evidenced physical AC1024 type-73 callback. Other MLINESTYLE profiles continue through the existing writer without opaque-output qualification. No format-support claim is promoted."
+  },
+  "qualification": {
+    "before": 208,
+    "after": 209,
+    "totalOpaqueCallbacks": 228,
+    "newlyQualified": [
+      {
+        "objectType": 73,
+        "handle": "0x18",
+        "record": "MLINESTYLE"
+      }
+    ],
+    "remaining": 19,
+    "remainingBreakdown": {
+      "unnamedEntityType34": 2,
+      "unnamedObjectType82": 2,
+      "standardObjectType42": 13,
+      "standardObjectType79": 2
+    },
+    "strictExport": "Still refuses before publication at 209/228. The failed attempt leaves the published identity set and qualification count empty.",
+    "legacyRetry": "Succeeds and atomically publishes exactly 209 source-bound identities."
+  },
+  "failureAndRetry": {
+    "negativeControl": "The existing selector changes the source linetype index to unsupported value 7. Export refuses, preserves the destination sentinel byte-for-byte and leaves the previously published output-qualification set unchanged.",
+    "retry": "Restore source index 32767 and retry on the same adapter. ASCII and Binary outputs pass fresh typed import; the selector confirms handle 0x18 enters the output-qualification set only after successful publication, with STANDARD identity, parent dictionary, common fields, two ordered elements and BYLAYER semantics.",
+    "result": "PASS"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured warning-as-error flags.",
+      "dwg2dxfSha256": "25508d597632b0f06b5acb068eb793df5d0aaa3854398fcc020b23563ba416a1",
+      "adapterTestSha256": "d4af12871a9891c1ba0ea59746f0eebdddc12484f10382d73c05273a01b6a952"
+    },
+    "physicalReadback": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mline-style-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary, including fresh readback, exact selected fields and owner roles, atomic refusal, unchanged qualification after failure, and corrected same-adapter retry. The export-failure messages are expected from the negative controls."
+    },
+    "strictGate": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_opaque_source_capture_and_strict_output_gate$' --output-on-failure",
+      "result": "PASS, 1/1."
+    },
+    "census": {
+      "command": "g++ -std=c++17 -Wall -Wextra -pedantic -Werror -I dwg2dxf -I src /private/tmp/libdxfrw-p4-callback-census.cpp build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build-gcc/libdxfrw.a -o /private/tmp/libdxfrw-p4-callback-census && /private/tmp/libdxfrw-p4-callback-census tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS; strict conversion refused at 209/228 with no published identities; legacy retry published 209 and reported the 19 unresolved callbacks. Scratch source and executable stayed outside Git."
+    },
+    "fullSuites": "NOT RUN; the focused physical selector, strict-gate CTest and source-bound census were used."
+  },
+  "planImpact": {
+    "completedItemsRemoved": [
+      "Connect the physical AC1024 MLINESTYLE callback identity to transactional MLINESTYLE/NOD/dictionary output proof and fresh ASCII/Binary readback."
+    ],
+    "nextPacket": "Trace the two physical type-82 LAYOUT callbacks through the existing LAYOUT output/readback selector and close only the source identity, complete fields, owner roles and staged output proof that the selector supports.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "64c5f46820aa04b6ae86c79a8fffcddde2aa4b3394268280e17d92e9257880d8",
+    "dwg2dxf/dx_iface.h": "69610a6bf0a2a811e701b1e3030ff05b2949ba0ec367403fafa82bd55aff5c5f",
+    "tests/dwg2dxf_adapter_tests.cpp": "6d0d58f58c35720ea527ce84adea4231d7e39c8a539a2d6485c960b324abba01",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "da5e8867d1c0f354732b67f8f0876829961a4ec305d5fdfefbe300cc15dfd9af"
+  }
+}

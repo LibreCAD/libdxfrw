@@ -1618,7 +1618,16 @@ public:
                     DRW_DBG(handle); DRW_DBG("\n");
                     return;
                 }
-                if (!dxfW->writeMLineStyle(typedStyle)) {
+                const auto frozen = m_dwgMLineStyleOutputSources.find(handle);
+                DRW_MLineStyle frozenStyle;
+                DRW_MLineStyle* outputStyle = typedStyle;
+                if (frozen != m_dwgMLineStyleOutputSources.end()) {
+                    if (!hasUnchangedDwgMLineStyleOutputSources())
+                        return;
+                    frozenStyle = frozen->second.model;
+                    outputStyle = &frozenStyle;
+                }
+                if (!dxfW->writeMLineStyle(outputStyle)) {
                     DRW_DBG("DXF MLINESTYLE writer rejected handle=");
                     DRW_DBG(handle); DRW_DBG(" name=");
                     DRW_DBG(typedStyle->name.c_str()); DRW_DBG("\n");
@@ -2562,6 +2571,22 @@ private:
     bool hasUnchangedDwgMLeaderStyleOutputSources() const noexcept;
     bool inspectDxfMLeaderStyles(const dxfRW::DxfObjectsWriteView&) noexcept;
     bool inspectDwgMLeaderStyles(const dxfRW::DxfObjectsWriteView&) noexcept;
+    struct DwgMLineStyleOutputSource {
+        DRW_MLineStyle model;
+        DRW_Dictionary rootOwner;
+        std::uint32_t nodHandle{0u};
+        int nodHardOwner{0};
+        DRW_Dictionary::Entry nodRootEntry;
+    };
+    std::map<std::uint32_t,DwgMLineStyleOutputSource>
+        m_dwgMLineStyleOutputSources;
+    const dx_data* m_dwgMLineStyleOutputOwner{nullptr};
+    std::uint64_t m_dwgMLineStyleOutputGeneration{0u};
+    bool m_dwgMLineStylesInspected{false};
+    bool prepareDwgMLineStyles(DRW::Version version) noexcept;
+    bool hasUnchangedDwgMLineStyleOutputSources() const noexcept;
+    bool inspectDwgMLineStyles(const dxfRW::DxfObjectsWriteView&,
+                               bool debug) noexcept;
     struct DxfMLineStyleSource {
         DRW_MLineStyle model, projection;
         DRW_RawDxfObject raw, output;

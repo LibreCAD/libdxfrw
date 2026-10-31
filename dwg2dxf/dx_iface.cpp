@@ -24607,6 +24607,563 @@ bool mlineReprojectUncut(const DRW_MLine& original,const DRW_MLineStyle& before,
 }
 } // namespace
 
+bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
+    m_dwgMLineStyleOutputSources.clear();
+    m_dwgMLineStyleOutputOwner = nullptr;
+    m_dwgMLineStyleOutputGeneration = 0u;
+    m_dwgMLineStylesInspected = false;
+    if (cData == nullptr)
+        return false;
+    if (cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024
+        || version != DRW::AC1024
+        || m_extensionMLineStyleHandles.empty())
+        return true;
+
+    // Admit only the source-backed AC1024 STANDARD profile in the tracked
+    // witness. Other MLINESTYLE bodies continue through the existing writer,
+    // but do not qualify their opaque DWG callbacks.
+    if (m_extensionMLineStyleHandles.size() != 1u
+        || cData->mLineStyles.size() != 1u
+        || !cData->hasNamedObjectDictionary
+        || !cData->hasSingleSuccessfulNamedResourceImport())
+        return true;
+    const DRW_MLineStyle& style = cData->mLineStyles.front();
+    if (style.name != "STANDARD" || style.elements.size() != 2u
+        || style.flags != 0 || !style.description.empty()
+        || style.handle != m_extensionMLineStyleHandles.front()
+        || style.handle == 0u || style.handle == DRW::NoHandle
+        || style.parentHandle > UINT32_MAX
+        || style.xDictHandle != 0u || !style.reactorHandles.size()
+        || style.hasDataStorageBinaryData() || style.hasDwgCommonLinkTail()
+        || !style.appData.empty() || !style.extData.empty()
+        || !style.pendingAppIdResolutions.empty()
+        || !style.pendingLayerRefResolutions.empty()
+        || style.fillColor != 256 || style.fillColor24 != -1
+        || style.fillColorMethod != 192u || style.fillColorFlags != 0u
+        || !style.fillColorName.empty() || !style.fillColorBookName.empty()
+        || style.fillColorDwgIndex != 0u
+        || !std::isfinite(style.startAngle)
+        || !std::isfinite(style.endAngle))
+        return true;
+    for (const DRW_MLineElement& element : style.elements) {
+        if (!std::isfinite(element.offset) || element.color != 256
+            || element.color24 != -1 || element.colorMethod != 192u
+            || element.colorFlags != 0u || !element.colorName.empty()
+            || !element.colorBookName.empty() || element.colorDwgIndex != 0u
+            || element.linetypeIndex != 32767
+            || element.linetypeHandle != 0u || !element.linetype.empty())
+            return true;
+    }
+
+    const dx_data::StandardDwgFrameKey frameKey{
+        cData->importGeneration, style.handle};
+    const auto frame = cData->m_opaqueDwgSourceFrames.find(frameKey);
+    if (frame == cData->m_opaqueDwgSourceFrames.end()
+        || frame->second.m_objectType != 73
+        || frame->second.m_handle != style.handle
+        || frame->second.m_isEntity
+        || frame->second.m_version != DRW::AC1024
+        || frame->second.m_parentHandle != style.parentHandle
+        || frame->second.m_hasDataStorage
+        || !drwDwgCommonLinkEvidenceValidated(
+            frame->second.m_commonLinkEvidence))
+        return true;
+
+    const DRW_Dictionary& nod = cData->namedObjectDictionary;
+    if (nod.handle == 0u || nod.handle == DRW::NoHandle
+        || nod.countCap || !nod.hasCompleteDwgEntries())
+        return true;
+    const auto rootEntry = std::find_if(
+        nod.m_entries.begin(), nod.m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == "ACAD_MLINESTYLE";
+        });
+    if (rootEntry == nod.m_entries.end()
+        || std::count_if(nod.m_entries.begin(), nod.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_MLINESTYLE";
+            }) != 1)
+        return true;
+    const DRW_Dictionary* rootOwner = nullptr;
+    for (const DRW_Dictionary& dictionary : cData->dictionaries) {
+        if (dictionary.handle != rootEntry->m_handle)
+            continue;
+        if (rootOwner != nullptr)
+            return true;
+        rootOwner = &dictionary;
+    }
+    if (rootOwner == nullptr || rootOwner->handle == 0u
+        || rootOwner->handle == DRW::NoHandle
+        || rootOwner->parentHandle != nod.handle || rootOwner->countCap
+        || !rootOwner->hasCompleteDwgEntries()
+        || rootOwner->hardOwner != 0 || rootOwner->cloning != 1
+        || rootOwner->m_entries.size() != 1u
+        || !rootOwner->appData.empty() || !rootOwner->extData.empty()
+        || rootOwner->hasDataStorageBinaryData()
+        || rootOwner->hasDwgCommonLinkTail()
+        || !rootOwner->pendingAppIdResolutions.empty()
+        || !rootOwner->pendingLayerRefResolutions.empty()
+        || rootOwner->m_entries.front().m_name != "Standard"
+        || rootOwner->m_entries.front().m_handle != style.handle
+        || style.parentHandle != rootOwner->handle
+        || nod.m_entries.end() == std::find_if(
+            nod.m_entries.begin(), nod.m_entries.end(),
+            [rootOwner](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_MLINESTYLE"
+                    && entry.m_handle == rootOwner->handle;
+            })
+        || rootOwner->reactorHandles != std::vector<std::uint32_t>{nod.handle}
+        || style.reactorHandles
+            != std::vector<std::uint32_t>{rootOwner->handle})
+        return true;
+
+    try {
+        m_dwgMLineStyleOutputSources.emplace(
+            style.handle,
+            DwgMLineStyleOutputSource{
+                style, *rootOwner, nod.handle, nod.hardOwner, *rootEntry});
+        m_dwgMLineStyleOutputOwner = cData;
+        m_dwgMLineStyleOutputGeneration = cData->importGeneration;
+        return hasUnchangedDwgMLineStyleOutputSources();
+    } catch (...) {
+        m_dwgMLineStyleOutputSources.clear();
+        m_dwgMLineStyleOutputOwner = nullptr;
+        m_dwgMLineStyleOutputGeneration = 0u;
+        return false;
+    }
+}
+
+bool dx_iface::hasUnchangedDwgMLineStyleOutputSources() const noexcept {
+    if (m_dwgMLineStyleOutputSources.empty())
+        return m_dwgMLineStyleOutputOwner == nullptr
+            && m_dwgMLineStyleOutputGeneration == 0u;
+    if (cData == nullptr || m_dwgMLineStyleOutputOwner != cData
+        || m_dwgMLineStyleOutputGeneration != cData->importGeneration
+        || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024
+        || !cData->hasSingleSuccessfulNamedResourceImport()
+        || cData->mLineStyles.size() != m_dwgMLineStyleOutputSources.size()
+        || m_extensionMLineStyleHandles.size()
+            != m_dwgMLineStyleOutputSources.size())
+        return false;
+    const auto sameDictionary = [](const DRW_Dictionary& source,
+                                   const DRW_Dictionary& current) {
+        if (!standardDwgCommonEqual(source, current, DRW::AC1024)
+            || source.hardOwner != current.hardOwner
+            || source.cloning != current.cloning || source.countCap
+            || current.countCap
+            || source.m_entries.size() != current.m_entries.size())
+            return false;
+        for (std::size_t index = 0u; index < source.m_entries.size(); ++index) {
+            const auto& expected = source.m_entries[index];
+            const auto& actual = current.m_entries[index];
+            if (expected.m_name != actual.m_name
+                || expected.m_handle != actual.m_handle
+                || expected.m_dxfHandleCode != actual.m_dxfHandleCode)
+                return false;
+        }
+        return true;
+    };
+    try {
+        std::unordered_set<std::uint32_t> selected;
+        for (const std::uint32_t handle : m_extensionMLineStyleHandles) {
+            if (!selected.insert(handle).second
+                || m_dwgMLineStyleOutputSources.count(handle) != 1u)
+                return false;
+        }
+        std::unordered_set<std::uint32_t> currentStyles;
+        for (const DRW_MLineStyle& current : cData->mLineStyles) {
+            const auto frozen = m_dwgMLineStyleOutputSources.find(
+                current.handle);
+            if (frozen == m_dwgMLineStyleOutputSources.end()
+                || !currentStyles.insert(current.handle).second
+                || !standardDwgCommonEqual(frozen->second.model, current,
+                                           DRW::AC1024)
+                || !mlineFieldsEqual(frozen->second.model, current))
+                return false;
+            const auto frame = cData->m_opaqueDwgSourceFrames.find(
+                {cData->importGeneration, current.handle});
+            if (frame == cData->m_opaqueDwgSourceFrames.end()
+                || frame->second.m_objectType != 73
+                || frame->second.m_parentHandle != current.parentHandle
+                || !drwDwgCommonLinkEvidenceValidated(
+                    frame->second.m_commonLinkEvidence))
+                return false;
+            const DRW_Dictionary& nod = cData->namedObjectDictionary;
+            const auto rootEntry = std::find_if(
+                nod.m_entries.begin(), nod.m_entries.end(),
+                [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "ACAD_MLINESTYLE";
+                });
+            if (nod.handle != frozen->second.nodHandle
+                || nod.hardOwner != frozen->second.nodHardOwner
+                || rootEntry == nod.m_entries.end()
+                || std::count_if(nod.m_entries.begin(), nod.m_entries.end(),
+                    [](const DRW_Dictionary::Entry& entry) {
+                        return entry.m_name == "ACAD_MLINESTYLE";
+                    }) != 1
+                || rootEntry->m_name
+                    != frozen->second.nodRootEntry.m_name
+                || rootEntry->m_handle
+                    != frozen->second.nodRootEntry.m_handle
+                || rootEntry->m_dxfHandleCode
+                    != frozen->second.nodRootEntry.m_dxfHandleCode)
+                return false;
+            const DRW_Dictionary* liveRoot = nullptr;
+            for (const DRW_Dictionary& dictionary : cData->dictionaries) {
+                if (dictionary.handle != frozen->second.rootOwner.handle)
+                    continue;
+                if (liveRoot != nullptr)
+                    return false;
+                liveRoot = &dictionary;
+            }
+            if (liveRoot == nullptr
+                || !sameDictionary(frozen->second.rootOwner, *liveRoot))
+                return false;
+        }
+        return currentStyles.size()
+            == m_dwgMLineStyleOutputSources.size();
+    } catch (...) {
+        return false;
+    }
+}
+
+bool dx_iface::inspectDwgMLineStyles(
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept {
+    m_dwgMLineStylesInspected = false;
+    if (m_dwgMLineStyleOutputSources.empty())
+        return true;
+    const auto reject = [debug](const char* stage) {
+        if (debug)
+            std::cerr << "MLINESTYLE DWG output proof failed: " << stage
+                      << '\n';
+        return false;
+    };
+    if (dxfW == nullptr || cData == nullptr
+        || view.version != DRW::AC1024
+        || !hasUnchangedDwgMLineStyleOutputSources())
+        return reject("source snapshot or output version");
+
+    try {
+        const auto mapHandle = [this](std::uint32_t source,
+                                      std::uint32_t& emitted) {
+            emitted = 0u;
+            if (source == 0u)
+                return true;
+            const DRW_WritingContext* context = dxfW->getWritingContext();
+            if (source == DRW::NoHandle || context == nullptr
+                || context->ambiguousSourceHandles.count(source) != 0u)
+                return false;
+            emitted = dxfW->remapHandle(source);
+            bool bound = emitted != source;
+            for (const auto* aliases : {
+                    &context->sourceHandleToWrittenTableMap,
+                    &context->sourceHandleToWrittenObjectMap,
+                    &context->sourceHandleToMintedMap}) {
+                const auto found = aliases->find(source);
+                if (found == aliases->end())
+                    continue;
+                if (bound && emitted != found->second)
+                    return false;
+                emitted = found->second;
+                bound = true;
+            }
+            return emitted != 0u && emitted != DRW::NoHandle;
+        };
+        const auto findDictionary = [this](std::uint32_t handle)
+                -> const DRW_Dictionary* {
+            const DRW_Dictionary* result = nullptr;
+            for (const DRW_Dictionary& dictionary : cData->dictionaries) {
+                if (dictionary.handle != handle)
+                    continue;
+                if (result != nullptr)
+                    return nullptr;
+                result = &dictionary;
+            }
+            return result;
+        };
+        const DwgMLineStyleOutputSource& source =
+            m_dwgMLineStyleOutputSources.begin()->second;
+        const DRW_Dictionary& sourceRoot =
+            source.rootOwner;
+        const DRW_Dictionary& liveNod = cData->namedObjectDictionary;
+        const auto rootEntry = std::find_if(
+            liveNod.m_entries.begin(), liveNod.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_MLINESTYLE";
+            });
+        const DRW_Dictionary* liveRoot = findDictionary(sourceRoot.handle);
+        if (rootEntry == liveNod.m_entries.end() || liveRoot == nullptr
+            || liveNod.handle != source.nodHandle
+            || liveNod.hardOwner != source.nodHardOwner
+            || rootEntry->m_name != source.nodRootEntry.m_name
+            || rootEntry->m_handle != sourceRoot.handle
+            || rootEntry->m_dxfHandleCode
+                != source.nodRootEntry.m_dxfHandleCode
+            || !hasUnchangedDwgMLineStyleOutputSources())
+            return reject("ACAD_MLINESTYLE root source");
+
+        std::uint32_t emittedNod = 0u, emittedRoot = 0u;
+        if (!mapHandle(source.nodHandle, emittedNod)
+            || !mapHandle(sourceRoot.handle, emittedRoot)
+            || !dxfW->dxfWriteRecordHasIdentity(
+                emittedNod, "DICTIONARY", "OBJECTS")
+            || !dxfW->dxfWriteRecordHasIdentity(
+                emittedRoot, "DICTIONARY", "OBJECTS")
+            || !dxfW->dxfWriteRecordHasOwner(emittedRoot, emittedNod))
+            return reject("NOD/root emitted handle and owner roles");
+
+        std::map<std::uint32_t, const DRW_MLineStyle*> expectedStyles;
+        for (const auto& row : m_dwgMLineStyleOutputSources) {
+            const DRW_MLineStyle& source = row.second.model;
+            std::uint32_t emittedStyle = 0u, emittedOwner = 0u;
+            if (row.first != source.handle
+                || source.parentHandle != sourceRoot.handle
+                || !mapHandle(source.handle, emittedStyle)
+                || !mapHandle(sourceRoot.handle, emittedOwner)
+                || emittedOwner != emittedRoot
+                || !expectedStyles.emplace(emittedStyle, &source).second
+                || !dxfW->dxfWriteRecordHasIdentity(
+                    emittedStyle, "MLINESTYLE", "OBJECTS")
+                || !dxfW->dxfWriteRecordHasOwner(
+                    emittedStyle, emittedOwner))
+                return reject("source style identity and dictionary owner");
+            const auto ownerEntry = std::find_if(
+                sourceRoot.m_entries.begin(), sourceRoot.m_entries.end(),
+                [&source](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_handle == source.handle;
+                });
+            if (ownerEntry == sourceRoot.m_entries.end()
+                || ownerEntry->m_name != "Standard"
+                || std::count_if(sourceRoot.m_entries.begin(),
+                    sourceRoot.m_entries.end(), [&ownerEntry](
+                        const DRW_Dictionary::Entry& entry) {
+                        return entry.m_name == ownerEntry->m_name;
+                    }) != 1)
+                return reject("unique Standard dictionary entry");
+        }
+
+        std::unordered_set<std::uint32_t> seenStyles, seenOwners, seenNods;
+        bool namesMatch = true;
+        const char* stagedFailure = "selected record inventory";
+        const bool inspected = dx_standard_output::inspectSelected(
+            view,
+            [&](std::string_view name, std::uint32_t handle) {
+                const bool style = expectedStyles.count(handle) != 0u;
+                const bool owner = handle == emittedRoot;
+                const bool nod = handle == emittedNod;
+                if ((style && !asciiIdentifierEquals(name, "MLINESTYLE"))
+                    || ((owner || nod)
+                        && !asciiIdentifierEquals(name, "DICTIONARY")))
+                    namesMatch = false;
+                return style || owner || nod;
+            },
+            [&](const auto& shape, std::string_view body) {
+                if (shape.handle == emittedNod) {
+                    if (!seenNods.insert(shape.handle).second) {
+                        stagedFailure = "duplicate NOD output record";
+                        return false;
+                    }
+                    dx_standard_output::Decoder decoder(view);
+                    const bool decoded = decoder.decodeRecord<DRW_Dictionary>(
+                        body, [&](const DRW_Dictionary& actual) {
+                            const auto emittedEntry = std::find_if(
+                                actual.m_entries.begin(),
+                                actual.m_entries.end(),
+                                [](const DRW_Dictionary::Entry& entry) {
+                                    return entry.m_name == "ACAD_MLINESTYLE";
+                                });
+                            if (actual.handle != emittedNod
+                                || emittedEntry == actual.m_entries.end()
+                                || emittedEntry->m_handle != emittedRoot
+                                || std::count_if(
+                                    actual.m_entries.begin(),
+                                    actual.m_entries.end(),
+                                    [](const DRW_Dictionary::Entry& entry) {
+                                        return entry.m_name == "ACAD_MLINESTYLE";
+                                    }) != 1)
+                                return false;
+                            using Role = DRW_Dictionary::Entry::DxfHandleCode;
+                            const Role expectedRole = source.nodRootEntry.m_dxfHandleCode
+                                    == Role::Unspecified
+                                ? (source.nodHardOwner
+                                    ? Role::HardOwner : Role::SoftOwner)
+                                : source.nodRootEntry.m_dxfHandleCode;
+                            return emittedEntry->m_dxfHandleCode == expectedRole;
+                        });
+                    if (!decoded)
+                        stagedFailure = "NOD root-key body or handle role";
+                    return decoded;
+                }
+                if (shape.handle == emittedRoot) {
+                    if (!seenOwners.insert(shape.handle).second) {
+                        stagedFailure = "duplicate MLINESTYLE owner dictionary";
+                        return false;
+                    }
+                    dx_standard_output::Decoder decoder(view);
+                    const bool decoded = decoder.decodeRecord<DRW_Dictionary>(
+                        body, [&](const DRW_Dictionary& actual) {
+                            std::vector<std::uint32_t> references;
+                            return dx_standard_output::equal(
+                                sourceRoot, actual, mapHandle, references);
+                        });
+                    if (!decoded)
+                        stagedFailure = "owner dictionary fields or entry role";
+                    return decoded;
+                }
+                const auto selected = expectedStyles.find(shape.handle);
+                if (selected == expectedStyles.end()
+                    || !seenStyles.insert(shape.handle).second) {
+                    stagedFailure = "duplicate or unexpected MLINESTYLE record";
+                    return false;
+                }
+                const DRW_MLineStyle& source = *selected->second;
+                std::uint32_t owner = 0u, xdict = 0u;
+                if (!mapHandle(static_cast<std::uint32_t>(source.parentHandle),
+                               owner)
+                    || !mapHandle(source.xDictHandle, xdict))
+                    return false;
+                std::vector<std::uint32_t> reactors;
+                for (const std::uint32_t reactor : source.reactorHandles) {
+                    std::uint32_t emitted = 0u;
+                    if (!mapHandle(reactor, emitted))
+                        return false;
+                    reactors.push_back(emitted);
+                }
+                DRW_MLineStyle projected = source;
+                projected.fillColorMethod = 0u;
+                for (DRW_MLineElement& element : projected.elements) {
+                    element.colorMethod = 0u;
+                    element.linetype = "BYLAYER";
+                    element.linetypeIndex = -1;
+                    element.linetypeHandle = 0u;
+                }
+                const auto reactorAppDataMatches = [&reactors](
+                        const DRW_MLineStyle& actual) {
+                    if (reactors.empty())
+                        return actual.appData.empty();
+                    if (actual.appData.size() != 1u
+                        || actual.appData.front().size()
+                            != reactors.size() + 2u)
+                        return false;
+                    const auto& group = actual.appData.front();
+                    if (group.front().code() != 102
+                        || group.front().type() != DRW_Variant::STRING
+                        || group.front().content.s == nullptr
+                        || *group.front().content.s != "ACAD_REACTORS")
+                        return false;
+                    auto field = group.begin();
+                    ++field;
+                    for (const std::uint32_t expected : reactors) {
+                        if (field == group.end() || field->code() != 330
+                            || field->type() != DRW_Variant::STRING
+                            || field->content.s == nullptr)
+                            return false;
+                        const std::string& value = *field->content.s;
+                        std::uint32_t handle = 0u;
+                        const auto parsed = std::from_chars(
+                            value.data(), value.data() + value.size(), handle, 16);
+                        if (value.empty() || parsed.ec != std::errc{}
+                            || parsed.ptr != value.data() + value.size()
+                            || handle != expected)
+                            return false;
+                        ++field;
+                    }
+                    const DRW_Variant& close = group.back();
+                    return close.code() == 102
+                        && close.type() == DRW_Variant::STRING
+                        && close.content.s != nullptr
+                        && *close.content.s == "}";
+                };
+                dx_standard_output::Decoder decoder(view);
+                const bool decoded = decoder.decodeRecord<DRW_MLineStyle>(
+                    body, [&](const DRW_MLineStyle& actual) {
+                        const bool handleMatches = actual.handle == shape.handle;
+                        const bool typeMatches = actual.tType == source.tType;
+                        const bool ownerMatches = actual.parentHandle == owner;
+                        const bool xdictMatches = actual.xDictHandle == xdict;
+                        const bool reactorsMatch = actual.reactorHandles == reactors;
+                        const bool metadataMatches = actual.extData.empty()
+                            && !actual.hasDataStorageBinaryData()
+                            && !actual.hasDwgCommonLinkTail()
+                            && actual.pendingAppIdResolutions.empty()
+                            && actual.pendingLayerRefResolutions.empty();
+                        const bool commonMatches = handleMatches && typeMatches
+                            && ownerMatches && xdictMatches && reactorsMatch
+                            && metadataMatches;
+                        const bool reactorMatches = reactorAppDataMatches(actual);
+                        const bool fieldsMatch = mlineFieldsEqual(projected, actual);
+                        if (debug && (!commonMatches || !reactorMatches
+                                      || !fieldsMatch)) {
+                            std::cerr << "MLINESTYLE proof details: common="
+                                      << commonMatches << " reactors="
+                                      << reactorMatches << " fields="
+                                      << fieldsMatch << " handle="
+                                      << actual.handle << " owner="
+                                      << actual.parentHandle << " sourceOwner="
+                                      << owner << " appData="
+                                      << actual.appData.size() << " react="
+                                      << actual.reactorHandles.size()
+                                      << " type=" << actual.tType
+                                      << " sourceType=" << source.tType
+                                      << " h/type/owner/xdict/react/meta="
+                                      << handleMatches << '/' << typeMatches
+                                      << '/' << ownerMatches << '/' << xdictMatches
+                                      << '/' << reactorsMatch << '/'
+                                      << metadataMatches
+                                      << " fillMethod="
+                                      << static_cast<unsigned>(actual.fillColorMethod)
+                                      << " sourceFillMethod="
+                                      << static_cast<unsigned>(source.fillColorMethod)
+                                      << " elements=" << actual.elements.size()
+                                      << '\n';
+                            for (std::size_t i = 0u;
+                                 i < actual.elements.size(); ++i) {
+                                const auto& value = actual.elements[i];
+                                std::cerr << "MLINESTYLE element " << i
+                                          << " offset=" << value.offset
+                                          << " color=" << value.color
+                                          << " method="
+                                          << static_cast<unsigned>(value.colorMethod)
+                                          << " index=" << value.linetypeIndex
+                                          << " name=" << value.linetype;
+                                if (i < source.elements.size())
+                                    std::cerr << " sourceOffset="
+                                        << source.elements[i].offset
+                                        << " sourceColor="
+                                        << source.elements[i].color
+                                        << " sourceMethod="
+                                        << static_cast<unsigned>(source.elements[i].colorMethod)
+                                        << " sourceIndex="
+                                        << source.elements[i].linetypeIndex;
+                                std::cerr << '\n';
+                            }
+                        }
+                        if (!commonMatches)
+                            stagedFailure = "MLINESTYLE common fields";
+                        else if (!reactorMatches)
+                            stagedFailure = "MLINESTYLE reactor app-data";
+                        else if (!fieldsMatch)
+                            stagedFailure = "MLINESTYLE typed payload";
+                        return commonMatches && reactorMatches && fieldsMatch;
+                    });
+                if (!decoded)
+                    stagedFailure = "MLINESTYLE common/body fields or reactor role";
+                return decoded;
+            });
+        if (!inspected || !namesMatch
+            || seenStyles.size() != expectedStyles.size()
+            || seenOwners.size() != 1u || seenNods.size() != 1u)
+            return reject(stagedFailure);
+        m_dwgMLineStylesInspected = true;
+        return true;
+    } catch (...) {
+        m_dwgMLineStylesInspected = false;
+        return reject("exception during staged output inspection");
+    }
+}
+
 // Precharge the number of source elements and every byte that the selected
 // string comparisons could visit on each pass. Work remains unchanged on
 // failure; count admission precedes the sizing traversal itself.
@@ -50313,6 +50870,9 @@ bool dx_iface::finalizeDxfWrite() {
                     kMaxAdapterMLineDependencyProofWork,nullptr)))
         || !hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()
         || !hasUnchangedDwgMLeaderStyleOutputSources()
+        || !hasUnchangedDwgMLineStyleOutputSources()
+        || (!m_dwgMLineStyleOutputSources.empty()
+            && !m_dwgMLineStylesInspected)
         || (!m_dxfMLineLinetypes.empty() && !m_dxfMLineLinetypesInspected)
         || (!m_dxfMLineStyles.empty() && !m_dxfMLineStylesInspected)
         || (needsDxfMLineConsumerInspection() && m_dxfMLineConsumerInspected!=3u)) return false;
@@ -50717,6 +51277,12 @@ bool dx_iface::finalizeDxfWrite() {
         }
         if (m_dwgMLeaderStylesInspected) {
             for (const auto& proof : m_dwgMLeaderStyleOutputSources) {
+                if (!qualifyCapturedIdentity(proof.first))
+                    return false;
+            }
+        }
+        if (m_dwgMLineStylesInspected) {
+            for (const auto& proof : m_dwgMLineStyleOutputSources) {
                 if (!qualifyCapturedIdentity(proof.first))
                     return false;
             }
@@ -51863,6 +52429,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     m_dwgMLeaderStyleOutputOwner=nullptr;
     m_dwgMLeaderStyleOutputGeneration=0u;
     m_dwgMLeaderStylesInspected=false;
+    m_dwgMLineStyleOutputSources.clear();
+    m_dwgMLineStyleOutputOwner=nullptr;
+    m_dwgMLineStyleOutputGeneration=0u;
+    m_dwgMLineStylesInspected=false;
     m_dxfMLeaderStyleState={}; m_dxfMLeaderStylesInspected=false;
     m_dxfMLineLinetypes.clear();m_dxfMLineAppIds.clear();m_dxfMLineLinetypesInspected=false;m_dxfMLineLinetypeCount=0u;
     m_dxfMaterialWriteDictionaries.clear();
@@ -53108,6 +53678,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     if (!prepareDxfMLineStyles(v,binary,targetTextPolicy)) {
         reportPreflightFailure("MLINESTYLE current source/body transaction");
+        return false;
+    }
+    if (!prepareDwgMLineStyles(v)) {
+        reportPreflightFailure("MLINESTYLE DWG source/output snapshot");
         return false;
     }
     if (!prepareDxfMLeaderStyles(v, binary, targetTextPolicy)) {
@@ -55301,6 +55875,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     const bool needsDwgScaleOutput = !m_dwgScaleOutputSources.empty();
     const bool needsDwgMLeaderStyleOutput =
         !m_dwgMLeaderStyleOutputSources.empty();
+    const bool needsDwgMLineStyleOutput =
+        !m_dwgMLineStyleOutputSources.empty();
     const bool needsDwgAssociativeVariableOutput =
         !m_dwgAssociativeVariableSources.empty();
     const bool needsDwgAssociativeDimensionDependencyOutput =
@@ -55311,6 +55887,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             || needsDwgScaleOutput
             || !m_dxfMLineStyles.empty() || !m_dxfMLeaderStyles.empty()
             || needsDwgMLeaderStyleOutput
+            || needsDwgMLineStyleOutput
             || needsVisualStyleOutput
             || needsDwgAssociativeVariableOutput
             || needsDwgAssociativeDimensionDependencyOutput
@@ -55321,7 +55898,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             || !m_dwgSortEntsOutputSources.empty()
             || !m_dxfAssociativeGeometrySources.empty()
             || !m_dxfAssociativeValueSources.empty())
-        && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput, needsVisualStyleOutput, needsDwgDictionaryVarOutput, needsDwgScaleOutput, needsDwgMLeaderStyleOutput, needsDwgAssociativeVariableOutput, needsDwgAssociativeDimensionDependencyOutput, debug, requireResolvedOwners](const auto& view) {
+        && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput, needsVisualStyleOutput, needsDwgDictionaryVarOutput, needsDwgScaleOutput, needsDwgMLeaderStyleOutput, needsDwgMLineStyleOutput, needsDwgAssociativeVariableOutput, needsDwgAssociativeDimensionDependencyOutput, debug, requireResolvedOwners](const auto& view) {
             const auto reject = [debug, requireResolvedOwners](
                     const char* stage) {
                 if (debug || requireResolvedOwners)
@@ -55374,6 +55951,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             if (needsDwgMLeaderStyleOutput
                 && !inspectDwgMLeaderStyles(view))
                 return reject("MLEADERSTYLE DWG physical source/output binding");
+            if (needsDwgMLineStyleOutput
+                && !inspectDwgMLineStyles(
+                    view, debug || requireResolvedOwners))
+                return reject("MLINESTYLE DWG physical source/output binding");
             if (needsVisualStyleOutput
                 && !inspectDxfVisualStyles(view, debug))
                 return reject("VISUALSTYLE physical source identity/field binding");
