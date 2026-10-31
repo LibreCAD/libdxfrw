@@ -10753,7 +10753,10 @@ void testAssociativeVariableGenerated(TestContext& t) {
     constexpr std::uint32_t parentHandle = 0xA009u;
     constexpr std::uint32_t owningNetworkHandle = 0xA010u;
 
-    const auto makeVariable = [&](std::int32_t valueCode) {
+    const auto makeVariable = [&](std::int32_t valueCode,
+                                  std::int32_t ownedDependencyCount = 0,
+                                  std::uint8_t ownedDependencyCode =
+                                      DRW::DwgHardOwnership) {
         dwgBufferW object;
         dwgBufferW strings;
         object.putObjType(DRW::AC1024, classNumber);
@@ -10781,6 +10784,10 @@ void testAssociativeVariableGenerated(TestContext& t) {
         object.putBit(1u); // has_t78
         strings.putVariableText(DRW::AC1024, "");
         object.putBit(0u); // b290
+        object.putBitShort(static_cast<std::int16_t>(
+            ownedDependencyCount));
+        if (ownedDependencyCount == 1)
+            object.putBitShort(0); // observed uninterpreted suffix marker
 
         Frame frame;
         const bool stringsAdded = appendStringStream(object, strings);
@@ -10789,6 +10796,9 @@ void testAssociativeVariableGenerated(TestContext& t) {
         object.putHandle(reference(
             DRW::DwgSoftPointer, owningNetworkHandle));
         object.putHandle(reference(DRW::DwgHardOwnership, 0u));
+        for (std::int32_t index = 0; index < ownedDependencyCount; ++index)
+            object.putHandle(reference(ownedDependencyCode,
+                                       sourceHandle + 5u));
         object.alignToByte();
         const bool frameBuilt = stringsAdded && object.isGood()
             && object.bitCount() >= frame.objectEndBit
@@ -10804,8 +10814,13 @@ void testAssociativeVariableGenerated(TestContext& t) {
             ? bytes : std::vector<std::uint8_t>{};
     };
 
-    for (const std::int32_t valueCode : {40, 90}) {
-        std::vector<std::uint8_t> bytes = makeVariable(valueCode);
+    const std::array<std::pair<std::int32_t, std::int32_t>, 3>
+        variableProfiles{{{40, 0}, {90, 0}, {90, 1}}};
+    for (const auto& profile : variableProfiles) {
+        const std::int32_t valueCode = profile.first;
+        const std::int32_t ownedDependencyCount = profile.second;
+        std::vector<std::uint8_t> bytes = makeVariable(
+            valueCode, ownedDependencyCount);
         AssociativeConstraintGroupDispatchReader reader(
             bytes, classNumber, "ACDBASSOCVARIABLE", "AcDbAssocVariable");
         PersistentManagerDispatchSink sink;
@@ -10819,6 +10834,13 @@ void testAssociativeVariableGenerated(TestContext& t) {
                 == owningNetworkHandle
             && sink.typed.front().m_associativeVariableFieldsParsed
             && sink.typed.front().m_associativeVariableWireComplete
+            && sink.typed.front().m_variableOwnedDependenciesParsed
+            && sink.typed.front().m_variableOwnedDependencies.size()
+                == static_cast<std::size_t>(ownedDependencyCount)
+            && sink.typed.front().m_variableSuffixMarkerPresent
+                == (ownedDependencyCount == 1)
+            && (!sink.typed.front().m_variableSuffixMarkerPresent
+                || sink.typed.front().m_variableSuffixMarker == 0)
             && sink.typed.front().m_variableClassVersion == 2
             && sink.typed.front().m_variableName == "BOLTHOLE"
             && sink.typed.front().m_variableExpression == "1"
@@ -10837,6 +10859,17 @@ void testAssociativeVariableGenerated(TestContext& t) {
                 == DRW_AssociativePrefixStatus::ParseStatus::Complete
             && sink.typed.front().m_prefixStatuses.back()
                    .m_decodedValueCount == 10u;
+        const bool ownedDependencyMatches = parsed
+            && sink.typed.front().m_prefixStatuses.back()
+                   .m_decodedHandleCount
+                == static_cast<std::size_t>(ownedDependencyCount)
+            && sink.typed.front().m_prefixStatuses.back()
+                   .m_decodedCountValue == ownedDependencyCount
+            && (ownedDependencyCount == 0
+                || (sink.typed.front().m_variableOwnedDependencies.front()
+                        .m_isOwned
+                    && sink.typed.front().m_variableOwnedDependencies.front()
+                        .m_handle == sourceHandle + 5u));
         const bool payloadMatches = parsed
             && (valueCode == 40
                 ? sink.typed.front().m_variableValueKind
@@ -10845,10 +10878,12 @@ void testAssociativeVariableGenerated(TestContext& t) {
                 : sink.typed.front().m_variableValueKind
                         == DRW_AssociativeObject::EvalVariantKind::Int32
                     && sink.typed.front().m_variableValueInt32 == 1);
-        t.expect(read && parsed && payloadMatches,
+        t.expect(read && parsed && payloadMatches && ownedDependencyMatches,
                  valueCode == 40
                     ? "AC1024 ASSOCVARIABLE real EvalVariant and string fields decode within exact spans"
-                    : "AC1024 ASSOCVARIABLE int32 EvalVariant and string fields decode within exact spans");
+                    : ownedDependencyCount == 0
+                        ? "AC1024 ASSOCVARIABLE int32 EvalVariant and empty dependency suffix decode within exact spans"
+                        : "AC1024 ASSOCVARIABLE captures its hard-owned value-dependency handle and zero suffix marker");
         if (parsed) {
             DRW_AssociativeObject copied(sink.typed.front());
             DRW_AssociativeObject assigned;
@@ -10856,6 +10891,8 @@ void testAssociativeVariableGenerated(TestContext& t) {
             t.expect(copied.m_associativeVariableFieldsParsed
                          && copied.m_variableValueCode == valueCode
                          && copied.m_variableName == "BOLTHOLE"
+                         && copied.m_variableOwnedDependencies.size()
+                            == static_cast<std::size_t>(ownedDependencyCount)
                          && assigned.m_associativeVariableWireComplete
                          && assigned.m_variableValueCode == valueCode
                          && assigned.m_variableExpression == "1",
@@ -10880,6 +10917,25 @@ void testAssociativeVariableGenerated(TestContext& t) {
                         .m_status
                     == DRW_AssociativePrefixStatus::ParseStatus::Missing,
              "unsupported ASSOCVARIABLE EvalVariant remains typed-shell-only without corrupting object dispatch");
+
+    const auto malformedOwnedSuffix = [&](std::int32_t count,
+                                          std::uint8_t handleCode) {
+        std::vector<std::uint8_t> bytes = makeVariable(90, count, handleCode);
+        AssociativeConstraintGroupDispatchReader reader(
+            bytes, classNumber, "ACDBASSOCVARIABLE", "AcDbAssocVariable");
+        PersistentManagerDispatchSink sink;
+        const bool read = !bytes.empty()
+            && reader.readObjects(bytes, {{sourceHandle, 0u, 0u}}, sink);
+        return read && sink.typed.size() == 1u
+            && sink.typed.front().m_associativeVariableFieldsParsed
+            && !sink.typed.front().m_associativeVariableWireComplete
+            && !sink.typed.front().m_variableOwnedDependenciesParsed
+            && reader.objectFailures() == 0u;
+    };
+    t.expect(malformedOwnedSuffix(1, DRW::DwgSoftPointer),
+             "wrong-role AC1024 variable child handle remains a partial soft-failed record");
+    t.expect(malformedOwnedSuffix(2, DRW::DwgHardOwnership),
+             "unwitnessed AC1024 variable child count remains a partial soft-failed record");
 }
 
 void testAssociativeConstraintGroupGenerated(TestContext& t) {

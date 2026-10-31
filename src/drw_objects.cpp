@@ -25510,6 +25510,10 @@ void DRW_AssociativeObject::reset() {
     m_geomDependentOnCompoundObject = false;
     m_associativeVariableFieldsParsed = false;
     m_associativeVariableWireComplete = false;
+    m_variableOwnedDependenciesParsed = false;
+    m_variableOwnedDependencies.clear();
+    m_variableSuffixMarkerPresent = false;
+    m_variableSuffixMarker = 0;
     m_variableClassVersion = 0;
     m_variableName.clear();
     m_variableExpression.clear();
@@ -28529,6 +28533,11 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         bool hasT78 = false;
         UTF8STRING t78;
         bool b290 = false;
+        std::int32_t ownedDependencyCount = 0;
+        std::int32_t suffixMarker = 0;
+        bool suffixMarkerPresent = false;
+        bool ownedDependenciesParsed = false;
+        std::vector<DRW_AssociativeHandleRef> ownedDependencies;
 
         if (version == DRW::AC1024 && objectDataEndKnown) {
             const bool separateStringBuffer = sBuf != buf;
@@ -28591,17 +28600,64 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
                                       objectDataEnd)
                 && objectBodyFitsSize(currentObjectDwgBit(textProbe),
                                       stringDataEnd);
-            wireComplete = fieldsComplete
-                && consumeZeroPaddingWithinBounds(
-                    &bodyProbe, objectDataEnd, 7u)
-                && consumeZeroPaddingWithinBounds(
-                    textProbe, stringDataEnd, 7u);
+            if (fieldsComplete) {
+                // The three current AC1024 source profiles have two exact
+                // suffix forms: BS(0) with no object-specific handle, or
+                // BS(1), BS(0) followed by one hard-owned child handle.
+                // The second BS is retained as an uninterpreted marker;
+                // its class-level meaning is not documented by the ODA spec
+                // or the available peer schema.
+                dwgBuffer bodySuffixProbe = bodyProbe;
+                dwgBuffer handleSuffixProbe = hBuff;
+                std::int32_t suffixCount = 0;
+                bool suffixComplete = readBitShortWithinBody(
+                    &bodySuffixProbe, version, objectDataEnd, suffixCount)
+                    && (suffixCount == 0 || suffixCount == 1);
+                if (suffixComplete && suffixCount == 1) {
+                    suffixMarkerPresent = true;
+                    suffixComplete = readBitShortWithinBody(
+                        &bodySuffixProbe, version, objectDataEnd,
+                        suffixMarker)
+                        && suffixMarker == 0;
+                }
+                suffixComplete = suffixComplete
+                    && currentObjectDwgBit(&bodySuffixProbe)
+                        == objectDataEnd;
+                if (suffixComplete && suffixCount == 1) {
+                    dwgHandle child;
+                    suffixComplete = readBoundedObjectHandle(
+                        handleSuffixProbe, handle, false, child,
+                        handleEndBit)
+                        && child.code == DRW::DwgHardOwnership
+                        && child.ref != 0u && child.ref != DRW::NoHandle;
+                    if (suffixComplete)
+                        ownedDependencies.push_back({true, child.ref});
+                }
+                if (suffixComplete)
+                    suffixComplete = consumeObjectHandleAlignmentPaddingWithinBounds(
+                        &handleSuffixProbe, handleEndBit);
+                if (suffixComplete) {
+                    ownedDependencyCount = suffixCount;
+                    bodyProbe = bodySuffixProbe;
+                    hBuff = handleSuffixProbe;
+                    wireComplete = consumeZeroPaddingWithinBounds(
+                            &bodyProbe, objectDataEnd, 7u)
+                        && consumeZeroPaddingWithinBounds(
+                            textProbe, stringDataEnd, 7u);
+                    ownedDependenciesParsed = wireComplete;
+                }
+            }
             if (fieldsComplete) {
                 *buf = bodyProbe;
                 if (separateStringBuffer)
                     *sBuf = stringProbe;
                 m_associativeVariableFieldsParsed = true;
                 m_associativeVariableWireComplete = wireComplete;
+                m_variableOwnedDependenciesParsed =
+                    ownedDependenciesParsed;
+                m_variableOwnedDependencies = std::move(ownedDependencies);
+                m_variableSuffixMarkerPresent = suffixMarkerPresent;
+                m_variableSuffixMarker = suffixMarker;
                 m_variableClassVersion = variableClassVersion;
                 m_variableName = std::move(variableName);
                 m_variableExpression = std::move(variableExpression);
@@ -28625,8 +28681,10 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
                 : (fieldsComplete
                     ? DRW_AssociativePrefixStatus::ParseStatus::Partial
                     : DRW_AssociativePrefixStatus::ParseStatus::Missing),
-            static_cast<std::uint16_t>(variableClassVersion), 0,
-            fieldsComplete ? 10u : 0u, 0);
+            static_cast<std::uint16_t>(variableClassVersion),
+            ownedDependenciesParsed ? ownedDependencyCount : 0u,
+            fieldsComplete ? 10u : 0u,
+            ownedDependenciesParsed ? ownedDependencyCount : 0);
     } else if (endsWith(rn, "ACTION") || endsWith(rn, "NETWORK")
                || endsWith(rn, "VARIABLE")
                || rn.find("2DCONSTRAINTGROUP") != std::string::npos) {

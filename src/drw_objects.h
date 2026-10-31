@@ -7327,6 +7327,12 @@ public:
   // DWG EvalVariant payload depends on its signed group-code discriminator.
   bool m_associativeVariableFieldsParsed = false;
   bool m_associativeVariableWireComplete = false;
+  bool m_variableOwnedDependenciesParsed = false;
+  std::vector<DRW_AssociativeHandleRef> m_variableOwnedDependencies;
+  // In the witnessed AC1024 suffix, a nonempty child list is followed by a
+  // zero BS marker. Preserve it without assigning an undocumented meaning.
+  bool m_variableSuffixMarkerPresent = false;
+  std::int32_t m_variableSuffixMarker = 0;
   std::int32_t m_variableClassVersion = 0;
   UTF8STRING m_variableName;
   UTF8STRING m_variableExpression;
@@ -7427,6 +7433,11 @@ private:
     m_associativeVariableFieldsParsed = o.m_associativeVariableFieldsParsed;
     m_associativeVariableWireComplete =
         o.m_associativeVariableWireComplete;
+    m_variableOwnedDependenciesParsed =
+        o.m_variableOwnedDependenciesParsed;
+    m_variableOwnedDependencies = o.m_variableOwnedDependencies;
+    m_variableSuffixMarkerPresent = o.m_variableSuffixMarkerPresent;
+    m_variableSuffixMarker = o.m_variableSuffixMarker;
     m_variableClassVersion = o.m_variableClassVersion;
     m_variableName = o.m_variableName;
     m_variableExpression = o.m_variableExpression;
