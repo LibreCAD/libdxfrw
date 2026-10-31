@@ -148,13 +148,11 @@ missing provider, remap, collision or composed output failure.
    bind the exact field layout and semantics, and implement only that witnessed
    profile. Keep unsupported geometry payloads refused while preserving current
    block-reference and ATTDEF ownership validation.
-3. Complete remaining CONTENTFORMAT strings and data/unit/domain/property
-   combinations beyond the now-supported text-style hard pointer at style and
-   per-content scopes (receipt:
-   `docs/research/rpp5z7-tablecontent-text-style-hard-pointer-2026-10-30.json`),
-   CELLSTYLEMAP body/property profiles, and uncovered border/override masks.
-   Cover only source- or consumer-backed scope combinations and version gates;
-   keep unsupported styles refused until schema and wire order are known.
+3. Complete only the remaining source- or consumer-backed CONTENTFORMAT string,
+   data/unit/domain/property combinations, CELLSTYLEMAP body/property profiles,
+   and uncovered border/override masks. Cover the witnessed scope combinations
+   and version gates; keep unsupported styles refused until schema and wire
+   order are known.
 4. Complete source-bound AC1018 TABLE body and merge/presence profiles beyond the
    selected field projections. Preserve explicit zero and absence separately; do
    not infer visibility polarity from field transport.
