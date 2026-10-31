@@ -62,18 +62,12 @@ P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
 **P4 next packet — bind physical BLOCKREPRESENTATIONDATA output.** Strict
-conversion of `title_block-arch.dwg` now advances past XRECORD `0x121F` and the
-admitted AC1024 R24 TABLESTYLE profile; staged OBJECTS inspection stops at
-`BLOCKREPRESENTATIONDATA source/reference/output binding`. Prove that physical
+conversion of `title_block-arch.dwg` now passes its earlier XRECORD and AC1024
+R24 TABLESTYLE blockers; staged OBJECTS inspection stops at
+`BLOCKREPRESENTATIONDATA source/reference/output binding`. Prove the physical
 record's staged fields, remapped owner and block-reference roles, and fresh
-readback, then retry strict conversion. The group-1071 XRECORD and inherited
-TABLESTYLE margin slices are complete only at their narrow transport/output
-scope; neither establishes native acceptance, semantic meaning, or a support
-claim. Their receipts are
-[`p4-xrecord-group1071-dwg-compatibility-2026-10-31.json`](docs/research/p4-xrecord-group1071-dwg-compatibility-2026-10-31.json)
-and
-[`p4-ac1024-tablestyle-inherited-margin-output-2026-10-31.json`](docs/research/p4-ac1024-tablestyle-inherited-margin-output-2026-10-31.json).
-Other source-specific evidence and bindings are recorded in:
+readback, then retry strict conversion. Existing narrow parser/serializer and
+source-handle evidence is recorded in:
 [`p4-ac1024-block-representation-data-output-2026-10-31.json`](docs/research/p4-ac1024-block-representation-data-output-2026-10-31.json),
 [`p4-ac1024-insert-block-record-source-handle-binding-2026-10-31.json`](docs/research/p4-ac1024-insert-block-record-source-handle-binding-2026-10-31.json),
 and [`p6-libre-dwg-associative-dxf-import-differential-2026-10-31.json`](docs/research/p6-libre-dwg-associative-dxf-import-differential-2026-10-31.json).
