@@ -9806,6 +9806,107 @@ bool dynamicBlockProxyNodeBodyClosure(const char* sourcePath) {
     return true;
 }
 
+bool dynamicBlockProxyNodeDxfReadback() {
+    const auto parse = [](bool extraBodyGroup, dx_data& data) {
+        // The public adapter establishes source context before handing the
+        // parsed records to dx_iface; this direct parser probe supplies that
+        // same context explicitly.
+        data.sourceFormat = dx_source_format::DXF;
+        data.sourceVersion = DRW::AC1024;
+        dx_iface iface;
+        iface.cData = &data;
+        dxfRW reader("generated-ac1024-dynamic-proxy-node");
+        std::string drawing =
+            "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1024\n"
+            "0\nENDSEC\n0\nSECTION\n2\nOBJECTS\n"
+            "0\nACDB_DYNAMICBLOCKPROXYNODE\n5\n10\n330\n20\n"
+            "100\nAcDbEvalExpr\n90\n226\n98\n33\n99\n29\n";
+        if (extraBodyGroup)
+            drawing += "70\n1\n";
+        drawing += "0\nENDSEC\n0\nEOF\n";
+        return reader.readAscii(&iface, true, drawing);
+    };
+
+    dx_data complete;
+    if (!parse(false, complete))
+        return fail("could not parse the locally authored AC1024 proxy-node DXF");
+    if (complete.sourceVersion != DRW::AC1024
+        || complete.dynamicBlockObjects.size() != 1u
+        || complete.rawDynamicBlockObjects.size() != 1u
+        || complete.rawDynamicBlockCaptureFailed
+        || complete.rawDynamicBlockRetainedRecords != 1u
+        || complete.rawDynamicBlockRawGroups != 6u) {
+        std::cerr << "proxy-node import observations: version="
+                  << static_cast<int>(complete.sourceVersion)
+                  << " typed=" << complete.dynamicBlockObjects.size()
+                  << " raw=" << complete.rawDynamicBlockObjects.size()
+                  << " rawFailed=" << complete.rawDynamicBlockCaptureFailed
+                  << " records=" << complete.rawDynamicBlockRetainedRecords
+                  << " groups=" << complete.rawDynamicBlockRawGroups << '\n';
+        return fail("AC1024 proxy-node raw companion capture was incomplete");
+    }
+    const DRW_RawDxfObject& raw = complete.rawDynamicBlockObjects.front();
+    if (raw.name != "ACDB_DYNAMICBLOCKPROXYNODE" || raw.handle != 0x10u
+        || raw.parentHandle != 0x20u || raw.m_version != DRW::AC1024
+        || raw.groups.size() != 6u || !raw.hasRawValues
+        || raw.rawValues.size() != raw.groups.size()
+        || raw.groups[0].code() != 5 || raw.groups[0].c_str() == nullptr
+        || std::string(raw.groups[0].c_str()) != "10"
+        || raw.groups[1].code() != 330 || raw.groups[1].c_str() == nullptr
+        || std::string(raw.groups[1].c_str()) != "20"
+        || raw.groups[2].code() != 100 || raw.groups[2].c_str() == nullptr
+        || std::string(raw.groups[2].c_str()) != "AcDbEvalExpr"
+        || raw.groups[3].code() != 90
+        || raw.groups[3].type() != DRW_Variant::INTEGER
+        || raw.groups[3].i_val() != 226
+        || raw.groups[4].code() != 98
+        || raw.groups[4].type() != DRW_Variant::INTEGER
+        || raw.groups[4].i_val() != 33
+        || raw.groups[5].code() != 99
+        || raw.groups[5].type() != DRW_Variant::INTEGER
+        || raw.groups[5].i_val() != 29)
+        return fail("dynamic proxy-node DXF raw carrier did not preserve exact fields");
+    const DRW_DynamicBlockObject& proxy =
+        complete.dynamicBlockObjects.front();
+    if (proxy.m_kind != DRW_DynamicBlockObject::Kind::EvalExprOnly
+        || proxy.m_recordName != "ACDB_DYNAMICBLOCKPROXYNODE"
+        || proxy.handle != 0x10u || proxy.parentHandle != 0x20u
+        || !proxy.m_evalExprParsed || !proxy.m_bodyFullyDecoded
+        || proxy.m_nodeId != 226u || proxy.m_major != 33u
+        || proxy.m_minor != 29u || proxy.m_valueCode != -9999)
+        return fail("AC1024 proxy-node DXF fields were not typed completely");
+
+    dx_data incomplete;
+    if (!parse(true, incomplete)
+        || incomplete.dynamicBlockObjects.size() != 1u
+        || incomplete.rawDynamicBlockObjects.size() != 1u
+        || incomplete.rawDynamicBlockObjects.front().groups.size() != 7u
+        || incomplete.rawDynamicBlockRawGroups != 7u
+        || incomplete.rawDynamicBlockObjects.front().groups.back().code() != 70
+        || incomplete.rawDynamicBlockObjects.front().groups.back().i_val() != 1
+        || incomplete.dynamicBlockObjects.front().m_bodyFullyDecoded)
+        return fail("proxy-node DXF parser did not retain an unknown trailing body group as raw-only");
+
+    dx_data overLimit;
+    overLimit.sourceFormat = dx_source_format::DXF;
+    overLimit.rawDynamicBlockRawGroups = 4000000u;
+    dx_iface limitedIface;
+    limitedIface.cData = &overLimit;
+    DRW_RawDxfObject nextDynamicRecord;
+    nextDynamicRecord.name = "ACDB_DYNAMICBLOCKPROXYNODE";
+    nextDynamicRecord.groups.emplace_back(100, std::string("AcDbEvalExpr"));
+    limitedIface.addRawDxfObject(nextDynamicRecord);
+    if (!overLimit.rawDynamicBlockCaptureFailed
+        || !overLimit.dynamicBlockCaptureFailed
+        || !overLimit.rawDynamicBlockObjects.empty())
+        return fail("dynamic-block raw group budget did not fail closed");
+
+    std::cerr << "AC1024 dynamic proxy-node DXF readback passed: exact body "
+              << "typed, trailing unknown group retained raw-only, and the "
+              << "aggregate raw group limit fails closed.\n";
+    return true;
+}
+
 bool dynamicBlockVisibilityComposedGraphOutputProfile() {
     constexpr std::uint32_t blockHandle = 0x127u;
     constexpr std::uint32_t dictionaryHandle = 0x1116u;
@@ -52016,6 +52117,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--dynamic-block-proxy-node-body-closure")
         return dynamicBlockProxyNodeBodyClosure(argv[2]) ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1]) == "--dynamic-block-proxy-node-dxf-readback")
+        return dynamicBlockProxyNodeDxfReadback() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--proxy-object-capture-limits")
         return proxyObjectCaptureLimitsFailClosed() ? 0 : 1;
     if (argc == 2

@@ -1,0 +1,72 @@
+{
+  "receiptVersion": 1,
+  "phase": "P5",
+  "profile": "bounded DXF dynamic-block raw companion capture and AC1024 proxy-node projection",
+  "state": "READ_CAPTURE_AND_SELECTED_TYPED_READBACK_PASS_OUTPUT_REPLAY_OPEN",
+  "input": {
+    "kind": "locally authored in-memory ASCII DXF strings in the focused adapter selector",
+    "record": "ACDB_DYNAMICBLOCKPROXYNODE",
+    "version": "AC1024",
+    "fixtureFileCreated": false,
+    "fixtureCommitted": false,
+    "acceptedBodyGroups": [
+      [100, "AcDbEvalExpr"],
+      [90, 226],
+      [98, 33],
+      [99, 29]
+    ],
+    "negativeBodyGroup": [70, 1]
+  },
+  "implementation": {
+    "rawCapture": {
+      "recordNameMatch": "ASCII case-insensitive equivalent of DRW_DynamicBlockObject::isDynamicBlockRecName",
+      "limits": {
+        "records": 100000,
+        "aggregateGroups": 4000000,
+        "aggregateRetainedBytes": "DRW::kMaxDxfBinaryPayloadBytes"
+      },
+      "failureBehavior": "sets rawDynamicBlockCaptureFailed and dynamicBlockCaptureFailed; export remains fail-closed"
+    },
+    "typedProxyNode": "Only the exact AC1024 EvalExpr body above is marked completely typed; a trailing group leaves it raw-only.",
+    "rawCarrier": "Retains ordered typed groups, ASCII source spellings, source version, handle and parent handle."
+  },
+  "validation": {
+    "build": [
+      "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4"
+    ],
+    "selectors": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-proxy-node-dxf-readback",
+        "result": "PASS",
+        "checks": "exact typed fields; ordered raw groups and spellings; trailing-group raw-only behavior; aggregate group-limit fail-closed behavior"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-proxy-node-body-closure tests/samples/AC1024/architectural_example-imperial.dwg",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-visibility-composed-graph",
+        "result": "PASS"
+      }
+    ],
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "79e60d8df833e608449b82f58eb0c4d9206e566845d75b84f9f09c731832e14a",
+      "dwg2dxf/dx_data.h": "30b5e39b5929625f6744ef1a857e1dfa9db833be776ad7347905a8d9e6a5e7bb",
+      "dwg2dxf/dx_iface.cpp": "62121dca1a81dfd1538dbaaf788df4a744db495a545007bda0cbc8bea8ae0463",
+      "tests/dwg2dxf_adapter_tests.cpp": "7a7a35064a2e72645b9aeeefa9f030409ff5652db65708a86eca5fd8aef2f6e5"
+    },
+    "executableSha256": {
+      "build-gcc/dwg2dxf/dwg2dxf": "859b7539496ad0ebd6ede5756269674f5432b39da783f49ad80e4f6b1f7eb7de",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "678b78005ad750ac67ced51cb22047488468dd5856d6fcf6108f6913995d6773"
+    }
+  },
+  "qualification": {
+    "DXFOriginRawReplay": false,
+    "allDynamicClassProjection": false,
+    "graphOwnerAndDependencyClosure": false,
+    "strictCompleteConversion": false,
+    "nativeDynamicBlockSemantics": false,
+    "supportClaimsPromoted": false
+  },
+  "next": "Complete missing bounded per-class DXF projections and output/replay routes, then bind and close the two source EvaluationGraphs and required descendants. Raw capture alone does not qualify replay or export."
+}

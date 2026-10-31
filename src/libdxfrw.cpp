@@ -20846,6 +20846,74 @@ bool dxfRW::processDynamicBlockObject() {
                 data.m_bodyFullyDecoded = completeBody
                     && sawPurgeSubclass && sawPurgeFlag;
             } else if (data.m_kind
+                           == DRW_DynamicBlockObject::Kind::EvalExprOnly
+                       && data.m_recordName
+                           == "ACDB_DYNAMICBLOCKPROXYNODE"
+                       && reader->getSourceVersion() == DRW::AC1024) {
+                // The AC1024 proxy-node witness has only the EvalExpr DXF
+                // subclass.  Keep the typed projection closed to this exact
+                // four-group body; future class revisions remain raw-only.
+                std::array<const DRW_Variant*, 4> body{};
+                std::size_t bodyCount = 0u;
+                bool inBody = false;
+                bool completeBody = true;
+                for (const DRW_Variant& group : raw.groups) {
+                    if (!inBody) {
+                        if (group.code() != 100
+                            || group.type() != DRW_Variant::STRING)
+                            continue;
+                        const char* marker = group.c_str();
+                        if (marker != nullptr
+                            && std::string_view(marker) == "AcDbEvalExpr") {
+                            inBody = true;
+                            body[bodyCount++] = &group;
+                        }
+                        continue;
+                    }
+                    if (bodyCount >= body.size()) {
+                        completeBody = false;
+                        break;
+                    }
+                    body[bodyCount++] = &group;
+                }
+                const auto integerGroup = [](const DRW_Variant* group,
+                                             int expectedCode,
+                                             std::int32_t& value) {
+                    if (group == nullptr || group->code() != expectedCode
+                        || group->type() != DRW_Variant::INTEGER
+                        || group->i_val()
+                            < std::numeric_limits<std::int32_t>::min()
+                        || group->i_val()
+                            > std::numeric_limits<std::int32_t>::max())
+                        return false;
+                    value = static_cast<std::int32_t>(group->i_val());
+                    return true;
+                };
+                std::int32_t nodeId = 0;
+                std::int32_t major = 0;
+                std::int32_t minor = 0;
+                completeBody = completeBody && inBody
+                    && bodyCount == body.size()
+                    && body[0] != nullptr && body[0]->code() == 100
+                    && body[0]->type() == DRW_Variant::STRING
+                    && body[0]->c_str() != nullptr
+                    && std::string_view(body[0]->c_str())
+                        == "AcDbEvalExpr"
+                    && integerGroup(body[1], 90, nodeId)
+                    && integerGroup(body[2], 98, major)
+                    && integerGroup(body[3], 99, minor)
+                    && nodeId >= 0 && major == 33 && minor == 29;
+                if (completeBody) {
+                    data.m_nodeId = static_cast<std::uint32_t>(nodeId);
+                    data.m_major = static_cast<std::uint32_t>(major);
+                    data.m_minor = static_cast<std::uint32_t>(minor);
+                    data.m_parentId =
+                        std::numeric_limits<std::uint32_t>::max();
+                    data.m_valueCode = -9999;
+                    data.m_evalExprParsed = true;
+                }
+                data.m_bodyFullyDecoded = completeBody;
+            } else if (data.m_kind
                            == DRW_DynamicBlockObject::Kind::GripLocationComponent
                        && data.m_recordName
                            == "BLOCKGRIPLOCATIONCOMPONENT"

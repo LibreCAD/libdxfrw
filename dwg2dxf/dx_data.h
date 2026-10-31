@@ -916,6 +916,14 @@ public:
     std::vector<DRW_DynamicBlockObject> dynamicBlockObjects;
     std::size_t dynamicBlockRetainedBytes{0};
     bool dynamicBlockCaptureFailed{false};
+    // Keep complete DXF callback carriers alongside typed dynamic-block
+    // objects. These container-lifetime counters are independent of a
+    // particular import receipt and fail closed with the typed capture.
+    std::vector<DRW_RawDxfObject> rawDynamicBlockObjects;
+    std::size_t rawDynamicBlockRetainedRecords{0};
+    std::size_t rawDynamicBlockRawGroups{0};
+    std::size_t rawDynamicBlockRetainedBytes{0};
+    bool rawDynamicBlockCaptureFailed{false};
     std::list<dx_ifaceBlock*>blocks;    //stores a copy of all blocks and the entities in it
     std::list<dx_ifaceImg*>images;      //temporary list to find images for link with DRW_ImageDef. Do not delete it!!
 

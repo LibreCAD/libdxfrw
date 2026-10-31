@@ -81,6 +81,7 @@ constexpr std::size_t kMaxAdapterCellStyleMapItems = 4000000u;
 constexpr std::size_t kMaxAdapterCellStyleMapRetainedBytes =
     DRW::kMaxDxfBinaryPayloadBytes;
 constexpr std::size_t kMaxAdapterDynamicBlockRecords = 100000u;
+constexpr std::size_t kMaxAdapterDynamicBlockRawGroups = 4000000u;
 // The existing AC1024 title_block-arch.dwg witness assigns AcDbEvalGraph
 // source handle 0x1117 CLASS number 511. This is its observed source oType;
 // DRW_EvaluationGraph::kDwgClassNum is the writer's canonical class slot.
@@ -4006,6 +4007,37 @@ bool asciiIdentifierEquals(std::string_view source,
             return false;
     }
     return true;
+}
+
+bool isDynamicBlockDxfRecordName(std::string_view name) noexcept {
+    const auto contains = [name](std::string_view token) {
+        if (token.empty() || token.size() > name.size())
+            return false;
+        for (std::size_t offset = 0u;
+             offset <= name.size() - token.size(); ++offset) {
+            if (asciiIdentifierEquals(name.substr(offset, token.size()),
+                                      token))
+                return true;
+        }
+        return false;
+    };
+    const auto endsWith = [name](std::string_view suffix) {
+        return suffix.size() <= name.size()
+            && asciiIdentifierEquals(
+                name.substr(name.size() - suffix.size()), suffix);
+    };
+    if (name.empty() || asciiIdentifierEquals(name, "BLOCK")
+        || asciiIdentifierEquals(name, "BLOCK_HEADER")
+        || asciiIdentifierEquals(name, "BLOCK_CONTROL")
+        || asciiIdentifierEquals(name, "BLOCK_RECORD")
+        || !contains("BLOCK"))
+        return false;
+    return endsWith("PARAMETER") || endsWith("ACTION")
+        || endsWith("GRIP") || endsWith("COMPONENT")
+        || contains("GRIPLOCATIONCOMPONENT") || contains("PROXYNODE")
+        || contains("PURGEPREVENTER")
+        || contains("PARAMDEPENDENCYBODY")
+        || contains("PROPERTIESTABLE") || contains("REPRESENTATION");
 }
 
 // A definition reachable through the image dictionary is a document root even
@@ -49937,6 +49969,7 @@ bool dx_data::hasUnchangedAcdsRawDxfSections() const noexcept {
 void dx_iface::addRawDxfObject(const DRW_RawDxfObject& data) {
     if (cData == nullptr)
         return;
+    const std::string_view normalizedName(data.name);
     retainTableResourceSource(data);
     observeResourceOrigin(nullptr,&data);
     observePlotStyleSource(nullptr,&data);
@@ -49985,6 +50018,39 @@ void dx_iface::addRawDxfObject(const DRW_RawDxfObject& data) {
             cData->proxyObjectRetainedBytes += estimatedBytes;
         } catch (...) {
             cData->proxyObjectCaptureFailed = true;
+        }
+        return;
+    }
+    if (isDynamicBlockDxfRecordName(normalizedName)) {
+        const auto reject = [this]() {
+            cData->rawDynamicBlockCaptureFailed = true;
+            cData->dynamicBlockCaptureFailed = true;
+        };
+        if (cData->rawDynamicBlockCaptureFailed)
+            return;
+        std::size_t estimatedBytes = 0u;
+        if (cData->sourceFormat != dx_source_format::DXF
+            || cData->rawDynamicBlockObjects.size()
+                >= kMaxAdapterDynamicBlockRecords
+            || cData->rawDynamicBlockRawGroups
+                > kMaxAdapterDynamicBlockRawGroups
+            || data.groups.size() > kMaxAdapterDynamicBlockRawGroups
+                                      - cData->rawDynamicBlockRawGroups
+            || !estimateRawDxfObjectListNodeBytes(data, estimatedBytes)
+            || cData->rawDynamicBlockRetainedBytes
+                > kMaxAdapterDynamicBlockRetainedBytes
+            || estimatedBytes > kMaxAdapterDynamicBlockRetainedBytes
+                                   - cData->rawDynamicBlockRetainedBytes) {
+            reject();
+            return;
+        }
+        try {
+            cData->rawDynamicBlockObjects.push_back(data);
+            ++cData->rawDynamicBlockRetainedRecords;
+            cData->rawDynamicBlockRawGroups += data.groups.size();
+            cData->rawDynamicBlockRetainedBytes += estimatedBytes;
+        } catch (...) {
+            reject();
         }
         return;
     }
@@ -50046,7 +50112,6 @@ void dx_iface::addRawDxfObject(const DRW_RawDxfObject& data) {
         return;
     }
 
-    const std::string_view normalizedName(data.name);
     if (asciiIdentifierEquals(normalizedName, "SPATIAL_FILTER")) {
         dx_spatialFilterImportReceipt& receipt =
             cData->spatialFilterImport;
