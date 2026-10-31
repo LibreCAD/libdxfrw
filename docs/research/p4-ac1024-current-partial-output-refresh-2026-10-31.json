@@ -41,5 +41,17 @@
     "This refresh does not prove exact physical MATERIAL fields, source-to-output identity for every record, consumer semantics, native platform behavior, or any support claim.",
     "No DWG/DXF fixture was added to the repository."
   ],
-  "nextAction": "The 54 geometry-dependency identities/roles are closed by p4-ac1024-geom-dependency-physical-identity-binding-2026-10-31.json. Continue with the eight physical DICTIONARYVAR source identities, owner/key roles, typed fields, ASCII/Binary readback, refusal and retry; do not repeat completed source profiles."
+  "afterBaselineProgress": [
+    {
+      "implementationCommit": "aa91ebcca7cbcd3a1e65a96d627eefe770d811aa",
+      "receipt": "p4-ac1024-xrecord-physical-output-readback-2026-10-31.json",
+      "result": "Eight physical XRECORD identities, owner/key roles, ordered payloads, ASCII/Binary readback, rollback and retry closed."
+    },
+    {
+      "implementationCommit": "47751f0f84a3e1779a30f76e98bd3e579feaff40",
+      "receipt": "p4-ac1024-dictionaryvar-physical-output-readback-2026-10-31.json",
+      "result": "Eight physical DICTIONARYVAR identities, owner/key roles, schema/value fields, ASCII/Binary readback, rollback and retry closed."
+    }
+  ],
+  "nextAction": "Qualify the three physical AC1024 MATERIAL identities, owner/extension-dictionary/reactor roles and admitted fields with ASCII/Binary output inspection, fresh typed readback, atomic refusal and corrected retry; see p4-ac1024-material-xdict-transport-2026-10-31.json for the remaining physical evidence gap."
 }
