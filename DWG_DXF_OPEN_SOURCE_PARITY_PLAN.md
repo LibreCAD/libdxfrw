@@ -57,6 +57,21 @@ close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
+**Next P5 implementation packet:** resolve the physical AC1024
+`VISUALSTYLE carrier coverage` preflight refusal before associative graph
+traversal. On the current mechanical witness
+(`/Users/dli/doc/dwg/mechanical_example-imperial.dwg`, SHA-256
+`854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858`), the
+diagnostic trace records 19 VISUALSTYLE parse callbacks and stops because typed
+and raw carrier coverage does not reconcile. Trace each source record's fields,
+owner, and style references against the typed writer; admit only a fully
+source-bound output route, otherwise preserve refusal. Add a locally generated
+ASCII/Binary selector for exact field/reference readback, bad-target refusal,
+destination preservation, and corrected retry. Re-run the partial physical
+diagnostic after the slice; keep strict admission closed while any required
+profile or the 228 opaque callback identities remain uncovered. Receipt:
+`docs/research/p4-ac1024-nested-network-sortents-output-2026-10-30.json`.
+
 ## Parked P2 — nested named-resource bodies
 
 There is no selected P2 implementation packet, so this phase is not an item in
@@ -95,12 +110,12 @@ engines.
    Implement only the highest-incidence required profile still lacking that
    proof. Keep unresolved records refused. Never weaken the completeness
    predicate, emit a partial graph, or infer edges from adjacent handle values.
-3. **Recursive closure:** when output reaches a dependency without a qualified
-   provider, resolve that source-required role and its descendants. Reuse existing
-   dictionary, XRECORD, group, layout, picture-block, nested-INSERT, attribute,
-   compound-child and SORT-order providers; add only the missing edge/profile.
-   Distinguish legal reference cycles from invalid ownership and enforce bounded
-   work once.
+3. **Recursive closure:** follow only source-required edges reached from the
+   admitted graph. Reuse a qualified provider when it closes the exact target
+   role; otherwise resolve that source-required body and its descendants, and
+   add only the missing edge/profile. Distinguish legal reference cycles from
+   invalid ownership and enforce bounded work once. Previously completed
+   providers are not separate queue items.
 4. **Failure behavior:** for each newly admitted graph profile, reject missing
    reachable bodies, wrong owners/types/roles, aliases and late mutation wherever
    they invalidate conversion. Verify whole-operation destination publication,
