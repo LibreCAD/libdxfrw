@@ -28877,6 +28877,7 @@ bool dxfRW::writeDimensionAssociation(DRW_DimensionAssociation *ent) {
 bool dxfRW::writeAssociativeDependency(DRW_AssociativeObject *ent) {
     if (!preflightTableEntry(ent) || ent == nullptr || writer == nullptr
         || version != DRW::AC1024 || !ent->m_dependencyFieldsParsed
+        || !ent->m_dependencyWireComplete
         || ent->handle == 0 || ent->handle == DRW::NoHandle
         || ent->m_classVersion > 3u
         || (ent->m_writeDependencyHandle != 0u
@@ -29238,6 +29239,9 @@ bool dxfRW::writeAssociativeVariable(DRW_AssociativeObject *ent) {
         || ent->m_variableClassVersion != 2
         || ent->m_classVersion != 1u
         || ent->m_owningNetworkHandle == 0u
+        || ent->m_maxDependencyIndex < 0
+        || static_cast<std::size_t>(ent->m_maxDependencyIndex)
+            > kMaxAssociativeReferences
         || ent->m_actionBodyHandle != 0u
         || !ent->m_dependencies.empty()
         || !ent->m_ownedParams.empty()

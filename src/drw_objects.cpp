@@ -25506,6 +25506,7 @@ void DRW_AssociativeObject::reset() {
     m_dxfVariableEvaluatorBytes = 0u;
     m_dxfVariableDescriptionBytes = 0u;
     m_dxfVariableT78Bytes = 0u;
+    m_dxfDependencyNameBytes = 0u;
     m_persistentSubentityCount = 0;
     m_persistentSubentityHandles.clear();
     m_persistentUnknown0 = 0;
@@ -25524,6 +25525,7 @@ void DRW_AssociativeObject::reset() {
     m_readDependencyHandle = 0;
     m_writeDependencyHandle = 0;
     m_dependencyFieldsParsed = false;
+    m_dependencyWireComplete = false;
     m_dependencyIsRead = false;
     m_dependencyIsWrite = false;
     m_dependencyIsAttachedToObject = false;
@@ -25547,6 +25549,7 @@ void DRW_AssociativeObject::reset() {
     m_dxfAssociativeActionSubclass = false;
     m_dxfAssociativeNetworkSubclass = false;
     m_dxfAssociativeVariableSubclass = false;
+    m_dxfAssociativeDependencySubclass = false;
     m_dxfAssociativeActionIntIndex = 0;
     m_dxfAssociativeActionOwnerSeen = false;
     m_dxfAssociativeActionBodySeen = false;
@@ -25561,6 +25564,12 @@ void DRW_AssociativeObject::reset() {
     m_dxfAssociativeVariableDiscriminatorSeen = false;
     m_dxfAssociativeVariableBoolIndex = 0;
     m_dxfAssociativeVariableUnexpectedField = false;
+    m_dxfAssociativeDependencyIntIndex = 0;
+    m_dxfAssociativeDependencyBoolIndex = 0;
+    m_dxfAssociativeDependencyHandleIndex = 0;
+    m_dxfAssociativeDependencyNameSeen = false;
+    m_dxfAssociativeDependencyBodyHandleSeen = false;
+    m_dxfAssociativeDependencyUnexpectedField = false;
     m_dxfGeomClassVersionPresent = false;
     m_dxfGeomEnabledPresent = false;
     m_dxfGeomSubentityClassNamePresent = false;
@@ -25595,11 +25604,25 @@ bool DRW_AssociativeObject::parseCode(
                 m_dxfAssociativeNetworkOwnedActionCount);
         m_networkFieldsParsed = actionPrefixComplete && networkCountsComplete;
     };
+    const auto updateAssociativeDependencyStatus = [this]() {
+        const bool nameStateComplete = m_dependencyNamePresent
+            ? m_dxfAssociativeDependencyNameSeen
+            : !m_dxfAssociativeDependencyNameSeen
+                && m_dependencyName.empty();
+        m_dependencyFieldsParsed =
+            !m_dxfAssociativeDependencyUnexpectedField
+            && m_dxfAssociativeDependencyIntIndex == 4u
+            && m_dxfAssociativeDependencyBoolIndex == 5u
+            && m_dxfAssociativeDependencyHandleIndex == 3u
+            && m_dxfAssociativeDependencyBodyHandleSeen
+            && nameStateComplete;
+    };
     if (code == 100) {
         const std::string_view subclass = reader->getStringView();
         m_dxfAssociativeActionSubclass = false;
         m_dxfAssociativeNetworkSubclass = false;
         m_dxfAssociativeVariableSubclass = false;
+        m_dxfAssociativeDependencySubclass = false;
         m_dxfAssociativeGeomSubclass = 0;
         m_dxfPersistentSubentityBody = false;
         if (subclass == "AcDbAssocAction") {
@@ -25637,6 +25660,17 @@ bool DRW_AssociativeObject::parseCode(
             return true;
         }
         if (subclass == "AcDbAssocDependency") {
+            m_dxfAssociativeDependencySubclass = true;
+            m_dxfAssociativeDependencyIntIndex = 0u;
+            m_dxfAssociativeDependencyBoolIndex = 0u;
+            m_dxfAssociativeDependencyHandleIndex = 0u;
+            m_dxfAssociativeDependencyNameSeen = false;
+            m_dxfAssociativeDependencyBodyHandleSeen = false;
+            m_dxfAssociativeDependencyUnexpectedField = false;
+            m_dependencyFieldsParsed = false;
+            m_dependencyWireComplete = false;
+            m_dependencyName.clear();
+            m_dependencyNamePresent = false;
             return true;
         }
         if (subclass == "AcDbAssocGeomDependency") {
@@ -25853,6 +25887,143 @@ bool DRW_AssociativeObject::parseCode(
             && m_dxfAssociativeVariableDiscriminatorSeen
             && m_variableValueParsed
             && m_dxfAssociativeVariableBoolIndex == 2u;
+        return true;
+    }
+    if (m_dxfAssociativeDependencySubclass) {
+        if (code == 90) {
+            const std::int32_t value = reader->getInt32();
+            switch (m_dxfAssociativeDependencyIntIndex) {
+            case 0:
+                if (value < 0 || value > 3) {
+                    m_dxfAssociativeDependencyUnexpectedField = true;
+                } else {
+                    m_classVersion = static_cast<std::uint16_t>(value);
+                }
+                break;
+            case 1:
+                m_status = value;
+                break;
+            case 2:
+                if (m_dxfAssociativeDependencyBoolIndex != 4u)
+                    m_dxfAssociativeDependencyUnexpectedField = true;
+                m_dependencyOrder = value;
+                break;
+            case 3:
+                if (m_dxfAssociativeDependencyBoolIndex != 5u
+                    || m_dxfAssociativeDependencyHandleIndex != 3u
+                    || !m_dxfAssociativeDependencyBodyHandleSeen
+                    || (m_dependencyNamePresent
+                        != m_dxfAssociativeDependencyNameSeen)) {
+                    m_dxfAssociativeDependencyUnexpectedField = true;
+                }
+                m_dependencyBodyId = value;
+                break;
+            default:
+                m_dxfAssociativeDependencyUnexpectedField = true;
+                break;
+            }
+            if (m_dxfAssociativeDependencyIntIndex < 4u)
+                ++m_dxfAssociativeDependencyIntIndex;
+            else
+                m_dxfAssociativeDependencyUnexpectedField = true;
+            updateAssociativeDependencyStatus();
+            return true;
+        }
+        if (code == 290) {
+            const bool value = reader->getBool();
+            if (m_dxfAssociativeDependencyBoolIndex < 4u
+                && m_dxfAssociativeDependencyIntIndex == 2u) {
+                switch (m_dxfAssociativeDependencyBoolIndex) {
+                case 0: m_dependencyIsRead = value; break;
+                case 1: m_dependencyIsWrite = value; break;
+                case 2: m_dependencyIsAttachedToObject = value; break;
+                case 3:
+                    m_dependencyIsDelegatingToOwningAction = value;
+                    break;
+                default: break;
+                }
+            } else if (m_dxfAssociativeDependencyBoolIndex == 4u
+                       && m_dxfAssociativeDependencyIntIndex == 3u
+                       && m_dxfAssociativeDependencyHandleIndex == 1u) {
+                m_dependencyNamePresent = value;
+            } else {
+                m_dxfAssociativeDependencyUnexpectedField = true;
+            }
+            if (m_dxfAssociativeDependencyBoolIndex < 5u)
+                ++m_dxfAssociativeDependencyBoolIndex;
+            else
+                m_dxfAssociativeDependencyUnexpectedField = true;
+            updateAssociativeDependencyStatus();
+            return true;
+        }
+        if (code == 330) {
+            if (!reader->isValidHandleString())
+                return false;
+            const std::uint32_t value = reader->getHandleString();
+            if (m_dxfAssociativeDependencyIntIndex != 3u) {
+                m_dxfAssociativeDependencyUnexpectedField = true;
+            } else if (m_dxfAssociativeDependencyHandleIndex == 0u
+                       && m_dxfAssociativeDependencyBoolIndex == 4u) {
+                m_dependencyHandle = value;
+            } else if (m_dxfAssociativeDependencyBoolIndex == 5u
+                       && (m_dxfAssociativeDependencyHandleIndex == 1u
+                           || m_dxfAssociativeDependencyHandleIndex == 2u)
+                       && (!m_dependencyNamePresent
+                           || m_dxfAssociativeDependencyNameSeen)) {
+                if (m_dxfAssociativeDependencyHandleIndex == 1u)
+                    m_readDependencyHandle = value;
+                else {
+                    m_dependencyNodeHandle = value;
+                    m_writeDependencyHandle = value;
+                }
+            } else {
+                m_dxfAssociativeDependencyUnexpectedField = true;
+            }
+            if (!m_dxfAssociativeDependencyUnexpectedField
+                && m_dxfAssociativeDependencyHandleIndex < 3u)
+                ++m_dxfAssociativeDependencyHandleIndex;
+            updateAssociativeDependencyStatus();
+            return true;
+        }
+        if (code == 360) {
+            if (!reader->isValidHandleString())
+                return false;
+            if (m_dxfAssociativeDependencyIntIndex != 3u
+                || m_dxfAssociativeDependencyBoolIndex != 5u
+                || m_dxfAssociativeDependencyHandleIndex != 3u
+                || m_dxfAssociativeDependencyBodyHandleSeen
+                || (m_dependencyNamePresent
+                    != m_dxfAssociativeDependencyNameSeen)) {
+                m_dxfAssociativeDependencyUnexpectedField = true;
+            } else {
+                m_dependencyBodyHandle = reader->getHandleString();
+                m_dxfAssociativeDependencyBodyHandleSeen = true;
+            }
+            updateAssociativeDependencyStatus();
+            return true;
+        }
+        if (code == 1) {
+            if (m_dxfAssociativeDependencyIntIndex != 3u
+                || m_dxfAssociativeDependencyBoolIndex != 5u
+                || m_dxfAssociativeDependencyHandleIndex != 1u
+                || !m_dependencyNamePresent
+                || m_dxfAssociativeDependencyNameSeen) {
+                m_dxfAssociativeDependencyUnexpectedField = true;
+            } else {
+                std::string value = reader->getUtf8String();
+                if (!replaceDxfRetainedStringField(
+                        reader, m_dxfDependencyNameBytes,
+                        m_dependencyName, std::move(value)))
+                    return false;
+                m_dxfAssociativeDependencyNameSeen = true;
+            }
+            updateAssociativeDependencyStatus();
+            return true;
+        }
+        if (code >= 1000 && code <= 1071)
+            return DRW_TableEntry::parseCode(code, reader);
+        m_dxfAssociativeDependencyUnexpectedField = true;
+        m_dependencyFieldsParsed = false;
         return true;
     }
     if (m_dxfAssociativeGeomSubclass == 1) {
@@ -28250,6 +28421,13 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             m_classVersion, 0, 0, 0);
     }
 
+    if (version == DRW::AC1024 && m_dependencyFieldsParsed
+        && objectDataEndKnown) {
+        m_dependencyWireComplete =
+            consumeZeroPaddingWithinBounds(buf, objectDataEnd, 7u)
+            && consumeZeroPaddingWithinBounds(sBuf, stringDataEnd, 7u)
+            && consumeZeroPaddingWithinBounds(&hBuff, handleEndBit, 7u);
+    }
     if (commonHandlesOk) {
         parentHandle = parsedParentHandle;
         reactorHandles = std::move(parsedReactors);

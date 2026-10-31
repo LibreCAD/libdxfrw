@@ -2511,6 +2511,7 @@ void testAssociativeDependencyWriter(TestContext& t) {
                     dependency.m_classVersion = 3u;
                     dependency.m_status = -7;
                     dependency.m_dependencyFieldsParsed = true;
+                    dependency.m_dependencyWireComplete = true;
                     dependency.m_dependencyIsRead = (flags & 1u) != 0u;
                     dependency.m_dependencyIsWrite = (flags & 2u) != 0u;
                     dependency.m_dependencyIsAttachedToObject =
@@ -2595,21 +2596,30 @@ void testAssociativeDependencyWriter(TestContext& t) {
     t.expect(rejectedWithoutOutput(DRW::AC1024, incomplete),
              "partial associative dependency prefix refuses atomically");
 
+    DRW_AssociativeObject incompleteWire("ACDBASSOCVALUEDEPENDENCY");
+    incompleteWire.handle = 0x201u;
+    incompleteWire.m_dependencyFieldsParsed = true;
+    t.expect(rejectedWithoutOutput(DRW::AC1024, incompleteWire),
+             "unaccounted associative dependency suffix refuses atomically");
+
     DRW_AssociativeObject unsupportedVersion("ACDBASSOCDEPENDENCY");
     unsupportedVersion.handle = 0x200u;
     unsupportedVersion.m_dependencyFieldsParsed = true;
+    unsupportedVersion.m_dependencyWireComplete = true;
     t.expect(rejectedWithoutOutput(DRW::AC1027, unsupportedVersion),
              "unqualified associative dependency target version refuses atomically");
 
     DRW_AssociativeObject unsupportedClass("ACDBASSOCACTION");
     unsupportedClass.handle = 0x200u;
     unsupportedClass.m_dependencyFieldsParsed = true;
+    unsupportedClass.m_dependencyWireComplete = true;
     t.expect(rejectedWithoutOutput(DRW::AC1024, unsupportedClass),
              "unqualified associative class refuses atomically");
 
     DRW_AssociativeObject unsupportedGeom("ACDBASSOCGEOMDEPENDENCY");
     unsupportedGeom.handle = 0x200u;
     unsupportedGeom.m_dependencyFieldsParsed = true;
+    unsupportedGeom.m_dependencyWireComplete = true;
     unsupportedGeom.m_geomDependencyFieldsParsed = true;
     unsupportedGeom.m_geomClassVersion = 1;
     unsupportedGeom.m_geomPersistentSubentityClassName =
@@ -2620,6 +2630,7 @@ void testAssociativeDependencyWriter(TestContext& t) {
     DRW_AssociativeObject geomRetry("ACDBASSOCGEOMDEPENDENCY");
     geomRetry.handle = 0x220u;
     geomRetry.m_dependencyFieldsParsed = true;
+    geomRetry.m_dependencyWireComplete = true;
     geomRetry.m_geomDependencyFieldsParsed = true;
     geomRetry.m_geomPersistentSubentityClassName =
         "AcDbAssocSingleEdgePersSubentId";
@@ -2652,6 +2663,7 @@ void testAssociativeDependencyWriter(TestContext& t) {
     DRW_AssociativeObject inconsistentAlias("ACDBASSOCDEPENDENCY");
     inconsistentAlias.handle = 0x200u;
     inconsistentAlias.m_dependencyFieldsParsed = true;
+    inconsistentAlias.m_dependencyWireComplete = true;
     inconsistentAlias.m_dependencyNodeHandle = 0x202u;
     inconsistentAlias.m_writeDependencyHandle = 0x203u;
     t.expect(rejectedWithoutOutput(DRW::AC1024, inconsistentAlias),
@@ -2660,6 +2672,7 @@ void testAssociativeDependencyWriter(TestContext& t) {
     DRW_AssociativeObject unresolvedReference("ACDBASSOCDEPENDENCY");
     unresolvedReference.handle = 0x200u;
     unresolvedReference.m_dependencyFieldsParsed = true;
+    unresolvedReference.m_dependencyWireComplete = true;
     unresolvedReference.m_dependencyHandle = 0x201u;
     std::ostringstream unresolvedOutput;
     dxfRW unresolvedWriter("");
@@ -2679,6 +2692,7 @@ void testAssociativeDependencyWriter(TestContext& t) {
     rollbackRetry.handle = 0x210u;
     rollbackRetry.parentHandle = 0u;
     rollbackRetry.m_dependencyFieldsParsed = true;
+    rollbackRetry.m_dependencyWireComplete = true;
     rollbackRetry.m_dependencyNamePresent = true;
     rollbackRetry.m_dependencyName = "retry-name";
     const bool badExtDataAdded = rollbackRetry.addExtData(
@@ -2712,6 +2726,7 @@ void testAssociativeDependencyWriter(TestContext& t) {
     corrected.handle = 0x200u;
     corrected.parentHandle = 0u;
     corrected.m_dependencyFieldsParsed = true;
+    corrected.m_dependencyWireComplete = true;
     corrected.m_dependencyNamePresent = false;
     std::ostringstream retryOutput;
     dxfRW retryWriter("");

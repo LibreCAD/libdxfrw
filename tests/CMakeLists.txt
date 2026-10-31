@@ -2332,15 +2332,15 @@ set_tests_properties(dwg2dxf_associative_source_handle_reservation PROPERTIES
     TIMEOUT 15
 )
 
-# Exercise the admitted AC1024 DWG-root network + fully consumed variable graph
-# through strict document output, remapped identities, independent readback,
-# whole-file rollback after a late record failure, and corrected retry.
+# Exercise the admitted AC1024 DWG-root network + fully consumed variable and
+# value-dependency graph through strict document output, remapped identities,
+# exact wire inspection, readback, atomic refusal, and corrected retry.
 add_test(
-    NAME dwg2dxf_associative_dwg_root_network_variable_export
+    NAME dwg2dxf_associative_dwg_root_network_value_dependency_export
     COMMAND libdxfrw_dwg2dxf_adapter_tests
-        --associative-dwg-root-network-variable-export
+        --associative-dwg-root-network-value-dependency-export
 )
-set_tests_properties(dwg2dxf_associative_dwg_root_network_variable_export PROPERTIES
+set_tests_properties(dwg2dxf_associative_dwg_root_network_value_dependency_export PROPERTIES
     LABELS "fast;dxf;adapter;objects;associative;strict;writer"
     TIMEOUT 30
 )

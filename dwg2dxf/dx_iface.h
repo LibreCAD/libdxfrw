@@ -1885,6 +1885,9 @@ public:
                 written = dxfW->writeAssociativeNetwork(object);
             else if (object->m_recordName == "ACDBASSOCVARIABLE")
                 written = dxfW->writeAssociativeVariable(object);
+            else if (object->m_recordName
+                     == "ACDBASSOCVALUEDEPENDENCY")
+                written = dxfW->writeAssociativeDependency(object);
             if (!written)
                 return;
         }

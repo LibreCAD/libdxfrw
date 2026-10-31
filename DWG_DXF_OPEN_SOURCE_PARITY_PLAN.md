@@ -47,7 +47,7 @@ close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — remaining source-bound associative profiles and recursive closure | Current first investigation: establish the body, text, and handle-stream boundary and meaning of the unclassified suffix in the physical mechanical AC1024 `ACDBASSOCVARIABLE` witness. The ODA specification and LibreDWG schema corroborate its known prefix, not that suffix. Do not infer completion from zero padding. If independent evidence cannot define this suffix, keep the record ineligible and select another physical witness with a reproduced missing body or edge. For each admitted profile, prove its exact fields and roles, then close required descendants through source → planned → emitted output. | Keep every unsupported or uncorroborated profile raw and retain strict refusal for incomplete required graphs; use eligible repository inputs or locally authored fixtures. |
+| P4 | OPEN — physical associative profile admission and recursive closure | The source-authored AC1024 root-network → two variables → variable-owned value-dependency output path is implemented and has exact ASCII/Binary wire, remapped readback, refusal, and retry proof; remove graph-route construction for this profile from the queue (receipt: [`p4-ac1024-associative-value-dependency-document-output-2026-10-30.json`](docs/research/p4-ac1024-associative-value-dependency-document-output-2026-10-30.json)). Physical DWG records are still ineligible: their dependency body/text/handle spans are not fully decoded, and observed encoded handle-code sequences need reconciliation with field-role schema. The mechanical `ACDBASSOCVARIABLE` suffix is also unresolved. Admit only a source-backed profile whose required spans, roles, owners, and descendants are proven. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Implement only source- or consumer-witnessed gaps; keep unsupported profiles refused until their schema and wire layout are established. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -82,14 +82,18 @@ engines.
    qualified providers. Keep version-2 nonzero-seed registry layouts raw until
    their framing is proven. Keep investigation DWGs out of committed fixtures;
    bind regressions to eligible repository inputs or locally authored fixtures.
-2. **Next associative profile admission:** identify the next required body or
-   edge from a physical source before editing. Prove the class/version, bounded
-   span, exact field values, target roles and ownership; then reuse the existing
-   associative graph planner, identity bindings, and document writer. Add only
-   the missing provider, and prove its actual emitted fields independently and
-   by readback. Keep all other profiles raw or strictly refused until their
-   required bodies and descendant edges are qualified. Never emit a partial
-   graph or infer edges from adjacent handle values.
+2. **Next physical profile and edge admission:** the generated source-authored
+   value-dependency graph already exercises the selected graph planner, identity
+   bindings, document OBJECTS writer, exact wire inspection, and readback; do not
+   rebuild that route as a new task. Select a distinct physical-source-backed
+   missing body or edge before extending admission. Reconcile each encoded handle
+   code against the ODA layout and independent schema, prove class/version and
+   bounded body/text/handle spans, then add only the missing source decoder or
+   edge provider. Close required extension-dictionary and descendant edges before
+   enabling that physical profile in document output; independently inspect
+   emitted fields and read them back. Preserve unsupported tails and keep strict
+   refusal until required bodies and descendants are qualified. Never emit a
+   partial graph or infer edges from adjacent handle values.
 3. **Recursive closure:** when output reaches a dependency without a qualified
    provider, resolve that source-required role and its descendants. Reuse existing
    dictionary, XRECORD, group, layout, picture-block, nested-INSERT, attribute,

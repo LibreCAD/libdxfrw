@@ -8271,7 +8271,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                     != "ACDBASSOCNETWORK"
                                 || ownedMemberships != 1u
                                 || object.m_actionBodyHandle != 0u
-                                || object.m_maxDependencyIndex != 0
+                                || object.m_maxDependencyIndex < 0
+                                || static_cast<std::size_t>(
+                                    object.m_maxDependencyIndex)
+                                    > m_extensionGraphLimits.maxEdges
                                 || !object.m_dependencies.empty()
                                 || !object.m_ownedParams.empty()
                                 || !object.m_ownedActions.empty()
@@ -8292,6 +8295,151 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 return reject(
                                     ExtensionGraphFailure::InvalidGraph,
                                     "ACDBASSOCVARIABLE is outside the fully consumed, owned AC1024 action profile");
+                        } else if (layoutSymbolKey(object.m_recordName)
+                                   == "ACDBASSOCVALUEDEPENDENCY") {
+                            const auto owner = associativeRecords.find(
+                                object.parentHandle);
+                            const auto target = associativeRecords.find(
+                                object.m_dependencyHandle);
+                            const auto isVariable = [](
+                                    const DRW_AssociativeObject* candidate) {
+                                return candidate != nullptr
+                                    && layoutSymbolKey(
+                                        candidate->m_recordName)
+                                        == "ACDBASSOCVARIABLE";
+                            };
+                            const auto countOwnedAction = [](
+                                    const DRW_AssociativeObject& network,
+                                    std::uint32_t actionHandle) {
+                                return std::count_if(
+                                    network.m_actions.begin(),
+                                    network.m_actions.end(),
+                                    [actionHandle](
+                                            const DRW_AssociativeHandleRef& ref) {
+                                        return ref.m_handle == actionHandle
+                                            && ref.m_isOwned;
+                                    });
+                            };
+                            const DRW_AssociativeObject* ownerVariable =
+                                owner == associativeRecords.end()
+                                    ? nullptr : owner->second;
+                            const DRW_AssociativeObject* targetVariable =
+                                target == associativeRecords.end()
+                                    ? nullptr : target->second;
+                            const auto network = isVariable(ownerVariable)
+                                ? associativeRecords.find(
+                                    ownerVariable->m_owningNetworkHandle)
+                                : associativeRecords.end();
+                            const DRW_AssociativeObject* owningNetwork =
+                                network == associativeRecords.end()
+                                    ? nullptr : network->second;
+                            const std::size_t targetBacklinks =
+                                isVariable(targetVariable)
+                                    ? static_cast<std::size_t>(std::count(
+                                        targetVariable->reactorHandles.begin(),
+                                        targetVariable->reactorHandles.end(),
+                                        object.handle))
+                                    : 0u;
+                            const auto validDependencyPeer =
+                                [&](std::uint32_t peerHandle,
+                                    bool peerNode) {
+                                if (peerHandle == 0u)
+                                    return true;
+                                if (!isVariable(ownerVariable))
+                                    return false;
+                                const auto peerIt = associativeRecords.find(
+                                    peerHandle);
+                                if (peerIt == associativeRecords.end()
+                                    || peerHandle == object.handle)
+                                    return false;
+                                const DRW_AssociativeObject& peer =
+                                    *peerIt->second;
+                                if (layoutSymbolKey(peer.m_recordName)
+                                        != "ACDBASSOCVALUEDEPENDENCY"
+                                    || !peer.m_dependencyFieldsParsed
+                                    || !peer.m_dependencyWireComplete
+                                    || peer.m_classVersion != 1u
+                                    || peer.m_dependencyHandle
+                                        != object.m_dependencyHandle
+                                    || peer.m_dependencyBodyHandle != 0u
+                                    || peer.m_dependencyNamePresent
+                                    || !peer.m_dependencyName.empty())
+                                    return false;
+                                const auto peerOwner =
+                                    associativeRecords.find(
+                                        static_cast<std::uint32_t>(
+                                            peer.parentHandle));
+                                if (!isVariable(peerOwner
+                                        == associativeRecords.end()
+                                            ? nullptr : peerOwner->second))
+                                    return false;
+                                const DRW_AssociativeObject& peerOwnerVar =
+                                    *peerOwner->second;
+                                const auto peerNetwork =
+                                    associativeRecords.find(
+                                        peerOwnerVar.m_owningNetworkHandle);
+                                if (peerOwnerVar.parentHandle
+                                        != ownerVariable->m_owningNetworkHandle
+                                    || peerOwnerVar.m_owningNetworkHandle
+                                        != ownerVariable->m_owningNetworkHandle
+                                    || peerNetwork == associativeRecords.end()
+                                    || layoutSymbolKey(
+                                        peerNetwork->second->m_recordName)
+                                        != "ACDBASSOCNETWORK")
+                                    return false;
+                                return peerNode
+                                    ? peer.m_dependencyNodeHandle
+                                        == object.handle
+                                    : peer.m_readDependencyHandle
+                                        == object.handle;
+                            };
+                            const bool validPeerLinks =
+                                validDependencyPeer(
+                                    object.m_readDependencyHandle, true)
+                                && validDependencyPeer(
+                                    object.m_dependencyNodeHandle, false);
+                            if (!object.m_dependencyFieldsParsed
+                                || !object.m_dependencyWireComplete
+                                || object.m_classVersion != 1u
+                                || object.m_dependencyOrder != 0
+                                || object.m_dependencyHandle == 0u
+                                || object.m_dependencyHandle == DRW::NoHandle
+                                || object.m_dependencyBodyHandle != 0u
+                                || object.m_dependencyNamePresent
+                                || !object.m_dependencyName.empty()
+                                || object.m_prefixStatuses.size() != 1u
+                                || !completePrefix(
+                                    DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency,
+                                    1u, 4u, 0u, 0)
+                                || !isVariable(ownerVariable)
+                                || !ownerVariable->m_associativeVariableFieldsParsed
+                                || !ownerVariable->m_associativeVariableWireComplete
+                                || ownerVariable->m_maxDependencyIndex <= 0
+                                || !isVariable(targetVariable)
+                                || !targetVariable->m_associativeVariableFieldsParsed
+                                || !targetVariable->m_associativeVariableWireComplete
+                                || owningNetwork == nullptr
+                                || layoutSymbolKey(owningNetwork->m_recordName)
+                                    != "ACDBASSOCNETWORK"
+                                || !owningNetwork->m_networkFieldsParsed
+                                || owningNetwork->m_owningNetworkHandle != 0u
+                                || ownerVariable->m_owningNetworkHandle
+                                    != owningNetwork->handle
+                                || targetVariable->m_owningNetworkHandle
+                                    != owningNetwork->handle
+                                || ownerVariable->parentHandle
+                                    != owningNetwork->handle
+                                || targetVariable->parentHandle
+                                    != owningNetwork->handle
+                                || countOwnedAction(*owningNetwork,
+                                        ownerVariable->handle) != 1
+                                || countOwnedAction(*owningNetwork,
+                                        targetVariable->handle) != 1
+                                || targetBacklinks != 1u
+                                || !validPeerLinks)
+                                return reject(
+                                    ExtensionGraphFailure::InvalidGraph,
+                                    "ACDBASSOCVALUEDEPENDENCY is outside the fully consumed AC1024 variable-owned profile");
                         } else {
                             return reject(ExtensionGraphFailure::InvalidGraph,
                                 "associative record has no admitted AC1024 writer profile");
@@ -8560,9 +8708,12 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     }
                     break;
                 case Phase::AssociativeActions:
-                    if (frame.associative != nullptr
-                        && layoutSymbolKey(
-                            frame.associative->m_recordName)
+                    if (frame.associative == nullptr) {
+                        frame.index = 0;
+                        frame.phase = Phase::DefaultEntry;
+                        break;
+                    }
+                    if (layoutSymbolKey(frame.associative->m_recordName)
                             == "ACDBASSOCNETWORK"
                         && frame.index
                             < frame.associative->m_actions.size()) {
@@ -8575,10 +8726,32 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                             && visitedAssociatives.count(actionHandle) == 0u
                             && !queueTarget(actionHandle, false))
                             return false;
-                    } else {
-                        frame.index = 0;
-                        frame.phase = Phase::DefaultEntry;
+                        break;
                     }
+                    if (layoutSymbolKey(frame.associative->m_recordName)
+                            == "ACDBASSOCVALUEDEPENDENCY"
+                        && frame.index < 3u) {
+                        const DRW_AssociativeObject& dependency =
+                            *frame.associative;
+                        const std::uint32_t targetHandle =
+                            frame.index == 0u
+                                ? dependency.m_dependencyHandle
+                                : frame.index == 1u
+                                    ? dependency.m_readDependencyHandle
+                                    : dependency.m_dependencyNodeHandle;
+                        ++frame.index;
+                        if (targetHandle == 0u)
+                            break;
+                        if (!examineEdge())
+                            return false;
+                        if (visiting.count(targetHandle) == 0u
+                            && visitedAssociatives.count(targetHandle) == 0u
+                            && !queueTarget(targetHandle, false))
+                            return false;
+                        break;
+                    }
+                    frame.index = 0;
+                    frame.phase = Phase::DefaultEntry;
                     break;
                 case Phase::DefaultEntry:
                     if (frame.dictionaryWithDefault != nullptr) {
@@ -44458,7 +44631,9 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             }
             if (matches != 1u || selected == nullptr
                 || (selected->m_recordName != "ACDBASSOCNETWORK"
-                    && selected->m_recordName != "ACDBASSOCVARIABLE"))
+                    && selected->m_recordName != "ACDBASSOCVARIABLE"
+                    && selected->m_recordName
+                        != "ACDBASSOCVALUEDEPENDENCY"))
                 return false;
             auto& count = counts[selected->m_recordName];
             if (count == static_cast<std::size_t>(

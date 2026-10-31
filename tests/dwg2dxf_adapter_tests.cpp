@@ -28358,7 +28358,7 @@ bool associativeSourceHandleReservation() {
     return true;
 }
 
-bool associativeDwgRootNetworkVariableExport() {
+bool associativeDwgRootNetworkValueDependencyExport() {
     const auto nonce = std::chrono::steady_clock::now()
                            .time_since_epoch()
                            .count();
@@ -28401,6 +28401,7 @@ bool associativeDwgRootNetworkVariableExport() {
         network.m_networkVersion = 0;
         network.m_networkActionIndex = 1;
         network.m_actions.push_back({true, 0x903u});
+        network.m_actions.push_back({true, 0x904u});
         network.m_prefixStatuses.push_back({
             DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
             0u, 0u, 1u,
@@ -28410,7 +28411,7 @@ bool associativeDwgRootNetworkVariableExport() {
             DRW_AssociativePrefixStatus::Kind::AcDbAssocNetwork,
             0u, 0u, 1u,
             DRW_AssociativePrefixStatus::ParseStatus::Complete,
-            1u, 0u, 1, "authored root network profile"});
+            2u, 0u, 2, "authored root network profile"});
 
         DRW_AssociativeObject variable("ACDBASSOCVARIABLE");
         variable.handle = 0x903u;
@@ -28429,6 +28430,7 @@ bool associativeDwgRootNetworkVariableExport() {
         variable.m_variableValueKind =
             DRW_AssociativeObject::EvalVariantKind::Int32;
         variable.m_variableValueInt32 = 17;
+        variable.m_maxDependencyIndex = 1;
         variable.m_variableHasT78 = false;
         variable.m_variableB290 = false;
         variable.m_prefixStatuses.push_back({
@@ -28442,8 +28444,58 @@ bool associativeDwgRootNetworkVariableExport() {
             DRW_AssociativePrefixStatus::ParseStatus::Complete,
             0u, 10u, 0, "authored fully consumed variable profile"});
 
+        DRW_AssociativeObject targetVariable("ACDBASSOCVARIABLE");
+        targetVariable.handle = 0x904u;
+        targetVariable.parentHandle = network.handle;
+        targetVariable.reactorHandles.push_back(0x905u);
+        targetVariable.m_classVersion = 1u;
+        targetVariable.m_owningNetworkHandle = network.handle;
+        targetVariable.m_associativeVariableFieldsParsed = true;
+        targetVariable.m_associativeVariableWireComplete = true;
+        targetVariable.m_variableClassVersion = 2;
+        targetVariable.m_variableName = "TARGET_VALUE";
+        targetVariable.m_variableExpression = "17";
+        targetVariable.m_variableEvaluator =
+            "AcDbAssocExpressionEvaluator";
+        targetVariable.m_variableDescription = "dependency target";
+        targetVariable.m_variableValueParsed = true;
+        targetVariable.m_variableValueCode = 90;
+        targetVariable.m_variableValueKind =
+            DRW_AssociativeObject::EvalVariantKind::Int32;
+        targetVariable.m_variableValueInt32 = 17;
+        targetVariable.m_prefixStatuses.push_back({
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
+            0u, 0u, 1u,
+            DRW_AssociativePrefixStatus::ParseStatus::Complete,
+            2u, 0u, 0, "authored target-variable action"});
+        targetVariable.m_prefixStatuses.push_back({
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocVariable,
+            0u, 0u, 2u,
+            DRW_AssociativePrefixStatus::ParseStatus::Complete,
+            0u, 10u, 0, "authored fully consumed target variable"});
+
+        DRW_AssociativeObject valueDependency(
+            "ACDBASSOCVALUEDEPENDENCY");
+        valueDependency.handle = 0x905u;
+        valueDependency.parentHandle = variable.handle;
+        valueDependency.m_classVersion = 1u;
+        valueDependency.m_dependencyFieldsParsed = true;
+        valueDependency.m_dependencyWireComplete = true;
+        valueDependency.m_dependencyIsRead = true;
+        valueDependency.m_dependencyIsAttachedToObject = true;
+        valueDependency.m_dependencyIsDelegatingToOwningAction = true;
+        valueDependency.m_dependencyHandle = targetVariable.handle;
+        valueDependency.m_dependencyBodyId = 2;
+        valueDependency.m_prefixStatuses.push_back({
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency,
+            0u, 0u, 1u,
+            DRW_AssociativePrefixStatus::ParseStatus::Complete,
+            4u, 0u, 0, "authored fully consumed value-dependency profile"});
+
         source.dwgAssociativeObjects.push_back(network);
         source.dwgAssociativeObjects.push_back(variable);
+        source.dwgAssociativeObjects.push_back(targetVariable);
+        source.dwgAssociativeObjects.push_back(valueDependency);
         dx_associativeDwgImportReceipt& receipt =
             source.associativeDwgImport;
         receipt.generation = source.importGeneration;
@@ -28492,20 +28544,27 @@ bool associativeDwgRootNetworkVariableExport() {
             || !retainedDestination(sentinel))
             return fail("late associative write failure replaced the destination");
 
-        source.dwgAssociativeObjects[1].m_associativeVariableWireComplete =
-            true;
+        for (DRW_AssociativeObject& object : source.dwgAssociativeObjects) {
+            if (object.m_recordName == "ACDBASSOCVARIABLE")
+                object.m_associativeVariableWireComplete = true;
+        }
         exporter.invalidateVariableBeforeObjects = false;
         if (!exporter.fileExport(path.string(), DRW::AC1024, binary, &source,
                 false, true, dx_dxfSourceTextPolicy::Compatible,
                 DRW::DxfTextWritePolicy::RequireLossless,
                 dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
                 dx_dwgReadCompletenessPolicy::RequireComplete))
-            return fail("corrected AC1024 associative graph could not retry");
+            return fail("corrected AC1024 associative graph could not retry: "
+                + std::string(exporter.extensionGraphFailureName()) + ": "
+                + exporter.extensionGraphFailureDetail());
         if (countDxfRecord(path, binary, "ACDBASSOCNETWORK") != 1u
-            || countDxfRecord(path, binary, "ACDBASSOCVARIABLE") != 1u)
+            || countDxfRecord(path, binary, "ACDBASSOCVARIABLE") != 2u
+            || countDxfRecord(path, binary,
+                              "ACDBASSOCVALUEDEPENDENCY") != 1u)
             return fail("AC1024 associative graph output has missing or duplicate records");
 
         const auto readWireRecord = [&path, binary](const std::string& name,
+                std::size_t occurrence,
                 std::vector<std::pair<int, std::string>>& groups) {
             std::ifstream input(path, std::ios::binary);
             if (!input)
@@ -28523,8 +28582,13 @@ bool associativeDwgRootNetworkVariableExport() {
             while (wireReader->readRec(&code)) {
                 if (code == 0) {
                     const std::string value = wireReader->getString();
-                    if (inRecord)
-                        return !input.bad();
+                    if (inRecord) {
+                        if (occurrence == 0u)
+                            return !input.bad();
+                        --occurrence;
+                        groups.clear();
+                        inRecord = false;
+                    }
                     inRecord = value == name;
                     if (inRecord)
                         groups.emplace_back(code, value);
@@ -28560,17 +28624,27 @@ bool associativeDwgRootNetworkVariableExport() {
                 }
                 groups.emplace_back(code, std::move(value));
             }
-            return inRecord && !input.bad();
+            return inRecord && occurrence == 0u && !input.bad();
         };
         std::vector<std::pair<int, std::string>> networkWire;
         std::vector<std::pair<int, std::string>> variableWire;
-        if (!readWireRecord("ACDBASSOCNETWORK", networkWire)
-            || !readWireRecord("ACDBASSOCVARIABLE", variableWire)
-            || networkWire.size() != 20u || variableWire.size() != 22u)
+        std::vector<std::pair<int, std::string>> targetVariableWire;
+        std::vector<std::pair<int, std::string>> dependencyWire;
+        if (!readWireRecord("ACDBASSOCNETWORK", 0u, networkWire)
+            || !readWireRecord("ACDBASSOCVARIABLE", 0u, variableWire)
+            || !readWireRecord("ACDBASSOCVARIABLE", 1u,
+                               targetVariableWire)
+            || !readWireRecord("ACDBASSOCVALUEDEPENDENCY", 0u,
+                               dependencyWire)
+            || networkWire.size() != 21u || variableWire.size() != 22u
+            || targetVariableWire.size() != 25u
+            || dependencyWire.size() != 17u)
             return fail("could not inspect exact associative output group pairs");
         const std::string networkHandle = networkWire[1].second;
         const std::string associationDictionaryHandle = networkWire[3].second;
         const std::string variableHandle = variableWire[1].second;
+        const std::string targetVariableHandle = targetVariableWire[1].second;
+        const std::string dependencyHandle = dependencyWire[1].second;
         const std::vector<std::pair<int, std::string>> expectedNetworkWire{
             {0, "ACDBASSOCNETWORK"}, {5, networkHandle},
             {102, "{ACAD_REACTORS"}, {330, associationDictionaryHandle},
@@ -28578,26 +28652,47 @@ bool associativeDwgRootNetworkVariableExport() {
             {100, "AcDbAssocAction"}, {90, "1"}, {90, "0"},
             {330, "0"}, {360, "0"}, {90, "0"}, {90, "0"},
             {90, "0"}, {100, "AcDbAssocNetwork"}, {90, "0"},
-            {90, "1"}, {90, "1"}, {360, variableHandle}, {90, "0"}};
+            {90, "1"}, {90, "2"}, {360, variableHandle},
+            {360, targetVariableHandle}, {90, "0"}};
         const std::vector<std::pair<int, std::string>> expectedVariableWire{
             {0, "ACDBASSOCVARIABLE"}, {5, variableHandle},
             {330, networkHandle}, {100, "AcDbAssocAction"},
             {90, "1"}, {90, "0"}, {330, networkHandle}, {360, "0"},
-            {90, "0"}, {90, "0"}, {90, "0"},
+            {90, "0"}, {90, "1"}, {90, "0"},
             {100, "AcDbAssocVariable"}, {90, "2"},
             {1, "AUTHORED_VALUE"}, {1, "17"},
             {1, "AcDbAssocExpressionEvaluator"},
             {1, "locally authored graph test"}, {70, "90"}, {90, "17"},
             {290, "0"}, {1, ""}, {290, "0"}};
+        const std::vector<std::pair<int, std::string>> expectedTargetVariableWire{
+            {0, "ACDBASSOCVARIABLE"}, {5, targetVariableHandle},
+            {102, "{ACAD_REACTORS"}, {330, dependencyHandle},
+            {102, "}"}, {330, networkHandle},
+            {100, "AcDbAssocAction"}, {90, "1"}, {90, "0"},
+            {330, networkHandle}, {360, "0"}, {90, "0"}, {90, "0"},
+            {90, "0"}, {100, "AcDbAssocVariable"}, {90, "2"},
+            {1, "TARGET_VALUE"}, {1, "17"},
+            {1, "AcDbAssocExpressionEvaluator"},
+            {1, "dependency target"}, {70, "90"}, {90, "17"},
+            {290, "0"}, {1, ""}, {290, "0"}};
+        const std::vector<std::pair<int, std::string>> expectedDependencyWire{
+            {0, "ACDBASSOCVALUEDEPENDENCY"}, {5, dependencyHandle},
+            {330, variableHandle}, {100, "AcDbAssocDependency"},
+            {90, "1"}, {90, "0"}, {290, "1"}, {290, "0"},
+            {290, "1"}, {290, "1"}, {90, "0"},
+            {330, targetVariableHandle}, {290, "0"}, {330, "0"},
+            {330, "0"}, {360, "0"}, {90, "2"}};
         if (networkWire != expectedNetworkWire
-            || variableWire != expectedVariableWire)
+            || variableWire != expectedVariableWire
+            || targetVariableWire != expectedTargetVariableWire
+            || dependencyWire != expectedDependencyWire)
             return fail("associative output group-pair sequence or field roles changed");
 
         dx_data readback;
         dx_iface reader;
         if (!reader.fileImport(path.string(), &readback, false)
             || !readback.hasNamedObjectDictionary
-            || readback.associativeObjects.size() != 2u)
+            || readback.associativeObjects.size() != 4u)
             return fail("AC1024 associative graph output did not re-import");
         const auto rootEntry = std::find_if(
             readback.namedObjectDictionary.m_entries.begin(),
@@ -28628,11 +28723,28 @@ bool associativeDwgRootNetworkVariableExport() {
             readback.associativeObjects.begin(),
             readback.associativeObjects.end(),
             [](const DRW_AssociativeObject& object) {
-                return object.m_recordName == "ACDBASSOCVARIABLE";
+                return object.m_recordName == "ACDBASSOCVARIABLE"
+                    && object.m_variableName == "AUTHORED_VALUE";
+            });
+        const auto readTargetVariable = std::find_if(
+            readback.associativeObjects.begin(),
+            readback.associativeObjects.end(),
+            [](const DRW_AssociativeObject& object) {
+                return object.m_recordName == "ACDBASSOCVARIABLE"
+                    && object.m_variableName == "TARGET_VALUE";
+            });
+        const auto readValueDependency = std::find_if(
+            readback.associativeObjects.begin(),
+            readback.associativeObjects.end(),
+            [](const DRW_AssociativeObject& object) {
+                return object.m_recordName
+                    == "ACDBASSOCVALUEDEPENDENCY";
             });
         if (readNetwork == readback.associativeObjects.end()
-            || readVariable == readback.associativeObjects.end())
-            return fail("associative network/variable records are missing on readback");
+            || readVariable == readback.associativeObjects.end()
+            || readTargetVariable == readback.associativeObjects.end()
+            || readValueDependency == readback.associativeObjects.end())
+            return fail("associative network, variables, or value dependency are missing on readback");
         if (!readNetwork->m_networkFieldsParsed
             || readNetwork->m_classVersion != 1u
             || readNetwork->m_networkVersion != 0
@@ -28651,14 +28763,31 @@ bool associativeDwgRootNetworkVariableExport() {
         if (readNetwork->reactorHandles
             != std::vector<std::uint32_t>{dictionary->handle})
             return fail("associative network reactor reference changed on readback");
-        if (readNetwork->m_actions.size() != 1u
+        if (readNetwork->m_actions.size() != 2u
             || !readNetwork->m_actions.front().m_isOwned
-            || readNetwork->m_actions.front().m_handle != readVariable->handle)
+            || readNetwork->m_actions.front().m_handle != readVariable->handle
+            || !readNetwork->m_actions.back().m_isOwned
+            || readNetwork->m_actions.back().m_handle
+                != readTargetVariable->handle)
             return fail("associative network action target changed on readback");
         if (readVariable->parentHandle != readNetwork->handle)
             return fail("associative variable owner changed on readback");
         if (readVariable->m_owningNetworkHandle != readNetwork->handle)
             return fail("associative variable owning-network reference changed on readback");
+        if (readVariable->m_maxDependencyIndex != 1
+            || readTargetVariable->parentHandle != readNetwork->handle
+            || readTargetVariable->m_owningNetworkHandle != readNetwork->handle
+            || readTargetVariable->reactorHandles
+                != std::vector<std::uint32_t>{readValueDependency->handle}
+            || !readValueDependency->m_dependencyFieldsParsed
+            || readValueDependency->parentHandle != readVariable->handle
+            || readValueDependency->m_dependencyHandle
+                != readTargetVariable->handle
+            || readValueDependency->m_dependencyBodyHandle != 0u
+            || readValueDependency->m_dependencyBodyId != 2
+            || readValueDependency->m_dependencyNamePresent
+            || !readValueDependency->m_dependencyName.empty())
+            return fail("value-dependency owner, target, or payload fields changed on readback");
         if (readVariable->m_variableValueKind
                 != DRW_AssociativeObject::EvalVariantKind::Int32
             || readVariable->m_variableValueInt32 != 17
@@ -28700,6 +28829,28 @@ bool associativeDwgRootNetworkVariableExport() {
                 dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
                 dx_dwgReadCompletenessPolicy::RequireComplete))
             return fail("corrected associative graph could not retry after missing action target");
+        const std::uint32_t dependencyTarget =
+            source.dwgAssociativeObjects[3].m_dependencyHandle;
+        source.dwgAssociativeObjects[3].m_dependencyHandle = 0xDEADu;
+        {
+            std::ofstream output(path, std::ios::binary | std::ios::trunc);
+            if (!output || !(output << sentinel))
+                return fail("could not reseed value-dependency refusal sentinel");
+        }
+        if (exporter.fileExport(path.string(), DRW::AC1024, binary, &source,
+                false, true, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete)
+            || !retainedDestination(sentinel))
+            return fail("unresolved value-dependency target did not refuse atomically");
+        source.dwgAssociativeObjects[3].m_dependencyHandle = dependencyTarget;
+        if (!exporter.fileExport(path.string(), DRW::AC1024, binary, &source,
+                false, true, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete))
+            return fail("corrected value-dependency graph could not retry");
     }
     return true;
 }
@@ -40139,8 +40290,8 @@ int main(int argc, char** argv) {
         return associativeSourceHandleReservation() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1])
-            == "--associative-dwg-root-network-variable-export")
-        return associativeDwgRootNetworkVariableExport() ? 0 : 1;
+            == "--associative-dwg-root-network-value-dependency-export")
+        return associativeDwgRootNetworkValueDependencyExport() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--table-content-style-reference-census")
         return tableContentStyleReferenceCensus() ? 0 : 1;
