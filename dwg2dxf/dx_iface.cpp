@@ -49095,9 +49095,20 @@ bool dx_iface::finalizeDxfWrite() {
                                   : proof.definition.second))
                 return false;
         }
+        for (const DxfAssociativeGeometryOutputProof& proof :
+             m_dxfAssociativeGeometryOutputProofs) {
+            if (!qualifyCapturedIdentity(proof.sourceHandle))
+                return false;
+        }
+        for (const DxfAssociativeValueOutputProof& proof :
+             m_dxfAssociativeValueOutputProofs) {
+            if (!qualifyCapturedIdentity(proof.sourceHandle))
+                return false;
+        }
     }
     if (m_requireCompleteDwgOutputQualification && cData != nullptr
         && cData->sourceFormat == dx_source_format::DWG
+        && cData->dwgReadOutcome.attempted
         && !hasCompletePendingOpaqueDwgOutputQualification()) {
         try {
             std::cerr
