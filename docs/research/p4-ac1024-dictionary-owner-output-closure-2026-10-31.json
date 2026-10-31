@@ -2,10 +2,10 @@
   "schema": "libdxfrw.research-receipt.v1",
   "id": "p4-ac1024-dictionary-owner-output-closure-2026-10-31",
   "date": "2026-10-31",
-  "title": "AC1024 physical entity, LAYER and LAYOUT extension-dictionary output closure",
-  "status": "FIVE_PHYSICAL_DICTIONARY_GAPS_CLOSED_TWO_LAYER_TABLE_CONTROL_RECORDS_REMAIN",
+  "title": "AC1024 physical NOD and DICTIONARY owner output closure",
+  "status": "PHYSICAL_NOD_AND_DICTIONARY_IDENTITIES_CLOSED",
   "supportClaimEffect": "none",
-  "implementationCommit": "a53af55c",
+  "implementationCommit": "76a1f968",
   "source": {
     "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
     "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
@@ -20,96 +20,242 @@
   },
   "operation": {
     "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg --allow-partial-dwg-read -y -v2010 /private/tmp/libdxfrw-dictionary-owner-physical-20261031/converted.dxf",
-    "mode": "Explicit partial DWG read; strict-complete conversion refused the source because its DWG read disposition is incomplete.",
+    "mode": "Explicit partial DWG read; strict-complete export refuses because 228 opaque callback views have zero retained correlation frames.",
     "outputPath": "/private/tmp/libdxfrw-dictionary-owner-physical-20261031/converted.dxf",
-    "outputSha256": "1a065e22fbc22416703dfe62b599106989d1c4c998032fe0e2fa1abd1cce8b40",
-    "outputBytes": 449571,
+    "outputSha256": "801e3c91c64dab1af1e02c5da83e3adfcd77b8dc591f79b0afc2f5742352757f",
+    "outputBytes": 449807,
     "target": "AC1024 DXF, ASCII"
   },
   "outputReadback": {
-    "method": "dx_iface::fileImport through /private/tmp/dictionary_profile, followed by direct emitted ASCII group inspection",
+    "method": "Fresh dx_iface::fileImport on the exact physical partial DXF; direct independent inventory compares NOD and DICTIONARY identities, ordered entries, ownership, cloning and hard-owner flags.",
     "sourceIdentities": 24,
-    "readbackIdentities": 22,
-    "sameHandleIdentitiesPresent": 22,
-    "exactWholeDictionaryRecords": 20,
+    "readbackIdentities": 24,
+    "sameHandleIdentitiesPresent": 24,
+    "exactWholeDictionaryRecords": 22,
     "ownerParentHandleRemaps": [
-      {"dictionary": "28C", "sourceOwner": "28B", "outputOwner": "773", "role": "VIEWPORT"},
-      {"dictionary": "291", "sourceOwner": "290", "outputOwner": "774", "role": "VIEWPORT"}
+      {
+        "dictionary": "28C",
+        "sourceOwner": "28B",
+        "outputOwner": "773",
+        "role": "VIEWPORT"
+      },
+      {
+        "dictionary": "291",
+        "sourceOwner": "290",
+        "outputOwner": "774",
+        "role": "VIEWPORT"
+      }
     ],
-    "remainingMissingSourceHandles": ["2A2", "2A3"]
-  },
-  "readbackProbe": {
-    "source": "/private/tmp/dictionary_profile.cpp",
-    "sourceSha256": "109c23629beb34a4270fe095c4bd7954e8579c2e2a24fe88062ba3e0b1708adb",
-    "binary": "/private/tmp/dictionary_profile",
-    "binarySha256": "c025c69d3c14fbd10c1567f3dbdf8e98a7e071b4e3ad7b3df4cba54c413184ec",
-    "result": "source_root=1 source_dictionary_callbacks=23 source_total=24; output_root=1 output_dictionary_callbacks=21 output_total=22; identity_matches=22 exact_records=20."
+    "layerTableControlLink": {
+      "sourceControlHandle": "2",
+      "outputTableHeaderHandle": "2",
+      "sourceDictionary": "2A2",
+      "outputDictionary": "2A2",
+      "wireGroups": [
+        "5=2",
+        "102={ACAD_XDICTIONARY",
+        "360=2A2",
+        "102=}"
+      ],
+      "dictionaryEntry": {
+        "name": "ACAD_LAYERSTATES",
+        "handle": "2A3"
+      },
+      "childDictionary": {
+        "handle": "2A3",
+        "parent": "2A2",
+        "entries": 0
+      }
+    },
+    "remainingMissingSourceHandles": [],
+    "readbackProbe": {
+      "source": "/private/tmp/dictionary_profile.cpp",
+      "sourceSha256": "109c23629beb34a4270fe095c4bd7954e8579c2e2a24fe88062ba3e0b1708adb",
+      "binary": "/private/tmp/dictionary_profile_current",
+      "binarySha256": "1d4927617f7ff6f87b127212afa96bd1e50005210fdc18dfe97f1c75f09642b2",
+      "result": "source_root=1 source_dictionary_callbacks=23 source_total=24; output_root=1 output_dictionary_callbacks=23 output_total=24; identity_matches=24 exact_records=22."
+    },
+    "controlReadbackProbe": {
+      "source": "/private/tmp/layer_control_readback.cpp",
+      "sourceSha256": "9c48568babcc92eef9ced2e3238238ac479684aa11f7f2e44b85e6d70a2520aa",
+      "binary": "/private/tmp/layer_control_readback",
+      "binarySha256": "d8229337c45414ac5a4de52edab16aa00fc5d9c318805fe94515b3587f4f3718",
+      "result": "PASS: control=2 dictionary=2A2 child=2A3; exact owner and ACAD_LAYERSTATES entry confirmed."
+    }
   },
   "closedProfiles": [
     {
       "sourceDictionary": "E6",
-      "owner": {"type": "LAYER", "handle": "10", "name": "0"},
+      "owner": {
+        "type": "LAYER",
+        "handle": "10",
+        "name": "0"
+      },
       "outputOwnerXdict": "E6",
       "outputDictionaryParent": "10",
       "entries": []
     },
     {
       "sourceDictionary": "28C",
-      "sourceOwner": {"type": "VIEWPORT", "handle": "28B"},
-      "outputOwner": {"type": "VIEWPORT", "handle": "773", "xdict": "28C"},
+      "sourceOwner": {
+        "type": "VIEWPORT",
+        "handle": "28B"
+      },
+      "outputOwner": {
+        "type": "VIEWPORT",
+        "handle": "773",
+        "xdict": "28C"
+      },
       "outputDictionaryParent": "773",
-      "entry": {"name": "ASDK_XREC_ANNOTATION_SCALE_INFO", "handle": "28D"},
-      "xrecord": {"handle": "28D", "group90": ["1"], "group340": ["B7"]}
+      "entry": {
+        "name": "ASDK_XREC_ANNOTATION_SCALE_INFO",
+        "handle": "28D"
+      },
+      "xrecord": {
+        "handle": "28D",
+        "group90": [
+          "1"
+        ],
+        "group340": [
+          "B7"
+        ]
+      }
     },
     {
       "sourceDictionary": "291",
-      "sourceOwner": {"type": "VIEWPORT", "handle": "290"},
-      "outputOwner": {"type": "VIEWPORT", "handle": "774", "xdict": "291"},
+      "sourceOwner": {
+        "type": "VIEWPORT",
+        "handle": "290"
+      },
+      "outputOwner": {
+        "type": "VIEWPORT",
+        "handle": "774",
+        "xdict": "291"
+      },
       "outputDictionaryParent": "774",
-      "entry": {"name": "ASDK_XREC_ANNOTATION_SCALE_INFO", "handle": "292"},
-      "xrecord": {"handle": "292", "group90": ["1"], "group340": ["18B"]}
+      "entry": {
+        "name": "ASDK_XREC_ANNOTATION_SCALE_INFO",
+        "handle": "292"
+      },
+      "xrecord": {
+        "handle": "292",
+        "group90": [
+          "1"
+        ],
+        "group340": [
+          "18B"
+        ]
+      }
     },
     {
       "sourceDictionary": "2A7",
-      "owner": {"type": "LAYOUT", "handle": "59", "name": "Layout1"},
+      "owner": {
+        "type": "LAYOUT",
+        "handle": "59",
+        "name": "Layout1"
+      },
       "outputOwnerXdict": "2A7",
       "outputDictionaryParent": "59",
-      "entry": {"name": "ADSK_XREC_LAYOUTTHUMBNAIL", "handle": "2A8"},
-      "xrecord": {"handle": "2A8", "group310Chunks": 408, "payloadBytes": 51752}
+      "entry": {
+        "name": "ADSK_XREC_LAYOUTTHUMBNAIL",
+        "handle": "2A8"
+      },
+      "xrecord": {
+        "handle": "2A8",
+        "group310Chunks": 408,
+        "payloadBytes": 51752
+      }
     },
     {
       "sourceDictionary": "351",
-      "owner": {"type": "LAYOUT", "handle": "22", "name": "Model"},
+      "owner": {
+        "type": "LAYOUT",
+        "handle": "22",
+        "name": "Model"
+      },
       "outputOwnerXdict": "351",
       "outputDictionaryParent": "22",
-      "entry": {"name": "ADSK_XREC_LAYOUTTHUMBNAIL", "handle": "352"},
-      "xrecord": {"handle": "352", "group310Chunks": 702, "payloadBytes": 89128}
+      "entry": {
+        "name": "ADSK_XREC_LAYOUTTHUMBNAIL",
+        "handle": "352"
+      },
+      "xrecord": {
+        "handle": "352",
+        "group310Chunks": 702,
+        "payloadBytes": 89128
+      }
+    },
+    {
+      "sourceDictionary": "2A2",
+      "owner": {
+        "type": "Layer Table Control",
+        "handle": "2"
+      },
+      "outputTableHeader": {
+        "handle": "2",
+        "xDictionary": "2A2"
+      },
+      "outputDictionaryParent": "2",
+      "entry": {
+        "name": "ACAD_LAYERSTATES",
+        "handle": "2A3"
+      }
+    },
+    {
+      "sourceDictionary": "2A3",
+      "owner": {
+        "type": "DICTIONARY",
+        "handle": "2A2"
+      },
+      "outputDictionaryParent": "2A2",
+      "entries": []
     }
   ],
-  "remainingProfile": {
-    "dictionary": "2A2",
-    "owner": {"type": "Layer Table Control", "handle": "2"},
-    "entry": {"name": "ACAD_LAYERSTATES", "handle": "2A3"},
-    "requiredResearch": "Prove the exact DXF TABLE-header/control-object handle and extension-dictionary encoding before output; do not substitute NOD ownership."
-  },
   "validation": {
-    "focusedAsciiBinaryOwnerRoundtripRollbackRetry": "PASS: libdxfrw_extension_dictionary_owner_graphs",
-    "extensionGraphLimitsAndRetry": "PASS: libdxfrw_extension_graph_limits",
-    "xrecordCompatibilityMatrix": "PASS: dwg2dxf_xrecord_owned_extension and dwg2dxf_xrecord_owned_extension_faults",
-    "dictionaryEffectiveOwnership": "PASS: libdxfrw_dictionary_effective_ownership",
-    "addressSanitizer": "PASS: owner graphs, graph limits and dictionary effective ownership",
-    "build": "PASS: build-gcc targets dwg2dxf and libdxfrw_dwg2dxf_adapter_tests with -Werror"
+    "focusedAsciiBinaryOwnerRoundtripRollbackRetry": "PASS: libdxfrw_extension_dictionary_owner_graphs, including the LAYER TABLE header and 2A2/2A3 graph.",
+    "dwgControlReceiptAndMembership": "PASS: dwg2dxf_dwg_layer_table_control_dictionary; valid source receipt accepted; wrong parent, missing member, duplicate/stale receipt and owner/dictionary alias refused.",
+    "extensionGraphLimitsAndRetry": "PASS: libdxfrw_extension_graph_limits.",
+    "addressSanitizer": "PASS for libdxfrw_extension_dictionary_owner_graphs, libdxfrw_extension_graph_limits and dwg2dxf_dwg_layer_table_control_dictionary.",
+    "build": "PASS: build-gcc targets dwg2dxf and libdxfrw_dwg2dxf_adapter_tests with -Werror."
   },
   "failureBehavior": {
     "wrongDictionaryOwner": "Refuses without replacing a sentinel destination; corrected owner retries successfully on the same adapter in ASCII and binary DXF.",
-    "lateEntityExtensionOwnerMutation": "Refuses publication without replacing the destination; restored owner retries successfully.",
-    "sourceCompatibility": "The XRECORD owned-extension matrix passes its version, ASCII/binary, readback, rollback and retry cases."
+    "lateOwnerMutation": "A late Layer TABLE control XDictionary mutation refuses publication without replacing the destination; restored owner retries successfully in ASCII and binary DXF.",
+    "sourceCompatibility": "Existing entity, LAYER-record, LAYOUT and typed-XRECORD owner routes continue to pass the affected focused cohort.",
+    "fixturePolicy": "Generated/in-memory tests only; no new DWG or DXF fixture was committed."
   },
   "limitations": [
-    "The explicit-partial physical conversion does not qualify complete DWG conversion or promote any support claim.",
-    "Strict-complete admission remains blocked by the physical source's 228 opaque callbacks and zero retained correlation frames.",
-    "The Layer Table Control owner route for handles 2A2/2A3 remains unresolved and unimplemented.",
-    "The 20 whole-record matches plus two verified VIEWPORT owner-handle remaps close only the audited dictionary identities; remaining callback profiles stay open."
+    "The physical conversion used explicit partial DWG read and does not qualify complete DWG conversion or promote a support claim.",
+    "Strict-complete admission remains blocked by the physical source callback/correlation gate and other unclosed record profiles.",
+    "The 24/24 identity result closes only the audited NOD-plus-DICTIONARY subset; remaining callback profiles, consumer semantics and platform gates stay open."
   ],
-  "next": "Research and prove the Layer Table Control to DXF TABLE-header extension-dictionary mapping for 2A2/2A3; then continue with the highest-incidence unclosed physical callback profile."
+  "next": "Use the current opaque-callback census and per-profile receipts to choose the highest-incidence required profile lacking exact source fields, emitted identity/roles and fresh readback proof; keep strict-complete admission closed until the full required graph is covered.",
+  "controlHeaderMappingEvidence": {
+    "dwgSpecification": {
+      "file": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "section": "20.4.53 LAYER CONTROL",
+      "finding": "The Layer Control object contains the XDictionary handle as a hard-owner reference and its LAYER handles as soft-owner references; the source profile uses control handle 0x02 and XDictionary 0x2A2."
+    },
+    "dxfSpecification": {
+      "url": "https://help.autodesk.com/cloudhelp/2016/ENU/AutoCAD-DXF/files/GUID-8427DD38-7B1F-4B7F-BF66-21ADD1F41295.htm",
+      "finding": "A symbol TABLE header carries group 5 and may encode its extension dictionary with the {ACAD_XDICTIONARY} group and hard-owner group 360."
+    },
+    "sourceCode": {
+      "fixedHandle": "DRW::DwgLayerControlHandle (0x02)",
+      "fixedType": "DRW::DwgLayerControlObjectType (0x32)",
+      "evidence": "Existing parser descriptor and source definitions; no new DWG type number was inferred from third-party tables."
+    }
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_data.h": "1d4e3cfd778b8be97bd2ae81d7dc005e4a2cad20187697f39688d26f8abde9da",
+    "dwg2dxf/dx_iface.cpp": "de9cfb0f036e26dc52aad4ee4ebafe5045a82a7945caa98254b98b9aa1a3dc31",
+    "dwg2dxf/dx_iface.h": "ea831ca5ab3aa332c0cae88f418704a64ba17f934c484dfc97c2cba05bba8fab",
+    "src/drw_interface.h": "110bb7ac91e9420b939f2d984d47db9d5a547ccff6c1f83586525b61d7dc0454",
+    "src/intern/dwgreader.cpp": "46b44f98df49833883044a557cf6beca23c7ab0c35d50b0817f93f32f156b932",
+    "src/libdxfrw.cpp": "9f7054f4426b6b4563812571a0de3f875ac8bb19c212141ecb5d77d0513e2ce2",
+    "tests/CMakeLists.txt": "2db6a143a72248ee8381be6a9d8eb2ff47906fbc5f99b0f8e749860d1fd72c0c",
+    "tests/dwg2dxf_adapter_tests.cpp": "cbfa5249ac4d62d3cf66a76e3d9c59727e8619b8337f9591cbb337fba8c1193b",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "354b57fedc9a64e84da041c24a4630faaee6d7ee0d8b4f310121b727b882e5f0"
+  }
 }

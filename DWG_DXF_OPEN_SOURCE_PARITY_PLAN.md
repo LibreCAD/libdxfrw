@@ -46,7 +46,7 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — physical profile output-coverage closure | Close only source-to-output gaps among the physical mechanical source's 228 callback identities across 21 record/type profiles; skip identities whose exact physical output proof already exists. The audited dictionary subset now emits 22/24 NOD-plus-DICTIONARY identities (20 exact records plus two verified VIEWPORT-owner handle remaps). The remaining dictionary gap is the Layer Table Control pair `2A2`/`2A3`; then continue the other unclosed callback profiles and strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — physical profile output-coverage closure | Close source-to-output gaps among the physical mechanical source's 228 callback identities across 21 record/type profiles. Use the callback census and current profile receipts to select the highest-incidence required family that still lacks exact source fields, emitted identity/role, and fresh readback proof; then close required descendants and strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN | Close remaining rendering metadata and native rendering profiles, rich R24 TABLESTYLE typed-DXF readback, FIELDLIST/child graphs and other unclosed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -56,27 +56,16 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next implementation packet — Layer Table Control DICTIONARY owner proof:**
-the implementation receipt
-(`docs/research/p4-ac1024-dictionary-owner-output-closure-2026-10-31.json`)
-records 22/24 source NOD-plus-DICTIONARY identities in fresh output readback.
-Twenty records match exactly; the two entity-owned dictionaries follow their
-remapped VIEWPORT owner handles through reciprocal emitted XDICTIONARY links.
-Only the following source records remain absent from partial DXF output:
-
-| Source handle | Source owner / role | Required contents | Implementation slice |
-| --- | --- | --- | --- |
-| `2A2` | Layer Table Control `2` | `ACAD_LAYERSTATES` → dictionary `2A3` | First prove the TABLE-header/control-object DXF handle and extension-dictionary encoding; do not substitute NOD ownership |
-| `2A3` | DICTIONARY `2A2` | Empty child dictionary | Emit only with the proven Layer Table Control route above |
-
-The entity-, LAYER-record-, and LAYOUT-owned routes, typed XRECORD payloads,
-bounded thumbnail chunks, fresh readback, rollback and corrected retry are
-implemented in commit `a53af55c`. Do not rewrite or retest these identities
-without a changed dependency. Research the Layer Table Control mapping in the
-TABLE-header writer and authoritative DXF mapping; add `2A2`/`2A3` only when
-the exact owner route is established. The strict complete-export gate remains
-blocked by 228 opaque callbacks and zero retained correlation frames. Do not
-infer identities from adjacent handles, weaken graph closure, or commit
+**P4 next action — physical profile output closure:** start with
+`docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json` and current
+per-profile receipts in `docs/research/`. Select the highest-incidence required
+record family without exact source fields, output identity/role, and fresh
+readback evidence; prepare one execution brief naming its source handles,
+dependencies, writer hook, owning selector, and conditional escalation before
+editing. Reuse unchanged profile evidence and skip identities already proven by
+their current receipt. The strict complete-export gate remains blocked until
+all required callback identities and descendants close; preserve explicit
+refusal, do not infer edges from adjacent handles, and do not commit
 investigation DWGs.
 
 ## P4 — original bodies and complete document closure
@@ -99,14 +88,12 @@ engines.
    the global strict-read predicate rejects 228 opaque callback views with zero
    retained correlation frames. Use the callback census in
    `docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json` and the
-   physical source receipt in
-   `docs/research/p2-p4-ac1024-physical-mlinestyle-sentinel-output-2026-10-31.json`
-   to map each required profile to complete typed output or a proven end-to-end
-   replay path; a typed callback or correlation-only raw frame does not establish
-   output preservation. Implement only the highest-incidence required profile
-   still lacking that proof. Keep unresolved records refused. Never weaken the
-   completeness predicate, emit a partial graph, or infer edges from adjacent
-   handle values.
+   latest profile receipts in `docs/research/` to map each required profile to
+   complete typed output or a proven end-to-end replay path; a typed callback
+   or correlation-only raw frame does not establish output preservation.
+   Implement only the highest-incidence required profile still lacking that
+   proof. Keep unresolved records refused. Never weaken the completeness
+   predicate, emit a partial graph, or infer edges from adjacent handle values.
 3. **Recursive closure:** follow only source-required edges reached from the
    admitted graph. Reuse a qualified provider when it closes the exact target
    role; otherwise resolve that source-required body and its descendants, and
