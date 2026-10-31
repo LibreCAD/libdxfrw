@@ -59,15 +59,30 @@ work. Implementation history and evidence stay in Git and `docs/research/`.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next packet — resolve the title-block strict-output residual.** The current
-physical AC1024 `title_block-arch.dwg` strict checkpoint qualifies 108 of 109
-opaque callbacks and refuses the remaining source identity `0x52` (observed
-type 34, VIEWPORT). Use the existing source and selector to prove its full
-source fields, owner/container role, remap, emitted record and fresh readback;
-qualify it only if the complete projection is closed. Then run the bounded fast
-strict-export/census sweep over the other existing repository and local DWG
-inputs and take only the first newly reproduced source-backed gap. Keep strict
-refusal until each document's required graph is covered.
+**Next implementation packet — close the AC1024 `Window - Imperial`
+dynamic-block owner graph.** The title-block `VIEWPORT 0x52` residual is now
+qualified: its exact source fields, paper-space route, mapped `BLOCK_RECORD`
+owner, emitted identity and fresh readback pass in ASCII and Binary, and strict
+conversion succeeds. The bounded strict-export sweep then identified
+`tests/samples/AC1024/architectural_example-imperial.dwg` (SHA-256
+`52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7`) as the
+next source-backed gap. Strict export fails at SORTENTSTABLE ownership/target
+validation; a direct source probe narrows this to BLOCK_RECORD `0x1145`
+(`Window - Imperial`) and extension DICTIONARY `0x1146`, whose keys include
+`ACAD_ASSOCNETWORK`, `ACAD_ENHANCEDBLOCK`, `ACAD_SORTENTS` (table `0x1BBA`),
+and `AcDbDynamicBlockRoundTripPurgePreventer` (`0x116A`). Prove the complete
+source owner/key/body/target graph and each dynamic object’s typed fields,
+reference roles, emitted bytes and fresh readback before admitting this profile.
+Reuse existing providers only where their source fields and roles match; keep
+unrepresented descendants refused and verify atomic refusal/retry. Then run one
+strict-complete conversion for this source. Do not infer native dynamic-block
+semantics from serializer readback.
+
+The sweep also reproduced separate unresolved gates: AC1021 proxy-graphics
+refusal and AC1018 `ET-Drawing-with-Border.dwg` with 23 opaque callbacks but no
+strict output qualifications. Keep these in P6 and P4 respectively; they are
+not completed by the selected P5 packet. Strict refusal remains until each
+document's required graph is covered.
 
 ## P4 — original bodies and complete document closure
 

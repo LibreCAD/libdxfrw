@@ -54488,13 +54488,12 @@ bool dx_iface::finalizeDwgViewportOutputQualifications() noexcept {
         std::uint32_t handle;
         int status;
         int id;
+        const char* layoutName;
     };
-    // These are the two physical type-34 entity identities in the existing
-    // AC1024 witness. Their complete typed-field/dependency readback is
-    // exercised by physicalViewportOutputReadback; this finalizer binds those
-    // profiles to the current transaction's exact source and emitted identity.
-    constexpr std::array<ExpectedViewport, 2> expected{{
-        {0x28Bu, 1, 1}, {0x290u, 2, 2}}};
+    // Admit only exact physical source profiles whose complete typed-field
+    // readback is exercised by physicalViewportOutputReadback. Other AC1024
+    // type-34 identities remain unqualified until their source and output
+    // dependencies receive their own proof.
     std::set<std::uint32_t> type34Entities;
     for (const auto& row : cData->m_opaqueDwgSourceFrames) {
         if (row.first.first != cData->importGeneration
@@ -54502,20 +54501,35 @@ bool dx_iface::finalizeDwgViewportOutputQualifications() noexcept {
             continue;
         type34Entities.insert(row.second.m_handle);
     }
-    const bool expectedProfile = type34Entities.size() == expected.size()
-        && std::all_of(expected.begin(), expected.end(),
-            [&type34Entities](const ExpectedViewport& item) {
-                return type34Entities.count(item.handle) == 1u;
-            });
-    // Other AC1024 drawings may contain a different type-34 profile. Leave
-    // those identities unresolved until their own source/readback evidence is
-    // connected; this narrow witness route must not generalize by type alone.
-    if (!expectedProfile)
+    constexpr std::array<ExpectedViewport, 2> mechanicalProfile{{
+        {0x28Bu, 1, 1, "Layout1"},
+        {0x290u, 2, 2, "Layout1"}}};
+    constexpr std::array<ExpectedViewport, 1> titleBlockProfile{{
+        {0x52u, 1, 1, "Architectural Title Block"}}};
+    const auto matchesProfile = [&type34Entities](const auto& profile) {
+        return type34Entities.size() == profile.size()
+            && std::all_of(profile.begin(), profile.end(),
+                [&type34Entities](const ExpectedViewport& item) {
+                    return type34Entities.count(item.handle) == 1u;
+                });
+    };
+    const bool mechanicalSource = matchesProfile(mechanicalProfile);
+    const bool titleBlockSource = matchesProfile(titleBlockProfile);
+    // Do not generalize from oType alone. The single-title-viewport route is
+    // accepted only without an extension dictionary; that would add an
+    // unqualified child graph and must stay refused until separately proved.
+    if (!mechanicalSource && !titleBlockSource)
         return true;
-    if (!m_dwgViewportXrecordsInspected)
+    const ExpectedViewport* expected = mechanicalSource
+        ? mechanicalProfile.data() : titleBlockProfile.data();
+    const std::size_t expectedCount = mechanicalSource
+        ? mechanicalProfile.size() : titleBlockProfile.size();
+    if (mechanicalSource && !m_dwgViewportXrecordsInspected)
         return true;
 
-    for (const ExpectedViewport& item : expected) {
+    for (std::size_t expectedIndex = 0u;
+         expectedIndex < expectedCount; ++expectedIndex) {
+        const ExpectedViewport& item = expected[expectedIndex];
         const dx_data::StandardDwgFrameKey key{
             cData->importGeneration, item.handle};
         const auto frame = cData->m_opaqueDwgSourceFrames.find(key);
@@ -54556,6 +54570,8 @@ bool dx_iface::finalizeDwgViewportOutputQualifications() noexcept {
             || viewport->space != DRW::PaperSpace
             || viewport->handle != item.handle)
             return false;
+        if (titleBlockSource && viewport->xDictHandle != 0u)
+            return true;
         const auto projection = m_dwgViewportProjections.find(viewport);
         if (projection == m_dwgViewportProjections.end()
             || projection->second.first != item.status
@@ -54575,7 +54591,7 @@ bool dx_iface::finalizeDwgViewportOutputQualifications() noexcept {
             ++layoutCount;
         }
         if (layoutCount != 1u || layout == nullptr
-            || layout->name != "Layout1")
+            || layout->name != item.layoutName)
             return false;
         const std::uint32_t sourceOwner =
             layout->paperSpaceBlockRecordHandle.ref;
@@ -54624,6 +54640,8 @@ bool dx_iface::finalizeDwgViewportOutputQualifications() noexcept {
             || !recordOpaqueDwgOutputQualification(item.handle))
             return false;
     }
+    if (!mechanicalSource)
+        return m_dwgViewportXrecordOutputProofs.empty();
     if (m_dwgViewportXrecordOutputProofs.size() != 2u)
         return false;
     for (const auto& row : m_dwgViewportXrecordOutputProofs) {
