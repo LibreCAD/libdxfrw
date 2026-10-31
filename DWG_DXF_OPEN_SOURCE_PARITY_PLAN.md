@@ -61,13 +61,13 @@ action rather than evidence that earlier packets made no progress.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next packet — close the remaining 15-identity source/output gap.**
+**P4 next packet — close the remaining 14-identity source/output gap.**
 Reconcile each listed callback with the retained standard/opaque source records,
 source owner and dependency proofs, and existing serializer route. Select the smallest
 source-backed family whose emitted fields and roles can be inspected; do not
 qualify a callback from its type/count or from opaque-byte retention alone.
 The current identity census is in the
-[`P4 remaining-identity receipt`](docs/research/p4-ac1024-sortents-multitable-output-proof-2026-10-31.json).
+[`P4 remaining-identity receipt`](docs/research/p4-ac1024-tablestyle-output-proof-2026-10-31.json).
 Keep strict refusal until the complete source identity set is covered.
 
 ## P4 — original bodies and complete document closure

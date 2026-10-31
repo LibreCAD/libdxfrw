@@ -12004,7 +12004,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 {data->importGeneration, handle});
                         const auto style = tableStyles.find(handle);
                         if (frame == data->m_opaqueDwgSourceFrames.end()
-                            || frame->second.m_objectType != 504
+                            || frame->second.m_handle != handle
+                            || frame->second.m_version != DRW::AC1024
+                            || !frame->second.m_isCustomClass
+                            || !frame->second.m_typedPayloadValidated
                             || frame->second.m_className != "AcDbTableStyle"
                             || !asciiIdentifierEquals(
                                 frame->second.m_recordName, "TABLESTYLE")
