@@ -6792,6 +6792,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
 
     try {
         std::unordered_map<std::uint32_t, const DRW_Dictionary*> dictionaries;
+        std::unordered_map<std::uint32_t, const DRW_SortEntsTable*>
+            sortEntsOutput;
         std::unordered_map<std::uint32_t, const DRW_Group*> groups;
         std::unordered_map<std::uint32_t,
                            const DRW_DictionaryWithDefault*>
@@ -6942,6 +6944,15 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 return reject(ExtensionGraphFailure::InvalidGraph,
                     "duplicate or ambiguous DICTIONARY handle "
                     + std::to_string(dictionary.handle));
+        }
+        inventoryFamily = "SORTENTSTABLE output identities";
+        sortEntsOutput.reserve(m_sortEmissionTables.size());
+        for (const DRW_SortEntsTable& table : m_sortEmissionTables) {
+            if (!examineSourceRecord()
+                || table.handle == 0u || table.handle == DRW::NoHandle
+                || !sortEntsOutput.emplace(table.handle, &table).second)
+                return reject(ExtensionGraphFailure::InvalidGraph,
+                    "invalid or duplicate SORTENTSTABLE output identity");
         }
         if (data->sourceFormat == dx_source_format::DXF) {
             inventoryFamily = "MATERIAL identity and common-metadata owners";
@@ -8298,10 +8309,19 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
 
                         if (layoutSymbolKey(object.m_recordName)
                             == "ACDBASSOCNETWORK") {
+                            const bool rootNetwork =
+                                object.m_owningNetworkHandle == 0u;
+                            const bool sortDictionaryOwnedNetwork =
+                                std::find(m_sortDictionaryHandles.begin(),
+                                          m_sortDictionaryHandles.end(),
+                                          static_cast<std::uint32_t>(
+                                              object.parentHandle))
+                                    != m_sortDictionaryHandles.end();
                             if (!object.m_networkFieldsParsed
                                 || object.m_classVersion != 1u
                                 || object.m_networkVersion != 0
-                                || object.m_owningNetworkHandle != 0u
+                                || (!rootNetwork
+                                    && !sortDictionaryOwnedNetwork)
                                 || object.m_actionBodyHandle != 0u
                                 || object.m_maxDependencyIndex != 0
                                 || !object.m_dependencies.empty()
@@ -8331,7 +8351,6 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                             for (const DRW_AssociativeHandleRef& action :
                                  object.m_actions) {
                                 if (!examineEdge()
-                                    || !action.m_isOwned
                                     || action.m_handle == 0u
                                     || action.m_handle == DRW::NoHandle
                                     || !actionHandles.insert(
@@ -8352,14 +8371,32 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                     && layoutSymbolKey(
                                         target->second->m_recordName)
                                         == "ACDBASSOC2DCONSTRAINTGROUP";
-                                if ((!variableTarget && !groupTarget)
-                                    || target->second->parentHandle
-                                        != object.handle
-                                    || target->second->m_owningNetworkHandle
-                                        != object.handle)
+                                const bool nestedNetworkTarget =
+                                    target != associativeRecords.end()
+                                    && layoutSymbolKey(
+                                        target->second->m_recordName)
+                                        == "ACDBASSOCNETWORK"
+                                    && !action.m_isOwned
+                                    && target->second->m_owningNetworkHandle
+                                        == object.handle
+                                    && std::find(
+                                        m_sortDictionaryHandles.begin(),
+                                        m_sortDictionaryHandles.end(),
+                                        static_cast<std::uint32_t>(
+                                            target->second->parentHandle))
+                                        != m_sortDictionaryHandles.end();
+                                const bool ownedActionTarget =
+                                    action.m_isOwned
+                                    && (variableTarget || groupTarget)
+                                    && target->second->parentHandle
+                                        == object.handle
+                                    && target->second->m_owningNetworkHandle
+                                        == object.handle;
+                                if (!nestedNetworkTarget
+                                    && !ownedActionTarget)
                                     return reject(
                                         ExtensionGraphFailure::InvalidGraph,
-                                        "ACDBASSOCNETWORK action target is not an owned AC1024 variable or constraint group");
+                                        "ACDBASSOCNETWORK action target is outside the AC1024 owned child or source-bound non-owned nested-network profile");
                             }
                         } else if (layoutSymbolKey(object.m_recordName)
                                    == "ACDBASSOC2DCONSTRAINTGROUP") {
@@ -9186,6 +9223,22 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                     character - 'a' + 'A');
                         }
                         ++frame.index;
+                        if (dictionaryKey == "ACAD_SORTENTS") {
+                            const auto sortEnts =
+                                sortEntsOutput.find(child);
+                            if (frame.dictionary == nullptr
+                                || frame.dictionaryWithDefault != nullptr
+                                || sortEnts == sortEntsOutput.end()
+                                || sortEnts->second->parentHandle
+                                    != frame.handle)
+                                return reject(
+                                    ExtensionGraphFailure::InvalidGraph,
+                                    "ACAD_SORTENTS entry is not the validated SORTENTSTABLE owned by this dictionary");
+                            // SORTENTSTABLE has its own source-membership and
+                            // output projection planner. Its validated entry
+                            // is a typed edge, not a generic OBJECT target.
+                            break;
+                        }
                         static constexpr char cellStyleMapKey[] =
                             "ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP";
                         const bool isCellStyleMapKey =
@@ -9274,6 +9327,44 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         if (targetOwner != frame.handle)
                             return reject(ExtensionGraphFailure::InvalidGraph,
                                 "dictionary entry target does not name its containing dictionary as owner");
+                        if (visiting.count(child) != 0u) {
+                            const auto associative =
+                                associativeRecords.find(child);
+                            const auto sortDictionary =
+                                dictionaries.find(child);
+                            const bool reciprocalNetworkOwner =
+                                dictionaryKey == "ACAD_ASSOCNETWORK"
+                                && associative != associativeRecords.end()
+                                && layoutSymbolKey(
+                                    associative->second->m_recordName)
+                                    == "ACDBASSOCNETWORK"
+                                && associative->second->parentHandle
+                                    == frame.handle;
+                            const bool reciprocalSortDictionaryOwner =
+                                dictionaryKey == "ACAD_ASSOCNETWORK"
+                                && sortDictionary != dictionaries.end()
+                                && sortDictionary->second->parentHandle
+                                    == frame.handle
+                                && std::find(m_sortDictionaryHandles.begin(),
+                                             m_sortDictionaryHandles.end(),
+                                             child)
+                                    != m_sortDictionaryHandles.end()
+                                && std::find(m_sortDictionaryHandles.begin(),
+                                             m_sortDictionaryHandles.end(),
+                                             frame.handle)
+                                    != m_sortDictionaryHandles.end();
+                            if (!reciprocalNetworkOwner
+                                && !reciprocalSortDictionaryOwner)
+                                return reject(
+                                    ExtensionGraphFailure::InvalidGraph,
+                                    "dictionary ownership cycle is outside the reciprocal associative or SORTENTSTABLE owner profile");
+                            // A nested network's reactor points back to its
+                            // containing dictionary. When its action path
+                            // reached the network first, the dictionary entry
+                            // is the reciprocal owner edge, not a second DFS
+                            // descent into the active network.
+                            break;
+                        }
                         if (data->sourceFormat == dx_source_format::DXF
                             && dictionaryVars.count(child) != 0u) {
                             auto& count = dictionaryVarMemberships[child];
@@ -9459,7 +9550,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 return false;
         }
 
-        const auto hasParent = [&dictionaries, &visitedDictionaries,
+        const auto hasParent = [this, &dictionaries, &visitedDictionaries,
                                 &dictionariesWithDefault,
                                 &visitedDictionariesWithDefault,
                                 &visitedXRecords, &visitedDictionaryVars,
@@ -9489,6 +9580,12 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 || blockDelimiterHandles.count(parent) != 0
                 || blockRecordHandles.count(parent) != 0
                 || sourceEntityHandles.count(parent) != 0
+                || std::find(m_sortOwnerHandles.begin(),
+                            m_sortOwnerHandles.end(), parent)
+                    != m_sortOwnerHandles.end()
+                || std::find(m_sortDictionaryHandles.begin(),
+                            m_sortDictionaryHandles.end(), parent)
+                    != m_sortDictionaryHandles.end()
                 || generatedDictionaryOwners.count(parent) != 0
                 || (dictionaries.count(parent) != 0
                     && visitedDictionaries.count(parent) != 0)
@@ -9645,6 +9742,13 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 }
             }
         }
+        if (!associativeRecords.empty()) {
+            for (const std::uint32_t handle : m_sortDictionaryHandles) {
+                if (!examineEdge() || !visit(handle, true))
+                    return reject(ExtensionGraphFailure::InvalidGraph,
+                        "validated SORTENTSTABLE dictionary is not a closed associative output root");
+            }
+        }
         if (includeNamedObjectRoot
             && data->sourceFormat == dx_source_format::DWG
             && visitedAssociatives.size() != associativeRecords.size())
@@ -9691,7 +9795,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             const auto generated = generatedDictionaryOwners.find(dictionary->parentHandle);
             const bool generatedExtension = generated != generatedDictionaryOwners.end() && generated->second->xDictHandle == handle;
             if (!groupExtension && !imageExtension && !generatedExtension && !hasParent(dictionary->parentHandle))
-                return reject();
+                return reject(ExtensionGraphFailure::InvalidGraph,
+                    "extension DICTIONARY has an unresolved owner: handle="
+                        + std::to_string(handle) + " parent="
+                        + std::to_string(dictionary->parentHandle));
         }
         for (std::uint32_t handle :
              m_extensionDictionaryWithDefaultHandles) {
@@ -10008,8 +10115,12 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             }
         }
         return true;
+    } catch (const std::exception& error) {
+        return reject(ExtensionGraphFailure::InvalidGraph,
+            "exception during " + inventoryFamily + ": " + error.what());
     } catch (...) {
-        return reject();
+        return reject(ExtensionGraphFailure::InvalidGraph,
+            "unknown exception during " + inventoryFamily);
     }
 }
 
@@ -38399,12 +38510,89 @@ bool dx_iface::validateSortEntsGraph(const dx_data& data) {
                         + std::to_string(networkEntry.m_handle)
                         + " reactor="
                         + std::to_string(nested->reactorHandles.front()));
-                // The dictionary shape is valid, but its typed/raw DWG
-                // associative graph is not retained by this DXF adapter yet.
-                // Do not emit a dictionary whose leaves would be dangling.
                 validationStage =
-                    "SORTENTSTABLE ACAD_ASSOCNETWORK lacks safe DXF replay closure";
-                return reject();
+                    "SORTENTSTABLE ACAD_ASSOCNETWORK typed nested-network route";
+                const auto findAssociativeNetwork =
+                    [&data](std::uint32_t handle)
+                        -> const DRW_AssociativeObject* {
+                    const DRW_AssociativeObject* result = nullptr;
+                    for (const DRW_AssociativeObject& candidate :
+                         data.dwgAssociativeObjects) {
+                        if (candidate.handle != handle
+                            || layoutSymbolKey(candidate.m_recordName)
+                                != "ACDBASSOCNETWORK")
+                            continue;
+                        if (result != nullptr)
+                            return nullptr;
+                        result = &candidate;
+                    }
+                    return result;
+                };
+                const DRW_AssociativeObject* childNetwork =
+                    findAssociativeNetwork(networkEntry.m_handle);
+                const DRW_AssociativeObject* rootNetwork =
+                    childNetwork == nullptr ? nullptr
+                    : findAssociativeNetwork(
+                        childNetwork->m_owningNetworkHandle);
+                const DRW_Dictionary* rootAssociativeDictionary = nullptr;
+                std::size_t rootDictionaryEntries = 0u;
+                if (data.hasNamedObjectDictionary) {
+                    for (const DRW_Dictionary::Entry& entry :
+                         data.namedObjectDictionary.m_entries) {
+                        if (layoutSymbolKey(entry.m_name)
+                            != "ACAD_ASSOCNETWORK")
+                            continue;
+                        ++rootDictionaryEntries;
+                        const auto dictionary = dictionaries.find(
+                            entry.m_handle);
+                        if (dictionary != dictionaries.end())
+                            rootAssociativeDictionary =
+                                dictionary->second;
+                    }
+                }
+                std::size_t rootNetworkEntries = 0u;
+                if (rootAssociativeDictionary != nullptr) {
+                    for (const DRW_Dictionary::Entry& entry :
+                         rootAssociativeDictionary->m_entries) {
+                        if (layoutSymbolKey(entry.m_name)
+                                == "ACAD_ASSOCNETWORK"
+                            && rootNetwork != nullptr
+                            && entry.m_handle == rootNetwork->handle)
+                            ++rootNetworkEntries;
+                    }
+                }
+                const std::size_t nestedNetworkActionEdges =
+                    rootNetwork == nullptr ? 0u
+                    : static_cast<std::size_t>(std::count_if(
+                        rootNetwork->m_actions.begin(),
+                        rootNetwork->m_actions.end(),
+                        [childNetwork](
+                                const DRW_AssociativeHandleRef& action) {
+                            return !action.m_isOwned
+                                && action.m_handle == childNetwork->handle;
+                        }));
+                if (childNetwork == nullptr || rootNetwork == nullptr
+                    || childNetwork->parentHandle != subdictionaryHandle
+                    || childNetwork->m_owningNetworkHandle
+                        != rootNetwork->handle
+                    || rootNetwork->m_owningNetworkHandle != 0u
+                    || rootDictionaryEntries != 1u
+                    || rootAssociativeDictionary == nullptr
+                    || rootAssociativeDictionary->parentHandle
+                        != data.namedObjectDictionary.handle
+                    || rootNetwork->parentHandle
+                        != rootAssociativeDictionary->handle
+                    || rootNetworkEntries != 1u
+                    || nestedNetworkActionEdges != 1u
+                    || !childNetwork->m_networkFieldsParsed
+                    || !rootNetwork->m_networkFieldsParsed
+                    || !sortDictionaries.insert(
+                        subdictionaryHandle).second)
+                    return reject();
+                // Preserve the nested dictionary along with the SORTENTSTABLE
+                // extension dictionary. The later associative graph preflight
+                // still has to close and serialize the network target.
+                m_sortDictionaryHandles.push_back(subdictionaryHandle);
             }
             m_sortDictionaryHandles.push_back(extension.handle);
             m_sortOwnerHandles.push_back(record.handle);

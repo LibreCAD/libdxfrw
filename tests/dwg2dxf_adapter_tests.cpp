@@ -29173,6 +29173,327 @@ bool associativeDwgRootNetworkValueDependencyExport() {
     return true;
 }
 
+bool associativeDwgNestedNetworkSortEntsOutput() {
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    const auto directory = std::filesystem::temp_directory_path();
+    for (const bool binary : {false, true}) {
+        const auto path = directory / ("libdxfrw-associative-sortents-"
+            + std::to_string(nonce)
+            + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{path};
+
+        dx_data source;
+        source.sourceFormat = dx_source_format::DWG;
+        source.sourceVersion = DRW::AC1024;
+        source.importGeneration = 1u;
+        source.hasNamedObjectDictionary = true;
+        source.namedObjectDictionary.handle = 0x900u;
+        source.namedObjectDictionary.name = "NOD";
+        source.namedObjectDictionary.m_entries.push_back(
+            {"ACAD_ASSOCNETWORK", 0x901u});
+
+        DRW_Dictionary rootDictionary;
+        rootDictionary.handle = 0x901u;
+        rootDictionary.parentHandle = source.namedObjectDictionary.handle;
+        rootDictionary.m_entries.push_back({"ACAD_ASSOCNETWORK", 0x902u});
+        source.dictionaries.push_back(rootDictionary);
+
+        DRW_Block_Record modelSpace;
+        modelSpace.handle = 0x500u;
+        modelSpace.name = "*Model_Space";
+        modelSpace.xDictHandle = 0x201u;
+        source.blockRecords.push_back(modelSpace);
+
+        dx_iface converter;
+        converter.cData = &source;
+        converter.currentBlock = source.mBlock;
+        DRW_Line line;
+        line.handle = 0x100u;
+        line.parentHandle = modelSpace.handle;
+        line.layer = "0";
+        line.basePoint = DRW_Coord(1.0, 2.0, 0.0);
+        line.secPoint = DRW_Coord(3.0, 4.0, 0.0);
+        converter.addLine(line);
+
+        DRW_Dictionary extensionDictionary;
+        extensionDictionary.handle = 0x201u;
+        extensionDictionary.parentHandle = modelSpace.handle;
+        extensionDictionary.m_entries.push_back({"ACAD_SORTENTS", 0x300u});
+        extensionDictionary.m_entries.push_back(
+            {"ACAD_ASSOCNETWORK", 0x202u});
+        source.dictionaries.push_back(extensionDictionary);
+
+        DRW_Dictionary nestedDictionary;
+        nestedDictionary.handle = 0x202u;
+        nestedDictionary.parentHandle = extensionDictionary.handle;
+        nestedDictionary.reactorHandles.push_back(extensionDictionary.handle);
+        nestedDictionary.m_entries.push_back(
+            {"ACAD_ASSOCNETWORK", 0x904u});
+        source.dictionaries.push_back(nestedDictionary);
+
+        DRW_SortEntsTable table;
+        table.handle = 0x300u;
+        table.parentHandle = extensionDictionary.handle;
+        table.m_blockOwnerHandle = modelSpace.handle;
+        table.m_entityHandles = {line.handle};
+        table.m_sortHandles = {DRW::NoHandle};
+        table.reactorHandles = {extensionDictionary.handle};
+        converter.addSortEntsTable(table);
+
+        DRW_DwgSortEntsMembership sortReceipt;
+        sortReceipt.m_version = DRW::AC1024;
+        sortReceipt.m_tableHandle = table.handle;
+        sortReceipt.m_sourceOffset = 0x4000u;
+        sortReceipt.m_sourceMapOrdinal = 2u;
+        sortReceipt.m_sourceOffsetSpace =
+            DRW_DwgFrameOffsetSpace::PhysicalFile;
+        sortReceipt.m_hasSourceLocation = true;
+        sortReceipt.m_complete = true;
+        sortReceipt.m_recordName = "SORTENTSTABLE";
+        sortReceipt.m_className = "AcDbSortentsTable";
+        sortReceipt.m_classStreamOrdinal = 4u;
+        sortReceipt.m_blockOwnerHandle = modelSpace.handle;
+        sortReceipt.m_entries.push_back(
+            {line.handle, DRW::NoHandle, 0u, true});
+        converter.addDwgSortEntsMembership(sortReceipt);
+
+        DRW_AssociativeObject rootNetwork("ACDBASSOCNETWORK");
+        rootNetwork.handle = 0x902u;
+        rootNetwork.parentHandle = rootDictionary.handle;
+        rootNetwork.reactorHandles.push_back(rootDictionary.handle);
+        rootNetwork.m_classVersion = 1u;
+        rootNetwork.m_networkFieldsParsed = true;
+        rootNetwork.m_networkVersion = 0;
+        rootNetwork.m_networkActionIndex = 1;
+        rootNetwork.m_actions.push_back({false, 0x904u});
+        rootNetwork.m_prefixStatuses.push_back({
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
+            0u, 0u, 1u,
+            DRW_AssociativePrefixStatus::ParseStatus::Complete,
+            2u, 0u, 0, "authored nested-network root action"});
+        rootNetwork.m_prefixStatuses.push_back({
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocNetwork,
+            0u, 0u, 1u,
+            DRW_AssociativePrefixStatus::ParseStatus::Complete,
+            1u, 0u, 1, "authored one-edge root network"});
+
+        DRW_AssociativeObject childNetwork("ACDBASSOCNETWORK");
+        childNetwork.handle = 0x904u;
+        childNetwork.parentHandle = nestedDictionary.handle;
+        childNetwork.reactorHandles.push_back(nestedDictionary.handle);
+        childNetwork.m_classVersion = 1u;
+        childNetwork.m_owningNetworkHandle = rootNetwork.handle;
+        childNetwork.m_networkFieldsParsed = true;
+        childNetwork.m_networkVersion = 0;
+        childNetwork.m_prefixStatuses.push_back({
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
+            0u, 0u, 1u,
+            DRW_AssociativePrefixStatus::ParseStatus::Complete,
+            2u, 0u, 0, "authored nested-network action"});
+        childNetwork.m_prefixStatuses.push_back({
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocNetwork,
+            0u, 0u, 1u,
+            DRW_AssociativePrefixStatus::ParseStatus::Complete,
+            0u, 0u, 0, "authored empty nested network"});
+        source.dwgAssociativeObjects = {rootNetwork, childNetwork};
+        dx_associativeDwgImportReceipt& associativeReceipt =
+            source.associativeDwgImport;
+        associativeReceipt.generation = source.importGeneration;
+        associativeReceipt.sourceVersion = source.sourceVersion;
+        associativeReceipt.typedRange.begin = 0u;
+        associativeReceipt.typedRange.end =
+            source.dwgAssociativeObjects.size();
+        associativeReceipt.typedCallbacks =
+            source.dwgAssociativeObjects.size();
+        associativeReceipt.successful = true;
+        associativeReceipt.captureComplete = true;
+
+        const std::string sentinel =
+            "existing nested associative destination";
+        const auto seedSentinel = [&]() {
+            std::ofstream output(path, std::ios::binary | std::ios::trunc);
+            return output && static_cast<bool>(output << sentinel);
+        };
+        const auto sentinelSurvives = [&]() {
+            std::ifstream input(path, std::ios::binary);
+            const std::string contents{
+                std::istreambuf_iterator<char>(input),
+                std::istreambuf_iterator<char>()};
+            return contents == sentinel;
+        };
+        dx_iface exporter;
+        if (!seedSentinel())
+            return fail("could not seed nested associative output sentinel");
+        source.dwgAssociativeObjects.front().m_actions.front().m_handle =
+            0xDEADu;
+        if (exporter.fileExport(path.string(), DRW::AC1024, binary, &source,
+                false, true, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete)
+            || !sentinelSurvives())
+            return fail("missing nested-network target was published");
+        source.dwgAssociativeObjects.front().m_actions.front().m_handle =
+            childNetwork.handle;
+        if (!exporter.fileExport(path.string(), DRW::AC1024, binary, &source,
+                true, true, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete))
+            return fail(std::string(
+                "corrected nested-network graph could not retry: ")
+                + exporter.extensionGraphFailureName() + ": "
+                + exporter.extensionGraphFailureDetail());
+
+        dx_data readback;
+        dx_iface reader;
+        const bool imported = reader.fileImport(path.string(), &readback, false);
+        if (!imported
+            || readback.sortEntsTables.size() != 1u
+            || readback.associativeObjects.size() != 2u
+            || !readback.hasNamedObjectDictionary
+            || readback.mBlock == nullptr
+            || readback.mBlock->ent.size() != 1u) {
+            std::cerr << "nested readback imported=" << imported
+                      << " error=" << static_cast<int>(readback.dxfReadOutcome.error)
+                      << " sort=" << readback.sortEntsTables.size()
+                      << " associative=" << readback.associativeObjects.size()
+                      << " nod=" << readback.hasNamedObjectDictionary
+                      << " model=" << (readback.mBlock != nullptr)
+                      << " entities=" << (readback.mBlock != nullptr
+                            ? readback.mBlock->ent.size() : 0u) << '\n';
+            return fail("nested-network output did not re-import");
+        }
+        const auto findNetwork = [&readback](std::uint32_t handle)
+                -> const DRW_AssociativeObject* {
+            const auto found = std::find_if(
+                readback.associativeObjects.begin(),
+                readback.associativeObjects.end(),
+                [handle](const DRW_AssociativeObject& object) {
+                    return object.handle == handle
+                        && object.m_recordName == "ACDBASSOCNETWORK";
+                });
+            return found == readback.associativeObjects.end()
+                ? nullptr : &*found;
+        };
+        const DRW_SortEntsTable& readTable =
+            readback.sortEntsTables.front();
+        const DRW_Entity* readLine = readback.mBlock->ent.front();
+        const auto readBlockRecord = std::find_if(
+            readback.blockRecords.begin(), readback.blockRecords.end(),
+            [](const DRW_Block_Record& record) {
+                return record.name == "*Model_Space";
+            });
+        const auto readExtension = std::find_if(readback.dictionaries.begin(),
+            readback.dictionaries.end(), [&readTable](
+                    const DRW_Dictionary& dictionary) {
+                return dictionary.handle == readTable.parentHandle;
+            });
+        if (readExtension == readback.dictionaries.end()
+            || readExtension->m_entries.size() != 2u
+            || readExtension->parentHandle == 0u
+            || readExtension->m_entries[0].m_name != "ACAD_SORTENTS"
+            || readExtension->m_entries[0].m_handle != readTable.handle
+            || readExtension->m_entries[1].m_name != "ACAD_ASSOCNETWORK")
+            return fail("SORTENTSTABLE extension dictionary changed on readback");
+        const auto nested = std::find_if(readback.dictionaries.begin(),
+            readback.dictionaries.end(), [&readExtension](
+                    const DRW_Dictionary& dictionary) {
+                return dictionary.handle
+                    == readExtension->m_entries[1].m_handle;
+            });
+        if (nested == readback.dictionaries.end()
+            || nested->parentHandle != readExtension->handle
+            || nested->reactorHandles
+                != std::vector<std::uint32_t>{readExtension->handle}
+            || nested->m_entries.size() != 1u
+            || nested->m_entries.front().m_name != "ACAD_ASSOCNETWORK")
+            return fail("nested associative dictionary owner edge changed");
+        const DRW_AssociativeObject* readChild = findNetwork(
+            nested->m_entries.front().m_handle);
+        const auto rootEntry = std::find_if(
+            readback.namedObjectDictionary.m_entries.begin(),
+            readback.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_ASSOCNETWORK";
+            });
+        if (rootEntry == readback.namedObjectDictionary.m_entries.end())
+            return fail("root ACAD_ASSOCNETWORK dictionary edge disappeared");
+        const auto readRootDictionary = std::find_if(readback.dictionaries.begin(),
+            readback.dictionaries.end(), [&rootEntry](
+                    const DRW_Dictionary& dictionary) {
+                return dictionary.handle == rootEntry->m_handle;
+            });
+        if (readRootDictionary == readback.dictionaries.end()
+            || readRootDictionary->parentHandle
+                != readback.namedObjectDictionary.handle
+            || readRootDictionary->m_entries.size() != 1u)
+            return fail("root associative dictionary owner chain changed");
+        const DRW_AssociativeObject* readRoot = findNetwork(
+            readRootDictionary->m_entries.front().m_handle);
+        if (readRoot == nullptr || readChild == nullptr
+            || readRoot->m_owningNetworkHandle != 0u
+            || readRoot->parentHandle != readRootDictionary->handle
+            || readRoot->m_actions.size() != 1u
+            || readRoot->m_actions.front().m_isOwned
+            || readRoot->m_actions.front().m_handle != readChild->handle
+            || readChild->parentHandle != nested->handle
+            || readChild->m_owningNetworkHandle != readRoot->handle
+            || !readRoot->m_networkFieldsParsed
+            || !readChild->m_networkFieldsParsed
+            || readBlockRecord == readback.blockRecords.end()
+            || readTable.m_blockOwnerHandle != readBlockRecord->handle
+            || readBlockRecord->xDictHandle != readExtension->handle
+            || readTable.m_entityHandles
+                != std::vector<std::uint32_t>{readLine->handle})
+        {
+            std::cerr << "nested associations root="
+                      << (readRoot != nullptr ? readRoot->handle : 0u)
+                      << " child="
+                      << (readChild != nullptr ? readChild->handle : 0u)
+                      << " root-owner="
+                      << (readRoot != nullptr
+                            ? readRoot->m_owningNetworkHandle : 0u)
+                      << " root-parent="
+                      << (readRoot != nullptr ? readRoot->parentHandle : 0u)
+                      << " root-dict=" << readRootDictionary->handle
+                      << " actions="
+                      << (readRoot != nullptr
+                            ? readRoot->m_actions.size() : 0u)
+                      << " owned="
+                      << (readRoot != nullptr && !readRoot->m_actions.empty()
+                            ? readRoot->m_actions.front().m_isOwned : false)
+                      << " action-target="
+                      << (readRoot != nullptr && !readRoot->m_actions.empty()
+                            ? readRoot->m_actions.front().m_handle : 0u)
+                      << " child-parent="
+                      << (readChild != nullptr ? readChild->parentHandle : 0u)
+                      << " nested=" << nested->handle
+                      << " child-owner="
+                      << (readChild != nullptr
+                            ? readChild->m_owningNetworkHandle : 0u)
+                      << " table-owner=" << readTable.m_blockOwnerHandle
+                      << " table-entity="
+                      << (readTable.m_entityHandles.empty()
+                            ? 0u : readTable.m_entityHandles.front())
+                      << " table-key="
+                      << (readTable.m_sortHandles.empty()
+                            ? 0u : readTable.m_sortHandles.front())
+                      << " line=" << readLine->handle << '\n';
+            return fail("root-to-nested non-owned network edge changed on readback");
+        }
+    }
+    return true;
+}
+
 bool cellStyleMapExtensionGraph() {
     const auto populate = [](dx_data& data, const std::string& key,
                              std::uint32_t mapParent) {
@@ -39951,10 +40272,16 @@ bool sortEntsAdapter(const std::filesystem::path& prefix) {
             return fail("DWG SORTENTSTABLE exported with an associative-network sibling lacking a DXF replay route");
         source.dictionaries.pop_back();
         source.dictionaries.front().m_entries.pop_back();
+        source.dwgAssociativeObjects.clear();
+        source.dwgAssociativeTypedRetainedBytes = 0u;
+        source.associativeDwgImport = {};
 
         if (!converter.fileExport(output.string(), DRW::AC1027, binary,
                                   &source, false))
-            return fail("validated DWG SORTENTSTABLE receipt did not retry as DXF");
+            return fail(std::string(
+                "validated DWG SORTENTSTABLE receipt did not retry as DXF: ")
+                + converter.extensionGraphFailureName() + ": "
+                + converter.extensionGraphFailureDetail());
         dx_data readback;
         dx_iface reader;
         if (!reader.fileImport(output.string(), &readback, false)
@@ -40614,6 +40941,10 @@ int main(int argc, char** argv) {
         && std::string(argv[1])
             == "--associative-geometry-dependency-graph-export")
         return associativeDwgGeometryDependencyGraphExport() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1])
+            == "--associative-dwg-nested-network-sortents-output")
+        return associativeDwgNestedNetworkSortEntsOutput() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--table-content-style-reference-census")
         return tableContentStyleReferenceCensus() ? 0 : 1;
