@@ -1992,6 +1992,12 @@ add_test(NAME dwg2dxf_xrecord_group_reference_admission
     COMMAND libdxfrw_dwg2dxf_adapter_tests --xrecord-group-reference-admission)
 set_tests_properties(dwg2dxf_xrecord_group_reference_admission PROPERTIES
     LABELS "fast;adapter;objects;graph;generated" TIMEOUT 10)
+add_test(NAME dwg2dxf_material_ac1024_typed_graph_output
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --material-ac1024-typed-graph-output)
+set_tests_properties(dwg2dxf_material_ac1024_typed_graph_output PROPERTIES
+    LABELS "fast;dwg;dxf;adapter;objects;graph;material;generated;transaction"
+    TIMEOUT 30)
 add_test(NAME dwg2dxf_generated_image_dictionary_source_identity
     COMMAND libdxfrw_dwg2dxf_adapter_tests --generated-image-dictionary-source-identity)
 set_tests_properties(dwg2dxf_generated_image_dictionary_source_identity PROPERTIES

@@ -4338,6 +4338,7 @@ public:
     m_dxfNormalMapTransformCount = 0u;
     m_dxfMaterialGenProcTableStarted = false;
     m_dxfMaterialGenProcTableEnded = false;
+    m_dxfMaterialImplicitTail = false;
     m_globalIlluminationMode = 0;
     m_finalGatherMode = 0;
     m_hasGlobalIlluminationMode = false;
@@ -4372,6 +4373,7 @@ public:
     m_rawDataBitSize = 0;
     m_rawDataValid = false;
     m_rawDataVersion = DRW::UNKNOWNV;
+    m_dwgSemanticFieldsParsed = false;
     DRW_TableEntry::reset();
   }
 
@@ -4636,6 +4638,7 @@ public:
     m_rawDataBitSize = bitSize;
     m_rawDataValid = true;
     m_rawDataVersion = version;
+    m_dwgSemanticFieldsParsed = false;
     return true;
   }
   [[nodiscard]] const std::vector<std::uint8_t> &dwgRawData() const noexcept {
@@ -4645,6 +4648,16 @@ public:
     return m_rawDataBitSize;
   }
   [[nodiscard]] bool hasDwgRawData() const noexcept { return m_rawDataValid; }
+  //! True when the selected AC1024 MATERIAL profile was decoded completely
+  //! into fields representable by the current DXF MATERIAL writer.
+  [[nodiscard]] bool hasCompleteDwgSemanticFields() const noexcept {
+    return m_dwgSemanticFieldsParsed;
+  }
+  //! True when DXF tail fields were parsed after a complete nonprocedural map
+  //! tuple, without the optional procedural-table group 292 marker.
+  [[nodiscard]] bool hasDxfMaterialImplicitTail() const noexcept {
+    return m_dxfMaterialImplicitTail;
+  }
   [[nodiscard]] DRW::Version dwgRawDataVersion() const noexcept {
     return m_rawDataVersion;
   }
@@ -4669,6 +4682,7 @@ private:
   bool m_dxfPreStrengthNormalMapMethod{false};
   bool m_dxfMaterialGenProcTableStarted{false};
   bool m_dxfMaterialGenProcTableEnded{false};
+  bool m_dxfMaterialImplicitTail{false};
   std::size_t m_dxfDiffuseMapTransformCount{0u};
   std::size_t m_dxfSpecularMapTransformCount{0u};
   std::size_t m_dxfReflectionMapTransformCount{0u};
@@ -4680,6 +4694,7 @@ private:
   std::uint32_t m_rawDataBitSize = 0;
   bool m_rawDataValid = false;
   DRW::Version m_rawDataVersion = DRW::UNKNOWNV;
+  bool m_dwgSemanticFieldsParsed = false;
 };
 
 //! Render background object family (AcDb*Background: solid / gradient / ground-

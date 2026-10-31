@@ -1,0 +1,83 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-material-output-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Generated AC1024 MATERIAL graph, output and retry controls",
+  "status": "GENERATED_MATERIAL_PROFILE_CLOSED_PHYSICAL_P4_OPEN",
+  "supportClaimEffect": "none",
+  "baselineCommit": "17572616",
+  "scope": "Close the generated AC1024 MATERIAL parser/output implementation packet for the source-bound ByBlock dictionary route. This receipt does not qualify the physical mechanical drawing, complete-document conversion, or a general MATERIAL support claim.",
+  "generatedProfile": {
+    "version": "AC1024",
+    "materialHandle": "0x97",
+    "dictionaryOwner": "0x72",
+    "dictionaryKey": "ByBlock",
+    "extensionDictionaryHandle": "0x110",
+    "properties": "Six explicit texture-map slots with distinct map parameters and transforms, explicit colors, material scalar fields, one reactor and an extension-dictionary link.",
+    "negativeProfiles": [
+      "Procedural texture source is refused and remains opaque.",
+      "Truncated transform body is refused and remains opaque."
+    ],
+    "fixturePolicy": "Generated in memory from scratch; no DWG or DXF investigation fixture is committed."
+  },
+  "implementation": {
+    "files": [
+      "CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "src/drw_objects.cpp",
+      "src/drw_objects.h",
+      "src/intern/dxfmaterial.h",
+      "src/libdxfrw.cpp",
+      "tests/CMakeLists.txt",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/dwg_object_vectors_tests.cpp",
+      "tests/material_dwg_test_helpers.h"
+    ],
+    "summary": "Added the bounded AC1024 MATERIAL parser profile and explicit refusal for procedural and truncated bodies; closed the source-bound dictionary/extension graph route; made MATERIAL record emission reserve and bind its source handle transactionally; corrected selected-output inspection for MATERIAL unsigned colors and DXF-synthesized reactor/xdictionary app-data; verified exact typed fields and handle roles after fresh readback. Mutation rejection leaves the destination unpublished, and corrected retry succeeds.",
+    "limitations": [
+      "The synthetic profile proves only its explicitly generated field set and graph shape.",
+      "No physical-source output or independent CAD semantic acceptance is established.",
+      "Strict complete-export admission remains blocked by the broader physical-source callback and descendant closure."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_object_vectors_tests -j4",
+      "result": "PASS with the configured warning-as-error build."
+    },
+    "focusedControls": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --material-ac1024-typed-graph-output",
+        "result": "PASS: generated parser refusal, rooted graph snapshots, exact ASCII and Binary output/readback, handle-role checks, late-mutation rollback and corrected retry. The two expected export-failure diagnostics are the deliberate rollback controls."
+      },
+      {
+        "command": "build-gcc/libdxfrw_dwg_object_vectors_tests --material-ac1024-typed-profile",
+        "result": "PASS: complete typed profile plus procedural and truncated-body refusal."
+      }
+    ],
+    "fullSuites": "NOT_RUN; the focused fast controls were sufficient for this slice.",
+    "physicalWitness": {
+      "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg --allow-partial-dwg-read -y -d -v2010 /private/tmp/p4-material-qualified-2026-10-31.dxf",
+      "result": "FAIL_CLOSED after associative extension-graph planning at registerMeshClass admission, reported as AcDbSubDMesh CLASS metadata. Exit status 1; the requested DXF destination was not published. This is the current next P4 blocker, not evidence against the completed generated MATERIAL controls."
+    }
+  },
+  "remaining": "Diagnose the source AcDbSubDMesh CLASS row and instance count against the version-specific row selected by dxfRW::dxfClassForRecordName. Continue the physical callback/descendant census, emitted-field proofs, and strict complete-export gate. No support claim is promoted.",
+  "sourceHashesSha256": {
+    "CMakeLists.txt": "bbad923e5db409640c8540c44e80531b8666538f012589199d63ed5011e209d8",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "6d9f59983262e05f2f480e9a873b8a1ddbe3b1fd0bc379da0aea1cfffe366afd",
+    "dwg2dxf/dx_iface.cpp": "850209b25ca2a90285889686ce63b55c0e564a3fb4ed616322dcd000781a4ac7",
+    "dwg2dxf/dx_iface.h": "469063f6d66e39d645738fac0ab96b54727d5020007e911e0403a1a7ca233228",
+    "src/drw_objects.cpp": "7f726a67c33cf3763c13f6b05d3be5c5c40fd9b02bd5573fe3d9f5b7ef34d837",
+    "src/drw_objects.h": "8b0eb03df6dd0fe8b52bfbe4fa054877e71d248b731a893c836121bece00fd84",
+    "src/intern/dxfmaterial.h": "fa38954b0358575ada4774ddbc22f084cc639608b5a205f0dedfc7a9ad9a79b6",
+    "src/libdxfrw.cpp": "419c677a55ce195b7a24cb0b4a7baa8bd720a7c736538c9887ac976162b229c2",
+    "tests/CMakeLists.txt": "c98dbd0af61d431904faf8c3150c2606b02f893d0a36190e9e12144d89ac93cb",
+    "tests/dwg2dxf_adapter_tests.cpp": "a3309cc7068483ea3145ab563d6b40e267abc14bb64b44cfdaeb0d3909c3cd4d",
+    "tests/dwg_object_vectors_tests.cpp": "6fefa81f5f38783a3dd9766100affd83c5200fba9cb8dfe38fa9c6f42b8b9874",
+    "tests/material_dwg_test_helpers.h": "3890ee7b3e3530ee68dec80681874e75f75adac3587a0b7029c3d032ee25378e"
+  }
+}

@@ -23,6 +23,7 @@
 #include "ltype_string_area_test_helpers.h"
 #include "xrecord_test_helpers.h"
 #include "persistent_manager_test_helpers.h"
+#include "material_dwg_test_helpers.h"
 
 namespace {
 
@@ -6037,6 +6038,91 @@ void testVisualStyleSourceMetadata(TestContext& t) {
             cappedStyle.m_body.edgeIsolines = 3;
             t.expect(cappedStyle.encodeDwg(version, &refused, &refusedText, &refusedLinks),
                      "explicit safe isoline replacement permits corrected same-object retry");
+        }
+    }
+}
+
+void testMaterialAc1024TypedProfile(TestContext& t) {
+    using material_dwg_test::CodecProbe;
+    using material_dwg_test::Frame;
+    using material_dwg_test::Options;
+
+    Frame completeFrame;
+    const bool built = material_dwg_test::makeFrame(Options{}, completeFrame);
+    t.expect(built, "generated AC1024 MATERIAL frame builds from scratch");
+    if (!built)
+        return;
+
+    CodecProbe parsed;
+    const bool read = material_dwg_test::parse(completeFrame, parsed);
+    t.expect(read && parsed.hasCompleteDwgSemanticFields()
+                 && parsed.hasDwgRawData()
+                 && parsed.dwgRawDataVersion() == DRW::AC1024
+                 && parsed.handle == 0x97u && parsed.parentHandle == 0x72u
+                 && parsed.reactorHandles == std::vector<std::uint32_t>{0x72u}
+                 && parsed.xDictHandle == 0x110u,
+             "complete AC1024 MATERIAL decodes typed fields and bounded common handles");
+    if (read) {
+        t.expect(parsed.m_name == "ByBlock"
+                     && parsed.m_description == "generated AC1024 MATERIAL"
+                     && parsed.m_ambientColorMethod == 1u
+                     && parsed.m_ambientColorValue == 0x81234567u
+                     && parsed.m_ambientColorFactor == 0.625
+                     && parsed.m_diffuseColorValue == 0x89ABCDEFu
+                     && parsed.m_specularColorValue == 0xFEDCBA98u
+                     && parsed.m_diffuseMapFileName == "diffuse-map.png"
+                     && parsed.m_specularMapFileName == "specular-map.png"
+                     && parsed.m_refractionMapFileName == "refraction-map.png"
+                     && parsed.m_specularGlossFactor == 0.6875
+                     && parsed.m_opacityPercent == 0.9375
+                     && parsed.m_refractionIndex == 1.375
+                     && parsed.m_translucence == 0.1875
+                     && parsed.m_reflectivity == 0.3125
+                     && parsed.m_illuminationModel == 3
+                     && parsed.m_channelFlags == 5
+                     && parsed.m_diffuseMapTransform[0] == 0.25
+                     && parsed.m_diffuseMapTransform[15] == 15.25
+                     && parsed.m_refractionMapTransform[7] == 167.25,
+                 "complete MATERIAL body preserves distinctive colors, maps, transforms, and scalar fields");
+    }
+
+    for (int map = 0; map < 6; ++map) {
+        Frame proceduralFrame;
+        const bool proceduralBuilt = material_dwg_test::makeFrame(
+            Options{map, 16u}, proceduralFrame);
+        CodecProbe procedural;
+        const bool proceduralRead = proceduralBuilt
+            && material_dwg_test::parse(proceduralFrame, procedural);
+        t.expect(proceduralRead
+                     && !procedural.hasCompleteDwgSemanticFields()
+                     && procedural.hasDwgRawData()
+                     && procedural.dwgRawDataVersion() == DRW::AC1024
+                     && !procedural.m_hasAmbientColorMethod
+                     && procedural.m_ambientColorMethod == 0u,
+                 "procedural MATERIAL map remains opaque without publishing partial typed fields: map "
+                     + std::to_string(map));
+    }
+
+    for (const unsigned transformCount : {1u, 8u}) {
+        Frame truncatedFrame;
+        const bool truncatedBuilt = material_dwg_test::makeFrame(
+            Options{-1, transformCount}, truncatedFrame);
+        CodecProbe truncated;
+        const bool truncatedRead = truncatedBuilt
+            && material_dwg_test::parse(truncatedFrame, truncated);
+        t.expect(truncatedRead
+                     && !truncated.hasCompleteDwgSemanticFields()
+                     && truncated.hasDwgRawData()
+                     && !truncated.m_hasDiffuseMapTransform
+                     && !truncated.m_hasAmbientColorMethod,
+                 "truncated MATERIAL matrix remains opaque and does not publish partial typed state: count "
+                     + std::to_string(transformCount));
+        if (!completeFrame.bytes.empty()) {
+            CodecProbe retry;
+            t.expect(material_dwg_test::parse(completeFrame, retry)
+                         && retry.hasCompleteDwgSemanticFields()
+                         && retry.m_diffuseMapFileName == "diffuse-map.png",
+                     "complete MATERIAL input succeeds after an opaque/truncated parse attempt");
         }
     }
 }
@@ -17329,6 +17415,14 @@ int main(int argc, char** argv) {
         TestContext context;
         testVisualStyleSourceMetadata(context);
         std::cout << "VISUALSTYLE CMC source-method replay: "
+                  << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--material-ac1024-typed-profile") {
+        TestContext context;
+        testMaterialAc1024TypedProfile(context);
+        std::cout << "AC1024 MATERIAL typed/opaque body profile: "
                   << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
         return context.failures == 0 ? 0 : 1;
     }

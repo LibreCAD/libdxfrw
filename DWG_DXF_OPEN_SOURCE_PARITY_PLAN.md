@@ -47,7 +47,7 @@ close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage; implement only missing required providers, close their required descendants, and pass strict complete-export admission. The current explicit-partial diagnostic passes the selected AC1024 associative network/group/action/dependency profiles, then stops at dictionary owner `0x72` targeting `0x97` (143 visited nodes, 371 examined edges). | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage. Diagnose the current `registerMeshClass` rejection (`AcDbSubDMesh CLASS metadata`), then close source-required descendants and output proofs and pass strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN | Close remaining rendering metadata and native rendering profiles, FIELDLIST/child graphs and other unclosed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Implement only source- or consumer-witnessed gaps; keep unsupported profiles refused until their schema and wire layout are established. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -57,25 +57,24 @@ close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next P4 implementation packet:** close the first remaining physical graph
-edge in the existing mechanical witness
+**Next P4 packet:** diagnose the `registerMeshClass` rejection reported as
+`AcDbSubDMesh CLASS metadata` on the existing mechanical witness
 (`/Users/dli/doc/dwg/mechanical_example-imperial.dwg`, SHA-256
-`854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858`). Its
-dictionary owner is `0x72`; the `ByBlock` entry targets MATERIAL `0x97`, whose
-owner is `0x72`. LibreDWG identifies the object as type 505 / `AcDbMaterial`,
-and the local reader calls `addMaterial` and retains its unsupported raw frame.
-The remaining gap is output admission: the extension graph indexes typed
-MATERIAL candidates only for DXF-origin input and has no DWG raw-MATERIAL
-candidate in this lookup. Determine which existing typed or validated raw route
-can represent this DWG object completely, then add only that provider/edge to
-the graph planner. Preserve handle uniqueness, destination rollback and
-corrected retry; verify generated ASCII/Binary readback and rerun the
-explicit-partial diagnostic. Do not infer targets from adjacent handles or
-relax graph completeness. Keep strict complete-export admission closed while
-required profiles or the 228 opaque callback identities remain uncovered.
-The source and parser observations are recorded in
-`docs/research/p4-ac1024-associative-graph-route-2026-10-31.json` and the
-existing LibreDWG projection identified there.
+`854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858`). Compare
+the source's captured `AcDbSubDMesh` CLASS row and instance count with the
+version-specific row selected by `dxfRW::dxfClassForRecordName`; determine
+which validated source fields must be retained and emitted before changing the
+admission rule. Preserve unknown rows and fail closed on duplicate or
+contradictory metadata. Then rerun the explicit-partial witness, continue from
+its next concrete failure, and map the 228 callback identities to complete
+typed output or a proven end-to-end replay path. Do not infer identities from
+adjacent handles or relax graph completeness. Keep strict complete-export
+admission closed while required profiles or callback identities remain
+uncovered. The completed generated AC1024 MATERIAL parser, output/readback,
+rollback and retry packet is recorded in
+`docs/research/p4-ac1024-material-output-2026-10-31.json`; the earlier
+associative route and parser observations remain in
+`docs/research/p4-ac1024-associative-graph-route-2026-10-31.json`.
 
 ## Parked P2 — nested named-resource bodies
 
@@ -107,8 +106,12 @@ engines.
    identities and fields to planned records, emitted bytes and fresh readback.
    Strict complete-export of the physical mechanical source remains blocked:
    the global strict-read predicate rejects opaque callback views that are
-   not retained for output. The explicit-partial diagnostic's first remaining
-   edge is dictionary owner `0x72`, key `ByBlock`, target `0x97` (MATERIAL).
+   not retained for output. The generated AC1024 MATERIAL graph, typed output,
+   fresh ASCII/Binary readback, rollback and corrected-retry slice is closed;
+   see its receipt. The latest explicit-partial physical diagnostic passes
+   extension-graph planning and fails at `registerMeshClass` admission for
+   `AcDbSubDMesh CLASS metadata`. Resolve that source-matched class row, then
+   continue source closure from the next observed failure.
    The callback census is recorded in
    `docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json`. Use its
    source identities and the existing family receipts to map each profile to

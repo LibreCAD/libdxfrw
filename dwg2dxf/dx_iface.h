@@ -1183,7 +1183,9 @@ public:
         if (dxfW == nullptr)
             return;
 
-        if (!hasUnchangedAcdsDxfHistorySources() || !hasUnchangedDxfMaterialSources()
+        if (!hasUnchangedAcdsDxfHistorySources()
+            || !hasUnchangedDxfMaterialSources()
+            || !hasUnchangedExtensionMaterialSources()
             || !hasUnchangedDxfDictionaryVars() || !hasUnchangedDxfScales()
             || !hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()) {
             dxfW->writeRawDxfObject(nullptr);
@@ -1831,6 +1833,20 @@ public:
                     dxfW->writeRawDxfObject(nullptr);
                     return;
                 }
+            }
+        }
+        for (const std::uint32_t handle : m_extensionMaterialHandles) {
+            std::size_t matches = 0u;
+            for (DRW_Material& material : cData->materials) {
+                if (material.handle != handle)
+                    continue;
+                ++matches;
+                if (!dxfW->writeMaterial(&material))
+                    return;
+            }
+            if (matches != 1u) {
+                dxfW->writeRawDxfObject(nullptr);
+                return;
             }
         }
         for (const std::uint32_t handle : m_dxfMaterialHandles) {
@@ -2637,6 +2653,15 @@ private:
     std::unordered_map<std::uint32_t, std::string>
         m_mlineStyleNamesToWrite;
     std::vector<std::uint32_t> m_extensionVisualStyleHandles;
+    std::vector<std::uint32_t> m_extensionMaterialHandles;
+    std::vector<DRW_Material> m_extensionMaterialSources;
+    std::vector<std::uint32_t> m_extensionMaterialDictionaryHandles;
+    std::vector<DRW_Dictionary> m_extensionMaterialDictionaries;
+    const dx_data* m_extensionMaterialSourceOwner{nullptr};
+    DRW::Version m_extensionMaterialSourceVersion{DRW::UNKNOWNV};
+    std::uint64_t m_extensionMaterialSourceGeneration{0u};
+    std::size_t m_extensionMaterialSourceBytes{0u};
+    bool hasUnchangedExtensionMaterialSources() const noexcept;
     std::vector<std::uint32_t> m_extensionTableStyleHandles;
     std::vector<std::uint32_t> m_extensionCellStyleMapHandles;
     std::vector<std::pair<std::uint32_t, std::int32_t>>

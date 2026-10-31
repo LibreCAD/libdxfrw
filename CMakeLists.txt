@@ -1475,6 +1475,11 @@ if(LIBDXFRW_BUILD_TESTS)
             --visualstyle-cmc-source-replay)
     set_tests_properties(libdxfrw_visualstyle_cmc_source_replay PROPERTIES
         LABELS "fast;dwg;object-vectors;cmc;visualstyle" TIMEOUT 10)
+    add_test(NAME libdxfrw_material_ac1024_typed_profile
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --material-ac1024-typed-profile)
+    set_tests_properties(libdxfrw_material_ac1024_typed_profile PROPERTIES
+        LABELS "fast;dwg;object-vectors;material;generated" TIMEOUT 10)
     add_test(NAME libdxfrw_viewport_ambient_color_method
         COMMAND libdxfrw_dwg_object_vectors_tests
             --viewport-ambient-color-method)

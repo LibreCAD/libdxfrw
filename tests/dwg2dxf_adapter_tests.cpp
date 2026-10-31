@@ -7,6 +7,7 @@
 #include "xrecord_test_helpers.h"
 #include "appid_test_helpers.h"
 #include "layer_test_helpers.h"
+#include "material_dwg_test_helpers.h"
 #include "dx_raster_output.h"
 #include "dx_standard_output.h"
 #include "independent_dxf_scalar_walker.h"
@@ -43,6 +44,15 @@ public:
     static const std::vector<std::uint32_t>& cellStyleMapHandles(
         const dx_iface& interface_) {
         return interface_.m_extensionCellStyleMapHandles;
+    }
+
+    static const std::vector<std::uint32_t>& materialHandles(
+        const dx_iface& interface_) {
+        return interface_.m_extensionMaterialHandles;
+    }
+
+    static bool materialSourcesUnchanged(const dx_iface& interface_) {
+        return interface_.hasUnchangedExtensionMaterialSources();
     }
 };
 
@@ -8490,6 +8500,245 @@ bool xrecordGroupReferenceAdmission() {
                 return fail("GROUP reference exact source-record budget did not retry");
         }
     }
+    return true;
+}
+
+bool materialAc1024TypedGraphOutput() {
+    using material_dwg_test::CodecProbe;
+    using material_dwg_test::Frame;
+    using material_dwg_test::Options;
+
+    struct Cleanup {
+        std::filesystem::path path;
+        std::filesystem::path directory;
+        ~Cleanup() {
+            std::error_code ignored;
+            if (!path.empty()) std::filesystem::remove(path, ignored);
+            if (!directory.empty()) std::filesystem::remove_all(directory, ignored);
+        }
+    };
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-material-ac1024-" + std::to_string(nonce));
+    if (!std::filesystem::create_directories(directory))
+        return fail("could not create MATERIAL output scratch directory");
+    const auto output = directory / "material.dxf";
+    Cleanup cleanup{output, directory};
+
+    const auto makeData = [](dx_data& data, int proceduralMap = -1,
+                             unsigned diffuseTransforms = 16u) {
+        Frame frame;
+        if (!material_dwg_test::makeFrame(
+                Options{proceduralMap, diffuseTransforms}, frame))
+            return false;
+        CodecProbe parsed;
+        if (!material_dwg_test::parse(frame, parsed))
+            return false;
+
+        data.sourceFormat = dx_source_format::DWG;
+        data.sourceVersion = DRW::AC1024;
+        data.importGeneration = 1u;
+        data.dwgReadOutcome.attempted = true;
+        data.dwgReadOutcome.operationSucceeded = true;
+        data.dwgReadOutcome.sourceVersion = DRW::AC1024;
+        data.dwgReadOutcome.observations.frames.status =
+            DRW_DwgFrameCoverageStatus::FinalizedComplete;
+        data.dwgReadOutcome.sourceCodePageFieldPresent = true;
+        data.dwgReadOutcome.sourceCodePageRecognized = true;
+        data.hasNamedObjectDictionary = true;
+        data.namedObjectDictionary.handle = DRW::DwgNamedObjectsDictionaryHandle;
+        data.namedObjectDictionary.m_entries = {{"ACAD_MATERIAL", 0x72u}};
+
+        DRW_Dictionary materialDictionary;
+        materialDictionary.handle = 0x72u;
+        materialDictionary.parentHandle = data.namedObjectDictionary.handle;
+        materialDictionary.cloning = 2;
+        materialDictionary.hardOwner = 1;
+        materialDictionary.m_entries = {{"ByBlock", 0x97u}};
+        data.dictionaries.push_back(materialDictionary);
+
+        DRW_Dictionary extensionDictionary;
+        extensionDictionary.handle = 0x110u;
+        extensionDictionary.parentHandle = 0x97u;
+        extensionDictionary.cloning = 2;
+        extensionDictionary.hardOwner = 1;
+        data.dictionaries.push_back(extensionDictionary);
+        data.materials.push_back(static_cast<const DRW_Material&>(parsed));
+        return true;
+    };
+
+    class MutationExporter final : public dx_iface {
+    public:
+        std::function<void()> afterObjects;
+        void writeObjects() override {
+            dx_iface::writeObjects();
+            if (afterObjects)
+                afterObjects();
+        }
+    };
+
+    dx_data data;
+    if (!makeData(data))
+        return fail("generated typed MATERIAL and rooted dictionaries did not initialize");
+    dx_iface graph;
+    graph.cData = &data;
+    const bool graphPrepared =
+        DxIfaceExtensionGraphTestAccess::prepare(graph, data, true);
+    const auto& selectedMaterials =
+        DxIfaceExtensionGraphTestAccess::materialHandles(graph);
+    const bool materialSnapshotMatches =
+        DxIfaceExtensionGraphTestAccess::materialSourcesUnchanged(graph);
+    if (!graphPrepared
+        || selectedMaterials != std::vector<std::uint32_t>{0x97u}
+        || !materialSnapshotMatches)
+        return fail(std::string("complete MATERIAL did not bind uniquely through ACAD_MATERIAL and its extension dictionary: ")
+            + graph.extensionGraphFailureName() + ": "
+            + graph.extensionGraphFailureDetail() + " (nodes="
+            + std::to_string(graph.extensionGraphStats().visitedNodes)
+            + ", edges="
+            + std::to_string(graph.extensionGraphStats().examinedEdges)
+            + ", selected="
+            + (selectedMaterials.empty()
+                   ? std::string("empty")
+                   : std::to_string(selectedMaterials.front()))
+            + ", snapshot="
+            + (materialSnapshotMatches ? "match" : "changed") + ")");
+
+    const double sourceFactor = data.materials.front().m_diffuseColorFactor;
+    data.materials.front().m_diffuseColorFactor += 0.125;
+    if (DxIfaceExtensionGraphTestAccess::materialSourcesUnchanged(graph))
+        return fail("late MATERIAL body mutation escaped the frozen graph source snapshot");
+    data.materials.front().m_diffuseColorFactor = sourceFactor;
+    data.dictionaries.front().m_entries.front().m_name = "wrong-key";
+    if (DxIfaceExtensionGraphTestAccess::materialSourcesUnchanged(graph))
+        return fail("late ACAD_MATERIAL key mutation escaped the frozen dictionary snapshot");
+    data.dictionaries.front().m_entries.front().m_name = "ByBlock";
+    if (!DxIfaceExtensionGraphTestAccess::prepare(graph, data, true)
+        || !DxIfaceExtensionGraphTestAccess::materialSourcesUnchanged(graph))
+        return fail("corrected MATERIAL/dictionary snapshot did not retry");
+
+    for (int map = 0; map < 6; ++map) {
+        dx_data unsupported;
+        dx_iface unsupportedGraph;
+        if (!makeData(unsupported, map)
+            || DxIfaceExtensionGraphTestAccess::prepare(
+                   unsupportedGraph, unsupported, true)
+            || unsupportedGraph.extensionGraphFailure()
+                != dx_iface::ExtensionGraphFailure::InvalidGraph)
+            return fail("procedural MATERIAL map became eligible for typed output: "
+                + std::to_string(map));
+    }
+    for (const unsigned transforms : {1u, 8u}) {
+        dx_data truncated;
+        dx_iface truncatedGraph;
+        if (!makeData(truncated, -1, transforms)
+            || truncated.materials.front().hasCompleteDwgSemanticFields()
+            || DxIfaceExtensionGraphTestAccess::prepare(
+                   truncatedGraph, truncated, true))
+            return fail("truncated MATERIAL matrix was admitted as a complete typed body");
+    }
+
+    MutationExporter exporter;
+    const auto exportFile = [&](bool binary) {
+        return exporter.fileExport(
+            output.string(), DRW::AC1024, binary, &data, false, true,
+            dx_dxfSourceTextPolicy::Compatible,
+            DRW::DxfTextWritePolicy::Compatible,
+            dx_dxfProxyGraphicsPolicy::Compatible,
+            dx_dwgReadCompletenessPolicy::AllowPartial);
+    };
+    const auto verifyReadback = [&](bool binary) {
+        dx_data actual;
+        dx_iface reader;
+        if (!reader.fileImport(output.string(), &actual, false)
+            || actual.materials.size() != 1u)
+            return false;
+        const DRW_Material& material = actual.materials.front();
+        const auto root = std::find_if(
+            actual.namedObjectDictionary.m_entries.begin(),
+            actual.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_MATERIAL";
+            });
+        if (root == actual.namedObjectDictionary.m_entries.end())
+            return false;
+        const auto dictionary = std::find_if(
+            actual.dictionaries.begin(), actual.dictionaries.end(),
+            [&root, &actual](const DRW_Dictionary& value) {
+                return value.handle == root->m_handle
+                    && value.parentHandle
+                        == actual.namedObjectDictionary.handle;
+            });
+        if (dictionary == actual.dictionaries.end()
+            || dictionary->m_entries.size() != 1u
+            || dictionary->m_entries.front().m_name != "ByBlock"
+            || dictionary->m_entries.front().m_handle != material.handle
+            || material.parentHandle != dictionary->handle
+            || material.reactorHandles.size() != 1u
+            || material.reactorHandles.front() != dictionary->handle
+            || material.xDictHandle == 0u
+            || material.m_name != "ByBlock"
+            || material.m_description != "generated AC1024 MATERIAL"
+            || material.m_ambientColorValue != 0x81234567u
+            || material.m_diffuseColorValue != 0x89ABCDEFu
+            || material.m_specularColorValue != 0xFEDCBA98u
+            || material.m_diffuseMapFileName != "diffuse-map.png"
+            || material.m_specularMapFileName != "specular-map.png"
+            || material.m_reflectionMapFileName != "reflection-map.png"
+            || material.m_opacityMapFileName != "opacity-map.png"
+            || material.m_bumpMapFileName != "bump-map.png"
+            || material.m_refractionMapFileName != "refraction-map.png"
+            || material.m_diffuseMapTransform[15] != 15.25
+            || material.m_refractionMapTransform[7] != 167.25
+            || material.m_specularGlossFactor != 0.6875
+            || material.m_opacityPercent != 0.9375
+            || material.m_refractionIndex != 1.375
+            || material.m_translucence != 0.1875
+            || material.m_reflectivity != 0.3125
+            || material.m_illuminationModel != 3
+            || material.m_channelFlags != 5)
+            return false;
+        const auto extension = std::find_if(
+            actual.dictionaries.begin(), actual.dictionaries.end(),
+            [&material](const DRW_Dictionary& value) {
+                return value.handle == material.xDictHandle
+                    && value.parentHandle == material.handle;
+            });
+        return extension != actual.dictionaries.end()
+            && extension->m_entries.empty()
+            && material.dwgRawData().empty()
+            && binary == (std::ifstream(output, std::ios::binary).peek() == 'A');
+    };
+
+    for (const bool binary : {false, true}) {
+        if (!exportFile(binary) || !verifyReadback(binary))
+            return fail(std::string("typed AC1024 MATERIAL graph output/readback failed: ")
+                + (binary ? "Binary" : "ASCII"));
+
+        const std::string sentinel = "MATERIAL_DESTINATION_ROLLBACK";
+        {
+            std::ofstream previous(output, std::ios::binary);
+            previous << sentinel;
+        }
+        exporter.afterObjects = [&data]() {
+            data.materials.front().m_diffuseColorFactor += 0.125;
+        };
+        const bool lateMutationRejected = !exportFile(binary);
+        exporter.afterObjects = {};
+        data.materials.front().m_diffuseColorFactor = sourceFactor;
+        std::ifstream previous(output, std::ios::binary);
+        const std::string retained{
+            std::istreambuf_iterator<char>(previous),
+            std::istreambuf_iterator<char>()};
+        previous.close();
+        if (!lateMutationRejected || retained != sentinel)
+            return fail("late MATERIAL mutation did not roll back the destination");
+        if (!exportFile(binary) || !verifyReadback(binary))
+            return fail("corrected MATERIAL output did not retry after rollback");
+    }
+    std::cout << "AC1024 MATERIAL graph: parser refusal, exact ASCII/Binary output/readback, rollback/retry PASS\n";
     return true;
 }
 
@@ -41187,6 +41436,9 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--xrecord-group-reference-admission")
         return xrecordGroupReferenceAdmission() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1]) == "--material-ac1024-typed-graph-output")
+        return materialAc1024TypedGraphOutput() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--standard-dwg-object-payload-correlation")
         return standardDwgObjectPayloadCorrelation() ? 0 : 1;

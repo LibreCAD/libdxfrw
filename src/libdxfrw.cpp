@@ -28289,16 +28289,33 @@ bool dxfRW::writeWipeoutVariables(DRW_WipeoutVariables *ent) {
 }
 
 bool dxfRW::writeMaterial(DRW_Material *ent) {
-    if (!preflightTableEntry(ent)) return false;
-    if (!dxfMaterial::validBody(*ent)) return failDxfWrite();
+    if (version < DRW::AC1014 || !preflightTableEntry(ent)
+        || ent->handle == 0 || ent->handle == DRW::NoHandle
+        || !dxfMaterial::validBody(*ent))
+        return failDxfWrite();
+    const std::uint32_t handle = remapObjectHandle(ent->handle);
+    if (handle == 0 || handle == DRW::NoHandle
+        || isDxfFixedOutputHandle(handle) || !reserveHandle(handle)) {
+        m_writeError = true;
+        return false;
+    }
+    RecordStateScope state(*this, ent);
+    DxfWriterRecordScope record(*writer);
     writer->writeString(0, "MATERIAL");
-    writer->writeString(5, toHexStr(ent->handle));
+    writer->writeString(5, toHexStr(handle));
     if (!writeTableEntryAppData(*ent)) return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
     writer->writeString(100, "AcDbMaterial");
     if (!dxfMaterial::writeBody(*writer, *ent, binFile)) return failDxfWrite();
     if (!ent->extData.empty() && !writeExtData(ent->extData)) return false;
-    return !writer->hasWriteError();
+    if (!preflightDxfWrite()
+        || !bindDxfWriteSourceObjectHandle(ent->handle, handle)
+        || !record.commit()) {
+        m_writeError = true;
+        return false;
+    }
+    state.commit();
+    return true;
 }
 
 bool dxfRW::writeBackground(DRW_Background *ent, const char *recordName) {

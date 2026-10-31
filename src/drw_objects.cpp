@@ -13768,6 +13768,58 @@ bool DRW_Material::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
             || (code == 75 && m_hasNormalMapAutoTransform))
             return false;
     }
+    const auto completeMap = [](
+            bool hasBlend, bool hasSource, std::uint8_t source,
+            bool hasFileName, bool hasProjection, bool hasTiling,
+            bool hasAutoTransform, bool hasTransform,
+            std::size_t transformCount) {
+        return hasBlend && hasSource && source <= 1u
+            && hasFileName == (source == 1u) && hasProjection && hasTiling
+            && hasAutoTransform && hasTransform && transformCount == 16u;
+    };
+    const bool completeNonproceduralBaseMaps =
+        m_hasAmbientColorMethod && m_hasAmbientColorFactor
+        && m_ambientColorMethod <= 1u
+        && m_hasAmbientColorValue == (m_ambientColorMethod == 1u)
+        && m_hasDiffuseColorMethod && m_hasDiffuseColorFactor
+        && m_diffuseColorMethod <= 1u
+        && m_hasDiffuseColorValue == (m_diffuseColorMethod == 1u)
+        && m_hasSpecularColorMethod && m_hasSpecularColorFactor
+        && m_specularColorMethod <= 1u
+        && m_hasSpecularColorValue == (m_specularColorMethod == 1u)
+        && m_hasSpecularGlossFactor
+        && completeMap(m_hasDiffuseMapBlendFactor,
+            m_hasDiffuseMapSource, m_diffuseMapSource,
+            m_hasDiffuseMapFileName, m_hasDiffuseMapProjection,
+            m_hasDiffuseMapTiling, m_hasDiffuseMapAutoTransform,
+            m_hasDiffuseMapTransform, m_dxfDiffuseMapTransformCount)
+        && completeMap(m_hasSpecularMapBlendFactor,
+            m_hasSpecularMapSource, m_specularMapSource,
+            m_hasSpecularMapFileName, m_hasSpecularMapProjection,
+            m_hasSpecularMapTiling, m_hasSpecularMapAutoTransform,
+            m_hasSpecularMapTransform, m_dxfSpecularMapTransformCount)
+        && completeMap(m_hasReflectionMapBlendFactor,
+            m_hasReflectionMapSource, m_reflectionMapSource,
+            m_hasReflectionMapFileName, m_hasReflectionMapProjection,
+            m_hasReflectionMapTiling, m_hasReflectionMapAutoTransform,
+            m_hasReflectionMapTransform, m_dxfReflectionMapTransformCount)
+        && m_hasOpacityPercent
+        && completeMap(m_hasOpacityMapBlendFactor,
+            m_hasOpacityMapSource, m_opacityMapSource,
+            m_hasOpacityMapFileName, m_hasOpacityMapProjection,
+            m_hasOpacityMapTiling, m_hasOpacityMapAutoTransform,
+            m_hasOpacityMapTransform, m_dxfOpacityMapTransformCount)
+        && completeMap(m_hasBumpMapBlendFactor,
+            m_hasBumpMapSource, m_bumpMapSource,
+            m_hasBumpMapFileName, m_hasBumpMapProjection,
+            m_hasBumpMapTiling, m_hasBumpMapAutoTransform,
+            m_hasBumpMapTransform, m_dxfBumpMapTransformCount)
+        && m_hasRefractionIndex
+        && completeMap(m_hasRefractionMapBlendFactor,
+            m_hasRefractionMapSource, m_refractionMapSource,
+            m_hasRefractionMapFileName, m_hasRefractionMapProjection,
+            m_hasRefractionMapTiling, m_hasRefractionMapAutoTransform,
+            m_hasRefractionMapTransform, m_dxfRefractionMapTransformCount);
     switch (code) {
     case 1:
         if (!replaceDxfRetainedStringField(
@@ -14163,9 +14215,13 @@ bool DRW_Material::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
         // Autodesk's generic procedural table starts with group 300. Later
         // fields reuse 270/271, which otherwise identify luminance mode and
         // Normal Map method in the preceding MATERIAL blocks.
+        if (m_dxfMaterialImplicitTail)
+            return false;
         m_dxfMaterialGenProcTableStarted = true;
         break;
     case 292: {
+        if (m_dxfMaterialImplicitTail)
+            return false;
         int value = 0;
         if (!readDxfIntInRange(reader, 0, 1, value))
             return false;
@@ -14177,8 +14233,13 @@ bool DRW_Material::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
     }
     case 148:
     case 468: {
-        if (!m_dxfMaterialGenProcTableEnded)
-            break;
+        if (!m_dxfMaterialGenProcTableEnded) {
+            if (m_dxfMaterialGenProcTableStarted)
+                break;
+            if (!completeNonproceduralBaseMaps)
+                return false;
+            m_dxfMaterialImplicitTail = true;
+        }
         const double value = reader->getDouble();
         if (!std::isfinite(value))
             return false;
@@ -14193,8 +14254,13 @@ bool DRW_Material::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
     }
     case 93:
     case 94: {
-        if (!m_dxfMaterialGenProcTableEnded)
-            break;
+        if (!m_dxfMaterialGenProcTableEnded) {
+            if (m_dxfMaterialGenProcTableStarted)
+                break;
+            if (!completeNonproceduralBaseMaps)
+                return false;
+            m_dxfMaterialImplicitTail = true;
+        }
         const std::int32_t value = reader->getInt32();
         if (code == 93) {
             m_illuminationModel = value;
@@ -15859,6 +15925,180 @@ bool DRW_Material::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t 
     if (!readText(parsedName) || !readText(parsedDescription))
         return fail();
 
+    struct ParsedColor {
+        std::uint8_t method{0u};
+        double factor{1.0};
+        std::uint32_t value{0u};
+        bool hasValue{false};
+    };
+    struct ParsedMap {
+        double blend{1.0};
+        std::uint8_t source{1u};
+        UTF8STRING fileName;
+        std::uint8_t projection{1u};
+        std::uint8_t tiling{1u};
+        std::uint8_t autoTransform{1u};
+        std::array<double, 16> transform{};
+    };
+    ParsedColor ambientColor;
+    ParsedColor diffuseColor;
+    ParsedColor specularColor;
+    ParsedMap diffuseMap;
+    ParsedMap specularMap;
+    ParsedMap reflectionMap;
+    ParsedMap opacityMap;
+    ParsedMap bumpMap;
+    ParsedMap refractionMap;
+    double specularGlossFactor = 0.5;
+    double opacityPercent = 1.0;
+    double refractionIndex = 1.0;
+    double translucence = 0.0;
+    double selfIllumination = 0.0;
+    double reflectivity = 0.0;
+    std::int32_t illuminationModel = 0;
+    std::int32_t channelFlags = 0;
+    std::int32_t mode = 0;
+    bool parsedSemanticFields = false;
+
+    // ODA v5.4.1 does not publish a MATERIAL body schema. LibreDWG's
+    // dwg2.spec profile, corroborated against the physical AC1024 witness,
+    // defines the fixed nonprocedural field order. Decode on independent
+    // cursors so an unsupported procedural source or newer tail remains an
+    // opaque same-version body and cannot poison the publishing cursor.
+    if (version == DRW::AC1024) {
+        dwgBuffer bodyProbe = buf->forkIndependent();
+        dwgBuffer textProbe = sBuf->forkIndependent();
+        const auto inBounds = [&]() {
+            return bodyProbe.isGood() && textProbe.isGood()
+                && objectBodyFitsSize(currentObjectDwgBit(&bodyProbe), bodyEnd)
+                && objectBodyFitsSize(currentObjectDwgBit(&textProbe), stringEnd);
+        };
+        const auto readColor = [&](ParsedColor& color) {
+            color.method = bodyProbe.getRawChar8();
+            if (!inBounds())
+                return false;
+            color.factor = bodyProbe.getBitDouble();
+            if (!inBounds())
+                return false;
+            if (color.method == 1u) {
+                color.value = static_cast<std::uint32_t>(
+                    bodyProbe.getBitLong());
+                color.hasValue = true;
+            }
+            return inBounds();
+        };
+        const auto readMap = [&](ParsedMap& map) {
+            map.blend = bodyProbe.getBitDouble();
+            if (!inBounds())
+                return false;
+            map.projection = bodyProbe.getRawChar8();
+            if (!inBounds())
+                return false;
+            map.tiling = bodyProbe.getRawChar8();
+            if (!inBounds())
+                return false;
+            map.autoTransform = bodyProbe.getRawChar8();
+            if (!inBounds())
+                return false;
+            for (double& value : map.transform) {
+                value = bodyProbe.getBitDouble();
+                if (!inBounds())
+                    return false;
+            }
+            map.source = bodyProbe.getRawChar8();
+            if (!inBounds() || map.source > 1u)
+                return false;
+            if (map.source == 1u
+                && !readVariableTextWithinBounds(
+                    &bodyProbe, &textProbe, version, bodyEnd, stringEnd,
+                    map.fileName))
+                return false;
+            return inBounds();
+        };
+        const auto consumeZeroPadding = [](dwgBuffer& source,
+                                           std::uint32_t endBit) {
+            const std::uint64_t current = currentObjectDwgBit(&source);
+            if (current > endBit || endBit - current > 7u)
+                return false;
+            for (std::uint64_t bit = current; bit < endBit; ++bit) {
+                if (source.getBit() != 0u)
+                    return false;
+            }
+            return source.isGood()
+                && currentObjectDwgBit(&source) == endBit;
+        };
+        bool supported = readColor(ambientColor)
+            && readColor(diffuseColor)
+            && readMap(diffuseMap)
+            && readColor(specularColor)
+            && readMap(specularMap);
+        if (supported) {
+            specularGlossFactor = bodyProbe.getBitDouble();
+            supported = inBounds() && readMap(reflectionMap);
+        }
+        if (supported) {
+            opacityPercent = bodyProbe.getBitDouble();
+            supported = inBounds() && readMap(opacityMap)
+                && readMap(bumpMap);
+        }
+        if (supported) {
+            refractionIndex = bodyProbe.getBitDouble();
+            supported = inBounds() && readMap(refractionMap);
+        }
+        if (supported) {
+            translucence = bodyProbe.getBitDouble();
+            supported = inBounds();
+        }
+        if (supported) {
+            selfIllumination = bodyProbe.getBitDouble();
+            supported = inBounds();
+        }
+        if (supported) {
+            reflectivity = bodyProbe.getBitDouble();
+            supported = inBounds();
+        }
+        if (supported) {
+            illuminationModel = bodyProbe.getBitLong();
+            supported = inBounds();
+        }
+        if (supported) {
+            channelFlags = bodyProbe.getBitLong();
+            supported = inBounds();
+        }
+        if (supported) {
+            mode = bodyProbe.getBitLong();
+            supported = inBounds()
+                && consumeZeroPadding(bodyProbe, bodyEnd)
+                && consumeZeroPadding(textProbe, stringEnd);
+        }
+
+        const auto validColor = [](const ParsedColor& color) {
+            return color.method <= 1u && std::isfinite(color.factor)
+                && color.factor >= 0.0 && color.factor <= 1.0
+                && color.hasValue == (color.method == 1u);
+        };
+        const auto validMap = [](const ParsedMap& map) {
+            return std::isfinite(map.blend)
+                && map.source <= 1u && map.projection >= 1u
+                && map.projection <= 4u && map.tiling >= 1u
+                && map.tiling <= 3u && (map.autoTransform & ~7u) == 0u
+                && std::all_of(map.transform.begin(), map.transform.end(),
+                    [](double value) { return std::isfinite(value); });
+        };
+        parsedSemanticFields = supported && mode == 0
+            && selfIllumination == 0.0
+            && validColor(ambientColor) && validColor(diffuseColor)
+            && validColor(specularColor)
+            && validMap(diffuseMap) && validMap(specularMap)
+            && validMap(reflectionMap) && validMap(opacityMap)
+            && validMap(bumpMap) && validMap(refractionMap)
+            && std::isfinite(specularGlossFactor)
+            && std::isfinite(opacityPercent)
+            && std::isfinite(refractionIndex)
+            && std::isfinite(translucence)
+            && std::isfinite(reflectivity);
+    }
+
     if (!buf->isGood() || !sBuf->isGood()
         || !objectBodyFitsSize(currentObjectDwgBit(buf), bodyEnd)
         || !objectBodyFitsSize(currentObjectDwgBit(sBuf), stringEnd))
@@ -15886,6 +16126,126 @@ bool DRW_Material::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t 
 
     m_name = std::move(parsedName);
     m_description = std::move(parsedDescription);
+    if (parsedSemanticFields) {
+        m_ambientColorMethod = ambientColor.method;
+        m_ambientColorFactor = ambientColor.factor;
+        m_ambientColorValue = ambientColor.value;
+        m_hasAmbientColorMethod = true;
+        m_hasAmbientColorFactor = true;
+        m_hasAmbientColorValue = ambientColor.hasValue;
+        m_diffuseColorMethod = diffuseColor.method;
+        m_diffuseColorFactor = diffuseColor.factor;
+        m_diffuseColorValue = diffuseColor.value;
+        m_hasDiffuseColorMethod = true;
+        m_hasDiffuseColorFactor = true;
+        m_hasDiffuseColorValue = diffuseColor.hasValue;
+        const auto assignMap = [](const ParsedMap& source, double& blend,
+                                  std::uint8_t& mapSource,
+                                  UTF8STRING& fileName,
+                                  std::uint8_t& projection,
+                                  std::uint8_t& tiling,
+                                  std::uint8_t& autoTransform,
+                                  std::array<double, 16>& transform,
+                                  bool& hasFileName) {
+            blend = source.blend;
+            mapSource = source.source;
+            fileName = source.fileName;
+            projection = source.projection;
+            tiling = source.tiling;
+            autoTransform = source.autoTransform;
+            transform = source.transform;
+            hasFileName = source.source == 1u;
+        };
+        assignMap(diffuseMap, m_diffuseMapBlendFactor, m_diffuseMapSource,
+                  m_diffuseMapFileName, m_diffuseMapProjection,
+                  m_diffuseMapTiling, m_diffuseMapAutoTransform,
+                  m_diffuseMapTransform, m_hasDiffuseMapFileName);
+        m_hasDiffuseMapBlendFactor = true;
+        m_hasDiffuseMapSource = true;
+        m_hasDiffuseMapProjection = true;
+        m_hasDiffuseMapTiling = true;
+        m_hasDiffuseMapAutoTransform = true;
+        m_hasDiffuseMapTransform = true;
+        m_dxfDiffuseMapTransformCount = m_diffuseMapTransform.size();
+        assignMap(specularMap, m_specularMapBlendFactor, m_specularMapSource,
+                  m_specularMapFileName, m_specularMapProjection,
+                  m_specularMapTiling, m_specularMapAutoTransform,
+                  m_specularMapTransform, m_hasSpecularMapFileName);
+        m_hasSpecularMapBlendFactor = true;
+        m_hasSpecularMapSource = true;
+        m_hasSpecularMapProjection = true;
+        m_hasSpecularMapTiling = true;
+        m_hasSpecularMapAutoTransform = true;
+        m_hasSpecularMapTransform = true;
+        m_dxfSpecularMapTransformCount = m_specularMapTransform.size();
+        m_specularGlossFactor = specularGlossFactor;
+        m_hasSpecularGlossFactor = true;
+        m_specularColorMethod = specularColor.method;
+        m_specularColorFactor = specularColor.factor;
+        m_specularColorValue = specularColor.value;
+        m_hasSpecularColorMethod = true;
+        m_hasSpecularColorFactor = true;
+        m_hasSpecularColorValue = specularColor.hasValue;
+        assignMap(reflectionMap, m_reflectionMapBlendFactor,
+                  m_reflectionMapSource, m_reflectionMapFileName,
+                  m_reflectionMapProjection, m_reflectionMapTiling,
+                  m_reflectionMapAutoTransform, m_reflectionMapTransform,
+                  m_hasReflectionMapFileName);
+        m_hasReflectionMapBlendFactor = true;
+        m_hasReflectionMapSource = true;
+        m_hasReflectionMapProjection = true;
+        m_hasReflectionMapTiling = true;
+        m_hasReflectionMapAutoTransform = true;
+        m_hasReflectionMapTransform = true;
+        m_dxfReflectionMapTransformCount = m_reflectionMapTransform.size();
+        m_opacityPercent = opacityPercent;
+        m_hasOpacityPercent = true;
+        assignMap(opacityMap, m_opacityMapBlendFactor, m_opacityMapSource,
+                  m_opacityMapFileName, m_opacityMapProjection,
+                  m_opacityMapTiling, m_opacityMapAutoTransform,
+                  m_opacityMapTransform, m_hasOpacityMapFileName);
+        m_hasOpacityMapBlendFactor = true;
+        m_hasOpacityMapSource = true;
+        m_hasOpacityMapProjection = true;
+        m_hasOpacityMapTiling = true;
+        m_hasOpacityMapAutoTransform = true;
+        m_hasOpacityMapTransform = true;
+        m_dxfOpacityMapTransformCount = m_opacityMapTransform.size();
+        assignMap(bumpMap, m_bumpMapBlendFactor, m_bumpMapSource,
+                  m_bumpMapFileName, m_bumpMapProjection, m_bumpMapTiling,
+                  m_bumpMapAutoTransform, m_bumpMapTransform,
+                  m_hasBumpMapFileName);
+        m_hasBumpMapBlendFactor = true;
+        m_hasBumpMapSource = true;
+        m_hasBumpMapProjection = true;
+        m_hasBumpMapTiling = true;
+        m_hasBumpMapAutoTransform = true;
+        m_hasBumpMapTransform = true;
+        m_dxfBumpMapTransformCount = m_bumpMapTransform.size();
+        m_refractionIndex = refractionIndex;
+        m_hasRefractionIndex = true;
+        assignMap(refractionMap, m_refractionMapBlendFactor,
+                  m_refractionMapSource, m_refractionMapFileName,
+                  m_refractionMapProjection, m_refractionMapTiling,
+                  m_refractionMapAutoTransform, m_refractionMapTransform,
+                  m_hasRefractionMapFileName);
+        m_hasRefractionMapBlendFactor = true;
+        m_hasRefractionMapSource = true;
+        m_hasRefractionMapProjection = true;
+        m_hasRefractionMapTiling = true;
+        m_hasRefractionMapAutoTransform = true;
+        m_hasRefractionMapTransform = true;
+        m_dxfRefractionMapTransformCount = m_refractionMapTransform.size();
+        m_translucence = translucence;
+        m_hasTranslucence = translucence != 0.0;
+        m_reflectivity = reflectivity;
+        m_hasReflectivity = reflectivity != 0.0;
+        m_illuminationModel = illuminationModel;
+        m_hasIlluminationModel = illuminationModel != 0;
+        m_channelFlags = channelFlags;
+        m_hasChannelFlags = channelFlags != 0;
+        m_dwgSemanticFieldsParsed = true;
+    }
     if (hasOpaqueBodyTail) {
         m_rawData = std::move(parsedRawData);
         m_rawDataBitSize = static_cast<std::uint32_t>(bodyEnd - tailStart);

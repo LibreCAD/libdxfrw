@@ -171,7 +171,9 @@ inline bool validBody(const DRW_Material& value) {
         || ((ent->m_hasMapUTile || ent->m_hasTranslucence
                 || ent->m_hasReflectivity || ent->m_hasIlluminationModel
                 || ent->m_hasChannelFlags)
-            && !ent->m_hasGenProcTableEnd))
+            && !ent->m_hasGenProcTableEnd
+            && !ent->hasDxfMaterialImplicitTail()
+            && !ent->hasCompleteDwgSemanticFields()))
         return false;
     return true;
 }
@@ -376,7 +378,8 @@ inline bool sameValue(const std::array<double,16>& a, const std::array<double,16
 }
 // All public body values, including inactive payloads, are frozen against
 // callback edits. Parser cursor counters are deliberately not editable state.
-inline bool sameState(const DRW_Material& a, const DRW_Material& b) noexcept {
+inline bool sameBodyState(const DRW_Material& a,
+                          const DRW_Material& b) noexcept {
     if (!sameValue(a.m_name, b.m_name)) return false;
     if (!sameValue(a.m_description, b.m_description)) return false;
     if (!sameValue(a.m_ambientColorMethod, b.m_ambientColorMethod)) return false;
@@ -537,7 +540,15 @@ inline bool sameState(const DRW_Material& a, const DRW_Material& b) noexcept {
     if (!sameValue(a.m_hasIlluminationModel, b.m_hasIlluminationModel)) return false;
     if (!sameValue(a.m_channelFlags, b.m_channelFlags)) return false;
     if (!sameValue(a.m_hasChannelFlags, b.m_hasChannelFlags)) return false;
-    return a.hasDwgRawData()==b.hasDwgRawData() && a.dwgRawData()==b.dwgRawData()
+    return true;
+}
+
+inline bool sameState(const DRW_Material& a, const DRW_Material& b) noexcept {
+    return sameBodyState(a, b)
+        && a.hasCompleteDwgSemanticFields()
+            == b.hasCompleteDwgSemanticFields()
+        && a.hasDxfMaterialImplicitTail() == b.hasDxfMaterialImplicitTail()
+        && a.hasDwgRawData()==b.hasDwgRawData() && a.dwgRawData()==b.dwgRawData()
         && a.dwgRawDataBitSize()==b.dwgRawDataBitSize() && a.dwgRawDataVersion()==b.dwgRawDataVersion();
 }
 } // namespace dxfMaterial

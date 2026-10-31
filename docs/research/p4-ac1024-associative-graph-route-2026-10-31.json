@@ -77,7 +77,11 @@
     },
     "fullSuites": "NOT_RUN per the fast-validation plan."
   },
-  "remaining": "Resolve the source-required dictionary entry edge owner 0x72 -> target 0x97, then continue the P4 callback census and required descendant/output proofs. Strict complete-export remains blocked while opaque callback views are not retained.",
+  "remaining": "At the time of this receipt, resolve the source-required dictionary entry edge owner 0x72 -> target 0x97, then continue the P4 callback census and required descendant/output proofs. The MATERIAL edge and generated output packet have since been closed; see p4-ac1024-material-output-2026-10-31.json.",
+  "currentDiagnostic": {
+    "receipt": "p4-ac1024-material-output-2026-10-31.json",
+    "status": "The current physical mechanical witness passes associative extension-graph planning and stops at registerMeshClass admission, reported as AcDbSubDMesh CLASS metadata. The destination is not published."
+  },
   "limitations": [
     "No physical-source DXF was successfully published or read back.",
     "The explicit-partial diagnostic is not a completeness or support claim.",
