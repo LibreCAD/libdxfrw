@@ -21151,6 +21151,7 @@ void dx_iface::resetStandardDwgOutputProofs() noexcept {
     m_standardDwgOutputInspected = false;
     m_standardDwgOutputFinalized = false;
     m_standardDwgOutputPublished = false;
+    m_standardDwgLayerControlOutputProof = {};
 }
 
 bool dx_iface::inspectStandardDwgTablesOutput(const dxfRW::DxfTablesWriteView& view) noexcept {
@@ -21163,6 +21164,45 @@ bool dx_iface::inspectStandardDwgTablesOutput(const dxfRW::DxfTablesWriteView& v
     try {
         using Proof = StandardDwgOutputNameProof;
         using NameKey = std::pair<bool, std::string>;
+        auto& layerControl = m_standardDwgLayerControlOutputProof;
+        layerControl = {};
+        if (cData->sourceFormat == dx_source_format::DWG) {
+            std::uint32_t sourceControl = 0u;
+            std::uint32_t sourceDictionary = 0u;
+            if (!cData->getLayerTableControlExtensionDictionary(
+                    sourceControl, sourceDictionary)) return fail();
+            if (sourceControl != 0u || sourceDictionary != 0u) {
+                const auto* context = dxfW->getWritingContext();
+                if (sourceControl == 0u || sourceControl == DRW::NoHandle
+                    || sourceDictionary == 0u
+                    || sourceDictionary == DRW::NoHandle
+                    || sourceControl == sourceDictionary
+                    || cData->m_dwgLayerControlGeneration
+                        != cData->importGeneration
+                    || context == nullptr
+                    || context->ambiguousSourceHandles.count(sourceControl) != 0u
+                    || context->ambiguousSourceHandles.count(sourceDictionary) != 0u)
+                    return fail();
+                for (const auto* aliases : {
+                        &context->sourceHandleToWrittenObjectMap,
+                        &context->sourceHandleToWrittenTableMap,
+                        &context->sourceHandleToMintedMap}) {
+                    const auto alias = aliases->find(sourceControl);
+                    if (alias != aliases->end() && alias->second != 2u)
+                        return fail();
+                }
+                const std::uint32_t emittedDictionary =
+                    dxfW->remapHandle(sourceDictionary);
+                if (emittedDictionary == 0u
+                    || emittedDictionary == DRW::NoHandle)
+                    return fail();
+                layerControl.generation = cData->importGeneration;
+                layerControl.sourceControl = sourceControl;
+                layerControl.sourceDictionary = sourceDictionary;
+                layerControl.emittedDictionary = emittedDictionary;
+                layerControl.inspected = true;
+            }
+        }
         std::map<std::uint32_t, Proof*> handles;
         std::map<NameKey, Proof*> names;
         const auto add = [&](const auto& frame, std::uint32_t handle, bool layer, const auto& sources) {
@@ -21223,6 +21263,15 @@ bool dx_iface::inspectStandardDwgTablesOutput(const dxfRW::DxfTablesWriteView& v
             }
         }
         if (!dx_symbol_output::inspect(view, [&](const dx_symbol_output::NameRecord& row) {
+            if (layerControl.inspected
+                && row.type == dx_symbol_output::Kind::Layer) {
+                if (!row.qualified || row.tableHandle != 2u
+                    || row.tableDictionaryHandle
+                        != layerControl.emittedDictionary)
+                    return false;
+                layerControl.emittedTable = row.tableHandle;
+                layerControl.matched = true;
+            }
             if (row.type==dx_symbol_output::Kind::LineType) return true;
             const bool layer = row.type == dx_symbol_output::Kind::Layer;
             std::string nameKey;
@@ -21247,6 +21296,7 @@ bool dx_iface::inspectStandardDwgTablesOutput(const dxfRW::DxfTablesWriteView& v
             }
             return true;
         })) return fail();
+        if (layerControl.inspected && !layerControl.matched) return fail();
         for (auto current = m_standardDwgOutputNameProofs.begin(); current != m_standardDwgOutputNameProofs.end();) {
             const auto& proof = current->second;
             if (!proof.eligible || !proof.matched || proof.nameRows != 1u || proof.handleRows != 1u)
@@ -34081,6 +34131,14 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
             const auto blockRecord = mapBlockRecord(source, output);
             if (blockRecord == BlockRecordMapping::Mapped) return true;
             if (blockRecord == BlockRecordMapping::Invalid) return false;
+            const auto& layerControl = m_standardDwgLayerControlOutputProof;
+            if (layerControl.inspected
+                && source == layerControl.sourceControl) {
+                if (!layerControl.matched || layerControl.generation == 0u
+                    || layerControl.emittedTable != 2u) return false;
+                output = layerControl.emittedTable;
+                return true;
+            }
             output = dxfW->dxfWriteEmittedSourceTableHandle(source);
             if (output != 0u) return true;
             unsigned bindings = 0u;
@@ -34186,6 +34244,14 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
                     && mapBlockRecord(source->parentHandle, emittedBlockRecord)
                         == BlockRecordMapping::Mapped
                     && emittedBlockRecord == actual.parentHandle;
+                const auto& layerControl =
+                    m_standardDwgLayerControlOutputProof;
+                proof.ownerIsLayerControl = source != nullptr
+                    && layerControl.inspected && layerControl.matched
+                    && layerControl.generation == frame.generation
+                    && frame.raw.m_handle == layerControl.sourceDictionary
+                    && source->parentHandle == layerControl.sourceControl
+                    && actual.parentHandle == layerControl.emittedTable;
                 return true; // A partial projection stays explicitly unqualified.
             };
             bool decoded = false;
@@ -34240,6 +34306,25 @@ bool dx_iface::finalizeStandardDwgOutputProofs() noexcept {
                     && dxfW->dxfWriteRecordHasIdentity(
                         proof.owner, "BLOCK_RECORD", "TABLES");
             }
+            if (proof.ownerIsLayerControl) {
+                const auto& layerControl =
+                    m_standardDwgLayerControlOutputProof;
+                ownerRoleMatches = !proof.ownerIsBlockRecord
+                    && layerControl.inspected && layerControl.matched
+                    && layerControl.generation == proof.generation
+                    && layerControl.sourceDictionary == current->first
+                    && layerControl.emittedTable == proof.owner
+                    && layerControl.emittedDictionary == proof.emitted
+                    && dxfW->dxfWriteRecordHandleCount(proof.owner) == 1u
+                    && dxfW->dxfWriteRecordHasIdentity(
+                        proof.owner, "TABLE", "TABLES")
+                    && dxfW->dxfWriteRecordHasOwner(proof.owner, 0u)
+                    && dxfW->dxfWriteRecordHandleCount(proof.emitted) == 1u
+                    && dxfW->dxfWriteRecordHasIdentity(
+                        proof.emitted, "DICTIONARY", "OBJECTS")
+                    && dxfW->dxfWriteRecordHasOwner(
+                        proof.emitted, proof.owner);
+            }
             bool closed = identityMatches && ownerRoleMatches
                 && hasQualifiedStandardDwgOutputNames(proof.generation, current->first, true);
             if (proof.extensionDictionary != 0u
@@ -34250,9 +34335,14 @@ bool dx_iface::finalizeStandardDwgOutputProofs() noexcept {
                 const auto count = dxfW->dxfWriteRecordHandleCount(reference);
                 const bool blockRecordRole = proof.ownerIsBlockRecord
                     && reference == proof.owner;
+                const bool layerControlRole = proof.ownerIsLayerControl
+                    && reference == proof.owner;
                 if (count != 1u || (blockRecordRole
                     && !dxfW->dxfWriteRecordHasIdentity(
-                        reference, "BLOCK_RECORD", "TABLES"))) closed = false;
+                        reference, "BLOCK_RECORD", "TABLES"))
+                    || (layerControlRole
+                        && !dxfW->dxfWriteRecordHasIdentity(
+                            reference, "TABLE", "TABLES"))) closed = false;
             }
             if (!closed) current = m_standardDwgOutputProofs.erase(current);
             else ++current;
@@ -59041,15 +59131,25 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         cData->m_standardDwgObjectFrames.end(), [](const auto& source) {
             return !source.second.appIdDependencies.empty() || !source.second.layerDependencies.empty();
         });
+    std::uint32_t layerControlSourceHandle = 0u;
+    std::uint32_t layerControlSourceDictionary = 0u;
+    const bool needsLayerControlOutput =
+        cData->sourceFormat == dx_source_format::DWG
+        && cData->getLayerTableControlExtensionDictionary(
+            layerControlSourceHandle, layerControlSourceDictionary)
+        && layerControlSourceHandle != 0u
+        && layerControlSourceDictionary != 0u;
     const bool needsDwgLayoutsOutput =
         !m_dwgLayoutOutputSources.empty();
-    if ((needsStandardNames || m_dxfLayerMaterialState.active || !m_dxfMLineLinetypes.empty()
-            || needsDwgLayoutsOutput) && !dxfW->setDxfTablesWriteInspector([this, needsStandardNames, needsDwgLayoutsOutput, debug, requireResolvedOwners](const auto& view) {
+    if ((needsStandardNames || needsLayerControlOutput
+            || m_dxfLayerMaterialState.active || !m_dxfMLineLinetypes.empty()
+            || needsDwgLayoutsOutput) && !dxfW->setDxfTablesWriteInspector([this, needsStandardNames, needsLayerControlOutput, needsDwgLayoutsOutput, debug, requireResolvedOwners](const auto& view) {
             if (!inspectDxfLayerMaterials(view)) {
                 return false;
             }
             if (!inspectDxfMLineLinetypes(view)) return false;
-            if (needsStandardNames && !inspectStandardDwgTablesOutput(view))
+            if ((needsStandardNames || needsLayerControlOutput)
+                && !inspectStandardDwgTablesOutput(view))
                 return false;
             return !needsDwgLayoutsOutput
                 || inspectDwgLayoutBlockRecords(

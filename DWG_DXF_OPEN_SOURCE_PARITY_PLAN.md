@@ -61,7 +61,7 @@ action rather than evidence that earlier packets made no progress.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next packet — bind the 10 remaining callback identities to complete output.**
+**P4 next packet — bind the 9 remaining callback identities to complete output.**
 These identities lack document-level output qualification; this does not imply
 that every source body remains unimplemented. Reuse existing source-body,
 serializer, ownership and output receipts where they cover the exact identity
@@ -69,13 +69,14 @@ and fields. For each uncovered identity, inspect the retained source record,
 owner/dependency roles and serializer route, then implement only the missing
 provider or binding. Do not qualify from type/count or opaque-byte retention
 alone. The current identity census is in the
-[`P4 remaining-identity receipt`](docs/research/p4-ac1024-standard-dictionary-block-record-owner-output-proof-2026-10-31.json).
-Four standard DICTIONARY identities (`0x00F2`, `0x1069`, `0x1116`, `0x121C`)
-now have source-bound body/reference output proof and BLOCK_RECORD owner-role
-closure; their local action is removed. DICTIONARY `0x0107` remains unqualified:
-its body matches on readback, but its owner is LAYER_CONTROL and has no eligible
-owner-role proof in this packet. Keep strict refusal until the complete source
-identity set is covered.
+[`P4 remaining-identity receipt`](docs/research/p4-ac1024-layer-control-dictionary-output-proof-2026-10-31.json).
+Five standard DICTIONARY identities (`0x00F2`, `0x0107`, `0x1069`, `0x1116`,
+`0x121C`) now have source-bound body/reference output proof and owner-role
+closure; their local action is removed. The four named BLOCK_RECORD owners map
+through their emitted table identities. `0x0107` maps its LAYER_CONTROL owner to
+the `TABLE LAYER` header only after verifying that the header's extension
+dictionary link identifies the emitted OBJECTS `DICTIONARY`. Keep strict
+refusal until the complete source identity set is covered.
 
 ## P4 — original bodies and complete document closure
 

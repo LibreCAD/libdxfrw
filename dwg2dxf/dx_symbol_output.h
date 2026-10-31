@@ -16,6 +16,7 @@ inline Kind kind(std::string_view name) noexcept {
 struct NameRecord {
     Kind type{Kind::Other};
     std::uint32_t handle{0}, owner{0}, tableHandle{0};
+    std::uint32_t tableDictionaryHandle{0};
     std::string name;
     bool qualified{false};
 };
@@ -49,13 +50,19 @@ template <class Visitor> bool inspect(
     unsigned names = 0u, handles = 0u, owners = 0u, subclasses = 0u;
     unsigned capacity = 0u, flags = 0u, depth = 0u;
     std::size_t records = 0u;
-    std::uint32_t tableHandle = 0u, handle = 0u, owner = 0u;
+    std::uint32_t tableHandle = 0u, tableDictionaryHandle = 0u;
+    std::uint32_t handle = 0u, owner = 0u;
+    unsigned tableDictionaryHandles = 0u;
     bool active = false, valid = true, xdata = false, tableQualified = false;
+    bool inLayerTableXDictionary = false;
     bool sawLayer = false, sawAppId = false, sawLineType = false;
     const auto finish = [&]() {
         if (depth != 0u) return false;
         if (mode == Mode::Header) {
             if (names != 1u || tableName.empty()) return false;
+            if (tableDictionaryHandles > 1u
+                || (tableDictionaryHandles == 1u
+                    && tableDictionaryHandle == 0u)) valid = false;
             const auto type = kind(tableName);
             if ((type == Kind::Layer && sawLayer) || (type == Kind::AppId && sawAppId)
                 || (type == Kind::LineType && sawLineType)) return false;
@@ -70,6 +77,7 @@ template <class Visitor> bool inspect(
                 && owners == (hasOwner ? 1u : 0u) && owner == 0u;
         } else if (mode == Mode::Row && row.type != Kind::Other) {
             row.handle = handle; row.owner = owner; row.tableHandle = tableHandle;
+            row.tableDictionaryHandle = tableDictionaryHandle;
             const bool hasOwner = row.type == Kind::Layer || row.type == Kind::LineType
                 || view.version > DRW::AC1014;
             row.qualified = tableQualified && valid && handles == 1u && handle != 0u
@@ -90,6 +98,8 @@ template <class Visitor> bool inspect(
             if (name == "TABLE") {
                 if (active) return false;
                 active = true; mode = Mode::Header; tableName.clear(); tableQualified = false;
+                tableDictionaryHandle = 0u; tableDictionaryHandles = 0u;
+                inLayerTableXDictionary = false;
             } else if (name == "ENDTAB") {
                 if (!active) return false;
                 active = false; mode = Mode::End;
@@ -108,12 +118,29 @@ template <class Visitor> bool inspect(
             const auto marker = reader->getStringView();
             if (!marker.empty() && marker.front() == '{') {
                 if (depth >= 32u) return false;
+                if (mode == Mode::Header && tableName == "LAYER"
+                    && depth == 0u && marker == "{ACAD_XDICTIONARY") {
+                    if (inLayerTableXDictionary) valid = false;
+                    inLayerTableXDictionary = true;
+                }
                 ++depth;
-            } else if (marker == "}" && depth != 0u) --depth;
+            } else if (marker == "}" && depth != 0u) {
+                if (depth == 1u && inLayerTableXDictionary)
+                    inLayerTableXDictionary = false;
+                --depth;
+            }
             else return false;
             continue;
         }
-        if (depth != 0u) continue;
+        if (depth != 0u) {
+            if (mode == Mode::Header && tableName == "LAYER"
+                && inLayerTableXDictionary && code == 360) {
+                if (++tableDictionaryHandles != 1u
+                    || !reader->isValidHandleString()) valid = false;
+                else tableDictionaryHandle = reader->getHandleString();
+            }
+            continue;
+        }
         if (code == 1001) xdata = true;
         if (xdata) {
             if (code < 1000) valid = false;

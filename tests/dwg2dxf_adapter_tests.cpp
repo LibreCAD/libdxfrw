@@ -12,6 +12,7 @@
 #include "intern/dxfmaterial.h"
 #include "dx_raster_output.h"
 #include "dx_standard_output.h"
+#include "dx_symbol_output.h"
 #include "independent_dxf_scalar_walker.h"
 
 #include <algorithm>
@@ -50083,6 +50084,50 @@ bool extensionDictionaryOwnerGraphs() {
     return true;
 }
 
+bool layerTableControlHeaderInventory() {
+    for (const bool binary : {false, true}) {
+        std::ostringstream stream(std::ios::binary);
+        std::unique_ptr<dxfWriter> writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+        writer->setVersion("AC1027", true);
+        writer->writeString(0, "TABLE");
+        writer->writeString(2, "LAYER");
+        writer->writeString(5, "2");
+        writer->writeString(102, "{ACAD_XDICTIONARY");
+        writer->writeString(360, "2A2");
+        writer->writeString(102, "}");
+        writer->writeString(330, "0");
+        writer->writeString(100, "AcDbSymbolTable");
+        writer->writeInt16(70, 1);
+        writer->writeString(0, "LAYER");
+        writer->writeString(5, "10");
+        writer->writeString(330, "2");
+        writer->writeString(100, "AcDbSymbolTableRecord");
+        writer->writeString(100, "AcDbLayerTableRecord");
+        writer->writeString(2, "0");
+        writer->writeInt16(70, 0);
+        writer->writeInt16(62, 7);
+        writer->writeString(6, "Continuous");
+        writer->writeString(0, "ENDTAB");
+        const std::string bytes = stream.str();
+        const dxfRW::DxfTablesWriteView view{bytes, DRW::AC1027, binary,
+            "UTF-8", dxfRW::DxfCompatibilityProfile::StandaloneSafe};
+        unsigned layerRows = 0u;
+        if (writer->hasWriteError()
+            || !dx_symbol_output::inspect(view, [&](const auto& row) {
+                if (row.type != dx_symbol_output::Kind::Layer)
+                    return true;
+                ++layerRows;
+                return row.qualified && row.handle == 0x10u
+                    && row.owner == 2u && row.tableHandle == 2u
+                    && row.tableDictionaryHandle == 0x2A2u;
+            }) || layerRows != 1u)
+            return fail("LAYER TABLE header inventory lost its identity or XDICTIONARY target");
+    }
+    return true;
+}
+
 bool layerTableControlDictionaryOwnerOutput() {
     const auto nonce = std::chrono::steady_clock::now()
         .time_since_epoch().count();
@@ -51133,6 +51178,7 @@ int main(int argc, char** argv) {
         && std::string(argv[1]) == "--extension-dictionary-owner-graphs")
         return extensionDictionaryOwnerGraphs()
                 && layerTableControlDictionaryOwnerOutput()
+                && layerTableControlHeaderInventory()
             ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--dynamic-block-purge-preventer")
@@ -51189,7 +51235,9 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1])
             == "--dwg-layer-table-control-dictionary")
-        return dwgLayerTableControlDictionaryCapture() ? 0 : 1;
+        return dwgLayerTableControlDictionaryCapture()
+                && layerTableControlHeaderInventory()
+            ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--xrecord-group-reference-admission")
         return xrecordGroupReferenceAdmission() ? 0 : 1;

@@ -2348,9 +2348,17 @@ private:
         std::uint32_t emitted{0}, owner{0}, extensionDictionary{0};
         int objectType{0};
         bool identityOnlyDictionary{false}, ownerIsBlockRecord{false};
+        bool ownerIsLayerControl{false};
         std::vector<std::uint32_t> references;
     };
     std::map<std::uint32_t, StandardDwgOutputProof> m_standardDwgOutputProofs;
+    struct StandardDwgLayerControlOutputProof {
+        std::uint64_t generation{0};
+        std::uint32_t sourceControl{0}, sourceDictionary{0};
+        std::uint32_t emittedTable{0}, emittedDictionary{0};
+        bool inspected{false}, matched{false};
+    };
+    StandardDwgLayerControlOutputProof m_standardDwgLayerControlOutputProof;
     struct StandardDwgOutputNameProof {
         std::uint64_t generation{0};
         std::uint32_t source{0}, emitted{0}, table{0};
