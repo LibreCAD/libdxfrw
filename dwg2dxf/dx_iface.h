@@ -2380,6 +2380,7 @@ private:
         const DRW_Block& block, bool includeContainerStorage,
         std::size_t& estimatedBytes) const noexcept;
     bool prepareDwgViewportProjection(std::string& failure);
+    bool finalizeDwgViewportOutputQualifications() noexcept;
     bool planLeaderAnnotationHandles();
     bool preallocateBlockRecordXdataEntityHandles();
 

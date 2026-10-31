@@ -46,7 +46,7 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — strict complete-export closure | Qualify the remaining 17/228 identities in the AC1024 witness: 2 unnamed entity callbacks of type 34 plus 15 standard-object callbacks (13 type 42 and 2 type 79). Reuse an existing route only when the source identity, complete admitted fields/roles, emitted record and fresh readback are all closed; then rerun strict export. | Keep read retention separate from output qualification: retained bytes alone do not prove emission or form a DXF replay route. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — strict complete-export closure | Qualify the remaining 15/228 identities in the AC1024 witness: 15 standard-object callbacks (13 type 42 and 2 type 79). Reuse an existing route only when the source identity, complete admitted fields/roles, emitted record and fresh readback are all closed; then rerun strict export. | Keep read retention separate from output qualification: retained bytes alone do not prove emission or form a DXF replay route. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN — broader rendering/TABLE work | Close remaining rendering metadata/native rendering profiles, FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, TABLECONTENT style/format/payload profiles, typed nested R24 TABLESTYLE readback, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -57,17 +57,18 @@ P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
 **P4 next action — close the remaining callback identities.** On the current
-AC1024 witness, 211/228 opaque callback identities have transactional output
-qualification; strict export still refuses before publication, with 17
-unresolved. The physical type-73 MLINESTYLE and both type-82 LAYOUT callbacks
-are now closed. The remaining generic callbacks are 2 unnamed entity callbacks
-of type 34; the remaining standard callbacks are 13 type 42 and 2 type 79.
-Trace their source roles, complete output records and dependencies, and qualify
-only identities whose full proof passes in the same transaction. Keep the
-unresolved set refused and add no investigation DWG/DXF fixtures. See
+AC1024 witness, 213/228 opaque callback identities have transactional output
+qualification; strict export still refuses before publication, with 15
+unresolved. The physical type-73 MLINESTYLE, both type-82 LAYOUT callbacks,
+and both type-34 VIEWPORT callbacks are now closed. The remaining standard
+callbacks are 13 type 42 and 2 type 79. Trace their source roles, complete
+output records and dependencies, and qualify only identities whose full proof
+passes in the same transaction. Keep the unresolved set refused and add no
+investigation DWG/DXF fixtures. See
 [`p4-ac1024-sortents-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-sortents-output-qualification-2026-10-31.json)
 and [`p4-ac1024-mlinestyle-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-mlinestyle-output-qualification-2026-10-31.json)
 and [`p4-ac1024-layout-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-layout-output-qualification-2026-10-31.json)
+and [`p4-ac1024-viewport-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-viewport-output-qualification-2026-10-31.json)
 for current counts and source/output binding evidence.
 
 ## P4 — original bodies and complete document closure

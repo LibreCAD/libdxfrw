@@ -96,6 +96,19 @@ public:
         return data.m_opaqueDwgOutputQualifiedFrameIdentities.count(
             {generation, handle}) == 1u;
     }
+    static std::size_t opaqueOutputQualificationCount(const dx_data& data) {
+        return data.m_opaqueDwgOutputQualifiedFrameIdentities.size();
+    }
+    static bool opaqueSourceIsEntityType(const dx_data& data,
+            std::uint64_t generation, std::uint32_t handle, int type) {
+        const auto key = std::make_pair(generation, handle);
+        const auto frame = data.m_opaqueDwgSourceFrames.find(key);
+        return data.m_opaqueDwgSourceFrameIdentities.count(key) == 1u
+            && frame != data.m_opaqueDwgSourceFrames.end()
+            && frame->second.m_objectType == type
+            && frame->second.m_isEntity
+            && frame->second.m_handle == handle;
+    }
     static bool stageOpaqueOutputQualification(dx_iface& iface,
                                                std::uint32_t handle) {
         return iface.recordOpaqueDwgOutputQualification(handle);
@@ -30007,6 +30020,11 @@ bool physicalViewportOutputReadback(
         bool mainContainer{false};
     };
     const std::array<std::uint32_t, 2> expectedHandles{{0x28Bu, 0x290u}};
+    for (const std::uint32_t handle : expectedHandles) {
+        if (!DxIfaceStandardDwgCaptureTestAccess::opaqueSourceIsEntityType(
+                source, source.importGeneration, handle, 34))
+            return fail("the physical VIEWPORT does not match its opaque type-34 callback identity");
+    }
     std::array<LocatedViewport, 2> sourceViewports{};
     const auto findViewports = [&expectedHandles](
             const dx_data& data, std::array<LocatedViewport, 2>& found) {
@@ -30145,6 +30163,14 @@ bool physicalViewportOutputReadback(
         return found;
     };
     for (const bool binary : {false, true}) {
+        const std::size_t initialQualifiedCount =
+            DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                source);
+        std::array<bool, 2> initiallyQualified{{false, false}};
+        for (std::size_t index = 0u; index < expectedHandles.size(); ++index)
+            initiallyQualified[index] =
+                DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                    source, source.importGeneration, expectedHandles[index]);
         const auto nonce = std::chrono::steady_clock::now()
                                .time_since_epoch().count();
         const std::filesystem::path outputPath =
@@ -30194,8 +30220,30 @@ bool physicalViewportOutputReadback(
         mutableViewport->viewHeight = originalHeight;
         if (!invalidPayloadRejected || refusedContents != sentinel)
             return fail("invalid physical VIEWPORT payload was not refused atomically");
+        if (DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                source) != initialQualifiedCount
+            || std::any_of(expectedHandles.begin(), expectedHandles.end(),
+                [&source, &expectedHandles, &initiallyQualified](
+                        std::uint32_t handle) {
+                    const std::size_t index = static_cast<std::size_t>(
+                        std::find(expectedHandles.begin(), expectedHandles.end(),
+                                  handle) - expectedHandles.begin());
+                    return DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                        source, source.importGeneration, handle)
+                        != initiallyQualified[index];
+                }))
+            return fail("refused physical VIEWPORT export changed published callback qualifications");
         if (!exportPartial())
             return fail("corrected physical VIEWPORT source could not retry on the same adapter");
+        for (const std::uint32_t handle : expectedHandles) {
+            if (!DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                    source, source.importGeneration, handle))
+                return fail("successful physical VIEWPORT retry did not publish its exact opaque source identity");
+        }
+        if (source.dwgReadOutcome.opaqueFramesOutputQualified
+            != DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                source))
+            return fail("physical VIEWPORT retry published a mismatched opaque qualification count");
 
         dx_iface outputReader;
         dx_data output;

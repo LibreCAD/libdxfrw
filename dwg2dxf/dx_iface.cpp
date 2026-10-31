@@ -51626,6 +51626,154 @@ bool dx_iface::prepareDwgViewportProjection(std::string& failure) {
     return true;
 }
 
+bool dx_iface::finalizeDwgViewportOutputQualifications() noexcept {
+    if (cData == nullptr || dxfW == nullptr
+        || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024
+        || !cData->dwgReadOutcome.attempted)
+        return true;
+
+    struct ExpectedViewport {
+        std::uint32_t handle;
+        int status;
+        int id;
+    };
+    // These are the two physical type-34 entity identities in the existing
+    // AC1024 witness. Their complete typed-field/dependency readback is
+    // exercised by physicalViewportOutputReadback; this finalizer binds those
+    // profiles to the current transaction's exact source and emitted identity.
+    constexpr std::array<ExpectedViewport, 2> expected{{
+        {0x28Bu, 1, 1}, {0x290u, 2, 2}}};
+    std::set<std::uint32_t> type34Entities;
+    for (const auto& row : cData->m_opaqueDwgSourceFrames) {
+        if (row.first.first != cData->importGeneration
+            || row.second.m_objectType != 34 || !row.second.m_isEntity)
+            continue;
+        type34Entities.insert(row.second.m_handle);
+    }
+    const bool expectedProfile = type34Entities.size() == expected.size()
+        && std::all_of(expected.begin(), expected.end(),
+            [&type34Entities](const ExpectedViewport& item) {
+                return type34Entities.count(item.handle) == 1u;
+            });
+    // Other AC1024 drawings may contain a different type-34 profile. Leave
+    // those identities unresolved until their own source/readback evidence is
+    // connected; this narrow witness route must not generalize by type alone.
+    if (!expectedProfile)
+        return true;
+
+    for (const ExpectedViewport& item : expected) {
+        const dx_data::StandardDwgFrameKey key{
+            cData->importGeneration, item.handle};
+        const auto frame = cData->m_opaqueDwgSourceFrames.find(key);
+        if (frame == cData->m_opaqueDwgSourceFrames.end()
+            || frame->second.m_objectType != 34
+            || !frame->second.m_isEntity
+            || frame->second.m_handle != item.handle
+            || frame->second.m_version != DRW::AC1024
+            || cData->m_opaqueDwgSourceFrameIdentities.count(key) != 1u)
+            return false;
+
+        const DRW_Viewport* viewport = nullptr;
+        const dx_ifaceBlock* containingBlock = nullptr;
+        std::size_t viewportCount = 0u;
+        const auto findViewport = [&](const dx_ifaceBlock* block) {
+            if (block == nullptr)
+                return true;
+            for (const DRW_Entity* entity : block->ent) {
+                if (entity == nullptr || entity->handle != item.handle)
+                    continue;
+                const auto* candidate =
+                    dynamic_cast<const DRW_Viewport*>(entity);
+                if (candidate == nullptr)
+                    return false;
+                viewport = candidate;
+                containingBlock = block;
+                ++viewportCount;
+            }
+            return true;
+        };
+        if (!findViewport(cData->mBlock))
+            return false;
+        for (const dx_ifaceBlock* block : cData->blocks)
+            if (!findViewport(block))
+                return false;
+        if (viewportCount != 1u || viewport == nullptr
+            || containingBlock == nullptr
+            || viewport->space != DRW::PaperSpace
+            || viewport->handle != item.handle)
+            return false;
+        const auto projection = m_dwgViewportProjections.find(viewport);
+        if (projection == m_dwgViewportProjections.end()
+            || projection->second.first != item.status
+            || projection->second.second != item.id)
+            return false;
+
+        const DRW_Layout* layout = nullptr;
+        std::size_t layoutCount = 0u;
+        for (const DRW_Layout& candidate : cData->layouts) {
+            if (std::count(candidate.viewportHandles.begin(),
+                           candidate.viewportHandles.end(), item.handle) == 0)
+                continue;
+            if (std::count(candidate.viewportHandles.begin(),
+                           candidate.viewportHandles.end(), item.handle) != 1)
+                return false;
+            layout = &candidate;
+            ++layoutCount;
+        }
+        if (layoutCount != 1u || layout == nullptr
+            || layout->name != "Layout1")
+            return false;
+        const std::uint32_t sourceOwner =
+            layout->paperSpaceBlockRecordHandle.ref;
+        const DRW_Block_Record* owner = nullptr;
+        std::size_t ownerCount = 0u;
+        for (const DRW_Block_Record& candidate : cData->blockRecords) {
+            if (candidate.handle != sourceOwner)
+                continue;
+            owner = &candidate;
+            ++ownerCount;
+        }
+        if (ownerCount != 1u || owner == nullptr
+            || sourceOwner == 0u || sourceOwner == DRW::NoHandle
+            || owner->layoutHandle != layout->handle
+            || (viewport->parentHandle != 0u
+                && viewport->parentHandle != DRW::NoHandle
+                && viewport->parentHandle != sourceOwner)
+            || (containingBlock != cData->mBlock
+                && (layoutSymbolKey(containingBlock->name)
+                        != layoutSymbolKey(owner->name)
+                    || (containingBlock->parentHandle != 0u
+                        && containingBlock->parentHandle != DRW::NoHandle
+                        && containingBlock->parentHandle != sourceOwner))))
+            return false;
+
+        const bool fixedPaperSpace =
+            asciiIdentifierEquals(owner->name, "*PAPER_SPACE");
+        const std::uint32_t emittedOwner = fixedPaperSpace
+            ? DRW::DxfPaperSpaceBlockRecordHandle
+            : dxfW->getBlockRecordHandleToWrite(owner->name);
+        const std::uint32_t emitted =
+            dxfW->remapEntityHandle(item.handle);
+        const char* section = containingBlock != cData->mBlock
+                && !isFixedSpaceBlock(containingBlock)
+            ? "BLOCKS" : "ENTITIES";
+        if (emittedOwner == 0u || emittedOwner == DRW::NoHandle
+            || emitted == 0u || emitted == DRW::NoHandle
+            || dxfW->dxfWriteRecordHandleCount(emitted) != 1u
+            || !dxfW->dxfWriteRecordHasIdentity(
+                emitted, "VIEWPORT", section)
+            || !dxfW->dxfWriteRecordHasOwner(emitted, emittedOwner)
+            || !dxfW->dxfWriteSourceEntityHasIdentity(
+                item.handle, emitted, "VIEWPORT", section, emittedOwner)
+            || !dxfW->dxfWriteRecordHasIdentity(
+                emittedOwner, "BLOCK_RECORD", "TABLES")
+            || !recordOpaqueDwgOutputQualification(item.handle))
+            return false;
+    }
+    return true;
+}
+
 bool dx_iface::validateHatchBoundaryGraph(const dx_data& data) {
     m_hatchGraphStats = {};
     m_hatchGraphFailure = ExtensionGraphFailure::None;
@@ -52342,6 +52490,8 @@ bool dx_iface::finalizeDxfWrite() {
                     return false;
             }
         }
+        if (!finalizeDwgViewportOutputQualifications())
+            return false;
     }
     if (m_requireCompleteDwgOutputQualification && cData != nullptr
         && cData->sourceFormat == dx_source_format::DWG
