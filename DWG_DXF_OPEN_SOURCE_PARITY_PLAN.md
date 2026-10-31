@@ -58,32 +58,35 @@ Implementation history and evidence stay in Git and `docs/research/`.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next implementation packet — close the first remaining dynamic-block output
-gate on the AC1024 architectural sample.** Structural
-`SORTENTSTABLE`/extension-dictionary ownership now passes for the source
-`Window - Imperial` four-entry owner dictionary. The same strict conversion
-then stops at `dynamic-block objects are outside the closed output profiles`;
-the output remains atomically unpublished. Use [the P5 inventory
+**Next implementation packet — close the remaining dynamic-block output gate
+on the AC1024 architectural sample.** Strict conversion currently stops at
+`dynamic-block objects are outside the closed output profiles`; the output
+remains atomically unpublished. The source's `SORTENTSTABLE`, extension-owner,
+and nested associative-network checks already pass. Reuse those qualified
+routes and the existing exact record serializers where their source profiles
+match. Use [the P5 inventory
 receipt](docs/research/p5-ac1024-architectural-dynamic-block-source-inventory-2026-10-31.json)
 and its exact source hash, both EvaluationGraph roots, object classes, owner
-roles and observed dependencies. Bind each required class projection and graph
-reference to emitted identities before widening output eligibility. Continue
-to keep structurally valid owner relationships separate from complete graph
-output qualification. Serializer readback does not prove native dynamic-block
+roles, and observed dependencies. Bind each remaining class projection and
+graph reference to emitted identities before widening output eligibility.
+Keep structural owner validation separate from complete graph output
+qualification. Serializer readback does not prove native dynamic-block
 semantics.
 
 Implementation order: (1) complete bounded DXF projections and admitted
-output/replay routes for the remaining source-required subclasses; raw callback
-retention alone is not replay qualification; (2) bind graph/object identities,
-action and reactor roles, EED APPID references, constraint dependencies, and
-the projected `BLOCKPARAMDEPENDENCYBODY` records to emitted identities and
-their owning `ACDBASSOCDEPENDENCY` records; (3) close both graph owners and the
-nested associative network, including both purge-preventer records' required
-output profiles; (4) verify staged bytes and fresh ASCII/Binary readback,
-missing-edge refusal, destination atomicity and corrected retry; (5) run one
-strict-complete conversion for this source. Reuse providers only when source
-fields and roles match; keep unknown or partially represented descendants
-refused. Serializer readback does not prove native dynamic-block semantics.
+output/replay routes for source-required subclasses whose exact record profiles
+are not already implemented; raw callback retention alone is not replay
+qualification; (2) bind graph/object identities, action and reactor roles, EED
+APPID references, constraint dependencies, and the projected
+`BLOCKPARAMDEPENDENCYBODY` records to emitted identities and their owning
+`ACDBASSOCDEPENDENCY` records; (3) close both EvaluationGraph roots and their
+owner-dictionary routes, bind both source purge-preventer instances through the
+already-qualified body profile, and resolve their required output identities;
+(4) verify staged bytes and fresh ASCII/Binary readback, missing-edge refusal,
+destination atomicity, and corrected retry; (5) run one strict-complete
+conversion for this source. Reuse providers only when source fields and roles
+match; keep unknown or partially represented descendants refused. Serializer
+readback does not prove native dynamic-block semantics.
 
 The sweep also reproduced separate unresolved gates: AC1021 proxy-graphics
 refusal and AC1018 `ET-Drawing-with-Border.dwg` with 23 opaque callbacks but no
