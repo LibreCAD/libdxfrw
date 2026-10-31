@@ -25001,6 +25001,130 @@ bool fieldSourceEqual(const DRW_Field& a,const DRW_Field& b,DRW::Version version
     return true;
 }
 
+bool fieldSourceMatchesRawDxf(const DRW_RawDxfObject& raw,
+                             const DRW_Field& field,
+                             DRW::Version version) {
+    if (!asciiIdentifierEquals(raw.name, "FIELD")
+        || raw.m_version != version || raw.handle != field.handle
+        || raw.parentHandle != field.parentHandle
+        || raw.groups.size() > DRW::kMaxDxfRawRecordGroups
+        || (raw.hasRawValues && raw.rawValues.size() != raw.groups.size()))
+        return false;
+
+    std::string body;
+    if (!tableResourceSourceBody(
+            raw, kMaxAdapterFieldCarrierRawRetainedBytes, body))
+        return false;
+    dxfRW::DxfObjectsWriteView view{};
+    view.bytes = body;
+    view.version = version;
+    view.binary = !raw.hasRawValues;
+    view.codePage = "UTF-8";
+    dx_standard_output::InputBuffer buffer(body);
+    std::istream input(&buffer);
+    auto budget = std::make_shared<DxfReadRetainedBudget>(
+        kMaxAdapterFieldCarrierRawRetainedBytes);
+    auto reader = dx_standard_output::readerFor(input, view, budget);
+    if (!reader)
+        return false;
+    reader->setTypedVariantNodeBudget(kMaxAdapterFieldTypedItems);
+
+    struct Replay : DRW_Field {
+        using DRW_Field::parseCode;
+    } parsed;
+    dxfField::Decoder decoder(parsed, version);
+    int code = 0;
+    while (buffer.position() < body.size()) {
+        if (!reader->readRec(&code) || code == 0
+            || !decoder.beforeRecord(code))
+            return false;
+        if (code == 102 || (code >= 1000 && code <= 1071)) {
+            if (!parsed.parseCode(code, reader))
+                return false;
+        } else {
+            dxfField::ReferenceKind reference;
+            if (!decoder.parseCode(code, reader, reference))
+                return false;
+        }
+    }
+    return !budget->exceeded()
+        && !reader->typedVariantNodeBudgetExceeded()
+        && reader->recordCount() == raw.groups.size()
+        && decoder.finish() && decoder.sourceCorePresent()
+        && parsed.handle == raw.handle
+        && parsed.parentHandle == raw.parentHandle
+        && fieldSourceEqual(parsed, field, version);
+}
+
+bool fieldListSourceMatchesRawDxf(const DRW_RawDxfObject& raw,
+                                  const DRW_FieldList& fieldList,
+                                  DRW::Version version) {
+    if (raw.name != "FIELDLIST" || raw.m_version != version
+        || raw.handle != fieldList.handle
+        || raw.parentHandle != fieldList.parentHandle
+        || fieldList.m_unknown < 0 || fieldList.m_unknown > 1
+        || fieldList.m_fieldHandles.size() > DRW_Field::kMaxItems
+        || raw.groups.size() > DRW::kMaxDxfRawRecordGroups
+        || (raw.hasRawValues && raw.rawValues.size() != raw.groups.size()))
+        return false;
+    std::string sourceBody;
+    if (!tableResourceSourceBody(
+            raw, kMaxAdapterFieldCarrierRawRetainedBytes, sourceBody))
+        return false;
+
+    std::size_t index = 0u;
+    const auto hasString = [&raw, &index](int code,
+                                         std::string_view expected) {
+        if (index >= raw.groups.size())
+            return false;
+        const DRW_Variant& group = raw.groups[index++];
+        return group.code() == code
+            && group.type() == DRW_Variant::STRING
+            && group.c_str() != nullptr
+            && std::string_view(group.c_str()) == expected;
+    };
+    const auto hasInteger = [&raw, &index](int code, int expected) {
+        if (index >= raw.groups.size())
+            return false;
+        const DRW_Variant& group = raw.groups[index++];
+        return group.code() == code
+            && group.type() == DRW_Variant::INTEGER
+            && group.i_val() == expected;
+    };
+    const auto hasHandle = [&raw, &index](int code, std::uint32_t expected) {
+        if (index >= raw.groups.size())
+            return false;
+        const DRW_Variant& group = raw.groups[index++];
+        std::uint64_t handle = 0u;
+        return group.code() == code
+            && dx_standard_output::handleValue(group, handle)
+            && handle == expected;
+    };
+
+    if (!hasHandle(5, fieldList.handle)
+        || !hasHandle(330, fieldList.parentHandle))
+        return false;
+    if (index < raw.groups.size()
+        && raw.groups[index].code() == 100
+        && raw.groups[index].type() == DRW_Variant::STRING
+        && raw.groups[index].c_str() != nullptr
+        && std::string_view(raw.groups[index].c_str()) == "AcDbObject"
+        && !hasString(100, "AcDbObject"))
+        return false;
+    if (!hasString(100, "AcDbIdSet")
+        || !hasInteger(90,
+            static_cast<int>(fieldList.m_fieldHandles.size())))
+        return false;
+    if (index < raw.groups.size() && raw.groups[index].code() == 290
+        && !hasInteger(290, fieldList.m_unknown))
+        return false;
+    for (const std::uint32_t member : fieldList.m_fieldHandles)
+        if (!hasHandle(330, member))
+            return false;
+    return hasString(100, "AcDbFieldList")
+        && index == raw.groups.size();
+}
+
 bool blockRecordSourceEqual(const DRW_Block_Record& a,const DRW_Block_Record& b,DRW::Version version) {
     return standardDwgCommonEqual(a,b,version)&&dxfBlockRecord::Decoder::hasNoNativeLinks(a)
         &&dxfBlockRecord::Decoder::hasNoNativeLinks(b)&&a.xrefUnloaded==b.xrefUnloaded&&a.insUnits==b.insUnits
@@ -28092,11 +28216,11 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
         const bool importedDxf = data.sourceFormat == dx_source_format::DXF
             && data.hasSingleSuccessfulFieldCarrierImport()
             && data.rawFields.size() == data.fields.size()
-            && data.rawFieldLists.empty();
+            && data.rawFieldLists.size() == data.fieldLists.size();
         if ((!adapterAuthored && !importedDxf) || data.fields.empty()
             || data.fields.size() > kMaxSimpleFields
             || (adapterAuthored && data.fieldLists.size() > 1u)
-            || (importedDxf && !data.fieldLists.empty())
+            || (importedDxf && data.fieldLists.size() > 1u)
             || std::any_of(data.tables.begin(), data.tables.end(),
                 [](const DRW_Table& table) {
                     return !table.m_content.m_fieldHandles.empty();
@@ -28115,6 +28239,8 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
             return false;
 
         std::unordered_map<std::uint32_t, const DRW_RawDxfObject*> rawByHandle;
+        std::unordered_map<std::uint32_t, const DRW_RawDxfObject*>
+            rawFieldListsByHandle;
         if (importedDxf) {
             rawByHandle.reserve(data.rawFields.size());
             for (const DRW_RawDxfObject& raw : data.rawFields) {
@@ -28131,6 +28257,14 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
                         != kSimpleFieldRawCodes[index])
                         return false;
                 }
+            }
+            rawFieldListsByHandle.reserve(data.rawFieldLists.size());
+            for (const DRW_RawDxfObject& raw : data.rawFieldLists) {
+                if (raw.name != "FIELDLIST"
+                    || raw.m_version != data.sourceVersion
+                    || !rawFieldListsByHandle.emplace(
+                        raw.handle, &raw).second)
+                    return false;
             }
         }
 
@@ -28183,7 +28317,9 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
             if (importedDxf) {
                 const auto raw = rawByHandle.find(field.handle);
                 if (raw == rawByHandle.end()
-                    || raw->second->parentHandle != field.parentHandle)
+                    || raw->second->parentHandle != field.parentHandle
+                    || !fieldSourceMatchesRawDxf(
+                        *raw->second, field, data.sourceVersion))
                     return false;
             }
         }
@@ -28193,13 +28329,19 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
         // FIELDLISTs still require raw-to-typed body equivalence, and complex
         // FIELD children/object references use the separate graph gate.
         if (!data.fieldLists.empty()) {
-            if (!adapterAuthored || data.fieldLists.size() != 1u
-                || data.hasNamedObjectDictionary)
+            if (data.fieldLists.size() != 1u
+                || (!adapterAuthored && !importedDxf))
                 return false;
             const DRW_FieldList& fieldList = data.fieldLists.front();
             if (fieldList.handle == 0u
                 || fieldList.handle == DRW::NoHandle
-                || fieldList.parentHandle != 0u
+                || (adapterAuthored
+                    && (data.hasNamedObjectDictionary
+                        || fieldList.parentHandle != 0u))
+                || (importedDxf
+                    && (!data.hasNamedObjectDictionary
+                        || fieldList.parentHandle
+                            != data.namedObjectDictionary.handle))
                 || fieldList.m_unknown < 0 || fieldList.m_unknown > 1
                 || !fieldList.reactorHandles.empty()
                 || fieldList.xDictHandle != 0u
@@ -28208,6 +28350,28 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
                 || fieldList.m_fieldHandles.size() != data.fields.size()
                 || referenceCounts.count(fieldList.handle) != 0u)
                 return false;
+            if (importedDxf) {
+                const auto raw = rawFieldListsByHandle.find(fieldList.handle);
+                if (raw == rawFieldListsByHandle.end()
+                    || !fieldListSourceMatchesRawDxf(
+                        *raw->second, fieldList, data.sourceVersion))
+                    return false;
+                std::size_t rootMatches = 0u;
+                for (const DRW_Dictionary::Entry& entry :
+                        data.namedObjectDictionary.m_entries) {
+                    const bool fieldListKey =
+                        layoutSymbolKey(entry.m_name) == "ACAD_FIELDLIST";
+                    if (entry.m_handle == fieldList.handle && !fieldListKey)
+                        return false;
+                    if (fieldListKey) {
+                        if (entry.m_handle != fieldList.handle)
+                            return false;
+                        ++rootMatches;
+                    }
+                }
+                if (rootMatches != 1u)
+                    return false;
+            }
             std::unordered_set<std::uint32_t> members;
             members.reserve(fieldList.m_fieldHandles.size());
             for (const std::uint32_t member : fieldList.m_fieldHandles) {
@@ -46370,6 +46534,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     std::vector<std::pair<std::string, std::uint32_t>>().swap(
         backgroundRootEntries);
+    const bool fieldListEmissionReady = !cData->fieldLists.empty()
+        && hasSimpleTableContentFieldProfile(*cData);
     if (cData->hasNamedObjectDictionary) {
         for (const DRW_Dictionary::Entry& sourceEntry :
              cData->namedObjectDictionary.m_entries) {
@@ -46412,6 +46578,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             const DRW_DictionaryVar* targetDictionaryVar = nullptr;
             const DRW_Scale* targetScale = nullptr;
             const DRW_MLeaderStyle* targetMLeaderStyle = nullptr;
+            const DRW_FieldList* targetFieldList = nullptr;
             std::size_t targetMatches = 0;
             for (const DRW_Dictionary& dictionary : cData->dictionaries) {
                 if (dictionary.handle == sourceEntry.m_handle) {
@@ -46447,6 +46614,12 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             for (const DRW_MLeaderStyle& value : cData->mLeaderStyles) {
                 if (value.handle == sourceEntry.m_handle) {
                     targetMLeaderStyle = &value;
+                    ++targetMatches;
+                }
+            }
+            for (const DRW_FieldList& value : cData->fieldLists) {
+                if (value.handle == sourceEntry.m_handle) {
+                    targetFieldList = &value;
                     ++targetMatches;
                 }
             }
@@ -46502,11 +46675,15 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 && targetMLeaderStyle->parentHandle
                     == cData->namedObjectDictionary.handle
                 && mLeaderStyleQueued;
+            const bool closedFieldList = targetFieldList != nullptr
+                && targetFieldList->parentHandle
+                    == cData->namedObjectDictionary.handle
+                && fieldListEmissionReady;
             if (targetMatches != 1u
                 || (!closedDictionary && !closedDictionaryWithDefault
                     && !closedXRecord
                     && !closedDictionaryVar && !closedScale
-                    && !closedMLeaderStyle)) {
+                    && !closedMLeaderStyle && !closedFieldList)) {
                 if (requireResolvedOwners) {
                     delete dxfW;
                     dxfW = nullptr;

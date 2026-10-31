@@ -21452,6 +21452,98 @@ bool fieldListMembershipOutput() {
                     }))
                 return fail("TABLECONTENT FIELD target did not resolve on readback");
         }
+
+        const std::filesystem::path importedOutput =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-imported-fieldlist-membership-"
+               + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        Cleanup importedCleanup{importedOutput};
+        const std::string importedSentinel =
+            "imported FIELDLIST destination sentinel\n";
+        {
+            std::ofstream existing(importedOutput,
+                std::ios::binary | std::ios::trunc);
+            if (!existing || !(existing << importedSentinel))
+                return fail("could not create imported FIELDLIST sentinel");
+        }
+        dx_iface importedWriter;
+        importedWriter.cData = &readback;
+        importedWriter.currentBlock = readback.mBlock;
+        const auto preservedImportedDestination = [&]() {
+            std::ifstream existing(importedOutput, std::ios::binary);
+            return std::string(std::istreambuf_iterator<char>(existing),
+                               std::istreambuf_iterator<char>());
+        };
+        const std::string originalFieldCode = readback.fields.front().m_fieldCode;
+        readback.fields.front().m_fieldCode = "MUTATED_FIELD_SOURCE_BODY";
+        if (importedWriter.fileExport(importedOutput.string(), DRW::AC1027,
+                                      binary, &readback, false)
+            || preservedImportedDestination() != importedSentinel)
+            return fail("imported FIELD typed/source mismatch was emitted");
+        readback.fields.front().m_fieldCode = originalFieldCode;
+
+        DRW_RawDxfObject& rawList = readback.rawFieldLists.front();
+        std::size_t memberGroupIndex = rawList.groups.size();
+        bool sawIdSet = false;
+        bool sawCount = false;
+        for (std::size_t index = 0u; index < rawList.groups.size(); ++index) {
+            const DRW_Variant& group = rawList.groups[index];
+            if (group.code() == 100 && group.type() == DRW_Variant::STRING
+                && group.c_str() != nullptr
+                && std::string_view(group.c_str()) == "AcDbIdSet") {
+                sawIdSet = true;
+            } else if (sawIdSet && group.code() == 90) {
+                sawCount = true;
+            } else if (sawCount && group.code() == 330) {
+                memberGroupIndex = index;
+                break;
+            }
+        }
+        if (memberGroupIndex == rawList.groups.size())
+            return fail("could not locate captured FIELDLIST member");
+        const DRW_Variant originalMemberGroup =
+            rawList.groups[memberGroupIndex];
+        const UTF8STRING originalMemberRawValue = rawList.hasRawValues
+            ? rawList.rawValues[memberGroupIndex] : UTF8STRING();
+        rawList.groups[memberGroupIndex] =
+            DRW_Variant(330, UTF8STRING("DEAD"));
+        if (rawList.hasRawValues)
+            rawList.rawValues[memberGroupIndex] = "DEAD";
+        if (importedWriter.fileExport(importedOutput.string(), DRW::AC1027,
+                                      binary, &readback, false)
+            || preservedImportedDestination() != importedSentinel)
+            return fail("imported FIELDLIST raw/typed membership mismatch was emitted");
+        rawList.groups[memberGroupIndex] = originalMemberGroup;
+        if (rawList.hasRawValues)
+            rawList.rawValues[memberGroupIndex] = originalMemberRawValue;
+        if (!importedWriter.fileExport(importedOutput.string(), DRW::AC1027,
+                                       binary, &readback, false))
+            return fail("corrected imported FIELDLIST did not retry on same adapter");
+        dx_data importedReadback;
+        dx_iface importedReader;
+        if (!importedReader.fileImport(
+                importedOutput.string(), &importedReadback, false)
+            || importedReadback.fields.size() != 2u
+            || importedReadback.fieldLists.size() != 1u
+            || importedReadback.tableContents.size() != 1u
+            || !importedReadback.hasNamedObjectDictionary)
+            return fail("imported FIELDLIST output did not read back");
+        const DRW_FieldList& importedList =
+            importedReadback.fieldLists.front();
+        if (importedList.parentHandle
+                != importedReadback.namedObjectDictionary.handle
+            || importedList.m_fieldHandles.size() != 2u
+            || std::any_of(importedList.m_fieldHandles.begin(),
+                           importedList.m_fieldHandles.end(),
+                [&importedReadback](std::uint32_t handle) {
+                    return std::none_of(importedReadback.fields.begin(),
+                        importedReadback.fields.end(),
+                        [handle](const DRW_Field& field) {
+                            return field.handle == handle;
+                        });
+                }))
+            return fail("imported FIELDLIST owner or membership changed on retry");
     }
     return true;
 }
