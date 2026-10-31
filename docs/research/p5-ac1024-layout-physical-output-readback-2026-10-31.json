@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1024-layout-physical-output-readback-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 census LAYOUT typed output/readback profiles",
+  "status": "TWO_PHYSICAL_LAYOUT_PROFILES_OUTPUT_READBACK_PROVED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "opaqueCensusIdentities": [
+      {
+        "sourceOffset": 17301,
+        "objectType": 82,
+        "handle": "22",
+        "name": "Model"
+      },
+      {
+        "sourceOffset": 16818,
+        "objectType": 82,
+        "handle": "59",
+        "name": "Layout1"
+      }
+    ],
+    "fixturePolicy": "Reused the existing local DWG witness; no DWG or DXF fixture was added."
+  },
+  "formatAuthority": {
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "version": "5.4.1",
+    "sections": [
+      "19.4.85 LAYOUT object (fixed type 82)",
+      "20.4.84 PlotSettings fields embedded in LAYOUT"
+    ],
+    "finding": "The physical records identify two LAYOUT objects. This receipt qualifies the current typed field projection and output route only; it does not establish full-record unknown-tail preservation or independent CAD rendering semantics."
+  },
+  "implementation": {
+    "change": "Added physical source to fresh ASCII/Binary DXF output/readback for the two AC1024 LAYOUT census identities, with ownership, target roles and failure/retry proof.",
+    "sourcePath": "tests/dwg2dxf_adapter_tests.cpp",
+    "sourceSha256": "1aa65a66aae87ff11ea5e60fc2f78d89c366b37a8efdde7ae95fbef2a5b7e487",
+    "selector": "--layout-physical-output-readback"
+  },
+  "outputReadback": {
+    "encodings": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "route": "Import the physical DWG, export the full source in explicit AllowPartial mode, then freshly import each exact DXF output.",
+    "identityJoin": "The source identities are selected by exact DWG handles 0x22/Model and 0x59/Layout1. Fresh output identity is joined by unique layout name, ACAD_LAYOUT dictionary membership and the same uniquely matched field projection; output handles are followed through newly read ownership edges.",
+    "checked": [
+      "All embedded PlotSettings and LAYOUT scalar/string/coordinate fields represented by the typed class and emitted writer, including explicit absence of the four zero DWG-only PlotView/ShadePlot/UCS references in this source profile",
+      "Source LAYOUT parent under ACAD_LAYOUT, unique ACAD_LAYOUT root membership and output parent/key membership",
+      "Source and output paper-space BLOCK_RECORD name and reciprocal layout backlink",
+      "Extension-dictionary owner, cloning/hard-owner mode, complete entry cardinality/order/keys and each child XRECORD owner plus field count",
+      "Every source viewport-list member resolves to a paper-space VIEWPORT; source members uniquely map to output VIEWPORT field projections in the same adapter containers",
+      "Model last-active VPORT resolves and retains its symbol identity; paper last-active VIEWPORT retains its field identity and list-member role"
+    ],
+    "scopeLimits": [
+      "XRECORD payload values, common reactors, EED payload semantics and appData are outside this selected profile proof.",
+      "Layout viewportCount/list membership is validated against source entities and output VIEWPORTs, but DXF readback does not provide the DWG-only raw count/list fields.",
+      "This is local typed serializer/readback evidence, not independent CAD, platform or rendered-layout qualification."
+    ]
+  },
+  "failureAndRetry": {
+    "negativeControl": "Replace Layout1 paperSpaceBlockRecordHandle with DRW::NoHandle; export refuses before publication and leaves the pre-existing destination sentinel byte-identical.",
+    "retry": "Restore the original owner handle and export again with the same adapter; both encodings freshly reimport with the two LAYOUT profiles and required relationships.",
+    "result": "PASS"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured -Werror flags."
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layout-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary; both LAYOUT identities, selected fields, owner links, extension dictionary/XRECORD edges, viewport-list and last-active target roles, atomic refusal and same-adapter retry verified.",
+      "executableSha256": "cce8e49344dc7bcedfa22610053df865ab89020360813502b1ec046a12be0470"
+    },
+    "fullSuites": "NOT RUN; the touched warning-as-error target build and focused physical selector were sufficient for this profile slice."
+  },
+  "limitations": [
+    "Export uses AllowPartial; strict complete-export remains closed by 228 opaque callback views and zero retained correlation frames.",
+    "The output comparison proves the listed typed profile and owner/target relationships only; it is not independent CAD semantics or full-record preservation.",
+    "No support claim or external item is promoted."
+  ],
+  "planImpact": {
+    "completedActionRemoved": "Bind physical AC1024 LAYOUT handles 0x22 and 0x59 to their unique selected typed output profiles and fresh ASCII/Binary readback, including PlotSettings/LAYOUT fields, ACAD_LAYOUT and BLOCK_RECORD relationships, extension dictionary/XRECORD ownership, viewport and last-active target roles, atomic refusal and retry.",
+    "nextAction": "Close the one remaining rich R24 TABLESTYLE census profile, then refresh the composed strict-export checkpoint without relaxing the completeness gate.",
+    "externalItemsPromoted": 0
+  }
+}

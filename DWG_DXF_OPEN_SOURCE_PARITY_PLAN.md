@@ -46,8 +46,8 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — strict complete-export closure (225/228 selected profile rows joined) | After P5 closes its three remaining physical census profiles, rerun the composed strict CLI on the current source/code. If refusal remains, bind the exact residual opaque/correlation or unknown-tail gap before changing admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN — three physical census rows plus broader rendering/TABLE work | Close source-to-output/readback for the census's two LAYOUTs and one rich R24 TABLESTYLE; also close remaining rendering metadata/native rendering profiles, FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
+| P4 | OPEN — strict complete-export closure (227/228 selected profile rows joined) | After P5 closes its one remaining physical census profile, rerun the composed strict CLI on the current source/code. If refusal remains, bind the exact residual opaque/correlation or unknown-tail gap before changing admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P5 | OPEN — one physical census row plus broader rendering/TABLE work | Close source-to-output/readback for the one rich R24 TABLESTYLE; also close remaining rendering metadata/native rendering profiles, FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -56,12 +56,13 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next action — re-evaluate strict complete-export after P5 closes its three
-remaining physical census profiles.** The census delta is complete: 225 of 228
-identities have selected-profile physical output/readback receipts; the remaining
-rows are P5-owned: two LAYOUTs and one rich R24 TABLESTYLE. Keep strict
-admission closed while those fields and output paths are being completed. Once
-they close, run the composed strict CLI against the current source and code. If
+**P4 next action — re-evaluate strict complete-export after P5 closes its one
+remaining physical census profile.** The census delta is complete: 227 of 228
+identities have selected-profile physical output/readback receipts; the only
+remaining row is the rich R24 TABLESTYLE. The two physical LAYOUT profiles are
+closed by the receipt cited in the census delta. Keep strict admission closed
+while the remaining TABLESTYLE fields and output path are being completed. Once
+it closes, run the composed strict CLI against the current source and code. If
 it still refuses, identify the exact source-correlation or unknown-tail gap and
 add only that provider; do not lower the blanket completeness rule. Add no
 investigation DWG/DXF fixture. The full identity join is recorded in
@@ -124,8 +125,10 @@ output gates are met.
 profiles; active/global/environment, background/live-section/sun relations; native
 dictionary collation and layer style overrides; and VIEWPORT shade modes 4/5 plus
 references 335/343/344/91. Verify coupled dictionary keys, names, body fields and
-consumers. Extend PLOTSETTINGS/LAYOUT/VIEWPORT transport only for a reproduced
-missing provider, remap, collision or composed output failure.
+consumers. The physical Model/Layout1 LAYOUT field, owner and target-role profile
+is closed by its receipt; do not reopen it as a queue item. Change PLOTSETTINGS,
+LAYOUT or VIEWPORT transport only for a distinct reproduced missing provider,
+remap, collision or composed output failure.
 
 **TABLE:**
 

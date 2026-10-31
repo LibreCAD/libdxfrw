@@ -30082,6 +30082,481 @@ bool physicalViewportOutputReadback(
     return true;
 }
 
+bool physicalLayoutOutputReadback(
+        const std::filesystem::path& sourcePath) {
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024
+        || source.layouts.size() != 2u
+        || !source.hasNamedObjectDictionary)
+        return fail("physical LAYOUT source is not the admitted two-layout AC1024 graph");
+
+    const std::array<std::pair<std::uint32_t, const char*>, 2> expected{{
+        {0x22u, "Model"}, {0x59u, "Layout1"}}};
+    std::array<const DRW_Layout*, 2> sourceLayouts{{nullptr, nullptr}};
+    for (const auto& layout : source.layouts) {
+        const auto found = std::find_if(expected.begin(), expected.end(),
+            [&layout](const auto& item) {
+                return item.first == layout.handle && item.second == layout.name;
+            });
+        if (found == expected.end())
+            return fail("physical LAYOUT identity is outside the two census records");
+        const std::size_t index =
+            static_cast<std::size_t>(found - expected.begin());
+        if (sourceLayouts[index] != nullptr)
+            return fail("physical LAYOUT source handle or name is duplicated");
+        sourceLayouts[index] = &layout;
+    }
+    if (std::any_of(sourceLayouts.begin(), sourceLayouts.end(),
+            [](const DRW_Layout* layout) { return layout == nullptr; }))
+        return fail("one or both physical LAYOUT census identities are absent");
+
+    const auto uniqueDictionary = [](const dx_data& data,
+                                     std::uint32_t handle) {
+        const DRW_Dictionary* result = nullptr;
+        for (const DRW_Dictionary& dictionary : data.dictionaries) {
+            if (dictionary.handle != handle)
+                continue;
+            if (result != nullptr)
+                return static_cast<const DRW_Dictionary*>(nullptr);
+            result = &dictionary;
+        }
+        return result;
+    };
+    const auto uniqueXRecord = [](const dx_data& data, std::uint32_t handle) {
+        const DRW_XRecord* result = nullptr;
+        for (const DRW_XRecord& record : data.xRecords) {
+            if (record.handle != handle)
+                continue;
+            if (result != nullptr)
+                return static_cast<const DRW_XRecord*>(nullptr);
+            result = &record;
+        }
+        return result;
+    };
+    const auto uniqueBlockRecord = [](const dx_data& data,
+                                      std::uint32_t handle) {
+        const DRW_Block_Record* result = nullptr;
+        for (const DRW_Block_Record& record : data.blockRecords) {
+            if (record.handle != handle)
+                continue;
+            if (result != nullptr)
+                return static_cast<const DRW_Block_Record*>(nullptr);
+            result = &record;
+        }
+        return result;
+    };
+    const auto uniqueVport = [](const dx_data& data, std::uint32_t handle) {
+        const DRW_Vport* result = nullptr;
+        for (const DRW_Vport& vport : data.VPorts) {
+            if (vport.handle != handle)
+                continue;
+            if (result != nullptr)
+                return static_cast<const DRW_Vport*>(nullptr);
+            result = &vport;
+        }
+        return result;
+    };
+    const auto uniqueViewport = [](const dx_data& data, std::uint32_t handle) {
+        const DRW_Viewport* result = nullptr;
+        const auto inspect = [&result, handle](const dx_ifaceBlock* block) {
+            if (block == nullptr)
+                return true;
+            for (const DRW_Entity* entity : block->ent) {
+                if (entity == nullptr || entity->handle != handle)
+                    continue;
+                const auto* viewport =
+                    dynamic_cast<const DRW_Viewport*>(entity);
+                if (viewport == nullptr || result != nullptr)
+                    return false;
+                result = viewport;
+            }
+            return true;
+        };
+        if (!inspect(data.mBlock))
+            return static_cast<const DRW_Viewport*>(nullptr);
+        for (const dx_ifaceBlock* block : data.blocks)
+            if (!inspect(block))
+                return static_cast<const DRW_Viewport*>(nullptr);
+        return result;
+    };
+    const auto sameCoord = [](const DRW_Coord& lhs, const DRW_Coord& rhs) {
+        return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
+    };
+    const auto sameAsciiSymbol = [](const std::string& lhs,
+                                    const std::string& rhs) {
+        return lhs.size() == rhs.size()
+            && std::equal(lhs.begin(), lhs.end(), rhs.begin(),
+                [](unsigned char left, unsigned char right) {
+                    return std::toupper(left) == std::toupper(right);
+                });
+    };
+    const auto sameDxfFields = [&sameCoord](
+            const DRW_Layout& lhs, const DRW_Layout& rhs) {
+        return lhs.name == rhs.name
+            && lhs.pageSetupName == rhs.pageSetupName
+            && lhs.printerConfig == rhs.printerConfig
+            && lhs.plotLayoutFlags == rhs.plotLayoutFlags
+            && lhs.marginLeft == rhs.marginLeft
+            && lhs.marginBottom == rhs.marginBottom
+            && lhs.marginRight == rhs.marginRight
+            && lhs.marginTop == rhs.marginTop
+            && lhs.paperWidth == rhs.paperWidth
+            && lhs.paperHeight == rhs.paperHeight
+            && lhs.paperSize == rhs.paperSize
+            && lhs.plotOriginX == rhs.plotOriginX
+            && lhs.plotOriginY == rhs.plotOriginY
+            && lhs.paperUnits == rhs.paperUnits
+            && lhs.plotRotation == rhs.plotRotation
+            && lhs.plotType == rhs.plotType
+            && lhs.windowMinX == rhs.windowMinX
+            && lhs.windowMinY == rhs.windowMinY
+            && lhs.windowMaxX == rhs.windowMaxX
+            && lhs.windowMaxY == rhs.windowMaxY
+            && lhs.plotViewName == rhs.plotViewName
+            && lhs.realWorldUnits == rhs.realWorldUnits
+            && lhs.drawingUnits == rhs.drawingUnits
+            && lhs.currentStyleSheet == rhs.currentStyleSheet
+            && lhs.scaleType == rhs.scaleType
+            && lhs.scaleFactor == rhs.scaleFactor
+            && lhs.paperImageOriginX == rhs.paperImageOriginX
+            && lhs.paperImageOriginY == rhs.paperImageOriginY
+            && lhs.shadePlotMode == rhs.shadePlotMode
+            && lhs.shadePlotResLevel == rhs.shadePlotResLevel
+            && lhs.shadePlotCustomDPI == rhs.shadePlotCustomDPI
+            && lhs.layoutFlags == rhs.layoutFlags
+            && lhs.tabOrder == rhs.tabOrder
+            && sameCoord(lhs.ucsOrigin, rhs.ucsOrigin)
+            && lhs.limMinX == rhs.limMinX
+            && lhs.limMinY == rhs.limMinY
+            && lhs.limMaxX == rhs.limMaxX
+            && lhs.limMaxY == rhs.limMaxY
+            && sameCoord(lhs.insPoint, rhs.insPoint)
+            && sameCoord(lhs.ucsXAxis, rhs.ucsXAxis)
+            && sameCoord(lhs.ucsYAxis, rhs.ucsYAxis)
+            && lhs.elevation == rhs.elevation
+            && lhs.orthoViewType == rhs.orthoViewType
+            && sameCoord(lhs.extMin, rhs.extMin)
+            && sameCoord(lhs.extMax, rhs.extMax)
+            && lhs.plotViewHandle.ref == rhs.plotViewHandle.ref
+            && lhs.shadePlotHandle.ref == rhs.shadePlotHandle.ref
+            && lhs.baseUcsHandle.ref == rhs.baseUcsHandle.ref
+            && lhs.namedUcsHandle.ref == rhs.namedUcsHandle.ref;
+    };
+    const auto sameViewportProjection = [&sameCoord](
+            const DRW_Viewport& lhs, const DRW_Viewport& rhs) {
+        return lhs.space == rhs.space && lhs.layer == rhs.layer
+            && sameCoord(lhs.basePoint, rhs.basePoint)
+            && lhs.pswidth == rhs.pswidth && lhs.psheight == rhs.psheight
+            && lhs.centerPX == rhs.centerPX && lhs.centerPY == rhs.centerPY
+            && sameCoord(lhs.viewTarget, rhs.viewTarget)
+            && sameCoord(lhs.viewDir, rhs.viewDir)
+            && lhs.viewHeight == rhs.viewHeight;
+    };
+    const auto collectViewports = [](const dx_data& data) {
+        std::vector<const DRW_Viewport*> result;
+        std::set<std::uint32_t> handles;
+        const auto visit = [&result, &handles](const dx_ifaceBlock* block) {
+            if (block == nullptr)
+                return true;
+            for (const DRW_Entity* entity : block->ent) {
+                const auto* viewport =
+                    dynamic_cast<const DRW_Viewport*>(entity);
+                if (viewport == nullptr)
+                    continue;
+                if (viewport->handle == 0u
+                    || viewport->handle == DRW::NoHandle
+                    || !handles.insert(viewport->handle).second)
+                    return false;
+                result.push_back(viewport);
+            }
+            return true;
+        };
+        if (!visit(data.mBlock))
+            return std::pair<bool, std::vector<const DRW_Viewport*>>{
+                false, {}};
+        for (const dx_ifaceBlock* block : data.blocks)
+            if (!visit(block))
+                return std::pair<bool, std::vector<const DRW_Viewport*>>{
+                    false, {}};
+        return std::pair<bool, std::vector<const DRW_Viewport*>>{
+            true, std::move(result)};
+    };
+
+    const auto layoutDictionary = [&uniqueDictionary](const dx_data& data) {
+        if (!data.hasNamedObjectDictionary)
+            return static_cast<const DRW_Dictionary*>(nullptr);
+        const auto entry = std::find_if(
+            data.namedObjectDictionary.m_entries.begin(),
+            data.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& item) {
+                return item.m_name == "ACAD_LAYOUT";
+            });
+        if (entry == data.namedObjectDictionary.m_entries.end()
+            || std::count_if(data.namedObjectDictionary.m_entries.begin(),
+                             data.namedObjectDictionary.m_entries.end(),
+                [](const DRW_Dictionary::Entry& item) {
+                    return item.m_name == "ACAD_LAYOUT";
+                }) != 1)
+            return static_cast<const DRW_Dictionary*>(nullptr);
+        return uniqueDictionary(data, entry->m_handle);
+    };
+    const DRW_Dictionary* sourceLayoutDictionary = layoutDictionary(source);
+    if (sourceLayoutDictionary == nullptr
+        || sourceLayoutDictionary->parentHandle
+            != source.namedObjectDictionary.handle
+        || sourceLayoutDictionary->m_entries.size() != source.layouts.size())
+        return fail("physical ACAD_LAYOUT dictionary root or cardinality is not uniquely closed");
+    for (const DRW_Layout* layout : sourceLayouts) {
+        const std::uint32_t layoutHandle = layout->handle;
+        const auto rootEntry = std::find_if(
+            sourceLayoutDictionary->m_entries.begin(),
+            sourceLayoutDictionary->m_entries.end(),
+            [layout](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == layout->name
+                    && entry.m_handle == layout->handle;
+            });
+        const DRW_Block_Record* blockRecord = uniqueBlockRecord(
+            source, layout->paperSpaceBlockRecordHandle.ref);
+        const DRW_Dictionary* extension =
+            uniqueDictionary(source, layout->xDictHandle);
+        if (layout->parentHandle != sourceLayoutDictionary->handle
+            || layout->plotViewHandle.ref != 0
+            || layout->shadePlotHandle.ref != 0
+            || layout->baseUcsHandle.ref != 0
+            || layout->namedUcsHandle.ref != 0
+            || rootEntry == sourceLayoutDictionary->m_entries.end()
+            || std::count_if(sourceLayoutDictionary->m_entries.begin(),
+                             sourceLayoutDictionary->m_entries.end(),
+                [layout](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == layout->name
+                        && entry.m_handle == layout->handle;
+                }) != 1
+            || blockRecord == nullptr
+            || blockRecord->layoutHandle != layoutHandle
+            || extension == nullptr || extension->parentHandle != layoutHandle
+            || !extension->hasCompleteDwgEntries()
+            || layout->viewportCount < 0
+            || layout->viewportCount
+                != static_cast<std::int32_t>(layout->viewportHandles.size()))
+            return fail("physical LAYOUT root, BLOCK_RECORD backlink, extension owner, or viewport count/list is inconsistent");
+        for (const std::uint32_t viewportHandle : layout->viewportHandles) {
+            const DRW_Viewport* viewport =
+                uniqueViewport(source, viewportHandle);
+            if (viewport == nullptr || viewport->space != DRW::PaperSpace)
+                return fail("physical LAYOUT viewport list contains a missing or non-paperspace target");
+        }
+        if (layout->name == "Model") {
+            const DRW_Vport* active =
+                uniqueVport(source, layout->lastActiveViewportHandle.ref);
+            if (active == nullptr)
+                return fail("physical Model LAYOUT last-active handle does not resolve to a VPORT record");
+        } else if (layout->lastActiveViewportHandle.ref != 0) {
+            if (std::find(layout->viewportHandles.begin(),
+                          layout->viewportHandles.end(),
+                          layout->lastActiveViewportHandle.ref)
+                == layout->viewportHandles.end()
+                || uniqueViewport(source,
+                    layout->lastActiveViewportHandle.ref) == nullptr)
+                return fail("physical paper LAYOUT last-active handle is not a member VIEWPORT");
+        }
+    }
+
+    for (const bool binary : {false, true}) {
+        const auto nonce = std::chrono::steady_clock::now()
+                               .time_since_epoch().count();
+        const std::filesystem::path outputPath =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-layout-physical-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{outputPath};
+        const std::string sentinel = "preserve physical LAYOUT destination\n";
+        {
+            std::ofstream existing(outputPath, std::ios::binary | std::ios::trunc);
+            if (!existing || !(existing << sentinel))
+                return fail("could not seed physical LAYOUT destination sentinel");
+        }
+        dx_iface writer;
+        const auto exportPartial = [&]() {
+            return writer.fileExport(
+                outputPath.string(), DRW::AC1024, binary, &source, false, true,
+                dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::AllowPartial);
+        };
+        DRW_Layout* mutableLayout = nullptr;
+        for (DRW_Layout& layout : source.layouts)
+            if (layout.handle == expected[1].first)
+                mutableLayout = &layout;
+        if (mutableLayout == nullptr)
+            return fail("physical Layout1 could not be selected for atomic refusal");
+        const dwgHandle originalBlockRecord =
+            mutableLayout->paperSpaceBlockRecordHandle;
+        mutableLayout->paperSpaceBlockRecordHandle.ref = DRW::NoHandle;
+        const bool invalidOwnerRejected = !exportPartial();
+        std::ifstream refusedOutput(outputPath, std::ios::binary);
+        const std::string refusedContents{
+            std::istreambuf_iterator<char>{refusedOutput}, {}};
+        mutableLayout->paperSpaceBlockRecordHandle = originalBlockRecord;
+        if (!invalidOwnerRejected || refusedContents != sentinel)
+            return fail("invalid physical LAYOUT block-record target was not refused atomically");
+        if (!exportPartial())
+            return fail("corrected physical LAYOUT graph could not retry on the same adapter");
+
+        dx_iface outputReader;
+        dx_data output;
+        if (!outputReader.fileImport(outputPath.string(), &output, false)
+            || output.sourceFormat != dx_source_format::DXF
+            || output.sourceVersion != DRW::AC1024
+            || output.layouts.size() != expected.size())
+            return fail("physical LAYOUT output did not freshly reimport as two AC1024 records");
+        const DRW_Dictionary* outputLayoutDictionary = layoutDictionary(output);
+        if (outputLayoutDictionary == nullptr
+            || outputLayoutDictionary->parentHandle
+                != output.namedObjectDictionary.handle
+            || outputLayoutDictionary->m_entries.size() != output.layouts.size())
+            return fail("physical ACAD_LAYOUT output dictionary was not freshly readable");
+
+        for (std::size_t index = 0; index < sourceLayouts.size(); ++index) {
+            const DRW_Layout& sourceLayout = *sourceLayouts[index];
+            const auto outputMatch = std::find_if(
+                output.layouts.begin(), output.layouts.end(),
+                [&sourceLayout](const DRW_Layout& candidate) {
+                    return candidate.name == sourceLayout.name;
+                });
+            if (outputMatch == output.layouts.end()
+                || std::count_if(output.layouts.begin(), output.layouts.end(),
+                    [&sourceLayout](const DRW_Layout& candidate) {
+                        return candidate.name == sourceLayout.name;
+                    }) != 1
+                || !sameDxfFields(sourceLayout, *outputMatch))
+                return fail("physical LAYOUT plot-settings or layout fields changed on DXF readback");
+            const auto outputRootEntry = std::find_if(
+                outputLayoutDictionary->m_entries.begin(),
+                outputLayoutDictionary->m_entries.end(),
+                [&sourceLayout, &outputMatch](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == sourceLayout.name
+                        && entry.m_handle == outputMatch->handle;
+                });
+            const DRW_Block_Record* sourceBlockRecord = uniqueBlockRecord(
+                source, sourceLayout.paperSpaceBlockRecordHandle.ref);
+            const DRW_Block_Record* outputBlockRecord = uniqueBlockRecord(
+                output, outputMatch->paperSpaceBlockRecordHandle.ref);
+            const DRW_Dictionary* sourceExtension =
+                uniqueDictionary(source, sourceLayout.xDictHandle);
+            const DRW_Dictionary* outputExtension =
+                uniqueDictionary(output, outputMatch->xDictHandle);
+            if (outputRootEntry == outputLayoutDictionary->m_entries.end()
+                || std::count_if(outputLayoutDictionary->m_entries.begin(),
+                                 outputLayoutDictionary->m_entries.end(),
+                    [&sourceLayout, &outputMatch](const DRW_Dictionary::Entry& entry) {
+                        return entry.m_name == sourceLayout.name
+                            && entry.m_handle == outputMatch->handle;
+                    }) != 1
+                || outputMatch->parentHandle != outputLayoutDictionary->handle
+                || sourceBlockRecord == nullptr || outputBlockRecord == nullptr
+                || sourceBlockRecord->name != outputBlockRecord->name
+                || sourceBlockRecord->layoutHandle != sourceLayout.handle
+                || outputBlockRecord->layoutHandle != outputMatch->handle
+                || sourceExtension == nullptr || outputExtension == nullptr
+                || sourceExtension->parentHandle != sourceLayout.handle
+                || outputExtension->parentHandle != outputMatch->handle
+                || sourceExtension->cloning != outputExtension->cloning
+                || sourceExtension->hardOwner != outputExtension->hardOwner
+                || sourceExtension->m_entries.size()
+                    != outputExtension->m_entries.size())
+                return fail("physical LAYOUT ACAD_LAYOUT membership, BLOCK_RECORD backlink, or extension owner changed on output/readback");
+            for (std::size_t entry = 0;
+                 entry < sourceExtension->m_entries.size(); ++entry) {
+                const DRW_Dictionary::Entry& sourceEntry =
+                    sourceExtension->m_entries[entry];
+                const DRW_Dictionary::Entry& outputEntry =
+                    outputExtension->m_entries[entry];
+                const DRW_XRecord* sourceChild =
+                    uniqueXRecord(source, sourceEntry.m_handle);
+                const DRW_XRecord* outputChild =
+                    uniqueXRecord(output, outputEntry.m_handle);
+                if (sourceEntry.m_name != outputEntry.m_name
+                    || sourceChild == nullptr || outputChild == nullptr
+                    || sourceChild->parentHandle != sourceExtension->handle
+                    || outputChild->parentHandle != outputExtension->handle
+                    || sourceChild->m_dataEntries.size()
+                        != outputChild->m_dataEntries.size())
+                    return fail("physical LAYOUT extension key or thumbnail XRECORD owner edge changed on output/readback");
+            }
+
+            if (!sourceLayout.viewportHandles.empty()) {
+                const auto sourceViewportSet = collectViewports(source);
+                const auto outputViewportSet = collectViewports(output);
+                if (!sourceViewportSet.first || !outputViewportSet.first
+                    || sourceViewportSet.second.size()
+                        != sourceLayout.viewportHandles.size()
+                    || outputViewportSet.second.size()
+                        != sourceLayout.viewportHandles.size())
+                    return fail("physical LAYOUT viewport-list source/output cardinality is not closed");
+                std::set<std::uint32_t> matchedHandles;
+                for (const std::uint32_t sourceHandle :
+                     sourceLayout.viewportHandles) {
+                    const DRW_Viewport* sourceViewport =
+                        uniqueViewport(source, sourceHandle);
+                    if (sourceViewport == nullptr)
+                        return fail("physical LAYOUT viewport-list member disappeared from its source container");
+                    const DRW_Viewport* outputViewport = nullptr;
+                    for (const DRW_Viewport* candidate :
+                         outputViewportSet.second) {
+                        if (!sameViewportProjection(*sourceViewport,
+                                                    *candidate))
+                            continue;
+                        if (outputViewport != nullptr)
+                            return fail("physical LAYOUT viewport-list member has an ambiguous output field match");
+                        outputViewport = candidate;
+                    }
+                    if (outputViewport == nullptr
+                        || !matchedHandles.insert(outputViewport->handle).second)
+                        return fail("physical LAYOUT viewport-list source identity did not map uniquely to output");
+                }
+            }
+
+            if (sourceLayout.name == "Model") {
+                const DRW_Vport* sourceActive = uniqueVport(
+                    source, sourceLayout.lastActiveViewportHandle.ref);
+                const DRW_Vport* outputActive = uniqueVport(
+                    output, outputMatch->lastActiveViewportHandle.ref);
+                if (sourceActive == nullptr || outputActive == nullptr
+                    || !sameAsciiSymbol(sourceActive->name, outputActive->name))
+                    return fail("physical Model LAYOUT last-active VPORT identity changed on output/readback");
+            } else {
+                const DRW_Viewport* sourceActive = uniqueViewport(
+                    source, sourceLayout.lastActiveViewportHandle.ref);
+                const DRW_Viewport* outputActive = uniqueViewport(
+                    output, outputMatch->lastActiveViewportHandle.ref);
+                if (sourceActive == nullptr || outputActive == nullptr
+                    || std::find(sourceLayout.viewportHandles.begin(),
+                                 sourceLayout.viewportHandles.end(),
+                                 sourceActive->handle)
+                        == sourceLayout.viewportHandles.end()
+                    || !sameViewportProjection(*sourceActive, *outputActive))
+                    return fail("physical paper LAYOUT last-active VIEWPORT role or field identity changed on output/readback");
+            }
+        }
+        std::cerr << "Physical LAYOUT " << (binary ? "binary" : "ASCII")
+                  << " readback passed: Model/Layout1 plot and layout fields, "
+                     "ACAD_LAYOUT and BLOCK_RECORD links, extension dictionary/"
+                     "XRECORD ownership, last-active target roles, atomic refusal "
+                     "and same-adapter retry.\n";
+    }
+    return true;
+}
+
 bool physicalDictionaryVarOutputReadback(
         const std::filesystem::path& sourcePath) {
     dx_iface sourceReader;
@@ -47317,6 +47792,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--viewport-physical-output-readback")
         return physicalViewportOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--layout-physical-output-readback")
+        return physicalLayoutOutputReadback(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--material-physical-output-readback")
         return physicalMaterialOutputReadback(argv[2]) ? 0 : 1;
