@@ -51,7 +51,12 @@
       "implementationCommit": "47751f0f84a3e1779a30f76e98bd3e579feaff40",
       "receipt": "p4-ac1024-dictionaryvar-physical-output-readback-2026-10-31.json",
       "result": "Eight physical DICTIONARYVAR identities, owner/key roles, schema/value fields, ASCII/Binary readback, rollback and retry closed."
+    },
+    {
+      "implementationCommit": "c9c79229e53589dbe95290bc1a1f74be615333e4",
+      "receipt": "p4-ac1024-material-physical-output-readback-2026-10-31.json",
+      "result": "Three physical MATERIAL identities, class metadata, ACAD_MATERIAL keys, typed body/common links, extension-dictionary roles, ASCII/Binary readback, rollback and retry closed."
     }
   ],
-  "nextAction": "Qualify the three physical AC1024 MATERIAL identities, owner/extension-dictionary/reactor roles and admitted fields with ASCII/Binary output inspection, fresh typed readback, atomic refusal and corrected retry; see p4-ac1024-material-xdict-transport-2026-10-31.json for the remaining physical evidence gap."
+  "nextAction": "Qualify the two physical AC1024 MLEADERSTYLE identities, ACAD_MLEADERSTYLE owner/key roles, admitted fields and resolved reference roles with ASCII/Binary output inspection, fresh typed readback, atomic refusal and corrected retry; see the P4 next action in DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md."
 }

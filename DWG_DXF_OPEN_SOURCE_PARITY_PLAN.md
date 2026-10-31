@@ -46,7 +46,7 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — physical profile output-coverage closure | Continue from the completed 228-identity census and current profile receipts; do not repeat the census or recertify closed profiles. Qualify the three physical AC1024 MATERIAL identities and their exact fields/owner links in emitted output, then close remaining required descendants and strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — physical profile output-coverage closure | Continue from the completed 228-identity census and current profile receipts; do not repeat the census or recertify closed profiles. Qualify the two physical AC1024 MLEADERSTYLE identities and their source-backed fields/reference roles in emitted output, then close remaining required descendants and strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN | Close remaining rendering metadata/native rendering profiles; add typed import/readback for rich R24 TABLESTYLE nested groups; close FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -56,21 +56,27 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next action — qualify the three physical AC1024 MATERIAL records.**
-The callback census reports three instances. Existing generated MATERIAL tests
-and the physical partial conversion do not close physical source-to-output
-identity and field coverage. Bind each source identity, owning dictionary,
-extension-dictionary link, reactor and admitted typed field to its staged
-OBJECTS identity; verify ASCII/Binary output by fresh typed readback, including
-atomic refusal and corrected retry. Reuse the existing mechanical AC1024 DWG
-and focused adapter selector patterns; do not add an investigation DWG/DXF
-fixture. Keep unsupported procedural or unrepresented fields refused. See
+**P4 next action — qualify the two physical AC1024 MLEADERSTYLE records.**
+The callback census reports two instances. Existing generated rooted-output,
+class-count, and group-340–343 target-closure controls do not prove
+DWG-origin identity and exact source fields on the physical witness. Bind each
+source identity and ACAD_MLEADERSTYLE owner/key role to its emitted OBJECTS
+identity; compare every field admitted by the current typed profile and each
+resolved LTYPE/BLOCK_RECORD/STYLE reference role; verify ASCII/Binary output by
+fresh typed readback and atomic refusal/retry. Reuse the physical mechanical
+AC1024 DWG and existing focused adapter patterns; do not add an investigation
+DWG/DXF fixture. Keep unsupported fields and MLEADER entity output refused. See
 [`p4-ac1024-opaque-callback-census-2026-10-30.json`](docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json)
-for the current count, and
+for the current count,
 [`p4-ac1024-dictionaryvar-physical-output-readback-2026-10-31.json`](docs/research/p4-ac1024-dictionaryvar-physical-output-readback-2026-10-31.json)
-for the just-closed DICTIONARYVAR profile. The current physical MATERIAL gap is
-recorded in
-[`p4-ac1024-material-xdict-transport-2026-10-31.json`](docs/research/p4-ac1024-material-xdict-transport-2026-10-31.json): its DXF framing-bit mismatch is fixed, but its partial-output run had no independent physical source identity/field readback.
+and
+[`p4-ac1024-material-physical-output-readback-2026-10-31.json`](docs/research/p4-ac1024-material-physical-output-readback-2026-10-31.json)
+for the recently closed DICTIONARYVAR and MATERIAL profiles. The prior
+MLEADERSTYLE receipts explicitly limit the route to generated input; use
+[`rooted-mleaderstyle-record-output-fast-slice-2026-10-16.json`](docs/research/rooted-mleaderstyle-record-output-fast-slice-2026-10-16.json)
+and
+[`mleaderstyle-reference-target-closure-fast-slice-2026-10-16.json`](docs/research/mleaderstyle-reference-target-closure-fast-slice-2026-10-16.json)
+as implementation prerequisites, not physical qualification.
 
 The latest physical partial-output baseline is recorded in
 [`p4-ac1024-current-partial-output-refresh-2026-10-31.json`](docs/research/p4-ac1024-current-partial-output-refresh-2026-10-31.json).
