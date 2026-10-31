@@ -1749,9 +1749,15 @@ public:
                 return;
             }
             if (cData->sourceFormat == dx_source_format::DWG) {
+                const auto frozen = m_dwgTableStyleOutputSources.find(handle);
                 if (rawMatches != 0u || typedMatches != 1u
                     || typedStyle == nullptr
-                    || !dxfW->writeTableStyle(typedStyle, cData->textStyles))
+                    || (frozen != m_dwgTableStyleOutputSources.end()
+                        ? !hasUnchangedDwgTableStyleOutputSources()
+                            || !dxfW->writeTableStyle(
+                                &frozen->second, cData->textStyles)
+                        : !dxfW->writeTableStyle(
+                            typedStyle, cData->textStyles)))
                     return;
             } else if (rawMatches != 1u || typedMatches != 1u
                        || rawStyle == nullptr
@@ -2997,6 +3003,18 @@ private:
     std::unordered_set<std::uint32_t> m_emittedTableHandles;
     std::vector<std::uint32_t> m_tableStylesToEmit;
     std::vector<std::uint32_t> m_tableStyleDictionaryHandles;
+    std::map<std::uint32_t, DRW_TableStyle>
+        m_dwgTableStyleOutputSources;
+    std::map<std::uint32_t, DRW_Dictionary>
+        m_dwgTableStyleDictionarySources;
+    DRW_Dictionary m_dwgTableStyleNamedObjectDictionarySource;
+    bool m_dwgTableStyleRootSourceCaptured{false};
+    const dx_data* m_dwgTableStyleOutputSourceOwner{nullptr};
+    std::uint64_t m_dwgTableStyleOutputSourceGeneration{0u};
+    bool m_dwgTableStylesInspected{false};
+    bool hasUnchangedDwgTableStyleOutputSources() const noexcept;
+    bool inspectDwgTableStylesOutput(
+        const dxfRW::DxfObjectsWriteView& view) noexcept;
     // Output-only DXF group 68/69 values for DWG-origin paper viewports.
     // Keys are borrowed source records and are cleared at fileExport exit.
     std::unordered_map<const DRW_Viewport*, std::pair<int, int>>

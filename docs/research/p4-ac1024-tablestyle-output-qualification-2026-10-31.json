@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-tablestyle-output-qualification-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Connect the physical AC1024 R24 TABLESTYLE profile to strict callback identity qualification",
+  "status": "1_TABLESTYLE_IDENTITY_QUALIFIED_STRICT_GATE_CLOSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "record": "TABLESTYLE / AcDbTableStyle",
+    "handle": "0x87",
+    "name": "Standard",
+    "fixturePolicy": "Existing local DWG only; ASCII/Binary outputs and probes were temporary. No fixture was added to Git."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h"
+    ],
+    "summary": "For the witnessed AC1024 R24 Standard TABLESTYLE callback only, capture immutable typed source, NOD and owner-dictionary snapshots after extension-graph selection. The OBJECTS writer serializes the frozen source copy. Transaction-time inspection confirms the emitted TABLESTYLE identity and owner, its TABLES STYLE references, the NOD ACAD_TABLESTYLE key and the exact emitted owner-dictionary entries/roles. Finalization rechecks source snapshots before publication. Other TABLESTYLE profiles remain unqualified.",
+    "independentProfileEvidence": "Reuses docs/research/p5-ac1024-tablestyle-physical-output-readback-2026-10-31.json for exact physical source fields, owner/key, R24 markers, text-style references, fresh ASCII/Binary readback, prefix/reference refusal and retry. The same-input LibreDWG projection corroborates the selected marker and field projection; no native semantic acceptance is claimed."
+  },
+  "transactionProof": {
+    "sourceBinding": "Opaque AC1024 callback identity (type 504, AcDbTableStyle, handle 0x87) joins to typed Standard TABLESTYLE, one NOD ACAD_TABLESTYLE key, one owner dictionary, and a unique Standard owner key.",
+    "fieldsAndRoles": "The full typed model is snapshotted and passed to writeTableStyle, whose R24 serializer enforces the witnessed profile. The inspector binds the emitted record handle and dictionary owner, verifies each nonzero nested text-style handle maps to an emitted STYLE/TABLES record, checks the NOD root key and compares emitted dictionary entry names, targets and handle roles.",
+    "lateMutation": "A temporary exporter changed the R24 prefix after OBJECTS emission. Finalization refused the write and preserved an existing destination sentinel byte-for-byte. Restoring the source and retrying on the same adapter succeeded; the output freshly imported as one raw TABLESTYLE.",
+    "scope": "This closes one physical callback identity for strict output qualification. P5's typed nested R24 TABLESTYLE readback work remains open."
+  },
+  "remainingCensus": {
+    "opaqueCallbacks": 228,
+    "qualifiedOutputIdentities": 205,
+    "unqualifiedIdentities": 23,
+    "breakdown": {
+      "namedGeneric": {
+        "ACDBDICTIONARYWDFLT": 1,
+        "SORTENTSTABLE": 1
+      },
+      "unnamedEntityType34": 2,
+      "unnamedObjectTypes73_80_82": 4,
+      "standardObjectType42": 13,
+      "standardObjectType79": 2
+    },
+    "strictExport": "Refused before publication at 205/228. The failed attempt left the published qualification count and identity set at zero.",
+    "legacyRetry": "Passed and atomically published 205 source-bound output identities."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured warning-as-error flags."
+    },
+    "physicalReadback": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --tablestyle-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary, including selected R24 fields, owner/key, markers, text-style references, atomic refusal and corrected same-adapter retry."
+    },
+    "strictGate": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_opaque_source_capture_and_strict_output_gate$' --output-on-failure",
+      "result": "PASS, 1/1."
+    },
+    "census": {
+      "command": "g++ -std=c++17 -Wall -Wextra -pedantic -Werror -I dwg2dxf -I src /tmp/libdxfrw-p4-callback-census.cpp build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build-gcc/libdxfrw.a -o /tmp/libdxfrw-p4-callback-census && /tmp/libdxfrw-p4-callback-census tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS; census reported 205/228, strict refusal without published identities, and legacy retry with atomic publication. Scratch source and output remain outside Git."
+    },
+    "lateMutationProbe": {
+      "command": "g++ -std=c++17 -Wall -Wextra -pedantic -Werror -I dwg2dxf -I src /tmp/libdxfrw-p4-tablestyle-transaction-probe.cpp build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build-gcc/libdxfrw.a -o /tmp/libdxfrw-p4-tablestyle-transaction-probe && /tmp/libdxfrw-p4-tablestyle-transaction-probe tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS; post-OBJECTS mutation refused atomically, sentinel preserved, corrected same-adapter retry and fresh import passed. Scratch source and output remain outside Git."
+    },
+    "fullSuites": "NOT RUN; focused physical readback, strict-gate CTest and source-bound scratch probes were used."
+  },
+  "planImpact": {
+    "completedItemsRemoved": [
+      "Connect the one physical AC1024 R24 TABLESTYLE callback identity to transactional output proof and fresh ASCII/Binary readback."
+    ],
+    "nextPacket": "Connect the physical ACDBDICTIONARYWDFLT and SORTENTSTABLE identities only where complete source-backed output evidence exists; keep other identities unqualified.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "f009100b03f82607224d094cae566d18e4e6cc3d396f21023fcd1a0475b85c05",
+    "dwg2dxf/dx_iface.h": "86c760e822f662dfaf199a645eaaf783a5e2780e930c6bbbf7f90dadfc36df5d",
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "f0881ce86e209c0d7251601aed8805d9bec5e432160922274e674dc322f939ae"
+  }
+}
