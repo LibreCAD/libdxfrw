@@ -1202,6 +1202,7 @@ public:
         if (!hasUnchangedAcdsDxfHistorySources()
             || !hasUnchangedDxfMaterialSources()
             || !hasUnchangedDxfAssociativeGeometrySources()
+            || !hasUnchangedDxfAssociativeValueSources()
             || !hasUnchangedExtensionMaterialSources()
             || !hasUnchangedDxfDictionaryVars() || !hasUnchangedDxfScales()
             || !hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()) {
@@ -2734,6 +2735,41 @@ private:
     bool inspectDxfAssociativeGeometryOutput(
         const dxfRW::DxfObjectsWriteView& view) noexcept;
     bool finalizeDxfAssociativeGeometryOutput() const noexcept;
+
+    struct DxfAssociativeValueSource {
+        DRW_AssociativeObject source;
+        std::string ownerRecordName;
+        std::uint32_t ownerParentHandle{0u};
+        std::uint32_t ownerNetworkHandle{0u};
+        std::string targetRecordName;
+        std::uint32_t targetParentHandle{0u};
+        std::uint32_t targetNetworkHandle{0u};
+    };
+    struct DxfAssociativeValueOutputProof {
+        std::uint32_t sourceHandle{0u}, emittedHandle{0u};
+        std::uint32_t ownerHandle{0u}, emittedOwner{0u};
+        std::uint32_t ownerParent{0u}, emittedOwnerParent{0u};
+        std::string ownerRecordName;
+        std::uint32_t targetHandle{0u}, emittedTarget{0u};
+        std::uint32_t targetParent{0u}, emittedTargetParent{0u};
+        std::uint32_t readDependencyHandle{0u}, emittedReadDependency{0u};
+        std::uint32_t readDependencyOwner{0u}, emittedReadDependencyOwner{0u};
+        std::uint32_t nodeDependencyHandle{0u}, emittedNodeDependency{0u};
+        std::uint32_t nodeDependencyOwner{0u}, emittedNodeDependencyOwner{0u};
+    };
+    std::vector<DxfAssociativeValueSource>
+        m_dxfAssociativeValueSources;
+    std::vector<DxfAssociativeValueOutputProof>
+        m_dxfAssociativeValueOutputProofs;
+    const dx_data* m_dxfAssociativeValueSourceOwner{nullptr};
+    std::uint64_t m_dxfAssociativeValueSourceGeneration{0u};
+    std::size_t m_dxfAssociativeValueSourceBytes{0u};
+    bool m_dxfAssociativeValueOutputInspected{false};
+    bool prepareDxfAssociativeValueSources() noexcept;
+    bool hasUnchangedDxfAssociativeValueSources() const noexcept;
+    bool inspectDxfAssociativeValueOutput(
+        const dxfRW::DxfObjectsWriteView& view) noexcept;
+    bool finalizeDxfAssociativeValueOutput() const noexcept;
 
     std::vector<std::uint32_t> m_extensionDictionaryHandles;
     std::vector<std::uint32_t> m_extensionAssociativeHandles;

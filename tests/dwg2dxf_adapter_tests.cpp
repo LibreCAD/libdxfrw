@@ -29879,6 +29879,21 @@ bool associativeDwgRootNetworkValueDependencyExport() {
 
         struct LateVariableFailureExporter final : dx_iface {
             bool invalidateVariableBeforeObjects{false};
+            bool mutateDependencyTargetAfterEntities{false};
+            void writeEntities() override {
+                dx_iface::writeEntities();
+                if (!mutateDependencyTargetAfterEntities || cData == nullptr)
+                    return;
+                mutateDependencyTargetAfterEntities = false;
+                for (DRW_AssociativeObject& object :
+                     cData->dwgAssociativeObjects) {
+                    if (object.m_recordName
+                            == "ACDBASSOCVALUEDEPENDENCY") {
+                        object.m_dependencyHandle = 0xDEADu;
+                        return;
+                    }
+                }
+            }
             void writeObjects() override {
                 if (invalidateVariableBeforeObjects && cData != nullptr) {
                     for (DRW_AssociativeObject& object :
@@ -29920,6 +29935,16 @@ bool associativeDwgRootNetworkValueDependencyExport() {
                 object.m_associativeVariableWireComplete = true;
         }
         exporter.invalidateVariableBeforeObjects = false;
+        exporter.mutateDependencyTargetAfterEntities = true;
+        if (exporter.fileExport(path.string(), DRW::AC1024, binary, &source,
+                false, true, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete)
+            || source.dwgAssociativeObjects[3].m_dependencyHandle != 0xDEADu
+            || !retainedDestination(sentinel))
+            return fail("late value-dependency target mutation did not refuse atomically");
+        source.dwgAssociativeObjects[3].m_dependencyHandle = targetVariable.handle;
         if (!exporter.fileExport(path.string(), DRW::AC1024, binary, &source,
                 false, true, dx_dxfSourceTextPolicy::Compatible,
                 DRW::DxfTextWritePolicy::RequireLossless,

@@ -332,8 +332,11 @@ public:
         : DRW_AssociativeObject(std::string(recordName)) {}
     using DRW_AssociativeObject::parseCode;
     bool complete() const noexcept {
-        return m_recordName == "ACDBASSOCGEOMDEPENDENCY"
-            && m_dependencyFieldsParsed && m_geomDependencyFieldsParsed;
+        if (m_recordName == "ACDBASSOCGEOMDEPENDENCY")
+            return m_dependencyFieldsParsed && m_geomDependencyFieldsParsed;
+        if (m_recordName == "ACDBASSOCVALUEDEPENDENCY")
+            return m_dependencyFieldsParsed && m_valueDependencyFieldsParsed;
+        return false;
     }
 };
 
@@ -394,7 +397,8 @@ public:
     template <class Visitor> bool decodeAssociativeRecord(
             std::string_view recordName, std::string_view bytes,
             Visitor&& visit) {
-        if (!reader || recordName != "ACDBASSOCGEOMDEPENDENCY")
+        if (!reader || (recordName != "ACDBASSOCGEOMDEPENDENCY"
+                && recordName != "ACDBASSOCVALUEDEPENDENCY"))
             return false;
         buffer.reset(bytes);
         input.clear();
