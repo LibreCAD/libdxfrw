@@ -49,7 +49,7 @@ Implementation history and evidence stay in Git and `docs/research/`.
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
 | P4 | OPEN — source/graph closure | Close source-backed bodies, owner edges and dependencies still missing from existing inputs. | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN — broader rendering/TABLE and dynamic-block work | Close remaining rendering metadata/native rendering profiles, native dynamic-block semantics and DXF-origin typed/raw replay, other source-required dynamic-block profiles, FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
+| P5 | OPEN — broader rendering/TABLE and dynamic-block work | Close remaining rendering metadata/native rendering profiles, native dynamic-block semantics and DXF-origin typed/raw replay for source-required classes beyond the qualified AC1024 `ACDB_DYNAMICBLOCKPROXYNODE` record profile, FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -64,14 +64,16 @@ to bind work to the exact input hash, both EvaluationGraph roots, object classes
 owner roles and observed dependencies. Output qualification remains open: the
 required class-specific DXF projections and reference closure are incomplete.
 
-Implementation order: (1) complete bounded per-class DXF projections and
-admitted output/replay routes for the remaining source-required subclasses; raw
-callback retention alone is not replay qualification; (2) bind graph/object
-identities, action and reactor roles, EED APPID references, and constraint
-dependencies to emitted identities; (3) close both graph owners, the nested
-associative network, six
-parameter-dependency bodies, and both purge-preventer profiles; (4) verify
-staged bytes and fresh ASCII/Binary readback, missing-edge refusal, destination
+Implementation order: (1) complete bounded DXF projections and admitted
+output/replay routes for the remaining source-required subclasses; the exact
+`ACDB_DYNAMICBLOCKPROXYNODE` record profile already has ASCII/Binary refusal,
+retry and fresh-readback coverage, while raw callback retention alone is not
+replay qualification; (2) bind graph/object identities, action and reactor
+roles, EED APPID references, and constraint dependencies to emitted identities;
+(3) close both graph owners, the nested associative network, the six already
+decoded `BLOCKPARAMDEPENDENCYBODY` records' required output fields/references,
+and both purge-preventer records' required output profiles; (4) verify staged
+bytes and fresh ASCII/Binary readback, missing-edge refusal, destination
 atomicity and corrected retry; (5) run one strict-complete conversion for this
 source. Reuse providers only when source fields and roles match; keep unknown or
 partially represented descendants refused. Serializer readback does not prove
