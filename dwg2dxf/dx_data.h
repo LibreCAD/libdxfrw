@@ -136,10 +136,17 @@ struct dx_dwgReadOutcome {
     // marking. These are observed deliveries, not unique terminal counts.
     std::array<std::size_t, 4> observedReceiptCarriers{};
     std::size_t opaqueViewCallbacks{0};
+    // Exact source callback bodies copied by the adapter. This closes only
+    // reader-side retention; it is not proof that a DXF writer emitted them.
+    std::size_t opaqueSourceFramesCaptured{0};
+    // Incremented only by a source-bound writer proof for the callback frame.
+    std::size_t opaqueFramesOutputQualified{0};
+    bool opaqueSourceCaptureFailed{false};
+    // Legacy correlation count for specialized ACDS history diagnostics.
     std::size_t opaqueFramesRetainedByAdapter{0};
-    // Standard-object bytes and source receipts are a separate staging lane.
-    // They do not contribute to the opaque-retention completeness counter
-    // above until their typed/output handoff has been validated.
+    // Standard-object bytes and source receipts use a separate staging lane.
+    // A successful exact raw-body capture contributes to source retention;
+    // typed/output matching remains separate and does not itself qualify DXF.
     std::size_t standardObjectFramesCaptured{0};
     std::size_t standardObjectSourceReceiptsMatched{0};
     bool standardObjectCaptureFailed{false};
@@ -1218,6 +1225,8 @@ public:
     bool hasStandardDwgObjectPayloadFailure() const noexcept {
         return m_standardDwgObjectPayloadFailed;
     }
+    bool hasCompleteOpaqueDwgSourceCapture() const noexcept;
+    bool hasCompleteOpaqueDwgOutputQualification() const noexcept;
     // Pre-export source check, while this container owns its sections (not
     // during their temporary synchronous transfer into the writer).
     bool hasUnchangedAcdsRawDxfSections() const noexcept;
@@ -2188,6 +2197,14 @@ private:
         m_standardDwgLayerSources;
     std::uint64_t m_standardDwgNamesClosedThrough{0u};
     std::map<StandardDwgFrameKey, StandardDwgObjectFrame> m_standardDwgObjectFrames;
+    // Full raw bodies for unsupported callback families without a dedicated
+    // source lane. Keyed by import generation and DWG handle; never replayed
+    // to DXF without a separate output qualification proof.
+    std::map<StandardDwgFrameKey, DRW_UnsupportedObject>
+        m_opaqueDwgSourceFrames;
+    std::set<StandardDwgFrameKey> m_opaqueDwgSourceFrameIdentities;
+    std::set<StandardDwgFrameKey> m_opaqueDwgOutputQualifiedFrameIdentities;
+    std::size_t m_opaqueDwgSourceFrameRetainedBytes{0u};
     std::map<StandardDwgOrdinalKey, std::uint32_t> m_standardDwgObjectOrdinals;
     std::map<StandardDwgLocationKey, std::uint32_t> m_standardDwgObjectLocations;
     std::size_t m_standardDwgObjectRetainedBytes{0};

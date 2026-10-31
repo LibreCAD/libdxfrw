@@ -3336,8 +3336,7 @@ bool strictDwgReadOutcomeIsComplete(const dx_data& data) noexcept {
         || data.acdsHistoryDwgFrameCaptureFailed
         || data.hasStandardDwgObjectCaptureFailure()
         || data.hasStandardDwgObjectPayloadFailure()
-        || outcome.opaqueViewCallbacks
-               > outcome.opaqueFramesRetainedByAdapter
+        || !data.hasCompleteOpaqueDwgSourceCapture()
         || observations.integrity.extractionOmitted != 0
         || observations.integrity.reportedUpstreamDropped != 0
         || observations.integrity.aggregateSaturated)
@@ -3352,6 +3351,10 @@ bool strictDwgReadOutcomeIsComplete(const dx_data& data) noexcept {
             return false;
     }
     return true;
+}
+
+bool strictDwgOutputDispositionIsComplete(const dx_data& data) noexcept {
+    return data.hasCompleteOpaqueDwgOutputQualification();
 }
 
 bool dwgReadOutcomeAllowsBoundedPartialExport(const dx_data& data) noexcept {
@@ -5813,6 +5816,63 @@ bool appendAcdsDataSection(
 }
 
 } // namespace
+
+bool dx_data::hasCompleteOpaqueDwgSourceCapture() const noexcept {
+    const dx_dwgReadOutcome& outcome = dwgReadOutcome;
+    if (!outcome.attempted)
+        return true;
+    if (outcome.opaqueSourceCaptureFailed || outcome.callbackCountsSaturated
+        || importGeneration == 0u
+        || outcome.opaqueSourceFramesCaptured != outcome.opaqueViewCallbacks)
+        return false;
+
+    const StandardDwgFrameKey first{importGeneration, 0u};
+    const auto begin = m_opaqueDwgSourceFrameIdentities.lower_bound(first);
+    std::size_t currentGenerationFrames = 0u;
+    for (auto current = begin;
+         current != m_opaqueDwgSourceFrameIdentities.end()
+             && current->first == importGeneration;
+         ++current) {
+        if (current->second == 0u
+            || ++currentGenerationFrames > outcome.opaqueViewCallbacks)
+            return false;
+    }
+    return currentGenerationFrames == outcome.opaqueSourceFramesCaptured;
+}
+
+bool dx_data::hasCompleteOpaqueDwgOutputQualification() const noexcept {
+    const dx_dwgReadOutcome& outcome = dwgReadOutcome;
+    if (!outcome.attempted)
+        return true;
+    if (!hasCompleteOpaqueDwgSourceCapture()
+        || outcome.opaqueFramesOutputQualified != outcome.opaqueViewCallbacks)
+        return false;
+
+    const StandardDwgFrameKey first{importGeneration, 0u};
+    const auto begin = m_opaqueDwgSourceFrameIdentities.lower_bound(first);
+    std::size_t sourceFrames = 0u;
+    std::size_t qualifiedFrames = 0u;
+    for (auto current = begin;
+         current != m_opaqueDwgSourceFrameIdentities.end()
+             && current->first == importGeneration;
+         ++current) {
+        if (++sourceFrames > outcome.opaqueViewCallbacks
+            || m_opaqueDwgOutputQualifiedFrameIdentities.count(*current) != 1u)
+            return false;
+        ++qualifiedFrames;
+    }
+    const auto qualifiedBegin =
+        m_opaqueDwgOutputQualifiedFrameIdentities.lower_bound(first);
+    for (auto current = qualifiedBegin;
+         current != m_opaqueDwgOutputQualifiedFrameIdentities.end()
+             && current->first == importGeneration;
+         ++current) {
+        if (m_opaqueDwgSourceFrameIdentities.count(*current) != 1u)
+            return false;
+    }
+    return sourceFrames == outcome.opaqueViewCallbacks
+        && qualifiedFrames == outcome.opaqueFramesOutputQualified;
+}
 
 bool dx_iface::writeTableStyleRaw(DRW_RawDxfObject* raw,
                                   const DRW_TableStyle* typed) {
@@ -11686,8 +11746,13 @@ void dx_iface::reportDwgReadOutcome(std::ostream& output,
         "typed", "raw", "typedAndRaw", "control"}};
     for (std::size_t index = 0; index < carriers.size(); ++index)
         buffer.field(carriers[index], outcome.observedReceiptCarriers[index]);
-    buffer.append("\nOpaque callbacks are not CLI retention/export: ");
+    buffer.append("\nOpaque callback dispositions: ");
     buffer.field("opaqueViewCallbacks", outcome.opaqueViewCallbacks);
+    buffer.field("opaqueSourceFramesCaptured", outcome.opaqueSourceFramesCaptured);
+    buffer.field("opaqueFramesOutputQualified", outcome.opaqueFramesOutputQualified);
+    buffer.append(outcome.opaqueSourceCaptureFailed
+        ? "opaqueSourceCaptureFailed=true "
+        : "opaqueSourceCaptureFailed=false ");
     buffer.field("opaqueFramesRetainedForCorrelation", outcome.opaqueFramesRetainedByAdapter);
     buffer.field("standardObjectFramesCaptured", outcome.standardObjectFramesCaptured);
     buffer.field("standardObjectSourceReceiptsMatched", outcome.standardObjectSourceReceiptsMatched);
@@ -18599,8 +18664,18 @@ void dx_iface::retainRasterDwgSource(const DRW_UnsupportedObject &data) noexcept
         frame.generation = key.first;
         frame.classReadAttempt = rasterClassReadAttempt();
         if (cData->m_rasterDwgSourceFailed) return;
-        cData->m_rasterDwgSources.emplace(key, std::move(frame));
+        const auto inserted =
+            cData->m_rasterDwgSources.emplace(key, std::move(frame));
+        if (!inserted.second) {
+            cData->m_rasterDwgSourceFailed = true;
+            return;
+        }
         cData->m_rasterDwgSourceBytes += bytes;
+        if (!recordOpaqueDwgSourceFrameIdentity(data)) {
+            cData->m_rasterDwgSources.erase(key);
+            cData->m_rasterDwgSourceBytes -= bytes;
+            cData->m_rasterDwgSourceFailed = true;
+        }
     } catch (...) {
         cData->m_rasterDwgSourceFailed = true;
     }
@@ -19104,6 +19179,132 @@ bool dx_iface::hasUnchangedRasterDwgSources() const noexcept {
     return true;
 }
 
+bool dx_iface::recordOpaqueDwgSourceFrameIdentity(
+        const DRW_UnsupportedObject& data) noexcept {
+    if (cData == nullptr || !cData->dwgReadOutcome.attempted
+        || cData->sourceFormat != dx_source_format::DWG
+        || cData->importGeneration == 0u)
+        return false;
+
+    dx_dwgReadOutcome& outcome = cData->dwgReadOutcome;
+    const auto reject = [&outcome]() {
+        outcome.opaqueSourceCaptureFailed = true;
+        return false;
+    };
+    if (outcome.opaqueSourceCaptureFailed
+        || data.m_handle == 0u || data.m_handle == DRW::NoHandle
+        || rasterWireRevision(data.m_version) == 0u
+        || data.m_objectOffset > std::numeric_limits<std::uint32_t>::max()
+        || data.m_rawBytes.size() != data.m_objectSize
+        || data.m_bodyBitSize
+               > static_cast<std::uint64_t>(data.m_objectSize) * 8u)
+        return reject();
+
+    const dx_data::StandardDwgFrameKey key{
+        cData->importGeneration, data.m_handle};
+    if (cData->m_opaqueDwgSourceFrameIdentities.count(key) != 0u
+        || cData->m_opaqueDwgSourceFrameIdentities.size()
+               >= OpaqueDwgSourceFrameCaptureMaxRecords)
+        return reject();
+    try {
+        const auto inserted =
+            cData->m_opaqueDwgSourceFrameIdentities.insert(key);
+        if (!inserted.second)
+            return reject();
+        countDwgReadCallback(outcome.opaqueSourceFramesCaptured);
+        return true;
+    } catch (...) {
+        return reject();
+    }
+}
+
+bool dx_iface::recordOpaqueDwgOutputQualification(
+        std::uint32_t sourceHandle) noexcept {
+    if (cData == nullptr || !cData->dwgReadOutcome.attempted
+        || cData->sourceFormat != dx_source_format::DWG
+        || cData->importGeneration == 0u || sourceHandle == 0u
+        || sourceHandle == DRW::NoHandle)
+        return false;
+    dx_dwgReadOutcome& outcome = cData->dwgReadOutcome;
+    const dx_data::StandardDwgFrameKey key{
+        cData->importGeneration, sourceHandle};
+    if (outcome.opaqueSourceCaptureFailed
+        || cData->m_opaqueDwgSourceFrameIdentities.count(key) != 1u
+        || cData->m_opaqueDwgOutputQualifiedFrameIdentities.count(key) != 0u
+        || cData->m_opaqueDwgOutputQualifiedFrameIdentities.size()
+               >= OpaqueDwgSourceFrameCaptureMaxRecords)
+        return false;
+    try {
+        const auto inserted =
+            cData->m_opaqueDwgOutputQualifiedFrameIdentities.insert(key);
+        if (!inserted.second)
+            return false;
+        countDwgReadCallback(outcome.opaqueFramesOutputQualified);
+        return !outcome.callbackCountsSaturated;
+    } catch (...) {
+        return false;
+    }
+}
+
+bool dx_iface::retainOpaqueDwgSourceFrame(
+        const DRW_UnsupportedObject& data) noexcept {
+    if (cData == nullptr || !cData->dwgReadOutcome.attempted
+        || cData->sourceFormat != dx_source_format::DWG
+        || cData->importGeneration == 0u)
+        return false;
+
+    const auto reject = [this]() {
+        cData->dwgReadOutcome.opaqueSourceCaptureFailed = true;
+        return false;
+    };
+    dx_dwgReadOutcome& outcome = cData->dwgReadOutcome;
+    if (outcome.opaqueSourceCaptureFailed)
+        return false;
+    if (data.m_handle == 0u || data.m_handle == DRW::NoHandle
+        || rasterWireRevision(data.m_version) == 0u
+        || data.m_objectOffset > std::numeric_limits<std::uint32_t>::max()
+        || data.m_rawBytes.size() != data.m_objectSize
+        || data.m_bodyBitSize
+               > static_cast<std::uint64_t>(data.m_objectSize) * 8u)
+        return reject();
+
+    const dx_data::StandardDwgFrameKey key{
+        cData->importGeneration, data.m_handle};
+    if (cData->m_opaqueDwgSourceFrames.count(key) != 0u
+        || cData->m_opaqueDwgSourceFrameIdentities.count(key) != 0u
+        || cData->m_opaqueDwgSourceFrames.size()
+               >= OpaqueDwgSourceFrameCaptureMaxRecords)
+        return reject();
+
+    std::size_t estimate = 0u;
+    const std::size_t mapNodeOverhead = sizeof(
+        std::pair<const dx_data::StandardDwgFrameKey,
+                  DRW_UnsupportedObject>)
+        - sizeof(DRW_UnsupportedObject) + 4u * sizeof(void*);
+    if (!estimateAcDsHistoryDwgFrameBytes(data, estimate)
+        || !addAssociativeRetainedBytes(mapNodeOverhead, estimate)
+        || cData->m_opaqueDwgSourceFrameRetainedBytes
+               > OpaqueDwgSourceFrameCaptureMaxRetainedBytes
+        || estimate > OpaqueDwgSourceFrameCaptureMaxRetainedBytes
+               - cData->m_opaqueDwgSourceFrameRetainedBytes)
+        return reject();
+
+    try {
+        const auto inserted = cData->m_opaqueDwgSourceFrames.emplace(key, data);
+        if (!inserted.second)
+            return reject();
+        cData->m_opaqueDwgSourceFrameRetainedBytes += estimate;
+        if (!recordOpaqueDwgSourceFrameIdentity(data)) {
+            cData->m_opaqueDwgSourceFrames.erase(key);
+            cData->m_opaqueDwgSourceFrameRetainedBytes -= estimate;
+            return false;
+        }
+        return true;
+    } catch (...) {
+        return reject();
+    }
+}
+
 void dx_iface::retainStandardDwgObjectFrame(const DRW_UnsupportedObject& data) {
     if (cData == nullptr || cData->m_standardDwgObjectCaptureFailed)
         return;
@@ -19163,6 +19364,13 @@ void dx_iface::retainStandardDwgObjectFrame(const DRW_UnsupportedObject& data) {
             dx_data::StandardDwgFrameKey{cData->importGeneration, data.m_handle},
             std::move(frame));
         cData->m_standardDwgObjectRetainedBytes += estimate;
+        if (!recordOpaqueDwgSourceFrameIdentity(data)) {
+            cData->m_standardDwgObjectFrames.erase(
+                {cData->importGeneration, data.m_handle});
+            cData->m_standardDwgObjectRetainedBytes -= estimate;
+            reject();
+            return;
+        }
         countDwgReadCallback(cData->dwgReadOutcome.standardObjectFramesCaptured);
     } catch (...) {
         reject();
@@ -31017,8 +31225,10 @@ bool dx_iface::finalizeStandardDwgOutputProofs() noexcept {
 void dx_iface::addUnsupportedObject(const DRW_UnsupportedObject& data) {
     if (cData == nullptr)
         return;
-    if (cData->dwgReadOutcome.attempted
-        && isRasterDwgSource(data.m_objectType, data.m_recordName, data.m_className))
+    const bool rasterFrame = cData->dwgReadOutcome.attempted
+        && isRasterDwgSource(data.m_objectType, data.m_recordName,
+                             data.m_className);
+    if (rasterFrame)
         retainRasterDwgSource(data);
     // The reader emits this validated legacy control-list carrier for
     // correlation, but it is not a drawable/semantic record. Referenced
@@ -31034,6 +31244,8 @@ void dx_iface::addUnsupportedObject(const DRW_UnsupportedObject& data) {
             retainStandardDwgObjectFrame(data);
         return;
     }
+    if (rasterFrame)
+        return;
 
     const auto hasObjectContextDataToken = [](const std::string& value) {
         constexpr char token[] = "OBJECTCONTEXTDATA";
@@ -31062,8 +31274,6 @@ void dx_iface::addUnsupportedObject(const DRW_UnsupportedObject& data) {
     if (hasObjectContextDataToken(data.m_recordName)
         || hasObjectContextDataToken(data.m_className))
         cData->standaloneObjectContextDataPresent = true;
-    if (data.m_isEntity)
-        return;
 
     const bool evaluationGraph =
         data.m_recordName == "ACAD_EVALUATION_GRAPH"
@@ -31071,6 +31281,12 @@ void dx_iface::addUnsupportedObject(const DRW_UnsupportedObject& data) {
     const bool historyObject =
         data.m_recordName.rfind("ACSH_", 0u) == 0u
         || data.m_className.rfind("AcDbSh", 0u) == 0u;
+    if (!viewportEntityHeaderControl && !evaluationGraph && !historyObject
+        && !rasterFrame && cData->dwgReadOutcome.attempted)
+        (void)retainOpaqueDwgSourceFrame(data);
+    if (data.m_isEntity)
+        return;
+
     if (!evaluationGraph && !historyObject)
         return;
     if (cData->acdsHistoryDwgFrameCaptureFailed)
@@ -31093,9 +31309,19 @@ void dx_iface::addUnsupportedObject(const DRW_UnsupportedObject& data) {
     try {
         cData->acdsHistoryDwgFrames.push_back(data);
         cData->acdsHistoryDwgFrameRetainedBytes += estimatedBytes;
-        if (cData->dwgReadOutcome.attempted)
+        if (cData->dwgReadOutcome.attempted) {
             countDwgReadCallback(
                 cData->dwgReadOutcome.opaqueFramesRetainedByAdapter);
+            if (cData->sourceFormat == dx_source_format::DWG
+                && cData->importGeneration != 0u) {
+                if (!recordOpaqueDwgSourceFrameIdentity(data)) {
+                    cData->acdsHistoryDwgFrames.pop_back();
+                    cData->acdsHistoryDwgFrameRetainedBytes -= estimatedBytes;
+                    cData->acdsHistoryDwgFrameCaptureFailed = true;
+                    return;
+                }
+            }
+        }
     } catch (...) {
         cData->acdsHistoryDwgFrameCaptureFailed = true;
     }
@@ -50482,6 +50708,13 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         && !strictDwgReadOutcomeIsComplete(*cData)) {
         reportPreflightFailure(
             "strict-complete conversion requires successful, complete DWG read disposition");
+        return false;
+    }
+    if (requireCompleteDwgRead
+        && cData->sourceFormat == dx_source_format::DWG
+        && !strictDwgOutputDispositionIsComplete(*cData)) {
+        reportPreflightFailure(
+            "strict-complete conversion requires output qualification for every opaque DWG callback");
         return false;
     }
     std::string backgroundSunPairingFailure;

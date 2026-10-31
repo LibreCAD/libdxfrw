@@ -46,7 +46,7 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — strict complete-export closure | Trace the opaque callback handoff and close the full-body gap with complete typed output or a bounded, exact source replay route; then rerun the strict checkpoint. | Keep read retention separate from output qualification: retained bytes alone do not prove emission. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — strict complete-export closure | Trace the opaque callback handoff and bind each required full body to complete typed output or a proven end-to-end conversion/replay path; then rerun the strict checkpoint. | Keep read retention separate from output qualification: retained bytes alone do not prove emission or form a DXF replay route. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN — broader rendering/TABLE work | Close remaining rendering metadata/native rendering profiles, FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, TABLECONTENT style/format/payload profiles, typed nested R24 TABLESTYLE readback, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -56,20 +56,24 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next action — close the exact source/replay gap reported by the strict
-checkpoint.** A current strict CLI run still refuses before publishing output
-with `strict-complete conversion requires successful, complete DWG read
-disposition`; the global reader view reports 228 opaque callback views and zero
-retained correlation frames. Selected-profile receipts do not establish
-complete original bodies, unknown-tail preservation or whole-document closure.
-Trace a required opaque callback through `dx_iface::addUnsupportedObject` and
-the strict preflight. Retain exact source bytes only through the bounded source
-replay route; separately require proof that every required callback is emitted
-as complete typed output or replayed exactly. Keep unresolved records refused,
-rerun the strict gate after the slice, and do not weaken its completeness
-predicate. Add no investigation DWG/DXF fixture. The current strict refusal and
-no-output result are recorded in
-[`p5-ac1024-tablestyle-physical-output-readback-2026-10-31.json`](docs/research/p5-ac1024-tablestyle-physical-output-readback-2026-10-31.json).
+**P4 next action — qualify emitted output for the retained opaque callbacks.**
+The AC1024 mechanical witness now retains source bodies for all 228/228 opaque
+callback views; the read-completeness gate passes with no source-capture
+failure. Strict CLI export then refuses before publication because
+`opaqueFramesOutputQualified=0`, using the separate diagnostic
+`strict-complete conversion requires output qualification for every opaque DWG
+callback`. The generic source store is generation/handle keyed and capped at
+100,000 records/64 MiB; standard, raster and ACDS callbacks use their existing
+bounded source stores. Retention and selected-profile receipts do not establish
+that every body, owner/dependency and tail is represented in output; the output
+gate checks per-generation handle identities, not just an aggregate count. Use the
+existing census to choose the highest-incidence callback family still lacking
+an end-to-end output proof; bind source identity/fields/roles to planned output,
+emitted bytes and fresh readback. Keep unresolved records refused, rerun the
+strict checkpoint after each family, and do not weaken either gate. Add no
+investigation DWG/DXF fixture. This slice's counts, focused checks and
+no-output strict result are recorded in
+[`p4-ac1024-opaque-callback-source-retention-2026-10-31.json`](docs/research/p4-ac1024-opaque-callback-source-retention-2026-10-31.json).
 
 ## P4 — original bodies and complete document closure
 
@@ -87,15 +91,16 @@ engines.
 2. **Graph and output admission:** close any source-required body, owner edge,
    extension-dictionary edge or descendant not already admitted. Bind source
    identities and fields to planned records, emitted bytes and fresh readback.
-   Strict complete-export of the physical mechanical source remains blocked:
-   the current gate reports 228 opaque callback views and zero retained
-   correlation frames. Use the existing census and profile receipts as inputs;
-   trace the remaining callback through capture, owner/dependency planning and
-   writer admission. Keep reader completeness distinct from output qualification:
-   neither a typed callback nor retained raw bytes alone proves output
-   preservation. Admit only complete typed output or a proven end-to-end replay
-   path. Keep unresolved records refused. Never weaken the completeness
-   predicate, emit a partial graph, or infer edges from adjacent handle values.
+   The physical mechanical source now passes the strict read-retention gate
+   with all 228 callback bodies captured, but strict export remains blocked at
+   output admission (`opaqueFramesOutputQualified=0`). Use the existing census
+   and profile receipts as inputs; trace the remaining callback through owner /
+   dependency planning and writer admission. Keep reader completeness distinct
+   from output qualification: neither a typed callback nor retained raw bytes
+   alone proves output preservation. Admit only complete typed output or a
+   proven end-to-end replay path. Keep unresolved records refused. Never weaken
+   the completeness predicate, emit a partial graph, or infer edges from
+   adjacent handle values.
 3. **Recursive closure:** follow only source-required edges reached from the
    admitted graph. Reuse a qualified provider when it closes the exact target
    role; otherwise resolve that source-required body and its descendants, and

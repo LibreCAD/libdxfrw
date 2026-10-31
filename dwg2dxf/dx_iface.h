@@ -388,6 +388,10 @@ public:
     static constexpr std::size_t StandardDwgObjectCaptureMaxEntries = 1000000u;
     static constexpr std::size_t StandardDwgObjectCaptureMaxRetainedBytes =
         64u * 1024u * 1024u;
+    static constexpr std::size_t OpaqueDwgSourceFrameCaptureMaxRecords =
+        100000u;
+    static constexpr std::size_t OpaqueDwgSourceFrameCaptureMaxRetainedBytes =
+        64u * 1024u * 1024u;
     static constexpr std::size_t TypedEntityCaptureMaxRecords = 100000u;
     static constexpr std::size_t TypedEntityCaptureMaxRetainedBytes =
         64u * 1024u * 1024u;
@@ -2330,6 +2334,14 @@ private:
     bool hasQualifiedStandardDwgOutputNames(std::uint64_t generation,
                                           std::uint32_t handle, bool finalizing) const;
     bool finalizeStandardDwgOutputProofs() noexcept;
+    bool recordOpaqueDwgSourceFrameIdentity(
+        const DRW_UnsupportedObject& data) noexcept;
+    // Call only after an exact source identity has passed its writer-output
+    // and fresh-readback proof; a callback or aggregate count is insufficient.
+    bool recordOpaqueDwgOutputQualification(
+        std::uint32_t sourceHandle) noexcept;
+    bool retainOpaqueDwgSourceFrame(
+        const DRW_UnsupportedObject& data) noexcept;
     bool estimateTypedEntityRetainedBytes(
         const DRW_Entity& entity, std::size_t inlineBytes,
         std::size_t& estimatedBytes) const noexcept;

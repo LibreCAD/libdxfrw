@@ -80,6 +80,24 @@ public:
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
+    static const DRW_UnsupportedObject* opaqueSourceFrame(
+            const dx_data& data, std::uint64_t generation,
+            std::uint32_t handle) {
+        const auto found = data.m_opaqueDwgSourceFrames.find(
+            {generation, handle});
+        return found == data.m_opaqueDwgSourceFrames.end()
+            ? nullptr : &found->second;
+    }
+    static std::size_t opaqueSourceFrameCount(const dx_data& data) {
+        return data.m_opaqueDwgSourceFrames.size();
+    }
+    static std::size_t opaqueSourceFrameRetainedBytes(const dx_data& data) {
+        return data.m_opaqueDwgSourceFrameRetainedBytes;
+    }
+    static void seedOpaqueSourceFrameRetainedBytes(
+            dx_data& data, std::size_t bytes) {
+        data.m_opaqueDwgSourceFrameRetainedBytes = bytes;
+    }
     static std::size_t xrecordWriteSourceBytes(const dx_iface& iface) { return iface.m_xrecordWriteSourceBytes; }
     static std::pair<std::size_t,std::size_t> xrecordWriteSourceCounts(const dx_iface& iface) {
         return {iface.m_xrecordWriteSources.size(),iface.m_xrecordWriteDictionaries.size()};
@@ -10395,6 +10413,145 @@ bool acDsHistoryDwgFrameCaptureLimitsFailClosed() {
         std::filesystem::remove(output, ignored);
         return fail("rejected AcDs history frame capture published a DXF");
     }
+    return true;
+}
+
+bool opaqueDwgSourceCaptureAndStrictOutputGate() {
+    const auto configure = [](dx_data& data, std::uint64_t generation) {
+        data.sourceFormat = dx_source_format::DWG;
+        data.sourceVersion = DRW::AC1024;
+        data.importGeneration = generation;
+        data.dwgReadOutcome = {};
+        data.dwgReadOutcome.attempted = true;
+        data.dwgReadOutcome.operationSucceeded = true;
+        data.dwgReadOutcome.sourceVersion = DRW::AC1024;
+        data.dwgReadOutcome.observations.frames.status =
+            DRW_DwgFrameCoverageStatus::FinalizedComplete;
+    };
+    const auto rawFrame = []() {
+        DRW_UnsupportedObject frame;
+        frame.m_version = DRW::AC1024;
+        frame.m_handle = 0x7A001u;
+        frame.m_objectOffset = 0x120u;
+        frame.m_objectSize = 4u;
+        frame.m_bodyBitSize = 32u;
+        frame.m_recordName = "UNMODELED_TEST_OBJECT";
+        frame.m_rawBytes = {0x11u, 0x22u, 0x33u, 0x44u};
+        return frame;
+    };
+
+    dx_data retained;
+    dx_iface importer;
+    importer.cData = &retained;
+    configure(retained, 7u);
+    auto source = rawFrame();
+    importer.addUnsupportedObject(source);
+    const DRW_UnsupportedObject* captured =
+        DxIfaceStandardDwgCaptureTestAccess::opaqueSourceFrame(
+            retained, 7u, source.m_handle);
+    if (captured == nullptr || captured->m_rawBytes != source.m_rawBytes
+        || DxIfaceStandardDwgCaptureTestAccess::opaqueSourceFrameRetainedBytes(
+               retained)
+               < source.m_rawBytes.size()
+        || retained.dwgReadOutcome.opaqueViewCallbacks != 1u
+        || retained.dwgReadOutcome.opaqueSourceFramesCaptured != 1u
+        || !retained.hasCompleteOpaqueDwgSourceCapture()
+        || retained.dwgReadOutcome.opaqueSourceCaptureFailed
+        || retained.dwgReadOutcome.opaqueFramesOutputQualified != 0u)
+        return fail("opaque DWG callback was not source-bound and retained");
+    source.m_rawBytes.front() = 0xFEu;
+    if (captured->m_rawBytes.front() != 0x11u)
+        return fail("opaque DWG source retention aliased callback memory");
+    importer.addUnsupportedObject(rawFrame());
+    if (!retained.dwgReadOutcome.opaqueSourceCaptureFailed
+        || retained.dwgReadOutcome.opaqueSourceFramesCaptured != 1u
+        || DxIfaceStandardDwgCaptureTestAccess::opaqueSourceFrameCount(
+               retained) != 1u)
+        return fail("duplicate opaque source identity did not fail closed");
+
+    // Exact source bytes complete only the read-retention lane. Strict export
+    // remains closed until a separate serializer proof qualifies this frame.
+    dx_data strict;
+    dx_iface exporter;
+    exporter.cData = &strict;
+    configure(strict, 8u);
+    auto strictSource = rawFrame();
+    strictSource.m_handle = 0x7A002u;
+    strictSource.m_objectOffset = 0x240u;
+    exporter.addUnsupportedObject(strictSource);
+    if (!strict.hasCompleteOpaqueDwgSourceCapture())
+        return fail("complete source frame identity set was not recognized");
+    // A forged aggregate count is not enough: strict output admission checks
+    // that each qualified identity corresponds to a retained source frame.
+    strict.dwgReadOutcome.opaqueFramesOutputQualified = 1u;
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    const std::filesystem::path output =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-opaque-dwg-output-gate-"
+           + std::to_string(nonce) + ".dxf");
+    if (std::filesystem::exists(output))
+        return fail("opaque DWG output-gate path unexpectedly exists");
+    std::ostringstream diagnostics;
+    std::streambuf* const oldError = std::cerr.rdbuf(diagnostics.rdbuf());
+    const bool wrote = exporter.fileExport(
+        output.string(), DRW::AC1024, false, &strict, false, true,
+        dx_dxfSourceTextPolicy::Compatible,
+        DRW::DxfTextWritePolicy::Compatible,
+        dx_dxfProxyGraphicsPolicy::Compatible,
+        dx_dwgReadCompletenessPolicy::RequireComplete);
+    std::cerr.rdbuf(oldError);
+    if (wrote || std::filesystem::exists(output)
+        || diagnostics.str().find(
+               "strict-complete conversion requires output qualification for every opaque DWG callback")
+               == std::string::npos)
+        return fail("strict export treated retained raw bytes as output proof");
+
+    dx_data rejected;
+    dx_iface retry;
+    retry.cData = &rejected;
+    configure(rejected, 9u);
+    auto malformed = rawFrame();
+    malformed.m_handle = 0x7A003u;
+    malformed.m_rawBytes.pop_back();
+    retry.addUnsupportedObject(malformed);
+    auto correctedSameAttempt = rawFrame();
+    correctedSameAttempt.m_handle = malformed.m_handle;
+    if (!rejected.dwgReadOutcome.opaqueSourceCaptureFailed
+        || rejected.dwgReadOutcome.opaqueSourceFramesCaptured != 0u
+        || DxIfaceStandardDwgCaptureTestAccess::opaqueSourceFrameCount(
+               rejected) != 0u)
+        return fail("malformed opaque source frame was retained");
+    retry.addUnsupportedObject(correctedSameAttempt);
+    if (!rejected.dwgReadOutcome.opaqueSourceCaptureFailed
+        || rejected.dwgReadOutcome.opaqueSourceFramesCaptured != 0u)
+        return fail("opaque source capture failure was not sticky within an import");
+
+    configure(rejected, 10u);
+    correctedSameAttempt.m_objectOffset = 0x360u;
+    retry.addUnsupportedObject(correctedSameAttempt);
+    if (rejected.dwgReadOutcome.opaqueSourceCaptureFailed
+        || rejected.dwgReadOutcome.opaqueSourceFramesCaptured != 1u
+        || DxIfaceStandardDwgCaptureTestAccess::opaqueSourceFrame(
+               rejected, 10u, malformed.m_handle) == nullptr)
+        return fail("corrected opaque frame did not recover on the next import generation");
+
+    dx_data overBudget;
+    dx_iface bounded;
+    bounded.cData = &overBudget;
+    configure(overBudget, 11u);
+    DxIfaceStandardDwgCaptureTestAccess::seedOpaqueSourceFrameRetainedBytes(
+        overBudget,
+        dx_iface::OpaqueDwgSourceFrameCaptureMaxRetainedBytes);
+    auto boundedFrame = rawFrame();
+    boundedFrame.m_handle = 0x7A004u;
+    bounded.addUnsupportedObject(boundedFrame);
+    if (!overBudget.dwgReadOutcome.opaqueSourceCaptureFailed
+        || overBudget.dwgReadOutcome.opaqueSourceFramesCaptured != 0u
+        || DxIfaceStandardDwgCaptureTestAccess::opaqueSourceFrameCount(
+               overBudget) != 0u)
+        return fail("opaque DWG source byte limit did not fail closed");
     return true;
 }
 
@@ -47948,6 +48105,10 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--acds-history-dwg-frame-capture-limits")
         return acDsHistoryDwgFrameCaptureLimitsFailClosed() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1])
+            == "--opaque-dwg-source-capture-and-output-gate")
+        return opaqueDwgSourceCaptureAndStrictOutputGate() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--standard-dwg-object-source-capture")
         return standardDwgObjectSourceCapture() ? 0 : 1;

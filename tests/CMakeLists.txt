@@ -1960,6 +1960,14 @@ set_tests_properties(dwg2dxf_acds_history_dwg_frame_capture_limits PROPERTIES
 )
 
 add_test(
+    NAME dwg2dxf_opaque_source_capture_and_strict_output_gate
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --opaque-dwg-source-capture-and-output-gate
+)
+set_tests_properties(dwg2dxf_opaque_source_capture_and_strict_output_gate
+    PROPERTIES LABELS "fast;dwg;adapter;completeness" TIMEOUT 10)
+
+add_test(
     NAME dwg2dxf_standard_dwg_object_source_capture
     COMMAND libdxfrw_dwg2dxf_adapter_tests --standard-dwg-object-source-capture
 )
