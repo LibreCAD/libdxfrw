@@ -46,7 +46,7 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage. The explicit-partial witness fails at `MATERIAL` output inspection. Resolve that source/output mismatch, close required descendants, then pass strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage. Explicit-partial conversion now publishes output, but strict admission still refuses the unretained opaque callback views. Close required descendants and pass strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN | Close remaining rendering metadata and native rendering profiles, rich R24 TABLESTYLE typed-DXF readback, FIELDLIST/child graphs and other unclosed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -56,18 +56,22 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next physical-witness packet:** resolve the first current output-inspection
-failure, `MATERIAL`, in the existing mechanical witness
+**Next physical-witness packet:** map the opaque callback identities to complete
+source-to-output proof in the existing mechanical witness
 (`/Users/dli/doc/dwg/mechanical_example-imperial.dwg`, SHA-256
-`854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858`).
-The physical explicit-partial conversion fails `MATERIAL` output inspection;
-no output DXF is published. Identify the exact MATERIAL source/output field or
-reference mismatch, repair only that witnessed profile, and rerun the same
-diagnostic. This run is not strict-complete evidence:
-`--allow-partial-dwg-read` does not satisfy the strict read gate, and the 228
-typed-and-opaque callback identities across 21 profiles still need
-complete-output or proven replay mappings. Do not infer identities from
-adjacent handles, weaken graph closure, or commit investigation DWGs.
+`854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858`). The
+explicit-partial conversion now publishes a 161,368-byte DXF. Strict conversion
+still exits before output publication: the read succeeded with 366/366 source
+frames and zero entity/object parse failures, but strict completeness sees 228
+opaque callbacks and zero retained correlation frames. The MATERIAL link
+inspection mismatch is resolved; the strict callback-coverage gate is the next
+blocker. Start with the 54 `ACDBASSOCGEOMDEPENDENCY` records, the largest
+unproven profile. The local partial DXF contains 54 records, but count agreement
+alone does not prove source identity, exact fields, references or readback.
+Reuse the existing source profile and generated writer/graph receipts to bind
+each source record to staged output. Do not infer identities from adjacent
+handles, weaken graph closure, or commit investigation DWGs. Evidence is in
+`docs/research/p4-ac1024-material-xdict-transport-2026-10-31.json`.
 
 ## P4 — original bodies and complete document closure
 
@@ -86,10 +90,12 @@ engines.
    extension-dictionary edge or descendant not already admitted. Bind source
    identities and fields to planned records, emitted bytes and fresh readback.
    Strict complete-export of the physical mechanical source remains blocked:
-   the global strict-read predicate rejects opaque callback views that are
-   not retained for output. The latest explicit-partial physical diagnostic
-   fails `MATERIAL` output inspection; diagnose that mismatch and retain the
-   strict gate. The physical source receipt is
+   the global strict-read predicate rejects 228 opaque callback views with zero
+   retained correlation frames. The explicit-partial physical output now
+   publishes, but this does not satisfy strict read or source-to-output
+   coverage. Its read state and strict rejection are recorded in
+   `docs/research/p4-ac1024-material-xdict-transport-2026-10-31.json`; the
+   physical source receipt is
    `docs/research/p2-p4-ac1024-physical-mlinestyle-sentinel-output-2026-10-31.json`.
    The callback census is recorded in
    `docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json`. Use its
