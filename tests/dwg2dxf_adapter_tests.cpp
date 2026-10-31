@@ -20169,10 +20169,9 @@ bool typedDwgR24TableStyleDxfRoundTrip(bool binary, std::uint64_t nonce) {
         || readback.rawTableStyles.size() != 1u
         || readback.tables.front().m_tableStyleHandle
             != readback.rawTableStyles.front().handle
-        || readback.tableStyles.size() > 1u
-        || (!readback.tableStyles.empty()
-            && readback.tableStyles.front().handle
-                != readback.rawTableStyles.front().handle)) {
+        || readback.tableStyles.size() != 1u
+        || readback.tableStyles.front().handle
+            != readback.rawTableStyles.front().handle) {
         return fail("R24 TABLESTYLE output failed fresh typed/raw readback: imported="
             + std::to_string(imported) + " tables="
             + std::to_string(readback.tables.size()) + " typed="
@@ -20184,6 +20183,31 @@ bool typedDwgR24TableStyleDxfRoundTrip(bool binary, std::uint64_t nonce) {
                     + " recordHandle="
                     + std::to_string(readback.rawTableStyles.front().handle)));
     }
+
+    const DRW_TableStyle& typedStyle = readback.tableStyles.front();
+    if (typedStyle.m_cellStyles.size() != 3u)
+        return fail("R24 TABLESTYLE typed custom style count changed");
+    const DRW_TableStyleCellStyle& tableCellStyle =
+        typedStyle.m_tableCellStyle;
+    const DRW_TableStyleCellStyle& titleStyle =
+        typedStyle.m_cellStyles.front();
+    if (tableCellStyle.m_id != 4 || tableCellStyle.m_styleClass != 2
+        || tableCellStyle.m_name != "Table"
+        || tableCellStyle.m_contentFormat.m_textHeight != 0.18
+        || tableCellStyle.m_borders.size() != 0u
+        || titleStyle.m_id != 1 || titleStyle.m_styleClass != 1
+        || titleStyle.m_name != "_TITLE"
+        || titleStyle.m_mergeFlags != 0x8000u
+        || titleStyle.m_contentFormat.m_cellAlignment != 5
+        || titleStyle.m_contentFormat.m_valueDataType != 512
+        || titleStyle.m_contentFormat.m_textHeight != 0.25
+        || titleStyle.m_contentFormat.m_textStyleHandle == 0u
+        || titleStyle.m_borders.size() != 6u
+        || titleStyle.m_borders[0].m_edgeFlags != 1
+        || titleStyle.m_borders[0].m_borderType != 1
+        || titleStyle.m_borders[0].m_lineWeight != -2
+        || titleStyle.m_borders[0].m_doubleLineSpacing != 0.045)
+        return fail("R24 TABLESTYLE nested cell styles were not projected into typed state");
 
     const DRW_RawDxfObject& raw = readback.rawTableStyles.front();
     const auto countString = [&raw](int code, const char *value) {

@@ -39,6 +39,9 @@
 
 namespace {
 
+bool validCellStyleMapCellStyle(
+    DRW::Version version, const DRW_TableStyleCellStyle& style) noexcept;
+
 template <typename Enum>
 std::underlying_type_t<Enum> rawEnumValue(const Enum& value) noexcept {
     using Underlying = std::underlying_type_t<Enum>;
@@ -16299,7 +16302,391 @@ bool DRW_Material::encodeDwg(DRW::Version version, dwgBufferW *buf,
     return buf->isGood() && sb->isGood() && hb->isGood();
 }
 
+bool DRW_TableStyle::parseDxfR24NestedStyle(
+        int code, const std::unique_ptr<dxfReader>& reader, bool& handled) {
+    handled = false;
+    const DRW::Version sourceVersion = reader->hasSourceVersion()
+        ? reader->getSourceVersion()
+        : static_cast<DRW::Version>(reader->getVersion());
+    const auto fail = [this, &handled]() {
+        m_dxfR24NestedStylesValid = false;
+        m_dxfR24Section = DxfR24Section::Invalid;
+        handled = true;
+        return true;
+    };
+    const auto textIs = [&reader, code](int expectedCode,
+                                        std::string_view expected) {
+        return code == expectedCode
+            && reader->getStringView() == expected;
+    };
+    const auto readColor = [&reader, code](int expectedCode, int& value,
+            DRW_TableStyleCmcColor& cmc) {
+        if (code != expectedCode)
+            return false;
+        const int dxfColor = reader->getInt32();
+        cmc = DRW_TableStyleCmcColor();
+        if (dxfColor == 257) {
+            value = 256;
+            cmc.m_method = dwgColor::BYLAYER;
+        } else if (dxfColor >= 0 && dxfColor <= 255) {
+            value = dxfColor;
+            cmc.m_method = dxfColor == 0 ? dwgColor::BYBLOCK
+                : dwgColor::ACIS;
+        } else {
+            return false;
+        }
+        return true;
+    };
+    const auto currentStyle = [this]() -> DRW_TableStyleCellStyle* {
+        if (m_dxfR24StyleCount == 0u)
+            return &m_tableCellStyle;
+        if (m_cellStyles.empty())
+            return nullptr;
+        return &m_cellStyles.back();
+    };
+    const auto startStyle = [this, &handled, &fail, sourceVersion]() {
+        if (m_dxfR24NestedStylesComplete || m_dxfR24StyleCount >= 4u)
+            return fail();
+        if (m_dxfR24SourceVersion != DRW::UNKNOWNV
+            && m_dxfR24SourceVersion != sourceVersion)
+            return fail();
+        try {
+            if (m_dxfR24StyleCount == 0u)
+                m_tableCellStyle = DRW_TableStyleCellStyle();
+            else
+                m_cellStyles.emplace_back();
+        } catch (...) {
+            return fail();
+        }
+        m_dxfR24NestedStylesSeen = true;
+        m_dxfR24SourceVersion = sourceVersion;
+        m_dxfR24Section = DxfR24Section::Table;
+        m_dxfR24FieldIndex = 0u;
+        m_dxfR24BorderCount = 0u;
+        m_dxfR24BorderIndex = 0u;
+        handled = true;
+        return true;
+    };
+
+    if (m_dxfR24Section == DxfR24Section::Invalid) {
+        handled = true;
+        return true;
+    }
+    if (m_dxfR24Section == DxfR24Section::None) {
+        if (textIs(1, "TABLEFORMAT_BEGIN"))
+            return startStyle();
+        return true;
+    }
+
+    handled = true;
+    DRW_TableStyleCellStyle* style = currentStyle();
+    if (style == nullptr)
+        return fail();
+    const auto expectCode = [code](int expected) {
+        return code == expected;
+    };
+    const auto next = [this]() { ++m_dxfR24FieldIndex; };
+    const auto readInteger = [&reader, &expectCode](int expectedCode,
+                                                     int& destination) {
+        if (!expectCode(expectedCode))
+            return false;
+        destination = reader->getInt32();
+        return true;
+    };
+    const auto readDouble = [&reader, &expectCode](int expectedCode,
+                                                    double& destination) {
+        if (!expectCode(expectedCode))
+            return false;
+        destination = reader->getDouble();
+        return std::isfinite(destination);
+    };
+    switch (m_dxfR24Section) {
+    case DxfR24Section::Table:
+        switch (m_dxfR24FieldIndex) {
+        case 0:
+            if (!readInteger(90, style->m_type)
+                || style->m_type < 1 || style->m_type > 5)
+                return fail();
+            next(); return true;
+        case 1: {
+            int hasData = 0;
+            if (!readInteger(170, hasData) || (hasData != 0 && hasData != 1))
+                return fail();
+            style->m_hasData = hasData != 0;
+            next(); return true;
+        }
+        case 2: {
+            int flags = 0;
+            if (!readInteger(91, flags) || flags < 0)
+                return fail();
+            style->m_propertyOverrideFlags = static_cast<std::uint32_t>(flags);
+            next(); return true;
+        }
+        case 3: {
+            int flags = 0;
+            if (!readInteger(92, flags) || flags < 0)
+                return fail();
+            style->m_mergeFlags = static_cast<std::uint32_t>(flags);
+            next(); return true;
+        }
+        case 4:
+            if (!readColor(62, style->m_backgroundColor,
+                           style->m_backgroundColorCmc))
+                return fail();
+            next(); return true;
+        case 5: {
+            int layout = 0;
+            if (!readInteger(93, layout) || layout < 0)
+                return fail();
+            style->m_contentLayout = static_cast<std::uint32_t>(layout);
+            next(); return true;
+        }
+        case 6:
+            if (!textIs(300, "CONTENTFORMAT"))
+                return fail();
+            next(); return true;
+        case 7:
+            if (!textIs(1, "CONTENTFORMAT_BEGIN"))
+                return fail();
+            m_dxfR24Section = DxfR24Section::Content;
+            m_dxfR24FieldIndex = 0u;
+            return true;
+        case 8: {
+            int flags = 0;
+            if (!readInteger(171, flags) || flags < 0 || flags > 1)
+                return fail();
+            style->m_marginOverrideFlags = flags;
+            next(); return true;
+        }
+        case 9:
+            if (!textIs(301, "MARGIN"))
+                return fail();
+            next(); return true;
+        case 10:
+            if (!textIs(1, "CELLMARGIN_BEGIN"))
+                return fail();
+            m_dxfR24Section = DxfR24Section::Margin;
+            m_dxfR24FieldIndex = 0u;
+            return true;
+        case 11: {
+            int count = 0;
+            if (!readInteger(94, count) || count < 0 || count > 6)
+                return fail();
+            try {
+                style->m_borders.resize(static_cast<std::size_t>(count));
+            } catch (...) {
+                return fail();
+            }
+            m_dxfR24BorderCount = static_cast<std::size_t>(count);
+            m_dxfR24BorderIndex = 0u;
+            if (count != 0) {
+                m_dxfR24Section = DxfR24Section::Border;
+                m_dxfR24FieldIndex = 0u;
+            } else {
+                m_dxfR24FieldIndex = 12u;
+            }
+            return true;
+        }
+        case 12:
+            if (!textIs(309, "TABLEFORMAT_END"))
+                return fail();
+            next(); return true;
+        case 13:
+            if (!textIs(1, "CELLSTYLE_BEGIN"))
+                return fail();
+            m_dxfR24Section = DxfR24Section::Identity;
+            m_dxfR24FieldIndex = 0u;
+            return true;
+        default:
+            return fail();
+        }
+    case DxfR24Section::Content: {
+        DRW_TableStyleContentFormat& format = style->m_contentFormat;
+        switch (m_dxfR24FieldIndex) {
+        case 0:
+        {
+            int flags = 0;
+            if (!readInteger(90, flags) || flags < 0
+                || (static_cast<std::uint32_t>(flags) & ~0x7FFFFu) != 0u)
+                return fail();
+            format.m_propertyOverrideFlags = static_cast<std::uint32_t>(flags);
+            next(); return true;
+        }
+        case 1: {
+            int flags = 0;
+            if (!readInteger(91, flags) || flags < 0)
+                return fail();
+            format.m_propertyFlags = static_cast<std::uint32_t>(flags);
+            next(); return true;
+        }
+        case 2:
+            if (!readInteger(92, format.m_valueDataType)
+                || !validTableStyleValueDataType(
+                    sourceVersion, format.m_valueDataType))
+                return fail();
+            next(); return true;
+        case 3:
+            if (!readInteger(93, format.m_valueUnitType)
+                || !validTableStyleValueUnitType(
+                    sourceVersion, format.m_valueUnitType))
+                return fail();
+            next(); return true;
+        case 4:
+            if (!expectCode(300)) return fail();
+            if (!replaceDxfRetainedStringField(
+                    reader, format.m_dxfRetainedValueFormatBytes,
+                    format.m_valueFormatString, reader->getUtf8String()))
+                return false;
+            next(); return true;
+        case 5:
+            if (!readDouble(40, format.m_rotation)) return fail();
+            next(); return true;
+        case 6:
+            if (!readDouble(140, format.m_blockScale)) return fail();
+            next(); return true;
+        case 7:
+            if (!readInteger(94, format.m_cellAlignment)
+                || format.m_cellAlignment < 1 || format.m_cellAlignment > 9)
+                return fail();
+            next(); return true;
+        case 8:
+            if (!readColor(62, format.m_contentColor,
+                           format.m_contentColorCmc))
+                return fail();
+            next(); return true;
+        case 9:
+            if (!expectCode(340)) return fail();
+            format.m_textStyleHandle = reader->getHandleString();
+            next(); return true;
+        case 10:
+            if (!readDouble(144, format.m_textHeight)) return fail();
+            next(); return true;
+        case 11:
+            if (!textIs(309, "CONTENTFORMAT_END")) return fail();
+            m_dxfR24Section = DxfR24Section::Table;
+            m_dxfR24FieldIndex = 8u;
+            return true;
+        default:
+            return fail();
+        }
+    }
+    case DxfR24Section::Margin:
+        if (m_dxfR24FieldIndex < 6u) {
+            double* margins[] = {&style->m_verticalMargin,
+                &style->m_horizontalMargin, &style->m_bottomMargin,
+                &style->m_rightMargin, &style->m_marginHorizontalSpacing,
+                &style->m_marginVerticalSpacing};
+            if (!readDouble(40, *margins[m_dxfR24FieldIndex]))
+                return fail();
+            next(); return true;
+        }
+        if (m_dxfR24FieldIndex != 6u
+            || !textIs(309, "CELLMARGIN_END"))
+            return fail();
+        m_dxfR24Section = DxfR24Section::Table;
+        m_dxfR24FieldIndex = 11u;
+        return true;
+    case DxfR24Section::Border: {
+        if (m_dxfR24BorderIndex >= style->m_borders.size())
+            return fail();
+        DRW_TableStyleBorder& border =
+            style->m_borders[m_dxfR24BorderIndex];
+        switch (m_dxfR24FieldIndex) {
+        case 0:
+            if (!readInteger(95, border.m_edgeFlags)
+                || border.m_edgeFlags < 0 || border.m_edgeFlags > 0x3F)
+                return fail();
+            next(); return true;
+        case 1:
+            if (!textIs(302, "GRIDFORMAT")) return fail();
+            next(); return true;
+        case 2:
+            if (!textIs(1, "GRIDFORMAT_BEGIN")) return fail();
+            next(); return true;
+        case 3: {
+            int flags = 0;
+            if (!readInteger(90, flags) || flags < 0)
+                return fail();
+            border.m_propertyOverrideFlags = flags;
+            next(); return true;
+        }
+        case 4:
+            if (!readInteger(91, border.m_borderType)) return fail();
+            next(); return true;
+        case 5:
+            if (!readColor(62, border.m_color, border.m_colorCmc))
+                return fail();
+            next(); return true;
+        case 6:
+            if (!readInteger(92, border.m_lineWeight)) return fail();
+            next(); return true;
+        case 7:
+            if (!expectCode(340)) return fail();
+            border.m_lineTypeHandle = reader->getHandleString();
+            next(); return true;
+        case 8:
+            if (!readInteger(93, border.m_visible)
+                || border.m_visible < 0 || border.m_visible > 1)
+                return fail();
+            next(); return true;
+        case 9:
+            if (!readDouble(40, border.m_doubleLineSpacing)) return fail();
+            next(); return true;
+        case 10:
+            if (!textIs(309, "GRIDFORMAT_END")) return fail();
+            ++m_dxfR24BorderIndex;
+            if (m_dxfR24BorderIndex == m_dxfR24BorderCount) {
+                m_dxfR24Section = DxfR24Section::Table;
+                m_dxfR24FieldIndex = 12u;
+            }
+            m_dxfR24FieldIndex = m_dxfR24BorderIndex
+                    == m_dxfR24BorderCount
+                ? 12u : 0u;
+            return true;
+        default:
+            return fail();
+        }
+    }
+    case DxfR24Section::Identity:
+        switch (m_dxfR24FieldIndex) {
+        case 0:
+            if (!readInteger(90, style->m_id))
+                return fail();
+            next(); return true;
+        case 1:
+            if (!readInteger(91, style->m_styleClass))
+                return fail();
+            next(); return true;
+        case 2:
+            if (!expectCode(300)) return fail();
+            if (!replaceDxfRetainedStringField(
+                    reader, style->m_dxfRetainedNameBytes, style->m_name,
+                    reader->getUtf8String()))
+                return false;
+            next(); return true;
+        case 3:
+            if (!textIs(309, "CELLSTYLE_END")) return fail();
+            ++m_dxfR24StyleCount;
+            m_dxfR24Section = DxfR24Section::None;
+            m_dxfR24FieldIndex = 0u;
+            m_dxfR24NestedStylesComplete = m_dxfR24StyleCount == 4u;
+            return true;
+        default:
+            return fail();
+        }
+    case DxfR24Section::None:
+    case DxfR24Section::Invalid:
+        return fail();
+    }
+    return fail();
+}
+
 bool DRW_TableStyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
+    bool nestedHandled = false;
+    if (!parseDxfR24NestedStyle(code, reader, nestedHandled))
+        return false;
+    if (nestedHandled)
+        return true;
     constexpr std::uint16_t kDescription = 1u << 0;
     constexpr std::uint16_t kFlowDirection = 1u << 1;
     constexpr std::uint16_t kFlags = 1u << 2;
@@ -16644,6 +17031,37 @@ bool DRW_TableStyle::parseCode(int code, const std::unique_ptr<dxfReader>& reade
 }
 
 bool DRW_TableStyle::finalizeDxfNestedStyles() noexcept {
+    if (m_dxfR24NestedStylesSeen) {
+        if (!m_dxfR24NestedStylesValid || !m_dxfR24NestedStylesComplete
+            || m_dxfR24Section != DxfR24Section::None
+            || m_dxfR24StyleCount != 4u || m_cellStyles.size() != 3u
+            || !m_rowStyles.empty()
+            || m_dxfR24SourceVersion < DRW::AC1024
+            || m_tableCellStyle.m_id != 4
+            || m_tableCellStyle.m_styleClass != 2
+            || m_tableCellStyle.m_name != "Table"
+            || m_cellStyles[0].m_id != 1
+            || m_cellStyles[0].m_styleClass != 1
+            || m_cellStyles[0].m_name != "_TITLE"
+            || m_cellStyles[1].m_id != 2
+            || m_cellStyles[1].m_styleClass != 1
+            || m_cellStyles[1].m_name != "_HEADER"
+            || m_cellStyles[2].m_id != 3
+            || m_cellStyles[2].m_styleClass != 2
+            || m_cellStyles[2].m_name != "_DATA")
+            return false;
+        if (!m_tableCellStyle.m_hasData
+            || !validCellStyleMapCellStyle(m_dxfR24SourceVersion,
+                                           m_tableCellStyle))
+            return false;
+        for (const DRW_TableStyleCellStyle& style : m_cellStyles) {
+            if (!style.m_hasData
+                || !validCellStyleMapCellStyle(m_dxfR24SourceVersion,
+                                               style))
+                return false;
+        }
+        return true;
+    }
     if (!m_dxfNestedRowsValid)
         return false;
     constexpr std::uint16_t kRequired = (1u << 0) | (1u << 1) | (1u << 2)

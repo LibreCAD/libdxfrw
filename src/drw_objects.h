@@ -5816,11 +5816,23 @@ public:
     m_dxfSawTableStyleBody = false;
     m_dxfSawTableStyleHeader = false;
     m_dxfCoreFieldsPresent = 0u;
+    m_dxfR24NestedStylesSeen = false;
+    m_dxfR24NestedStylesValid = true;
+    m_dxfR24NestedStylesComplete = false;
+    m_dxfR24SourceVersion = DRW::UNKNOWNV;
+    m_dxfR24Section = DxfR24Section::None;
+    m_dxfR24FieldIndex = 0u;
+    m_dxfR24StyleCount = 0u;
+    m_dxfR24BorderCount = 0u;
+    m_dxfR24BorderIndex = 0u;
     DRW_TableEntry::reset();
   }
 
 protected:
   bool parseCode(int code, const std::unique_ptr<dxfReader> &reader) override;
+  bool parseDxfR24NestedStyle(int code,
+                              const std::unique_ptr<dxfReader>& reader,
+                              bool& handled);
   bool parseDwg(DRW::Version version, dwgBuffer *buf,
                 std::uint32_t bs = 0) override;
   [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf,
@@ -5859,6 +5871,15 @@ public:
   std::vector<DRW_DwgSubrecordRange> m_subrecordRanges;
 
 private:
+  enum class DxfR24Section : std::uint8_t {
+    None,
+    Table,
+    Content,
+    Margin,
+    Border,
+    Identity,
+    Invalid
+  };
   enum class DxfColorTarget : std::uint8_t {
     None,
     Text,
@@ -5872,6 +5893,15 @@ private:
   bool m_dxfSawTableStyleBody{false};
   bool m_dxfSawTableStyleHeader{false};
   std::uint16_t m_dxfCoreFieldsPresent{0u};
+  bool m_dxfR24NestedStylesSeen{false};
+  bool m_dxfR24NestedStylesValid{true};
+  bool m_dxfR24NestedStylesComplete{false};
+  DxfR24Section m_dxfR24Section{DxfR24Section::None};
+  std::size_t m_dxfR24FieldIndex{0u};
+  std::size_t m_dxfR24StyleCount{0u};
+  std::size_t m_dxfR24BorderCount{0u};
+  std::size_t m_dxfR24BorderIndex{0u};
+  DRW::Version m_dxfR24SourceVersion{DRW::UNKNOWNV};
   std::size_t m_dxfRetainedTableStyleNameBytes{0u};
   UTF8STRING m_dxfOriginalName;
   std::string m_dxfOriginalNameRaw;
