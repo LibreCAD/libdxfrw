@@ -2755,6 +2755,200 @@ bool tableContentTableStyleFormatWriteTests(
         }
       }
     }
+
+    constexpr std::uint32_t sourceTextStyleHandle = 0xA714u;
+    for (bool multiCell : {false, true}) {
+        for (int styleType : {1, 2, 3, 4}) {
+            for (bool binary : {false, true}) {
+                const auto path = dir / ("table-content-format-text-style-"
+                    + std::to_string(styleType)
+                    + (multiCell ? "-grid" : "-single")
+                    + (binary ? ".bin.dxf" : ".dxf"));
+                dx_data data;
+                dx_iface exporter;
+                exporter.cData = &data;
+                exporter.currentBlock = data.mBlock;
+                DRW_Textstyle textStyle;
+                textStyle.handle = sourceTextStyleHandle;
+                textStyle.name = "TABLE_CONTENT_HANDLE_STYLE";
+                exporter.addTextStyle(textStyle);
+
+                DRW_TableContentObject table = tableContentScalarGrid();
+                if (!multiCell) {
+                    const DRW_TableCell selectedCell =
+                        table.m_content.m_rows[0].m_cells[1];
+                    table.m_content.m_columns.resize(1u);
+                    table.m_content.m_rows.resize(1u);
+                    table.m_content.m_rows[0].m_cells.assign(1u,
+                                                              selectedCell);
+                }
+                auto metadata = std::make_shared<DRW_TableContentDxfMetadata>();
+                metadata->m_columns.resize(table.m_content.m_columns.size());
+                for (auto& column : metadata->m_columns)
+                    column.m_style.m_type = 3;
+                metadata->m_rows.resize(table.m_content.m_rows.size());
+                for (std::size_t row = 0; row < metadata->m_rows.size(); ++row) {
+                    auto& detail = metadata->m_rows[row];
+                    detail.m_scope.m_style.m_type = 2;
+                    detail.m_cells.resize(
+                        table.m_content.m_rows[row].m_cells.size());
+                    for (std::size_t column = 0;
+                         column < detail.m_cells.size(); ++column) {
+                        detail.m_cells[column].m_scope.m_style.m_type = 1;
+                        detail.m_cells[column].m_contentFormats.resize(
+                            table.m_content.m_rows[row].m_cells[column]
+                                .m_contents.size());
+                    }
+                }
+                metadata->m_tableStyle.m_type = 4;
+                DRW_TableStyleCellStyle* selectedStyle = nullptr;
+                if (styleType == 1) {
+                    selectedStyle = &metadata->m_rows[0].m_cells[0]
+                        .m_scope.m_style;
+                } else if (styleType == 2) {
+                    selectedStyle = &metadata->m_rows[0].m_scope.m_style;
+                } else if (styleType == 3) {
+                    selectedStyle = &metadata->m_columns[0].m_style;
+                } else {
+                    selectedStyle = &metadata->m_tableStyle;
+                }
+                selectedStyle->m_hasData = true;
+                selectedStyle->m_contentFormat.m_propertyOverrideFlags = 0x1FFu;
+                selectedStyle->m_contentFormat.m_propertyFlags = 0x100u;
+                selectedStyle->m_contentFormat.m_valueDataType = 2;
+                selectedStyle->m_contentFormat.m_valueUnitType = 1;
+                selectedStyle->m_contentFormat.m_valueFormatString = "0.000";
+                selectedStyle->m_contentFormat.m_cellAlignment = 5;
+                selectedStyle->m_contentFormat.m_contentColor = 7;
+                selectedStyle->m_contentFormat.m_textStyleHandle =
+                    sourceTextStyleHandle;
+                selectedStyle->m_contentFormat.m_textHeight = 3.25;
+                const std::size_t valueColumn = multiCell ? 1u : 0u;
+                auto perContentFormat =
+                    std::make_shared<DRW_TableStyleContentFormat>(
+                        selectedStyle->m_contentFormat);
+                metadata->m_rows[0].m_cells[valueColumn]
+                    .m_contentFormats[0] = std::move(perContentFormat);
+                table.m_dxfMetadata = metadata;
+                exporter.addTableContent(table);
+
+                if (!exporter.fileExport(path.string(), DRW::AC1027, binary,
+                                         &data, false)) {
+                    return fail("non-null text-style handle export failed");
+                }
+
+                bool inContentFormat = false;
+                std::size_t matchedTextStyleHandles = 0u;
+                std::uint32_t emittedContentTextStyleHandle = 0u;
+                for (const AttdefWireTag& tag : attdefWireTags(path, binary)) {
+                    if (tag.code == 1 && tag.text == "CONTENTFORMAT_BEGIN") {
+                        inContentFormat = true;
+                    } else if (inContentFormat && tag.code == 309
+                               && tag.text == "CONTENTFORMAT_END") {
+                        inContentFormat = false;
+                    } else if (inContentFormat && tag.code == 340) {
+                        if (tag.text.empty())
+                            return fail("text-style group 340 is empty");
+                        try {
+                            const auto parsedHandle = static_cast<std::uint32_t>(
+                                std::stoul(tag.text, nullptr, 16));
+                            if (parsedHandle == 0u
+                                || parsedHandle == DRW::NoHandle)
+                                return fail("text-style group 340 is null");
+                            if (matchedTextStyleHandles != 0u
+                                && parsedHandle
+                                    != emittedContentTextStyleHandle)
+                                return fail("CONTENTFORMAT text-style targets disagree");
+                            emittedContentTextStyleHandle = parsedHandle;
+                        } catch (...) {
+                            return fail("text-style group 340 is not a handle");
+                        }
+                        ++matchedTextStyleHandles;
+                    }
+                }
+                if (matchedTextStyleHandles != 2u)
+                    return fail("CONTENTFORMAT text-style handle span missing");
+
+                dx_iface reader;
+                dx_data parsed;
+                if (!reader.fileImport(path.string(), &parsed, false)
+                    || parsed.tableContents.size() != 1u
+                    || !parsed.tableContents.front().m_dxfMetadata)
+                    return fail("fresh import lost remapped text-style provider");
+                const auto parsedTextStyle = std::find_if(
+                    parsed.textStyles.begin(), parsed.textStyles.end(),
+                    [](const DRW_Textstyle& candidate) {
+                        return candidate.name == "TABLE_CONTENT_HANDLE_STYLE";
+                    });
+                if (parsedTextStyle == parsed.textStyles.end()
+                    || parsedTextStyle->handle == 0u
+                    || parsedTextStyle->handle == DRW::NoHandle)
+                    return fail("fresh import lost emitted STYLE record");
+                const auto& parsedMetadata =
+                    *parsed.tableContents.front().m_dxfMetadata;
+                const DRW_TableStyleCellStyle* parsedStyle = nullptr;
+                if (styleType == 1) {
+                    parsedStyle = &parsedMetadata.m_rows[0].m_cells[0]
+                        .m_scope.m_style;
+                } else if (styleType == 2) {
+                    parsedStyle = &parsedMetadata.m_rows[0].m_scope.m_style;
+                } else if (styleType == 3) {
+                    parsedStyle = &parsedMetadata.m_columns[0].m_style;
+                } else {
+                    parsedStyle = &parsedMetadata.m_tableStyle;
+                }
+                if (!parsedStyle->m_hasData
+                    || emittedContentTextStyleHandle
+                        != parsedTextStyle->handle
+                    || parsedStyle->m_contentFormat.m_textStyleHandle
+                        != parsedTextStyle->handle)
+                    return fail("fresh import lost CONTENTFORMAT text-style role");
+                const auto& parsedPerContentFormats =
+                    parsedMetadata.m_rows[0].m_cells[valueColumn]
+                        .m_contentFormats;
+                if (parsedPerContentFormats.size() != 1u
+                    || !parsedPerContentFormats.front()
+                    || parsedPerContentFormats.front()->m_textStyleHandle
+                        != parsedTextStyle->handle)
+                    return fail("fresh import lost per-content text-style reference");
+
+                if (!multiCell && styleType == 1 && !binary) {
+                    const std::string sentinel =
+                        "PRESERVE_TABLECONTENT_TEXT_STYLE_TARGET";
+                    { std::ofstream out(path, std::ios::binary);
+                      out << sentinel; }
+                    data.textStyles.clear();
+                    if (exporter.fileExport(path.string(), DRW::AC1027, binary,
+                                            &data, false))
+                        return fail("unresolved text-style target was accepted");
+                    { std::ifstream in(path, std::ios::binary);
+                      if (std::string(std::istreambuf_iterator<char>(in), {})
+                          != sentinel)
+                          return fail("unresolved target changed destination"); }
+                    if (data.tableContents.size() != 1u
+                        || data.tableContents.front().m_dxfMetadata
+                            != metadata
+                        || selectedStyle->m_contentFormat.m_textStyleHandle
+                            != sourceTextStyleHandle)
+                        return fail("failed export changed caller text-style state");
+                    data.textStyles.push_back(textStyle);
+                    if (!exporter.fileExport(path.string(), DRW::AC1027,
+                                             binary, &data, false))
+                        return fail("corrected text-style target retry failed");
+                    dx_data retried;
+                    if (!reader.fileImport(path.string(), &retried, false)
+                        || retried.tableContents.size() != 1u
+                        || !retried.tableContents.front().m_dxfMetadata
+                        || retried.textStyles.empty()
+                        || retried.tableContents.front().m_dxfMetadata
+                            ->m_rows[0].m_cells[0].m_scope.m_style
+                            .m_contentFormat.m_textStyleHandle
+                                != retried.textStyles.front().handle)
+                        return fail("corrected text-style target retry readback differs");
+                }
+            }
+        }
+    }
     return true;
 }
 

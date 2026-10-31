@@ -48,8 +48,8 @@ close through ordinary local implementation work.
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
 | P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage; implement only missing required providers, close their required descendants, and pass strict complete-export admission. Its serializer checkpoint remains unreachable because no opaque callback frames are retained for replay. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN | Close remaining rendering metadata, complex FIELD child/value/object-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Implement only source- or consumer-witnessed gaps; keep unsupported profiles refused until their schema and wire layout are established. |
-| P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
+| P5 | OPEN | Close remaining rendering metadata, nested FIELD dependency/value/object-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Implement only source- or consumer-witnessed gaps; keep unsupported profiles refused until their schema and wire layout are established. |
+| P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
 | P9 | DEFERRED_EXTERNAL | Resolve J256, J260, J268, J284, J293 and J295 only with eligible independent evidence; external results remain non-promoting until claim gates pass. | Follow `metadata/external-evidence-resolution-v1.json`. |
@@ -138,7 +138,7 @@ missing provider, remap, collision or composed output failure.
 
 **TABLE:**
 
-1. **Complex FIELD profiles:** close typed FIELD child/value/object graphs with
+1. **Nested FIELD graphs:** close typed FIELD child/value/object graphs with
    the rooted reference planner and handle remapping. Add other source/version
    body and value profiles only when an independent source or consumer witness
    identifies the missing behavior. Preserve unsupported compositions with
@@ -148,7 +148,10 @@ missing provider, remap, collision or composed output failure.
    bind the exact field layout and semantics, and implement only that witnessed
    profile. Keep unsupported geometry payloads refused while preserving current
    block-reference and ATTDEF ownership validation.
-3. Complete remaining CONTENTFORMAT strings and domain/property combinations,
+3. Complete remaining CONTENTFORMAT strings and data/unit/domain/property
+   combinations beyond the now-supported text-style hard pointer at style and
+   per-content scopes (receipt:
+   `docs/research/rpp5z7-tablecontent-text-style-hard-pointer-2026-10-30.json`),
    CELLSTYLEMAP body/property profiles, and uncovered border/override masks.
    Cover only source- or consumer-backed scope combinations and version gates;
    keep unsupported styles refused until schema and wire order are known.

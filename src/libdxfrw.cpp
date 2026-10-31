@@ -25992,7 +25992,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             || !std::isfinite(format.m_rotation)
             || !std::isfinite(format.m_blockScale)
             || format.m_cellAlignment < 1 || format.m_cellAlignment > 9
-            || !validColor || format.m_textStyleHandle != 0u
+            || !validColor
             || !std::isfinite(format.m_textHeight)
             || format.m_textHeight < 0.0)
             return false;
@@ -26498,6 +26498,29 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
     };
     const auto writeContentFormat = [this](
             const DRW_TableStyleContentFormat& format) {
+        const std::uint32_t sourceTextStyleHandle =
+            format.m_textStyleHandle;
+        std::uint32_t textStyleHandle = 0u;
+        if (sourceTextStyleHandle != 0u) {
+            // A TABLECONTENT text-style pointer is a hard reference to a
+            // STYLE table record. Require that exact source STYLE to have
+            // been emitted, then use its final handle after remapping.
+            const auto sourceStyle =
+                m_sourceTextStyleNamesByHandle.find(sourceTextStyleHandle);
+            const auto emittedStyle =
+                m_writingContext.sourceHandleToWrittenTableMap.find(
+                    sourceTextStyleHandle);
+            if (sourceStyle == m_sourceTextStyleNamesByHandle.end()
+                || emittedStyle
+                    == m_writingContext.sourceHandleToWrittenTableMap.end())
+                return false;
+            textStyleHandle = m_referenceResolver
+                ? resolveReference(sourceTextStyleHandle)
+                : remapObjectHandle(sourceTextStyleHandle);
+            if (textStyleHandle == 0u || textStyleHandle == DRW::NoHandle
+                || textStyleHandle != emittedStyle->second)
+                return false;
+        }
         return writer->writeString(300, "CONTENTFORMAT")
             && writer->writeString(1, "CONTENTFORMAT_BEGIN")
             && writer->writeInt32(90,
@@ -26515,7 +26538,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             && (format.m_contentColorCmc.m_rgb < 0
                 || writer->writeInt32(420,
                     format.m_contentColorCmc.m_rgb))
-            && writer->writeString(340, toHexStr(format.m_textStyleHandle))
+            && writer->writeString(340, toHexStr(textStyleHandle))
             && writer->writeDouble(144, format.m_textHeight)
             && writer->writeString(309, "CONTENTFORMAT_END");
     };
