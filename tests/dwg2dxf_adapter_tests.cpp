@@ -987,6 +987,10 @@ bool readDxfDynamicBlockPurgeWireGroups(
 bool readDxfDynamicBlockGripWireGroups(
         const std::filesystem::path& path, bool binary,
         std::vector<std::pair<int, std::string>>& groups);
+bool readDxfDynamicBlockOrientedGripWireGroups(
+        const std::filesystem::path& path, bool binary,
+        const std::string& recordName,
+        std::vector<std::pair<int, std::string>>& groups);
 
 bool fail(const std::string& message) {
     std::cerr << message << '\n';
@@ -8654,6 +8658,61 @@ bool readDxfDynamicBlockVisibilityGripWireGroups(
     return inObject && !groups.empty() && !stream.bad();
 }
 
+bool readDxfDynamicBlockOrientedGripWireGroups(
+        const std::filesystem::path& path, bool binary,
+        const std::string& recordName,
+        std::vector<std::pair<int, std::string>>& groups) {
+    std::ifstream stream(path, std::ios::binary);
+    if (!stream)
+        return false;
+    if (binary)
+        stream.seekg(22);
+    if (!stream)
+        return false;
+    std::unique_ptr<dxfReader> reader = binary
+        ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
+        : std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+    bool inObject = false;
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            if (inObject)
+                return !groups.empty() && !stream.bad();
+            inObject = reader->getString() == recordName;
+            continue;
+        }
+        if (!inObject || code == 5 || code == 330)
+            continue;
+        switch (code) {
+        case 100:
+        case 300:
+            groups.emplace_back(code, reader->getString());
+            break;
+        case 90:
+        case 98:
+        case 99:
+        case 1071:
+        case 91:
+        case 92:
+        case 280:
+        case 93:
+            groups.emplace_back(code, std::to_string(reader->getInt32()));
+            break;
+        case 1010:
+        case 1020:
+        case 1030:
+        case 140:
+        case 141:
+        case 142:
+            groups.emplace_back(code, std::to_string(reader->getDouble()));
+            break;
+        default:
+            return false;
+        }
+    }
+    return inObject && !groups.empty() && !stream.bad();
+}
+
 bool dynamicBlockVisibilityGripRecordOutputProfile() {
     const auto nonce = std::chrono::steady_clock::now()
                            .time_since_epoch()
@@ -8865,6 +8924,261 @@ bool dynamicBlockVisibilityGripRecordOutputProfile() {
     std::filesystem::remove(incompleteGraphPath, ignored);
     if (!incompleteGraphRefused)
         return fail("BLOCKVISIBILITYGRIP record bypassed owner-graph refusal");
+    return true;
+}
+
+bool dynamicBlockOrientedGripRecordOutputProfiles(
+        const std::filesystem::path& sourcePath = {}) {
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    class RecordAuthor final : public dx_iface {
+    public:
+        explicit RecordAuthor(const DRW_DynamicBlockObject& source)
+            : object(source) {}
+
+        void writeHeader(DRW_Header& header) override {
+            header.vars.clear();
+        }
+
+        void writeObjects() override {
+            wrote = dxfW != nullptr
+                && dxfW->writeDynamicBlockObject(&object);
+        }
+
+        DRW_DynamicBlockObject object;
+        bool wrote{false};
+    };
+
+    const auto makeProfile = [](const std::string& recordName,
+                                std::uint32_t handle,
+                                std::uint32_t nodeId,
+                                const std::string& elementName,
+                                std::int32_t grip91,
+                                std::int32_t grip92,
+                                const DRW_Coord& location,
+                                bool cycling,
+                                const DRW_Coord& orientation,
+                                std::int32_t combinedState) {
+        DRW_DynamicBlockObject object(recordName);
+        object.handle = handle;
+        object.parentHandle = 0xE802u;
+        object.m_kind = DRW_DynamicBlockObject::Kind::Grip;
+        object.m_bodyFullyDecoded = true;
+        object.m_evalExprParsed = true;
+        object.m_parentId = std::numeric_limits<std::uint32_t>::max();
+        object.m_major = 29u;
+        object.m_minor = 2u;
+        object.m_valueCode = -9999;
+        object.m_nodeId = nodeId;
+        object.m_elementParsed = true;
+        object.m_elementName = elementName;
+        object.m_elementMajor = 29u;
+        object.m_elementMinor = 2u;
+        object.m_gripValue91 = grip91;
+        object.m_gripValue92 = grip92;
+        object.m_gripLocation = location;
+        object.m_gripValue280 = cycling;
+        object.m_gripValue93 = -1;
+        object.m_gripHasOrientation = true;
+        object.m_gripOrientation = orientation;
+        object.m_gripCombinedState = combinedState;
+        return object;
+    };
+
+    std::vector<DRW_DynamicBlockObject> authoredProfiles;
+    authoredProfiles.push_back(makeProfile(
+        "BLOCKALIGNMENTGRIP", 0xE803u, 55u, "Grip", 56, 57,
+        DRW_Coord(0.0, -1.77635683940025e-15, 0.0), true,
+        DRW_Coord(15.0, 0.0, 0.0), 0));
+    authoredProfiles.push_back(makeProfile(
+        "BLOCKFLIPGRIP", 0xE804u, 27u, "Grip", 29, 30,
+        DRW_Coord(15.0, -12.5, 0.0), false,
+        DRW_Coord(0.0, 12.5, 0.0), 28));
+    authoredProfiles.push_back(makeProfile(
+        "BLOCKLINEARGRIP", 0xE805u, 223u, "End Grip", 224, 225,
+        DRW_Coord(-1.245213028183116, -5.556481413226152, 0.0), true,
+        DRW_Coord(0.0, 1.0, 0.0), 0));
+
+    const auto expectedGroups = [](
+            const DRW_DynamicBlockObject& object) {
+        const bool alignment =
+            object.m_recordName == "BLOCKALIGNMENTGRIP";
+        const bool flip = object.m_recordName == "BLOCKFLIPGRIP";
+        const std::string subclass = alignment
+            ? "AcDbBlockAlignmentGrip"
+            : flip ? "AcDbBlockFlipGrip" : "AcDbBlockLinearGrip";
+        std::vector<std::pair<int, std::string>> groups{
+            {100, "AcDbEvalExpr"},
+            {90, std::to_string(object.m_nodeId)},
+            {98, "33"}, {99, "29"},
+            {100, "AcDbBlockElement"},
+            {300, object.m_elementName}, {98, "33"}, {99, "29"},
+            {1071, std::to_string(object.m_eed1071)},
+            {100, "AcDbBlockGrip"},
+            {91, std::to_string(object.m_gripValue91)},
+            {92, std::to_string(object.m_gripValue92)},
+            {1010, std::to_string(object.m_gripLocation.x)},
+            {1020, std::to_string(object.m_gripLocation.y)},
+            {1030, std::to_string(object.m_gripLocation.z)},
+            {280, object.m_gripValue280 ? "1" : "0"},
+            {93, std::to_string(object.m_gripValue93)},
+            {100, subclass},
+            {140, std::to_string(object.m_gripOrientation.x)},
+            {141, std::to_string(object.m_gripOrientation.y)},
+            {142, std::to_string(object.m_gripOrientation.z)}};
+        if (flip)
+            groups.emplace_back(93,
+                std::to_string(object.m_gripCombinedState));
+        return groups;
+    };
+    const auto closeDouble = [](double lhs, double rhs) {
+        return std::abs(lhs - rhs)
+            <= 1e-12 * std::max({1.0, std::abs(lhs), std::abs(rhs)});
+    };
+    const auto readbackMatches = [&closeDouble](
+            const DRW_DynamicBlockObject& source,
+            const dx_data& output) {
+        if (output.dynamicBlockObjects.size() != 1u)
+            return false;
+        const DRW_DynamicBlockObject& result =
+            output.dynamicBlockObjects.front();
+        return result.m_recordName == source.m_recordName
+            && result.m_kind == DRW_DynamicBlockObject::Kind::Grip
+            && result.handle == source.handle
+            && result.parentHandle == source.parentHandle
+            && result.m_bodyFullyDecoded && result.m_evalExprParsed
+            && result.m_nodeId == source.m_nodeId
+            && result.m_major == 33u && result.m_minor == 29u
+            && result.m_valueCode == -9999 && !result.m_hasValueDouble
+            && result.m_valueHandle == 0u && result.m_elementParsed
+            && result.m_elementName == source.m_elementName
+            && result.m_elementMajor == 33u
+            && result.m_elementMinor == 29u
+            && result.m_eed1071 == source.m_eed1071
+            && result.m_gripValue91 == source.m_gripValue91
+            && result.m_gripValue92 == source.m_gripValue92
+            && closeDouble(result.m_gripLocation.x,
+                           source.m_gripLocation.x)
+            && closeDouble(result.m_gripLocation.y,
+                           source.m_gripLocation.y)
+            && closeDouble(result.m_gripLocation.z,
+                           source.m_gripLocation.z)
+            && result.m_gripValue280 == source.m_gripValue280
+            && result.m_gripValue93 == source.m_gripValue93
+            && result.m_gripHasOrientation
+            && closeDouble(result.m_gripOrientation.x,
+                           source.m_gripOrientation.x)
+            && closeDouble(result.m_gripOrientation.y,
+                           source.m_gripOrientation.y)
+            && closeDouble(result.m_gripOrientation.z,
+                           source.m_gripOrientation.z)
+            && result.m_gripCombinedState
+                == source.m_gripCombinedState;
+    };
+
+    const auto writeAndRead = [&](const DRW_DynamicBlockObject& object,
+                                  bool binary, const std::string& suffix,
+                                  bool testRetry) {
+        const std::string encoding = binary ? "binary" : "ascii";
+        const std::filesystem::path outputPath =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-dynamic-oriented-grip-" + suffix + "-"
+               + encoding + "-" + std::to_string(nonce) + ".dxf");
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{outputPath};
+        dx_data authorData;
+        RecordAuthor author(object);
+        author.cData = &authorData;
+        dxfRW writer(outputPath.string().c_str());
+        author.dxfW = &writer;
+        const DRW_Coord originalOrientation =
+            author.object.m_gripOrientation;
+        const std::string sentinel = "preserve grip output on refusal\n";
+        if (testRetry) {
+            {
+                std::ofstream existing(
+                    outputPath, std::ios::binary | std::ios::trunc);
+                if (!existing || !(existing << sentinel))
+                    return fail("could not seed oriented-grip destination");
+            }
+            author.object.m_gripOrientation.x =
+                std::numeric_limits<double>::quiet_NaN();
+            if (writer.write(&author, DRW::AC1024, binary) || author.wrote)
+                return fail("non-finite oriented-grip location was emitted");
+            std::ifstream refused(outputPath, std::ios::binary);
+            const std::string preserved{
+                std::istreambuf_iterator<char>(refused),
+                std::istreambuf_iterator<char>()};
+            if (preserved != sentinel)
+                return fail("invalid oriented grip replaced destination");
+            author.object.m_gripOrientation = originalOrientation;
+        }
+        if (!writer.write(&author, DRW::AC1024, binary) || !author.wrote)
+            return fail("oriented-grip output failed: " + suffix + " "
+                        + encoding);
+
+        std::vector<std::pair<int, std::string>> wireGroups;
+        if (!readDxfDynamicBlockOrientedGripWireGroups(
+                outputPath, binary, object.m_recordName, wireGroups)
+            || wireGroups != expectedGroups(object))
+            return fail("oriented-grip exact wire sequence changed: "
+                        + suffix + " " + encoding);
+        dx_data readback;
+        dx_iface rereader;
+        if (!rereader.fileImport(outputPath.string(), &readback, false)
+            || !readbackMatches(object, readback))
+            return fail("oriented-grip typed readback changed source fields: "
+                        + suffix + " " + encoding);
+        return true;
+    };
+
+    for (std::size_t index = 0u; index < authoredProfiles.size(); ++index) {
+        const std::string suffix = authoredProfiles[index].m_recordName;
+        for (const bool binary : {false, true})
+            if (!writeAndRead(authoredProfiles[index], binary, suffix, true))
+                return false;
+    }
+
+    if (sourcePath.empty())
+        return true;
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024)
+        return fail("oriented-grip physical source is not AC1024 DWG");
+    std::vector<DRW_DynamicBlockObject> physicalProfiles;
+    std::map<std::string, std::size_t> counts;
+    for (const DRW_DynamicBlockObject& object : source.dynamicBlockObjects) {
+        if (object.m_recordName != "BLOCKALIGNMENTGRIP"
+            && object.m_recordName != "BLOCKFLIPGRIP"
+            && object.m_recordName != "BLOCKLINEARGRIP")
+            continue;
+        if (object.m_kind != DRW_DynamicBlockObject::Kind::Grip
+            || !object.m_bodyFullyDecoded || !object.m_gripHasOrientation)
+            return fail("physical oriented-grip profile is not fully typed");
+        ++counts[object.m_recordName];
+        physicalProfiles.push_back(object);
+    }
+    if (counts["BLOCKALIGNMENTGRIP"] != 2u
+        || counts["BLOCKFLIPGRIP"] != 3u
+        || counts["BLOCKLINEARGRIP"] != 4u
+        || physicalProfiles.size() != 9u)
+        return fail("physical source oriented-grip class counts changed");
+    for (const DRW_DynamicBlockObject& object : physicalProfiles)
+        for (const bool binary : {false, true})
+            if (!writeAndRead(object, binary, object.m_recordName + "-"
+                    + std::to_string(object.handle), false))
+                return false;
+    std::cerr << "Physical AC1024 oriented grips passed: 2 alignment, 3 flip, "
+                 "and 4 linear source objects; exact DXF wire, fresh typed "
+                 "readback, ASCII/Binary, plus authored refusal/retry.\n";
     return true;
 }
 
@@ -52845,6 +53159,11 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--dynamic-block-visibility-grip")
         return dynamicBlockVisibilityGripRecordOutputProfile() ? 0 : 1;
+    if ((argc == 2 || argc == 3)
+        && std::string(argv[1]) == "--dynamic-block-oriented-grips")
+        return dynamicBlockOrientedGripRecordOutputProfiles(
+            argc == 3 ? std::filesystem::path(argv[2])
+                      : std::filesystem::path{}) ? 0 : 1;
     if (argc == 2
         && std::string(argv[1])
             == "--dynamic-block-visibility-parameter")

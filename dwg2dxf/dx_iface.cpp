@@ -35235,7 +35235,69 @@ bool makeDwgDynamicOutputGroups(
         appendDwgDynamicString(groups, 300, source.m_gripExpr);
         return true;
     }
-    if (source.m_kind == DRW_DynamicBlockObject::Kind::Grip) {
+    const bool alignmentGrip =
+        source.m_recordName == "BLOCKALIGNMENTGRIP";
+    const bool flipGrip = source.m_recordName == "BLOCKFLIPGRIP";
+    const bool linearGrip = source.m_recordName == "BLOCKLINEARGRIP";
+    if (source.m_kind == DRW_DynamicBlockObject::Kind::Grip
+        && (alignmentGrip || flipGrip || linearGrip)) {
+        const bool versions =
+            (source.m_major == 29u && source.m_minor == 2u
+                && source.m_elementMajor == 29u
+                && source.m_elementMinor == 2u)
+            || (source.m_major == 33u && source.m_minor == 29u
+                && source.m_elementMajor == 33u
+                && source.m_elementMinor == 29u);
+        if (!source.m_bodyFullyDecoded || !source.m_evalExprParsed
+            || !source.m_elementParsed || !source.m_gripHasOrientation
+            || source.m_nodeId > static_cast<std::uint32_t>(
+                   std::numeric_limits<std::int32_t>::max())
+            || !versions || source.m_valueCode != -9999
+            || source.m_hasValueDouble || source.m_valueHandle != 0u
+            || (source.m_parentId != DRW::NoHandle
+                && source.m_parentId
+                    != std::numeric_limits<std::uint32_t>::max())
+            || source.m_elementName.empty()
+            || !std::isfinite(source.m_gripLocation.x)
+            || !std::isfinite(source.m_gripLocation.y)
+            || !std::isfinite(source.m_gripLocation.z)
+            || !std::isfinite(source.m_gripOrientation.x)
+            || !std::isfinite(source.m_gripOrientation.y)
+            || !std::isfinite(source.m_gripOrientation.z)
+            || (!flipGrip && source.m_gripCombinedState != 0))
+            return false;
+        appendDwgDynamicString(groups, 100, "AcDbEvalExpr");
+        appendDwgDynamicInt(groups, 90,
+                            static_cast<std::int32_t>(source.m_nodeId));
+        appendDwgDynamicInt(groups, 98, 33);
+        appendDwgDynamicInt(groups, 99, 29);
+        appendDwgDynamicString(groups, 100, "AcDbBlockElement");
+        appendDwgDynamicString(groups, 300, source.m_elementName);
+        appendDwgDynamicInt(groups, 98, 33);
+        appendDwgDynamicInt(groups, 99, 29);
+        appendDwgDynamicInt(groups, 1071, source.m_eed1071);
+        appendDwgDynamicString(groups, 100, "AcDbBlockGrip");
+        appendDwgDynamicInt(groups, 91, source.m_gripValue91);
+        appendDwgDynamicInt(groups, 92, source.m_gripValue92);
+        groups.emplace_back(1010, source.m_gripLocation.x);
+        groups.emplace_back(1020, source.m_gripLocation.y);
+        groups.emplace_back(1030, source.m_gripLocation.z);
+        appendDwgDynamicInt(groups, 280,
+                            source.m_gripValue280 ? 1 : 0);
+        appendDwgDynamicInt(groups, 93, source.m_gripValue93);
+        appendDwgDynamicString(groups, 100,
+            alignmentGrip ? "AcDbBlockAlignmentGrip"
+                : flipGrip ? "AcDbBlockFlipGrip"
+                           : "AcDbBlockLinearGrip");
+        groups.emplace_back(140, source.m_gripOrientation.x);
+        groups.emplace_back(141, source.m_gripOrientation.y);
+        groups.emplace_back(142, source.m_gripOrientation.z);
+        if (flipGrip)
+            appendDwgDynamicInt(groups, 93, source.m_gripCombinedState);
+        return true;
+    }
+    if (source.m_kind == DRW_DynamicBlockObject::Kind::Grip
+        && source.m_recordName == "BLOCKVISIBILITYGRIP") {
         appendDwgDynamicString(groups, 100, "AcDbEvalExpr");
         appendDwgDynamicInt(groups, 90,
                             static_cast<std::int32_t>(source.m_nodeId));
@@ -59777,6 +59839,13 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                     || sameAsciiName(cls.recName, "BLOCKVISIBILITYGRIP")
                     || sameAsciiName(
                         cls.className, "AcDbBlockVisibilityGrip")
+                    || sameAsciiName(cls.recName, "BLOCKALIGNMENTGRIP")
+                    || sameAsciiName(
+                        cls.className, "AcDbBlockAlignmentGrip")
+                    || sameAsciiName(cls.recName, "BLOCKFLIPGRIP")
+                    || sameAsciiName(cls.className, "AcDbBlockFlipGrip")
+                    || sameAsciiName(cls.recName, "BLOCKLINEARGRIP")
+                    || sameAsciiName(cls.className, "AcDbBlockLinearGrip")
                     || sameAsciiName(
                         cls.recName, "BLOCKVISIBILITYPARAMETER")
                     || sameAsciiName(
@@ -59804,6 +59873,21 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                            && sameAsciiName(object.m_recordName,
                                "BLOCKVISIBILITYGRIP")) {
                     ++instanceCounts["BLOCKVISIBILITYGRIP"];
+                } else if (object.m_kind
+                               == DRW_DynamicBlockObject::Kind::Grip
+                           && sameAsciiName(object.m_recordName,
+                               "BLOCKALIGNMENTGRIP")) {
+                    ++instanceCounts["BLOCKALIGNMENTGRIP"];
+                } else if (object.m_kind
+                               == DRW_DynamicBlockObject::Kind::Grip
+                           && sameAsciiName(object.m_recordName,
+                               "BLOCKFLIPGRIP")) {
+                    ++instanceCounts["BLOCKFLIPGRIP"];
+                } else if (object.m_kind
+                               == DRW_DynamicBlockObject::Kind::Grip
+                           && sameAsciiName(object.m_recordName,
+                               "BLOCKLINEARGRIP")) {
+                    ++instanceCounts["BLOCKLINEARGRIP"];
                 } else if (object.m_kind
                                == DRW_DynamicBlockObject::Kind::VisibilityParameter
                            && sameAsciiName(object.m_recordName,

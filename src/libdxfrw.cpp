@@ -21410,6 +21410,160 @@ bool dxfRW::processDynamicBlockObject() {
                 }
                 data.m_bodyFullyDecoded = completeBody;
             } else if (data.m_kind
+                           == DRW_DynamicBlockObject::Kind::Grip
+                       && reader->getSourceVersion() == DRW::AC1024
+                       && (data.m_recordName == "BLOCKALIGNMENTGRIP"
+                           || data.m_recordName == "BLOCKFLIPGRIP"
+                           || data.m_recordName == "BLOCKLINEARGRIP")) {
+                // These three AC1024 subclasses share the same BlockGrip
+                // prefix.  The class-specific DXF tail is orientation for
+                // alignment/linear grips and orientation followed by the
+                // combined-state value for flip grips.
+                const bool flipGrip =
+                    data.m_recordName == "BLOCKFLIPGRIP";
+                const std::string_view gripSubclass =
+                    data.m_recordName == "BLOCKALIGNMENTGRIP"
+                        ? "AcDbBlockAlignmentGrip"
+                        : flipGrip ? "AcDbBlockFlipGrip"
+                                   : "AcDbBlockLinearGrip";
+                const std::size_t expectedCount = flipGrip ? 22u : 21u;
+                std::array<const DRW_Variant*, 22> body{};
+                std::size_t bodyCount = 0u;
+                bool inBody = false;
+                bool completeBody = true;
+                for (const DRW_Variant& group : raw.groups) {
+                    if (!inBody) {
+                        if (group.code() != 100
+                            || group.type() != DRW_Variant::STRING
+                            || group.c_str() == nullptr
+                            || std::string_view(group.c_str())
+                                != "AcDbEvalExpr")
+                            continue;
+                        inBody = true;
+                    }
+                    if (bodyCount >= expectedCount) {
+                        completeBody = false;
+                        continue;
+                    }
+                    body[bodyCount++] = &group;
+                }
+                const auto integerGroup = [](const DRW_Variant* group,
+                                             int code,
+                                             std::int32_t& value) {
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::INTEGER
+                        || group->i_val()
+                            < std::numeric_limits<std::int32_t>::min()
+                        || group->i_val()
+                            > std::numeric_limits<std::int32_t>::max())
+                        return false;
+                    value = static_cast<std::int32_t>(group->i_val());
+                    return true;
+                };
+                const auto markerGroup = [](const DRW_Variant* group,
+                                            std::string_view value) {
+                    if (group == nullptr || group->code() != 100
+                        || group->type() != DRW_Variant::STRING
+                        || group->c_str() == nullptr)
+                        return false;
+                    return std::string_view(group->c_str()) == value;
+                };
+                const auto doubleGroup = [](const DRW_Variant* group,
+                                            int code, double& value) {
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::DOUBLE
+                        || !std::isfinite(group->d_val()))
+                        return false;
+                    value = group->d_val();
+                    return true;
+                };
+                std::int32_t nodeId = 0;
+                std::int32_t evalMajor = 0;
+                std::int32_t evalMinor = 0;
+                std::int32_t elementMajor = 0;
+                std::int32_t elementMinor = 0;
+                std::int32_t eed1071 = 0;
+                std::int32_t grip91 = 0;
+                std::int32_t grip92 = 0;
+                std::int32_t cycling = 0;
+                std::int32_t weight = 0;
+                std::int32_t combinedState = 0;
+                double locationX = 0.0;
+                double locationY = 0.0;
+                double locationZ = 0.0;
+                double orientationX = 0.0;
+                double orientationY = 0.0;
+                double orientationZ = 0.0;
+                const DRW_Variant* elementName = body[5];
+                completeBody = completeBody && inBody
+                    && bodyCount == expectedCount
+                    && markerGroup(body[0], "AcDbEvalExpr")
+                    && integerGroup(body[1], 90, nodeId)
+                    && integerGroup(body[2], 98, evalMajor)
+                    && integerGroup(body[3], 99, evalMinor)
+                    && markerGroup(body[4], "AcDbBlockElement")
+                    && elementName != nullptr && elementName->code() == 300
+                    && elementName->type() == DRW_Variant::STRING
+                    && elementName->c_str() != nullptr
+                    && integerGroup(body[6], 98, elementMajor)
+                    && integerGroup(body[7], 99, elementMinor)
+                    && integerGroup(body[8], 1071, eed1071)
+                    && markerGroup(body[9], "AcDbBlockGrip")
+                    && integerGroup(body[10], 91, grip91)
+                    && integerGroup(body[11], 92, grip92)
+                    && doubleGroup(body[12], 1010, locationX)
+                    && doubleGroup(body[13], 1020, locationY)
+                    && doubleGroup(body[14], 1030, locationZ)
+                    && integerGroup(body[15], 280, cycling)
+                    && (cycling == 0 || cycling == 1)
+                    && integerGroup(body[16], 93, weight)
+                    && markerGroup(body[17], gripSubclass)
+                    && doubleGroup(body[18], 140, orientationX)
+                    && doubleGroup(body[19], 141, orientationY)
+                    && doubleGroup(body[20], 142, orientationZ)
+                    && nodeId >= 0 && evalMajor == 33 && evalMinor == 29
+                    && elementMajor == 33 && elementMinor == 29;
+                if (flipGrip)
+                    completeBody = completeBody
+                        && integerGroup(body[21], 93, combinedState);
+                if (completeBody) {
+                    const char* name = elementName->c_str();
+                    DxfReadRetainedLeaseCheckpoint nameCheckpoint(
+                        data.m_dxfRetainedStringLease);
+                    if (!retainDxfReadBytes(data.m_dxfRetainedStringLease,
+                            reader->retainedByteBudget(), std::strlen(name)))
+                        return setError(DRW::BAD_CODE_PARSED);
+                    try {
+                        data.m_nodeId = static_cast<std::uint32_t>(nodeId);
+                        data.m_major = static_cast<std::uint32_t>(evalMajor);
+                        data.m_minor = static_cast<std::uint32_t>(evalMinor);
+                        data.m_parentId = DRW::NoHandle;
+                        data.m_valueCode = -9999;
+                        data.m_evalExprParsed = true;
+                        data.m_elementName = name;
+                        data.m_elementMajor =
+                            static_cast<std::uint32_t>(elementMajor);
+                        data.m_elementMinor =
+                            static_cast<std::uint32_t>(elementMinor);
+                        data.m_eed1071 = eed1071;
+                        data.m_elementParsed = true;
+                        data.m_gripValue91 = grip91;
+                        data.m_gripValue92 = grip92;
+                        data.m_gripLocation = DRW_Coord(
+                            locationX, locationY, locationZ);
+                        data.m_gripValue280 = cycling != 0;
+                        data.m_gripValue93 = weight;
+                        data.m_gripHasOrientation = true;
+                        data.m_gripOrientation = DRW_Coord(
+                            orientationX, orientationY, orientationZ);
+                        data.m_gripCombinedState = combinedState;
+                    } catch (...) {
+                        return setError(DRW::BAD_CODE_PARSED);
+                    }
+                    nameCheckpoint.commit();
+                }
+                data.m_bodyFullyDecoded = completeBody;
+            } else if (data.m_kind
                            == DRW_DynamicBlockObject::Kind::VisibilityParameter
                        && data.m_recordName == "BLOCKVISIBILITYPARAMETER"
                        && reader->getSourceVersion() == DRW::AC1024) {
@@ -31736,6 +31890,36 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         && ent->m_gripLocation.z == 0.0
         && !ent->m_gripValue280 && ent->m_gripValue93 == -1
         && ent->reactorHandles.empty();
+    const bool isAlignmentGrip =
+        ent->m_recordName == "BLOCKALIGNMENTGRIP";
+    const bool isFlipGrip = ent->m_recordName == "BLOCKFLIPGRIP";
+    const bool isLinearGrip = ent->m_recordName == "BLOCKLINEARGRIP";
+    const bool orientedGripVersions =
+        (ent->m_major == 29u && ent->m_minor == 2u
+            && ent->m_elementMajor == 29u && ent->m_elementMinor == 2u)
+        || (ent->m_major == 33u && ent->m_minor == 29u
+            && ent->m_elementMajor == 33u && ent->m_elementMinor == 29u);
+    const bool orientedGrip = ent->m_kind
+            == DRW_DynamicBlockObject::Kind::Grip
+        && (isAlignmentGrip || isFlipGrip || isLinearGrip)
+        && version == DRW::AC1024 && ent->m_bodyFullyDecoded
+        && ent->m_evalExprParsed && ent->m_nodeId <= static_cast<std::uint32_t>(
+               std::numeric_limits<std::int32_t>::max())
+        && (ent->m_parentId == DRW::NoHandle
+            || ent->m_parentId
+                == std::numeric_limits<std::uint32_t>::max())
+        && orientedGripVersions && ent->m_valueCode == -9999
+        && !ent->m_hasValueDouble && ent->m_valueHandle == 0u
+        && ent->m_elementParsed && !ent->m_elementName.empty()
+        && ent->m_gripHasOrientation
+        && std::isfinite(ent->m_gripLocation.x)
+        && std::isfinite(ent->m_gripLocation.y)
+        && std::isfinite(ent->m_gripLocation.z)
+        && std::isfinite(ent->m_gripOrientation.x)
+        && std::isfinite(ent->m_gripOrientation.y)
+        && std::isfinite(ent->m_gripOrientation.z)
+        && (isFlipGrip || ent->m_gripCombinedState == 0)
+        && ent->reactorHandles.empty();
     static constexpr std::array<std::string_view, 4> visibilityStateNames{
         "ARCH D", "ARCH C", "ARCH B", "ARCH A"};
     bool visibilityParameter = ent->m_kind
@@ -31859,7 +32043,7 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
     }
     if (!purgePreventer && !parameterDependencyBody && !proxyNode
         && !basePointParameter && !gripLocation && !visibilityGrip
-        && !visibilityParameter)
+        && !orientedGrip && !visibilityParameter)
         return failDxfWrite();
 
     RecordStateScope state(*this, ent);
@@ -31965,6 +32149,35 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
                 static_cast<std::int16_t>(ent->m_gripValue280 ? 1 : 0))
             && writer->writeInt32(93, ent->m_gripValue93)
             && writer->writeString(100, "AcDbBlockVisibilityGrip");
+    } else if (written && orientedGrip) {
+        const char* gripSubclass = isAlignmentGrip
+            ? "AcDbBlockAlignmentGrip"
+            : isFlipGrip ? "AcDbBlockFlipGrip" : "AcDbBlockLinearGrip";
+        written = writer->writeString(100, "AcDbEvalExpr")
+            && writer->writeInt32(90,
+                static_cast<std::int32_t>(ent->m_nodeId))
+            && writer->writeInt32(98, 33)
+            && writer->writeInt32(99, 29)
+            && writer->writeString(100, "AcDbBlockElement")
+            && writer->writeUtf8String(300, ent->m_elementName)
+            && writer->writeInt32(98, 33)
+            && writer->writeInt32(99, 29)
+            && writer->writeInt32(1071, ent->m_eed1071)
+            && writer->writeString(100, "AcDbBlockGrip")
+            && writer->writeInt32(91, ent->m_gripValue91)
+            && writer->writeInt32(92, ent->m_gripValue92)
+            && writer->writeDouble(1010, ent->m_gripLocation.x)
+            && writer->writeDouble(1020, ent->m_gripLocation.y)
+            && writer->writeDouble(1030, ent->m_gripLocation.z)
+            && writer->writeInt16(280,
+                static_cast<std::int16_t>(ent->m_gripValue280 ? 1 : 0))
+            && writer->writeInt32(93, ent->m_gripValue93)
+            && writer->writeString(100, gripSubclass)
+            && writer->writeDouble(140, ent->m_gripOrientation.x)
+            && writer->writeDouble(141, ent->m_gripOrientation.y)
+            && writer->writeDouble(142, ent->m_gripOrientation.z);
+        if (written && isFlipGrip)
+            written = writer->writeInt32(93, ent->m_gripCombinedState);
     } else if (written && visibilityParameter) {
         written = writer->writeString(100, "AcDbEvalExpr")
             && writer->writeInt32(90,

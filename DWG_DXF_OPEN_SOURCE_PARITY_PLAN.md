@@ -79,10 +79,19 @@ Keep structural owner validation separate from complete graph output
 qualification. Serializer readback does not prove native dynamic-block
 semantics.
 
-Implementation order: (1) complete bounded DXF projections and admitted
-output/replay routes for source-required subclasses whose exact record profiles
-are not already implemented; raw callback retention alone is not replay
-qualification; (2) bind graph/object identities, action and reactor roles, EED
+The remaining source-backed record projections in this inventory are
+`BLOCKALIGNMENTPARAMETER` (2), `BLOCKFLIPACTION` (3),
+`BLOCKFLIPPARAMETER` (3), `BLOCKHORIZONTALCONSTRAINTPARAMETER` (1),
+`BLOCKLINEARPARAMETER` (2), `BLOCKMOVEACTION` (2), `BLOCKSCALEACTION` (1),
+`BLOCKSTRETCHACTION` (6), and `BLOCKVERTICALCONSTRAINTPARAMETER` (1).
+Use the retained typed fields and exact physical source records to implement
+their wire profiles. Do not reopen completed record serializers or promote
+their source field readback to native semantics.
+
+Implementation order: (1) add bounded DXF projections and admitted
+output/replay routes for those nine remaining source-required subclasses; raw
+callback retention alone is not replay qualification; (2) bind graph/object
+identities, action and reactor roles, EED
 APPID references, constraint dependencies, and the projected
 `BLOCKPARAMDEPENDENCYBODY` records to emitted identities and their owning
 `ACDBASSOCDEPENDENCY` records; (3) close both EvaluationGraph roots and their

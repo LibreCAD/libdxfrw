@@ -1465,6 +1465,15 @@ set_tests_properties(dwg2dxf_dynamic_block_visibility_grip PROPERTIES
 )
 
 add_test(
+    NAME dwg2dxf_dynamic_block_oriented_grips
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --dynamic-block-oriented-grips
+)
+set_tests_properties(dwg2dxf_dynamic_block_oriented_grips PROPERTIES
+    LABELS "fast;dxf;adapter;dynamic-block"
+    TIMEOUT 30
+)
+
+add_test(
     NAME dwg2dxf_dynamic_block_visibility_parameter
     COMMAND libdxfrw_dwg2dxf_adapter_tests --dynamic-block-visibility-parameter
 )
