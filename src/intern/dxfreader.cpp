@@ -712,9 +712,14 @@ bool dxfReaderAscii::readInt32() {
             materialUnsignedColorValuesEnabled()
             && (currentCode() == 90 || currentCode() == 91
                 || currentCode() == 92);
+        const bool visualStyleColorValue =
+            visualStyleUnsignedColorValuesEnabled()
+            && currentCode() >= 421 && currentCode() <= 425;
+        const bool unsignedColorValue =
+            materialColorValue || visualStyleColorValue;
         if (end == text.c_str() || end == nullptr || end != text.c_str() + text.size()
             || errno == ERANGE
-            || (materialColorValue
+            || (unsignedColorValue
                 ? (parsed < std::numeric_limits<std::int32_t>::min()
                    || parsed > static_cast<long long>(
                        std::numeric_limits<std::uint32_t>::max()))
@@ -723,11 +728,11 @@ bool dxfReaderAscii::readInt32() {
             return false;
         }
         type = INT32;
-        if (materialColorValue) {
-            // MATERIAL colors are uint32 bit patterns, but real producers
-            // also spell their high-bit-set values as signed decimal int32.
-            // The conversion to uint32 is modulo 2^32; keep ordinary groups
-            // signed-only and avoid implementation-defined uint32->int casts.
+        if (unsignedColorValue) {
+            // MATERIAL and VISUALSTYLE colors are uint32 bit patterns, but
+            // producers may spell high-bit-set values as signed decimal
+            // int32. Convert modulo 2^32 and avoid implementation-defined
+            // uint32->int casts while keeping ordinary groups signed-only.
             uint32Data = static_cast<std::uint32_t>(parsed);
             intData = parsed <= std::numeric_limits<std::int32_t>::max()
                 ? static_cast<int>(parsed)

@@ -702,6 +702,14 @@ public:
     bool materialUnsignedColorValuesEnabled() const noexcept {
         return m_materialUnsignedColorValues;
     }
+    bool setVisualStyleUnsignedColorValues(bool enabled) noexcept {
+        const bool previous = m_visualStyleUnsignedColorValues;
+        m_visualStyleUnsignedColorValues = enabled;
+        return previous;
+    }
+    bool visualStyleUnsignedColorValuesEnabled() const noexcept {
+        return m_visualStyleUnsignedColorValues;
+    }
     int currentCode() const noexcept { return m_currentCode; }
 
 protected:
@@ -760,6 +768,7 @@ private:
     bool m_allowDimstyleNames {false};
     bool m_decodeSemanticStrings {false};
     bool m_materialUnsignedColorValues {false};
+    bool m_visualStyleUnsignedColorValues {false};
     std::unordered_set<std::uint64_t> m_selfHandles;
     std::uint64_t m_currentSelfHandle {0};
     bool m_currentSelfHandleRegistered {false};

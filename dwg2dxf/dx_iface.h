@@ -427,6 +427,8 @@ public:
                                  const DRW_DetailViewStyle* typed);
     bool writeSectionViewStyleRaw(DRW_RawDxfObject* raw,
                                   const DRW_SectionViewStyle* typed);
+    bool writeVisualStyleRaw(DRW_RawDxfObject* raw,
+                             const DRW_VisualStyle* typed);
     bool writeTableStyleRaw(DRW_RawDxfObject* raw,
                             const DRW_TableStyle* typed);
     bool writeCellStyleMapRaw(std::uint32_t handle,
@@ -1612,15 +1614,42 @@ public:
         }
         std::unordered_set<std::uint32_t> visualStyleHandles;
         for (std::uint32_t handle : m_extensionVisualStyleHandles) {
-            std::size_t matches = 0;
-            for (DRW_RawDxfObject& object : cData->rawVisualStyleObjects) {
-                if (object.handle != handle)
-                    continue;
-                ++matches;
-                if (!dxfW->writeRawDxfObject(&object))
+            if (cData->sourceFormat == dx_source_format::DWG) {
+                std::size_t rawMatches = 0u;
+                std::size_t typedMatches = 0u;
+                const DRW_VisualStyle* typed = nullptr;
+                for (DRW_RawDxfObject& object :
+                     cData->rawVisualStyleObjects) {
+                    rawMatches += object.handle == handle ? 1u : 0u;
+                }
+                for (const DRW_VisualStyle& style : cData->visualStyles) {
+                    if (style.handle != handle)
+                        continue;
+                    ++typedMatches;
+                    typed = &style;
+                }
+                if (rawMatches != 0u || typedMatches != 1u
+                    || typed == nullptr
+                    || !cData->hasCompleteAc1024VisualStyleSourceProfile()
+                    || dxfW->getVersion() != DRW::AC1024
+                    || !writeVisualStyleRaw(nullptr, typed))
                     return;
+            } else {
+                std::size_t matches = 0u;
+                for (DRW_RawDxfObject& object :
+                     cData->rawVisualStyleObjects) {
+                    if (object.handle != handle)
+                        continue;
+                    ++matches;
+                    if (!dxfW->writeRawDxfObject(&object))
+                        return;
+                }
+                if (matches != 1u) {
+                    dxfW->writeRawDxfObject(nullptr);
+                    return;
+                }
             }
-            if (matches != 1u || !visualStyleHandles.insert(handle).second) {
+            if (!visualStyleHandles.insert(handle).second) {
                 dxfW->writeRawDxfObject(nullptr);
                 return;
             }

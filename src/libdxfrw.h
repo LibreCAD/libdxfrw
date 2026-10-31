@@ -1764,6 +1764,18 @@ private:
     void recordInvalidRawHandleDiagnostic();
 
 private:
+    bool writeRawDxfGroupsInternal(
+        const std::vector<DRW_Variant>& groups,
+        const std::vector<UTF8STRING>& rawValues,
+        bool hasRawValues, DRW::Version sourceVersion,
+        bool remapSourceHandles, bool useLegacyClassifier,
+        bool sortEntsTableRecord,
+        const std::vector<std::pair<std::size_t, std::string>>*
+            stringOverrides,
+        bool allowMaterialUnsignedColorValues,
+        bool allowVisualStyleUnsignedColorValues,
+        const std::vector<std::pair<std::size_t, std::int32_t>>*
+            int32Overrides);
     bool writeRawDxfEntityGroups(
         const std::vector<DRW_Variant>& groups,
         const std::vector<UTF8STRING>& rawValues, bool hasRawValues,
@@ -1775,7 +1787,8 @@ private:
             stringOverrides,
         bool allowMaterialUnsignedColorValues,
         const std::vector<std::pair<std::size_t, std::int32_t>>*
-            int32Overrides = nullptr);
+            int32Overrides = nullptr,
+        bool allowVisualStyleUnsignedColorValues = false);
     bool writeRawDxfObjectInternal(
         DRW_RawDxfObject *obj, std::uint32_t ownerOverride,
         const std::vector<std::pair<std::size_t, std::string>>*

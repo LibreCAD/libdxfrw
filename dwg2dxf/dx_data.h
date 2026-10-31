@@ -1077,6 +1077,71 @@ public:
         return true;
     }
 
+    // Structural gate for the physical AC1024 typed-to-DXF profile. The
+    // serializer maps the 28 captured property companions and five CMC roles
+    // only when common metadata is representable by the same-version DXF
+    // carrier: each style is owned/reacted by the ACAD_VISUALSTYLE dictionary,
+    // with no EED, extension-dictionary target, or data-storage payload.
+    bool hasCompleteAc1024VisualStyleSourceProfile() const noexcept {
+        if (!hasSingleSuccessfulVisualStyleImport()
+            || visualStyleImport.sourceFormat != dx_source_format::DWG
+            || visualStyleImport.sourceVersion != DRW::AC1024
+            || visualStyles.empty() || !rawVisualStyleObjects.empty())
+            return false;
+
+        for (const DRW_VisualStyle& style : visualStyles) {
+            const DRW_VisualStyleBody& body = style.m_body;
+            const DRW_VisualStyleEncoding& encoding = body.m_encoding;
+            if (!style.m_bodyDecoded || body.hasR2013bExpansion
+                || encoding.companionCount != 28u
+                || encoding.colorCount != 5u
+                || !encoding.hasSourceIsolines
+                || encoding.sourceIsolines < 0
+                || encoding.sourceIsolines > DRW_VisualStyleBody::kMaxEdgeIsolines
+                || body.edgeIsolines != encoding.sourceIsolines
+                || body.extLightingModel < 0
+                || body.extLightingModel > 0xFFFF
+                || style.handle == 0u || style.handle == DRW::NoHandle
+                || style.parentHandle == 0u
+                || style.parentHandle == DRW::NoHandle
+                || style.reactorCount() != 1u
+                || style.reactorHandles.size() != 1u
+                || style.reactorHandles.front() != style.parentHandle
+                // DWG's xDictFlag is inverted: 1 means no extension
+                // dictionary handle follows the reactor list.
+                || style.extensionDictionaryFlag() != 1u
+                || style.xDictHandle != 0u
+                || style.hasDataStorageBinaryData()
+                || !style.extData.empty() || !style.appData.empty()
+                || !style.pendingAppIdResolutions.empty()
+                || !style.pendingLayerRefResolutions.empty())
+                return false;
+
+            for (std::size_t index = 0u; index < encoding.colorCount; ++index) {
+                const DRW_VisualStyleColor& color = encoding.colors[index];
+                const std::uint8_t method =
+                    static_cast<std::uint8_t>(color.rawRgb >> 24u);
+                if (!color.present || !color.modern || color.rawIndex != 0u
+                    || color.flags != 0u || !color.name.empty()
+                    || !color.bookName.empty()
+                    || (method != 0xC2u && method != 0xC3u
+                        && method != 0xC8u))
+                    return false;
+                if ((method == 0xC2u && color.normalizedIndex != 256)
+                    || (method == 0xC3u
+                        && color.normalizedIndex
+                            != static_cast<int>(color.rawRgb & 0xFFu))
+                    || (method == 0xC8u && color.normalizedIndex != 256))
+                    return false;
+            }
+            for (std::size_t index = encoding.colorCount;
+                 index < encoding.colors.size(); ++index)
+                if (encoding.colors[index].present)
+                    return false;
+        }
+        return true;
+    }
+
     // Verifies one fresh, successful import and (for DXF) a one-to-one
     // type/handle/owner join between typed values and their raw carriers.
     // It does not certify each family's decoded payload or writer profile.

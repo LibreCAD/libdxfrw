@@ -1096,6 +1096,13 @@ add_test(NAME libdxfrw_visual_style_import_evidence
         ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(libdxfrw_visual_style_import_evidence PROPERTIES
     LABELS "fast;dxf;graph;adapter;visualstyle" TIMEOUT 30)
+add_test(NAME libdxfrw_visual_style_ac1024_typed_writer
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --visual-style-ac1024-typed-writer
+        ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(libdxfrw_visual_style_ac1024_typed_writer PROPERTIES
+    LABELS "fast;dxf;graph;adapter;visualstyle;generated;transaction"
+    TIMEOUT 30)
 add_test(NAME dwg2dxf_visual_style_raw_capture_limits
     COMMAND libdxfrw_dwg2dxf_adapter_tests --visual-style-raw-capture-limits)
 set_tests_properties(dwg2dxf_visual_style_raw_capture_limits PROPERTIES

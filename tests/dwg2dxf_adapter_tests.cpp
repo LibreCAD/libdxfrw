@@ -26568,6 +26568,228 @@ void populateVisualStyleGraph(dx_data& data, bool addStyleToRoot = true) {
     data.mBlock->ent.push_back(viewport);
 }
 
+void populateTypedAc1024VisualStyleGraph(dx_data& data) {
+    data.sourceFormat = dx_source_format::DWG;
+    data.sourceVersion = DRW::AC1024;
+    data.importGeneration = 1u;
+    data.dwgReadOutcome.attempted = true;
+    data.dwgReadOutcome.operationSucceeded = true;
+    data.dwgReadOutcome.sourceVersion = DRW::AC1024;
+    data.hasNamedObjectDictionary = true;
+    data.namedObjectDictionary.handle = 0xCu;
+    data.namedObjectDictionary.name = "NOD";
+    data.namedObjectDictionary.m_entries.push_back(
+        {"ACAD_VISUALSTYLE", 0x700u});
+
+    DRW_Dictionary styles;
+    styles.handle = 0x700u;
+    styles.parentHandle = data.namedObjectDictionary.handle;
+    styles.m_entries.push_back({"GENERATED_STYLE", 0x520u});
+    data.dictionaries.push_back(styles);
+
+    DRW_VisualStyle style;
+    style.handle = 0x520u;
+    style.parentHandle = styles.handle;
+    style.setDwgCommonObjectState(1, 1u, false);
+    style.reactorHandles.push_back(styles.handle);
+    style.desc = "Generated AC1024 VisualStyle";
+    style.type = 8;
+    style.m_bodyDecoded = true;
+    style.m_body.extLightingModel = 2;
+    style.m_body.faceLightingModel = 2;
+    style.m_body.faceLightingQuality = 2;
+    style.m_body.faceColorMode = 1;
+    style.m_body.faceModifier = 0;
+    style.m_body.faceOpacity = 0.625;
+    style.m_body.faceSpecular = 4.5;
+    style.m_body.faceMonoColor = 256;
+    style.m_body.edgeModel = 1;
+    style.m_body.edgeStyle = 0;
+    style.m_body.edgeIntersectionColor = 7;
+    style.m_body.edgeObscuredColor = 256;
+    style.m_body.edgeObscuredLtype = 1;
+    style.m_body.edgeIntersectionLtype = 1;
+    style.m_body.edgeCreaseAngle = 0.75;
+    style.m_body.edgeModifier = 3;
+    style.m_body.edgeColor = 7;
+    style.m_body.edgeOpacity = 0.875;
+    style.m_body.edgeWidth = 1;
+    style.m_body.edgeOverhang = 2;
+    style.m_body.edgeJitter = 3;
+    style.m_body.edgeSilhouetteColor = 256;
+    style.m_body.edgeSilhouetteWidth = 4;
+    style.m_body.edgeHaloGap = 5;
+    style.m_body.edgeIsolines = 6;
+    style.m_body.edgeDoHidePrecision = true;
+    style.m_body.displaySettings = 7;
+    style.m_body.displayBrightness = 8.5;
+    style.m_body.displayShadowType = 1;
+    DRW_VisualStyleEncoding& encoding = style.m_body.m_encoding;
+    encoding.companionCount = 28u;
+    encoding.colorCount = 5u;
+    encoding.hasSourceIsolines = true;
+    encoding.sourceIsolines = 6;
+    for (std::size_t index = 0u; index < encoding.companionCount; ++index)
+        encoding.companions[index] =
+            static_cast<std::uint16_t>(index % 2u);
+    const std::array<std::uint32_t, 5> rawColors{{
+        0xC2FFFFFFu, 0xC3000007u, 0xC8000000u,
+        0xC2808080u, 0xC3000007u}};
+    for (std::size_t index = 0u; index < encoding.colorCount; ++index) {
+        DRW_VisualStyleColor& color = encoding.colors[index];
+        color.present = true;
+        color.modern = true;
+        color.rawIndex = 0u;
+        color.rawRgb = rawColors[index];
+        color.normalizedIndex = index == 2u ? 256
+            : ((rawColors[index] >> 24u) == 0xC2u ? 256 : 7);
+    }
+    dx_iface capture;
+    capture.cData = &data;
+    capture.addVisualStyle(style);
+
+    dx_visualStyleImportReceipt& receipt = data.visualStyleImport;
+    receipt.generation = 1u;
+    receipt.sourceFormat = dx_source_format::DWG;
+    receipt.sourceVersion = DRW::AC1024;
+    receipt.visualStyleBegin = 0u;
+    receipt.visualStyleEnd = data.visualStyles.size();
+    receipt.rawVisualStyleBegin = 0u;
+    receipt.rawVisualStyleEnd = data.rawVisualStyleObjects.size();
+    receipt.typedRetainedRecords = data.visualStyleTypedRetainedRecords;
+    receipt.typedRetainedBytes = data.visualStyleTypedRetainedBytes;
+    receipt.successful = true;
+}
+
+bool typedAc1024VisualStyleWriterRoundTrip(
+        const std::filesystem::path& directory) {
+    std::filesystem::create_directories(directory);
+    const auto hasGroup = [](const DRW_RawDxfObject& object, int code,
+                             const auto& predicate) {
+        return std::any_of(object.groups.begin(), object.groups.end(),
+            [code, &predicate](const DRW_Variant& group) {
+                return group.code() == code && predicate(group);
+            });
+    };
+    for (const bool binary : {false, true}) {
+        const auto output = directory / (binary
+            ? "typed-visual-style-ac1024-binary.dxf"
+            : "typed-visual-style-ac1024-ascii.dxf");
+        dx_data data;
+        populateTypedAc1024VisualStyleGraph(data);
+        if (!data.hasCompleteAc1024VisualStyleSourceProfile())
+            return fail("generated AC1024 VisualStyle source profile was not admitted");
+        dx_iface writer;
+        if (!writer.fileExport(output.string(), DRW::AC1024, binary, &data,
+                               false, false,
+                               dx_dxfSourceTextPolicy::Compatible,
+                               DRW::DxfTextWritePolicy::Compatible,
+                               dx_dxfProxyGraphicsPolicy::Compatible,
+                               dx_dwgReadCompletenessPolicy::Legacy))
+            return fail("typed AC1024 VisualStyle did not export: "
+                + writer.extensionGraphFailureDetail());
+
+        dx_data readback;
+        dx_iface reader;
+        if (!reader.fileImport(output.string(), &readback, false)
+            || readback.visualStyles.size() != 1u
+            || readback.rawVisualStyleObjects.size() != 1u)
+            return fail("typed AC1024 VisualStyle output did not reimport as one typed/raw pair");
+        const DRW_RawDxfObject& raw = readback.rawVisualStyleObjects.front();
+        const std::size_t companionCount = static_cast<std::size_t>(
+            std::count_if(raw.groups.begin(), raw.groups.end(),
+                [](const DRW_Variant& group) { return group.code() == 176; }));
+        std::vector<int> actualCompanions;
+        for (const DRW_Variant& group : raw.groups)
+            if (group.code() == 176)
+                actualCompanions.push_back(group.i_val());
+        std::vector<int> expectedCompanions;
+        for (std::size_t index = 0u; index < 28u; ++index)
+            expectedCompanions.push_back(static_cast<int>(index % 2u));
+        const std::size_t packedColorCount = static_cast<std::size_t>(
+            std::count_if(raw.groups.begin(), raw.groups.end(),
+                [](const DRW_Variant& group) {
+                    return group.code() >= 421 && group.code() <= 425;
+                }));
+        const std::vector<int> expectedPropertyCodes{
+            71, 176, 72, 176, 73, 176, 90, 176, 40, 176, 41, 176,
+            63, 421, 176, 74, 176, 91, 176, 64, 176, 65, 176, 75,
+            176, 175, 176, 42, 176, 92, 176, 66, 424, 176, 43, 176,
+            76, 176, 77, 176, 78, 176, 67, 176, 79, 176, 170, 176,
+            171, 176, 290, 176, 93, 176, 44, 176, 173, 176};
+        std::vector<int> actualPropertyCodes;
+        const auto bodyStart = std::find_if(
+            raw.groups.begin(), raw.groups.end(),
+            [](const DRW_Variant& group) { return group.code() == 291; });
+        if (bodyStart != raw.groups.end()) {
+            for (auto group = std::next(bodyStart); group != raw.groups.end();
+                 ++group)
+                actualPropertyCodes.push_back(group->code());
+        }
+        const auto packedColorMatches = [&raw, binary](
+                                           int code,
+                                           std::uint32_t expected) {
+            for (std::size_t index = 0u; index < raw.groups.size(); ++index) {
+                const DRW_Variant& group = raw.groups[index];
+                if (group.code() != code)
+                    continue;
+                if (binary)
+                    return group.type() == DRW_Variant::INTEGER
+                        && static_cast<std::uint32_t>(group.i_val())
+                            == expected;
+                return index < raw.rawValues.size()
+                    && raw.rawValues[index] == std::to_string(expected);
+            }
+            return false;
+        };
+        if (companionCount != 28u || actualCompanions != expectedCompanions
+            || packedColorCount != 2u
+            || actualPropertyCodes != expectedPropertyCodes
+            || !hasGroup(raw, 2, [](const DRW_Variant& group) {
+                return group.type() == DRW_Variant::STRING
+                    && group.c_str() != nullptr
+                    && std::string_view(group.c_str())
+                        == "Generated AC1024 VisualStyle";
+            })
+            || !packedColorMatches(421, 0xC2FFFFFFu)
+            || !packedColorMatches(424, 0xC2808080u))
+            return fail("typed VisualStyle output lost properties or unsigned CMC color payloads");
+        const DRW_VisualStyle& typed = readback.visualStyles.front();
+        if (typed.desc != "Generated AC1024 VisualStyle" || typed.type != 8)
+            return fail("typed VisualStyle readback lost its description or type");
+
+        const std::string sentinel = "preserve on invalid typed style\n";
+        { std::ofstream existing(output, std::ios::binary | std::ios::trunc);
+          existing << sentinel; }
+        DRW_VisualStyle& invalid = data.visualStyles.front();
+        const std::uint8_t savedFlags = invalid.m_body.m_encoding.colors[0].flags;
+        invalid.m_body.m_encoding.colors[0].flags = 1u;
+        if (writer.fileExport(output.string(), DRW::AC1024, binary, &data,
+                              false, false,
+                              dx_dxfSourceTextPolicy::Compatible,
+                              DRW::DxfTextWritePolicy::Compatible,
+                              dx_dxfProxyGraphicsPolicy::Compatible,
+                              dx_dwgReadCompletenessPolicy::Legacy))
+            return fail("unqualified typed CMC color flags were emitted");
+        std::ifstream sentinelInput(output, std::ios::binary);
+        const std::string retained{std::istreambuf_iterator<char>(sentinelInput),
+                                   std::istreambuf_iterator<char>()};
+        if (retained != sentinel)
+            return fail("invalid typed VisualStyle replaced the prior destination");
+        invalid.m_body.m_encoding.colors[0].flags = savedFlags;
+        if (!writer.fileExport(output.string(), DRW::AC1024, binary, &data,
+                               false, false,
+                               dx_dxfSourceTextPolicy::Compatible,
+                               DRW::DxfTextWritePolicy::Compatible,
+                               dx_dxfProxyGraphicsPolicy::Compatible,
+                               dx_dwgReadCompletenessPolicy::Legacy))
+            return fail("corrected AC1024 VisualStyle retry failed");
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+    }
+    return true;
+}
+
 bool visualStyleGraphRoundTrip(const std::filesystem::path& directory,
                                bool binary, bool strict) {
     const auto path = directory / (std::string("visual-style-")
@@ -41153,6 +41375,9 @@ int main(int argc, char** argv) {
         std::filesystem::create_directories(argv[2]);
         return visualStyleImportEvidence(argv[2]) ? 0 : 1;
     }
+    if (argc == 3
+        && std::string(argv[1]) == "--visual-style-ac1024-typed-writer")
+        return typedAc1024VisualStyleWriterRoundTrip(argv[2]) ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--visual-style-raw-capture-limits")
         return visualStyleRawCaptureLimitsFailClosed() ? 0 : 1;

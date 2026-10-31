@@ -20601,6 +20601,14 @@ void publishDxfRendering(dxfReader& reader,DRW_Interface& iface,
 // The post291 extension remains opaque; native body validation stays separate.
 bool dxfRW::processVisualStyle() {
     DRW_DBG("dxfRW::processVisualStyle");
+    struct UnsignedColorModeRestore {
+        dxfReader* reader;
+        bool previous;
+        ~UnsignedColorModeRestore() {
+            reader->setVisualStyleUnsignedColorValues(previous);
+        }
+    } restore{reader.get(),
+              reader->setVisualStyleUnsignedColorValues(true)};
     const bool selected=renderingSourceSelected(*iface);
     dxfObjectPhysicalSource::Capture physical(*reader,*iface,selected,nextentity);
     int code;
@@ -22552,7 +22560,8 @@ bool validateRawDxfGroups(const std::vector<DRW_Variant>& groups,
                           bool allowRecordBoundaries,
                           DxfClassifierProfile profile =
                               DxfClassifierProfile::StandaloneSafe,
-                          bool allowMaterialUnsignedColorValues = false) {
+                          bool allowMaterialUnsignedColorValues = false,
+                          bool allowVisualStyleUnsignedColorValues = false) {
     if (groups.size() > DRW::kMaxDxfRawRecordGroups
         || (hasRawValues && rawValues.size() != groups.size())) {
         return false;
@@ -22575,8 +22584,12 @@ bool validateRawDxfGroups(const std::vector<DRW_Variant>& groups,
             allowMaterialUnsignedColorValues
             && (code == 90 || code == 91 || code == 92)
             && group.type() == DRW_Variant::INTEGER64;
+        const bool visualStyleUnsignedColor =
+            allowVisualStyleUnsignedColorValues
+            && code >= 421 && code <= 425
+            && group.type() == DRW_Variant::INTEGER64;
         if (writesRawValues
-            && !(materialUnsignedColor
+            && !((materialUnsignedColor || visualStyleUnsignedColor)
                      ? isValidRawDxfMaterialColorLexeme(rawValues[groupIndex])
                      : isValidRawDxfLexeme(code, type,
                                            rawValues[groupIndex], opaqueApplicationSelf))) {
@@ -22610,6 +22623,11 @@ bool validateRawDxfGroups(const std::vector<DRW_Variant>& groups,
         case RawValType::Int32:
         case RawValType::Bool:
             if (materialUnsignedColor
+                && group.i64_val() >= 0
+                && static_cast<std::uint64_t>(group.i64_val())
+                    <= std::numeric_limits<std::uint32_t>::max())
+                break;
+            if (visualStyleUnsignedColor
                 && group.i64_val() >= 0
                 && static_cast<std::uint64_t>(group.i64_val())
                     <= std::numeric_limits<std::uint32_t>::max())
@@ -23864,10 +23882,31 @@ bool dxfRW::writeRawDxfGroups(
     bool allowMaterialUnsignedColorValues,
     const std::vector<std::pair<std::size_t, std::int32_t>>*
         int32Overrides) {
+    return writeRawDxfGroupsInternal(
+        groups, rawValues, hasRawValues, sourceVersion, remapSourceHandles,
+        useLegacyClassifier, sortEntsTableRecord, stringOverrides,
+        allowMaterialUnsignedColorValues,
+        /*allowVisualStyleUnsignedColorValues=*/false, int32Overrides);
+}
+
+bool dxfRW::writeRawDxfGroupsInternal(
+    const std::vector<DRW_Variant>& groups,
+    const std::vector<UTF8STRING>& rawValues,
+    bool hasRawValues,
+    DRW::Version sourceVersion,
+    bool remapSourceHandles,
+    bool useLegacyClassifier,
+    bool sortEntsTableRecord,
+    const std::vector<std::pair<std::size_t, std::string>>* stringOverrides,
+    bool allowMaterialUnsignedColorValues,
+    bool allowVisualStyleUnsignedColorValues,
+    const std::vector<std::pair<std::size_t, std::int32_t>>*
+        int32Overrides) {
     return writeRawDxfEntityGroups(
         groups, rawValues, hasRawValues, sourceVersion, remapSourceHandles,
         useLegacyClassifier, sortEntsTableRecord, -1, DRW::NoHandle, false,
-        stringOverrides, allowMaterialUnsignedColorValues, int32Overrides);
+        stringOverrides, allowMaterialUnsignedColorValues, int32Overrides,
+        allowVisualStyleUnsignedColorValues);
 }
 
 bool dxfRW::writeRawDxfEntityGroups(
@@ -23884,7 +23923,8 @@ bool dxfRW::writeRawDxfEntityGroups(
     const std::vector<std::pair<std::size_t, std::string>>* stringOverrides,
     bool allowMaterialUnsignedColorValues,
     const std::vector<std::pair<std::size_t, std::int32_t>>*
-        int32Overrides) {
+        int32Overrides,
+    bool allowVisualStyleUnsignedColorValues) {
     if (!preflightDxfWrite()
         || (sourceVersion != DRW::UNKNOWNV && sourceVersion != version)) {
         m_writeError = true;
@@ -23895,7 +23935,8 @@ bool dxfRW::writeRawDxfEntityGroups(
         : DxfClassifierProfile::StandaloneSafe;
     if (!validateRawDxfGroups(groups, rawValues, hasRawValues, binFile,
                               /*allowRecordBoundaries=*/true, profile,
-                              allowMaterialUnsignedColorValues)) {
+                              allowMaterialUnsignedColorValues,
+                              allowVisualStyleUnsignedColorValues)) {
         m_writeError = true;
         return false;
     }
@@ -24233,8 +24274,10 @@ bool dxfRW::writeRawDxfEntityGroups(
             break;
         }
         case DRW_Variant::INTEGER64:
-            if (allowMaterialUnsignedColorValues
-                && (v.code() == 90 || v.code() == 91 || v.code() == 92)
+            if (((allowMaterialUnsignedColorValues
+                  && (v.code() == 90 || v.code() == 91 || v.code() == 92))
+                 || (allowVisualStyleUnsignedColorValues
+                     && v.code() >= 421 && v.code() <= 425))
                 && v.i64_val() >= 0
                 && static_cast<std::uint64_t>(v.i64_val())
                     <= std::numeric_limits<std::uint32_t>::max()) {
@@ -24315,11 +24358,14 @@ bool dxfRW::writeRawDxfObjectInternal(
     const DxfClassifierProfile profile = writer->classifierProfile();
     const bool allowMaterialUnsignedColorValues =
         dxfKeywordEquals(obj->name, "MATERIAL");
+    const bool allowVisualStyleUnsignedColorValues =
+        dxfKeywordEquals(obj->name, "VISUALSTYLE");
     if (obj->name.empty()
         || !validateRawDxfGroups(obj->groups, obj->rawValues,
                                  obj->hasRawValues, binFile,
                                  /*allowRecordBoundaries=*/false, profile,
-                                 allowMaterialUnsignedColorValues)
+                                 allowMaterialUnsignedColorValues,
+                                 allowVisualStyleUnsignedColorValues)
         || (requiresDxfSelfHandle(version) && !hasRawDxfSelfHandle(*obj))) {
         m_writeError = true;
         return false;
@@ -24386,12 +24432,13 @@ bool dxfRW::writeRawDxfObjectInternal(
         return false;
     }
     const bool wroteGroups = ownerOverride == DRW::NoHandle
-        ? writeRawDxfGroups(
+        ? writeRawDxfGroupsInternal(
               obj->groups, obj->rawValues, obj->hasRawValues,
               obj->m_version, /*remapSourceHandles=*/true,
               profile == DxfClassifierProfile::LibreCadMasterLegacy,
               dxfKeywordEquals(obj->name, "SORTENTSTABLE"), stringOverrides,
-              allowMaterialUnsignedColorValues, int32Overrides)
+              allowMaterialUnsignedColorValues,
+              allowVisualStyleUnsignedColorValues, int32Overrides)
         : writeRawDxfEntityGroups(
               obj->groups, obj->rawValues, obj->hasRawValues,
               obj->m_version, /*remapSourceHandles=*/true,

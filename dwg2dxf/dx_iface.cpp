@@ -6022,6 +6022,120 @@ bool dx_iface::writeSectionViewStyleRaw(DRW_RawDxfObject* raw,
     }
 }
 
+bool dx_iface::writeVisualStyleRaw(DRW_RawDxfObject* raw,
+                                   const DRW_VisualStyle* typed) {
+    if (dxfW == nullptr || typed == nullptr)
+        return false;
+    try {
+        if (raw != nullptr) {
+            if (raw->name != "VISUALSTYLE"
+                || raw->handle != typed->handle
+                || raw->parentHandle != typed->parentHandle
+                || raw->m_version != dxfW->getVersion()
+                || !visualStyleRawIdentityMatches(*raw))
+                return false;
+            return dxfW->writeRawDxfObject(raw);
+        }
+
+        if (cData == nullptr
+            || cData->sourceFormat != dx_source_format::DWG
+            || cData->sourceVersion != DRW::AC1024
+            || dxfW->getVersion() != DRW::AC1024
+            || !cData->hasCompleteAc1024VisualStyleSourceProfile())
+            return false;
+
+        const DRW_VisualStyleBody& body = typed->m_body;
+        const DRW_VisualStyleEncoding& encoding = body.m_encoding;
+        DRW_RawDxfObject output;
+        output.name = "VISUALSTYLE";
+        output.handle = typed->handle;
+        output.parentHandle = typed->parentHandle;
+        output.m_version = DRW::AC1024;
+        output.groups.emplace_back(5, proxyHandleString(typed->handle));
+        output.groups.emplace_back(102, "{ACAD_REACTORS");
+        output.groups.emplace_back(
+            330, proxyHandleString(typed->reactorHandles.front()));
+        output.groups.emplace_back(102, "}");
+        output.groups.emplace_back(330,
+                                   proxyHandleString(typed->parentHandle));
+        output.groups.emplace_back(100, "AcDbVisualStyle");
+        output.groups.emplace_back(2, typed->desc);
+        output.groups.emplace_back(70, typed->type);
+        output.groups.emplace_back(177, body.extLightingModel);
+        output.groups.emplace_back(291, body.internalOnly ? 1 : 0);
+
+        const auto appendCompanion = [&output, &encoding](
+                                         std::size_t index) {
+            output.groups.emplace_back(176,
+                static_cast<std::int32_t>(encoding.companions[index]));
+        };
+        const auto appendInteger = [&output, &appendCompanion](
+                                       int code, std::int32_t value,
+                                       std::size_t companion) {
+            output.groups.emplace_back(code, value);
+            appendCompanion(companion);
+        };
+        const auto appendReal = [&output, &appendCompanion](
+                                    int code, double value,
+                                    std::size_t companion) {
+            output.groups.emplace_back(code, value);
+            appendCompanion(companion);
+        };
+        const auto appendColor = [&output, &appendCompanion, &encoding](
+                                     std::size_t colorIndex, int code,
+                                     int extensionCode,
+                                     std::size_t companion) {
+            const DRW_VisualStyleColor& color =
+                encoding.colors[colorIndex];
+            int dxfColor = color.normalizedIndex;
+            if (static_cast<std::uint8_t>(color.rawRgb >> 24u) == 0xC2u)
+                dxfColor = 7; // LibreDWG's R2010 CMC fallback ACI.
+            else if (static_cast<std::uint8_t>(color.rawRgb >> 24u) == 0xC8u)
+                dxfColor = 257; // DXF's explicit None color index.
+            output.groups.emplace_back(code, dxfColor);
+            if (static_cast<std::uint8_t>(color.rawRgb >> 24u) == 0xC2u) {
+                output.groups.emplace_back(
+                    extensionCode,
+                    static_cast<std::uint64_t>(color.rawRgb));
+            }
+            appendCompanion(companion);
+        };
+
+        appendInteger(71, body.faceLightingModel, 0u);
+        appendInteger(72, body.faceLightingQuality, 1u);
+        appendInteger(73, body.faceColorMode, 2u);
+        appendInteger(90, body.faceModifier, 3u);
+        appendReal(40, body.faceOpacity, 4u);
+        appendReal(41, body.faceSpecular, 5u);
+        appendColor(0u, 63, 421, 6u);
+        appendInteger(74, body.edgeModel, 7u);
+        appendInteger(91, body.edgeStyle, 8u);
+        appendColor(1u, 64, 422, 9u);
+        appendColor(2u, 65, 423, 10u);
+        appendInteger(75, body.edgeObscuredLtype, 11u);
+        appendInteger(175, body.edgeIntersectionLtype, 12u);
+        appendReal(42, body.edgeCreaseAngle, 13u);
+        appendInteger(92, body.edgeModifier, 14u);
+        appendColor(3u, 66, 424, 15u);
+        appendReal(43, body.edgeOpacity, 16u);
+        appendInteger(76, body.edgeWidth, 17u);
+        appendInteger(77, body.edgeOverhang, 18u);
+        appendInteger(78, body.edgeJitter, 19u);
+        appendColor(4u, 67, 425, 20u);
+        appendInteger(79, body.edgeSilhouetteWidth, 21u);
+        appendInteger(170, body.edgeHaloGap, 22u);
+        appendInteger(171, encoding.sourceIsolines, 23u);
+        appendInteger(290, body.edgeDoHidePrecision ? 1 : 0, 24u);
+        appendInteger(93, body.displaySettings, 25u);
+        appendReal(44, body.displayBrightness, 26u);
+        appendInteger(173, body.displayShadowType, 27u);
+
+        return dxfW->writeRawDxfObject(&output);
+    } catch (...) {
+        return false;
+    }
+}
+
 bool dx_iface::collectAcdsHistoryProxyObjects(
     const dx_data& data, std::vector<DRW_RawDxfObject>& objects,
     std::vector<std::uint32_t>& materialHandles, bool debug) {
@@ -7360,7 +7474,12 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     "raw VISUALSTYLE carrier identity/owner mismatch at handle "
                     + std::to_string(object.handle));
         }
-        if (rawVisualStyles.size() != visualStyles.size()) {
+        const bool typedDwgVisualStyleRoute =
+            data->sourceFormat == dx_source_format::DWG
+            && data->hasCompleteAc1024VisualStyleSourceProfile();
+        if ((typedDwgVisualStyleRoute && !rawVisualStyles.empty())
+            || (!typedDwgVisualStyleRoute
+                && rawVisualStyles.size() != visualStyles.size())) {
             inventoryFamily = "VISUALSTYLE carrier coverage";
             return reject();
         }
@@ -8915,8 +9034,16 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                             return reject();
                     } else if (frame.visualStyle != nullptr) {
                         const auto raw = rawVisualStyles.find(frame.handle);
-                        if (raw == rawVisualStyles.end()
-                            || raw->second->parentHandle != entry.parentHandle)
+                        const bool typedDwgVisualStyleRoute =
+                            data->sourceFormat == dx_source_format::DWG
+                            && data->hasCompleteAc1024VisualStyleSourceProfile();
+                        if (typedDwgVisualStyleRoute
+                            ? raw != rawVisualStyles.end()
+                                || frame.visualStyle->parentHandle
+                                    != entry.parentHandle
+                            : raw == rawVisualStyles.end()
+                                || raw->second->parentHandle
+                                    != entry.parentHandle)
                             return reject();
                     } else if (frame.detailViewStyle != nullptr) {
                         const auto raw = rawDetailViewStyles.find(frame.handle);
@@ -10134,6 +10261,10 @@ bool dx_iface::validateVisualStyleReferences(const dx_data& data,
     };
     if (failure != nullptr)
         *failure = nullptr;
+    const bool typedDwgVisualStyleRoute =
+        data.sourceFormat == dx_source_format::DWG
+        && targetVersion == DRW::AC1024
+        && data.hasCompleteAc1024VisualStyleSourceProfile();
     if (!data.headerC.canWriteDxfVisualStyleReferences(targetVersion))
         return reject("HEADER VisualStyle hard pointer is malformed or unavailable for the target version");
     const auto isVisualStyleKey = [](const std::string& name) {
@@ -10240,7 +10371,10 @@ bool dx_iface::validateVisualStyleReferences(const dx_data& data,
                 && candidate.parentHandle == styleDictionary->handle)
                 ++rawMatches;
         }
-        if (typedMatches != 1u || rawMatches != 1u || style == nullptr
+        if (typedMatches != 1u
+            || (typedDwgVisualStyleRoute ? rawMatches != 0u
+                                         : rawMatches != 1u)
+            || style == nullptr
             || style->parentHandle != styleDictionary->handle
             || !rootedStyleHandles.insert(entry.m_handle).second
             || std::find(m_extensionVisualStyleHandles.begin(),
@@ -10249,7 +10383,9 @@ bool dx_iface::validateVisualStyleReferences(const dx_data& data,
             return reject("ACAD_VISUALSTYLE entry is not a unique closed style");
     }
     if (rootedStyleHandles.size() != data.visualStyles.size()
-        || rootedStyleHandles.size() != data.rawVisualStyleObjects.size())
+        || (typedDwgVisualStyleRoute
+            ? !data.rawVisualStyleObjects.empty()
+            : rootedStyleHandles.size() != data.rawVisualStyleObjects.size()))
         return reject("unrooted or unmatched VISUALSTYLE carrier remains");
 
     const auto targetIsRooted = [&rootedStyleHandles](std::uint32_t handle) {
