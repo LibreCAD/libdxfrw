@@ -48,7 +48,7 @@ close through ordinary local implementation work.
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
 | P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage; implement only missing required providers, close their required descendants, and pass strict complete-export admission. The current explicit-partial diagnostic passes the selected AC1024 associative network/group/action/dependency profiles, then stops at dictionary owner `0x72` targeting `0x97` (143 visited nodes, 371 examined edges). | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN | Close remaining rendering metadata and native rendering profiles, nested FIELD dependency/value/object-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, and AC1018 TABLE. | Implement only source- or consumer-witnessed gaps; keep unsupported profiles refused until their schema and wire layout are established. |
+| P5 | OPEN | Close remaining rendering metadata and native rendering profiles, FIELDLIST/child graphs and other unclosed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Implement only source- or consumer-witnessed gaps; keep unsupported profiles refused until their schema and wire layout are established. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -145,16 +145,18 @@ missing provider, remap, collision or composed output failure.
 
 **TABLE:**
 
-1. **Nested FIELD graphs:** close typed FIELD child/value/object graphs with
-   the rooted reference planner and handle remapping. Add other source/version
-   body and value profiles only when an independent source or consumer witness
-   identifies the missing behavior. Preserve unsupported compositions with
-   explicit refusal. Native expression evaluation and TABLE rendering remain
-   separate semantic qualifications.
-2. **Block geometry payloads:** find an independent source or consumer witness,
-   bind the exact field layout and semantics, and implement only that witnessed
-   profile. Keep unsupported geometry payloads refused while preserving current
-   block-reference and ATTDEF ownership validation.
+1. **Nested FIELD graphs:** close FIELDLIST/child graphs and additional
+   source/version FIELD body profiles. Complete standalone 1x1 multi-reference
+   compositions and other linked-cell payloads only where an independent source
+   or consumer witness identifies the missing behavior. Reuse existing rooted
+   reference planning and handle remapping. Preserve unsupported compositions
+   with explicit refusal. Native expression evaluation and TABLE rendering
+   remain separate semantic qualifications.
+2. **Block-cell payloads and geometry:** close remaining compositions with
+   multiple block CONTENT records in one cell and independently evidenced
+   block-geometry payloads. Bind the exact field layout and semantics to a
+   source or consumer witness; keep unsupported payloads refused while
+   preserving current block-reference and ATTDEF ownership validation.
 3. Complete only the remaining source- or consumer-backed CONTENTFORMAT string,
    data/unit/domain/property combinations, CELLSTYLEMAP body/property profiles,
    and uncovered border/override masks. Cover the witnessed scope combinations
