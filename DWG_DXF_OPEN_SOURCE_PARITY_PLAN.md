@@ -58,12 +58,19 @@ Implementation history and evidence stay in Git and `docs/research/`.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next implementation packet — complete the AC1024 architectural sample's
-dynamic-block document graph.** Use [the P5 inventory receipt](docs/research/p5-ac1024-architectural-dynamic-block-source-inventory-2026-10-31.json)
-to bind work to the exact input hash, both EvaluationGraph roots, object classes,
-owner roles and observed dependencies. Output qualification remains open: other
-required class-specific DXF projections and the graph/reference closure are
-incomplete.
+**Next implementation packet — close the first remaining dynamic-block output
+gate on the AC1024 architectural sample.** Structural
+`SORTENTSTABLE`/extension-dictionary ownership now passes for the source
+`Window - Imperial` four-entry owner dictionary. The same strict conversion
+then stops at `dynamic-block objects are outside the closed output profiles`;
+the output remains atomically unpublished. Use [the P5 inventory
+receipt](docs/research/p5-ac1024-architectural-dynamic-block-source-inventory-2026-10-31.json)
+and its exact source hash, both EvaluationGraph roots, object classes, owner
+roles and observed dependencies. Bind each required class projection and graph
+reference to emitted identities before widening output eligibility. Continue
+to keep structurally valid owner relationships separate from complete graph
+output qualification. Serializer readback does not prove native dynamic-block
+semantics.
 
 Implementation order: (1) complete bounded DXF projections and admitted
 output/replay routes for the remaining source-required subclasses; raw callback

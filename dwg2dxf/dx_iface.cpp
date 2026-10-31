@@ -82,15 +82,14 @@ constexpr std::size_t kMaxAdapterCellStyleMapRetainedBytes =
     DRW::kMaxDxfBinaryPayloadBytes;
 constexpr std::size_t kMaxAdapterDynamicBlockRecords = 100000u;
 constexpr std::size_t kMaxAdapterDynamicBlockRawGroups = 4000000u;
+std::string layoutSymbolKey(std::string value);
 // The existing AC1024 title_block-arch.dwg witness assigns AcDbEvalGraph
 // source handle 0x1117 CLASS number 511. This is its observed source oType;
 // DRW_EvaluationGraph::kDwgClassNum is the writer's canonical class slot.
 constexpr std::int16_t kAc1024TitleBlockEvaluationGraphObjectType = 511;
 
-// This narrowly identifies the physical AC1024 Title_Block-ARCH mixed owner
-// dictionary. It lets SORTENTSTABLE and the generic extension-graph planner
-// recognize its two typed siblings while the broader adapter profile still
-// decides whether every retained dynamic-block object can be emitted.
+// This exact predicate identifies the qualified physical AC1024
+// Title_Block-ARCH visibility-graph source profile.
 bool hasAc1024TitleBlockVisibilityOwnerGraph(
         const dx_data& data, std::uint32_t dictionaryHandle) noexcept {
     if (data.sourceFormat != dx_source_format::DWG
@@ -403,6 +402,162 @@ bool hasCompleteAc1024TitleBlockVisibilityProfile(
             return true;
     }
     return false;
+}
+
+// Validates the owner relationships for an AC1024 dynamic-block extension
+// dictionary without claiming that its full dynamic-block graph is writable.
+// Output eligibility remains the responsibility of
+// hasClosedDynamicBlockOutputProfile().
+bool hasAc1024DynamicBlockOwnerDictionary(
+        const dx_data& data, std::uint32_t dictionaryHandle) noexcept {
+    if (data.sourceFormat != dx_source_format::DWG
+        || data.sourceVersion != DRW::AC1024
+        || dictionaryHandle == 0u || dictionaryHandle == DRW::NoHandle
+        || data.dictionaries.size() > kMaxAdapterDynamicBlockRecords
+        || data.blockRecords.size() > kMaxAdapterDynamicBlockRecords
+        || data.evaluationGraphs.size() > kMaxAdapterDynamicBlockRecords
+        || data.dynamicBlockObjects.size()
+            > kMaxAdapterDynamicBlockRecords
+        || data.sortEntsTables.size() > kMaxAdapterDynamicBlockRecords)
+        return false;
+    try {
+        const DRW_Dictionary* owner = nullptr;
+        for (const DRW_Dictionary& candidate : data.dictionaries) {
+            if (candidate.handle != dictionaryHandle)
+                continue;
+            if (owner != nullptr)
+                return false;
+            owner = &candidate;
+        }
+        if (owner == nullptr || owner->parentHandle == 0u
+            || owner->parentHandle == DRW::NoHandle
+            || owner->xDictHandle != 0u || owner->hardOwner != 1
+            || owner->cloning < 0
+            || owner->cloning > std::numeric_limits<std::int16_t>::max()
+            || !owner->appData.empty() || !owner->extData.empty()
+            || !owner->reactorHandles.empty()
+            || !owner->hasCompleteDwgEntries()
+            || !owner->hasCompleteDxfEntries()
+            || (owner->m_entries.size() != 3u
+                && owner->m_entries.size() != 4u))
+            return false;
+
+        const DRW_Block_Record* block = nullptr;
+        for (const DRW_Block_Record& candidate : data.blockRecords) {
+            if (candidate.handle != owner->parentHandle)
+                continue;
+            if (block != nullptr)
+                return false;
+            block = &candidate;
+        }
+        if (block == nullptr || block->xDictHandle != owner->handle)
+            return false;
+
+        const DRW_Dictionary::Entry* graphEntry = nullptr;
+        const DRW_Dictionary::Entry* sortEntry = nullptr;
+        const DRW_Dictionary::Entry* purgeEntry = nullptr;
+        const DRW_Dictionary::Entry* networkEntry = nullptr;
+        std::unordered_set<std::string> keys;
+        keys.reserve(owner->m_entries.size());
+        for (const DRW_Dictionary::Entry& entry : owner->m_entries) {
+            const std::string key = layoutSymbolKey(entry.m_name);
+            if (key.empty() || !keys.insert(key).second
+                || entry.m_handle == 0u
+                || entry.m_handle == DRW::NoHandle)
+                return false;
+            if (key == "ACAD_ENHANCEDBLOCK")
+                graphEntry = &entry;
+            else if (key == "ACAD_SORTENTS")
+                sortEntry = &entry;
+            else if (key == "ACDBDYNAMICBLOCKROUNDTRIPPURGEPREVENTER")
+                purgeEntry = &entry;
+            else if (key == "ACAD_ASSOCNETWORK")
+                networkEntry = &entry;
+            else
+                return false;
+        }
+        if (graphEntry == nullptr || sortEntry == nullptr
+            || purgeEntry == nullptr
+            || ((owner->m_entries.size() == 4u)
+                != (networkEntry != nullptr)))
+            return false;
+
+        const DRW_EvaluationGraph* graph = nullptr;
+        for (const DRW_EvaluationGraph& candidate : data.evaluationGraphs) {
+            if (candidate.handle != graphEntry->m_handle)
+                continue;
+            if (graph != nullptr)
+                return false;
+            graph = &candidate;
+        }
+        if (graph == nullptr || graph->parentHandle != owner->handle
+            || graph->xDictHandle != 0u || !graph->appData.empty()
+            || !graph->extData.empty()
+            || graph->reactorHandles
+                != std::vector<std::uint32_t>{owner->handle})
+            return false;
+
+        const DRW_SortEntsTable* sortTable = nullptr;
+        for (const DRW_SortEntsTable& candidate : data.sortEntsTables) {
+            if (candidate.handle != sortEntry->m_handle)
+                continue;
+            if (sortTable != nullptr)
+                return false;
+            sortTable = &candidate;
+        }
+        if (sortTable == nullptr || sortTable->parentHandle != owner->handle
+            || sortTable->m_blockOwnerHandle != block->handle
+            || sortTable->reactorHandles
+                != std::vector<std::uint32_t>{owner->handle})
+            return false;
+
+        const DRW_DynamicBlockObject* purge = nullptr;
+        for (const DRW_DynamicBlockObject& candidate :
+             data.dynamicBlockObjects) {
+            if (candidate.handle != purgeEntry->m_handle)
+                continue;
+            if (purge != nullptr)
+                return false;
+            purge = &candidate;
+        }
+        if (purge == nullptr
+            || purge->m_kind
+                != DRW_DynamicBlockObject::Kind::PurgePreventer
+            || purge->m_recordName
+                != "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION"
+            || !purge->m_bodyFullyDecoded
+            || purge->parentHandle != owner->handle
+            || purge->m_purgeBlockHandle != block->handle
+            || purge->xDictHandle != 0u || !purge->appData.empty()
+            || !purge->extData.empty()
+            || purge->reactorHandles
+                != std::vector<std::uint32_t>{owner->handle})
+            return false;
+
+        if (networkEntry != nullptr) {
+            const DRW_Dictionary* nested = nullptr;
+            for (const DRW_Dictionary& candidate : data.dictionaries) {
+                if (candidate.handle != networkEntry->m_handle)
+                    continue;
+                if (nested != nullptr)
+                    return false;
+                nested = &candidate;
+            }
+            if (nested == nullptr || nested->parentHandle != owner->handle
+                || nested->xDictHandle != 0u
+                || nested->reactorHandles
+                    != std::vector<std::uint32_t>{owner->handle}
+                || nested->m_entries.size() != 1u
+                || layoutSymbolKey(nested->m_entries.front().m_name)
+                    != "ACAD_ASSOCNETWORK"
+                || !nested->hasCompleteDwgEntries()
+                || !nested->hasCompleteDxfEntries())
+                return false;
+        }
+        return true;
+    } catch (...) {
+        return false;
+    }
 }
 
 bool hasClosedDynamicBlockOutputProfile(const dx_data& data) noexcept {
@@ -920,7 +1075,6 @@ bool retainedRawDxfObjectsEqual(const DRW_RawDxfObject& lhs,
     return true;
 }
 
-std::string layoutSymbolKey(std::string value);
 // Shared source/live reciprocal association algorithm. Inputs are typed views,
 // not reparsed payloads or an editable-container copy. Other graph/space/UCS/
 // viewport/name/consumer gates remain with each caller.
@@ -10765,11 +10919,11 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                              || dictionaryKey
                                  == "ACDBDYNAMICBLOCKROUNDTRIPPURGEPREVENTER")
                             && frame.dictionary != nullptr
-                            && hasAc1024TitleBlockVisibilityOwnerGraph(
+                            && hasAc1024DynamicBlockOwnerDictionary(
                                 *data, frame.handle)) {
-                            // This exact mixed-key source dictionary is
-                            // validated as a complete dynamic-block profile;
-                            // its typed records are emitted in OBJECTS.
+                            // Owner/target relationships are validated here;
+                            // complete dynamic-block output eligibility is a
+                            // separate preflight gate.
                             break;
                         }
                         std::size_t targetMatches = 0;
@@ -11669,6 +11823,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             const auto isSelectedDynamicBlockGraphOwner =
                 [data](std::uint32_t dictionaryHandle) {
                     if (hasAc1024TitleBlockVisibilityOwnerGraph(
+                            *data, dictionaryHandle))
+                        return true;
+                    if (hasAc1024DynamicBlockOwnerDictionary(
                             *data, dictionaryHandle))
                         return true;
                     // Preserve the previously qualified isolated
@@ -51142,9 +51299,8 @@ bool dx_iface::validateSortEntsGraph(const dx_data& data) {
             const DRW_Block_Record& record = *owner->second;
             const DRW_Dictionary& extension = *dictionary->second;
             validationStage = "SORTENTSTABLE extension DICTIONARY reciprocity";
-            const bool titleBlockDynamicGraph =
-                hasAc1024TitleBlockVisibilityOwnerGraph(
-                    data, extension.handle);
+            const bool ac1024DynamicBlockOwner =
+                hasAc1024DynamicBlockOwnerDictionary(data, extension.handle);
             DRW_DBG("SORTENTSTABLE owner graph: record="
                     + std::to_string(record.handle) + "/" + record.name
                     + " record-xdict=" + std::to_string(record.xDictHandle)
@@ -51188,10 +51344,10 @@ bool dx_iface::validateSortEntsGraph(const dx_data& data) {
                 } else if ((key == "ACAD_ENHANCEDBLOCK"
                             || key
                                 == "ACDBDYNAMICBLOCKROUNDTRIPPURGEPREVENTER")
-                           && titleBlockDynamicGraph) {
-                    // The exact three-entry AC1024 dynamic-block owner
-                    // profile is validated above. Its graph and purge
-                    // siblings are emitted by their typed writers.
+                           && ac1024DynamicBlockOwner) {
+                    // Owner/target relationships are structurally validated
+                    // above. The dynamic-block output gate separately
+                    // requires a complete writable source profile.
                 } else {
                     return reject();
                 }
