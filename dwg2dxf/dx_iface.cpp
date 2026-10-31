@@ -33253,8 +33253,18 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
                 || (frame.sourceCodePageFieldPresent && !frame.sourceCodePageRecognized)
                 || !hasQualifiedStandardDwgOutputNames(frame.generation, frame.raw.m_handle, false)) continue;
             const auto found = context->sourceHandleToWrittenObjectMap.find(source.first.second);
-            if (found != context->sourceHandleToWrittenObjectMap.end()
-                && !expected.emplace(found->second, &frame).second) return false;
+            std::uint32_t emitted = 0u;
+            if (found != context->sourceHandleToWrittenObjectMap.end()) {
+                emitted = found->second;
+            } else if (frame.raw.m_objectType == dwgObjType::DICTIONARY
+                       && context->ambiguousSourceHandles.count(source.first.second) == 0u) {
+                // Some ordinary DICTIONARY writers preserve the source handle
+                // without publishing a source-object binding. Admit that path
+                // only as an exact emitted-record proof below.
+                emitted = dxfW->remapHandle(source.first.second);
+            }
+            if (emitted != 0u && emitted != DRW::NoHandle
+                && !expected.emplace(emitted, &frame).second) return false;
         }
         dx_standard_output::Decoder decoder(view);
         if (!decoder.good()) return false;
@@ -33299,10 +33309,26 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
             const auto compare = [&](const auto& actual) {
                 using Record = std::decay_t<decltype(actual)>;
                 const auto* source = dynamic_cast<const Record*>(frame.typedBaseline.get());
-                auto mapper = map;
+                const auto mapper = [this, context, &map,
+                    allowRemappedDictionaryHandles =
+                        frame.raw.m_objectType == dwgObjType::DICTIONARY](
+                            std::uint32_t sourceHandle,
+                            std::uint32_t& outputHandle) {
+                    if (map(sourceHandle, outputHandle)) return true;
+                    if (!allowRemappedDictionaryHandles || sourceHandle == 0u
+                        || context->ambiguousSourceHandles.count(sourceHandle) != 0u
+                        || context->sourceHandleToWrittenObjectMap.count(sourceHandle) != 0u
+                        || context->sourceHandleToWrittenTableMap.count(sourceHandle) != 0u
+                        || context->writtenSourceEntityHandles.count(sourceHandle) != 0u)
+                        return false;
+                    outputHandle = dxfW->remapHandle(sourceHandle);
+                    return outputHandle != 0u && outputHandle != DRW::NoHandle;
+                };
                 matched = source && dx_standard_output::equal(*source, actual, mapper, proof.references, verifyLayer);
                 proof.owner = actual.parentHandle;
                 proof.extensionDictionary = actual.xDictHandle;
+                proof.identityOnlyDictionary = frame.raw.m_objectType == dwgObjType::DICTIONARY
+                    && context->sourceHandleToWrittenObjectMap.count(frame.raw.m_handle) == 0u;
                 return true; // A partial projection stays explicitly unqualified.
             };
             bool decoded = false;
@@ -33341,8 +33367,17 @@ bool dx_iface::finalizeStandardDwgOutputProofs() noexcept {
             const auto& proof = current->second;
             const char* name = proof.objectType == dwgObjType::DICTIONARY ? "DICTIONARY"
                 : proof.objectType == dwgObjType::GROUP ? "GROUP" : "XRECORD";
-            bool closed = dxfW->dxfWriteSourceObjectHasIdentity(current->first,
-                proof.emitted, name, "OBJECTS", proof.owner)
+            const auto* context = dxfW->getWritingContext();
+            const bool identityMatches = proof.identityOnlyDictionary
+                ? proof.objectType == dwgObjType::DICTIONARY && context != nullptr
+                    && context->ambiguousSourceHandles.count(current->first) == 0u
+                    && dxfW->remapHandle(current->first) == proof.emitted
+                    && dxfW->dxfWriteRecordHandleCount(proof.emitted) == 1u
+                    && dxfW->dxfWriteRecordHasIdentity(proof.emitted, name, "OBJECTS")
+                    && dxfW->dxfWriteRecordHasOwner(proof.emitted, proof.owner)
+                : dxfW->dxfWriteSourceObjectHasIdentity(current->first,
+                    proof.emitted, name, "OBJECTS", proof.owner);
+            bool closed = identityMatches
                 && hasQualifiedStandardDwgOutputNames(proof.generation, current->first, true);
             if (proof.extensionDictionary != 0u
                 && (!dxfW->dxfWriteRecordHasIdentity(proof.extensionDictionary, "DICTIONARY", "OBJECTS")

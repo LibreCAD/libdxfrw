@@ -1,0 +1,96 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-dictionary-identity-output-qualification-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Close the remaining AC1024 DICTIONARY callback identities",
+  "status": "AC1024_WITNESS_STRICT_COMPLETE_228_OF_228",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "records": [
+      {"record": "DICTIONARY", "objectType": 42, "handle": "0xC"},
+      {"record": "DICTIONARY", "objectType": 42, "handle": "0x17"},
+      {"record": "DICTIONARY", "objectType": 42, "handle": "0x1A"},
+      {"record": "DICTIONARY", "objectType": 42, "handle": "0x66"},
+      {"record": "DICTIONARY", "objectType": 42, "handle": "0x86"},
+      {"record": "DICTIONARY", "objectType": 42, "handle": "0x99"},
+      {"record": "DICTIONARY", "objectType": 42, "handle": "0xB6"},
+      {"record": "DICTIONARY", "objectType": 42, "handle": "0xD7"},
+      {"record": "DICTIONARY", "objectType": 42, "handle": "0x104"},
+      {"record": "DICTIONARY", "objectType": 42, "handle": "0x15D"},
+      {"record": "DICTIONARY", "objectType": 42, "handle": "0x2A2"},
+      {"record": "DICTIONARY", "objectType": 42, "handle": "0x2A7"},
+      {"record": "DICTIONARY", "objectType": 42, "handle": "0x351"}
+    ],
+    "profileEvidence": "The 228-identity census is recorded in p4-ac1024-opaque-callback-census-receipt-delta-2026-10-31.json. Existing physical DICTIONARY output/readback evidence is recorded in p4-ac1024-dictionary-owner-output-closure-2026-10-31.json. No DWG/DXF fixture was added.",
+    "fixturePolicy": "Existing repository DWG only; census scratch sources and outputs remained outside Git."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "summary": "Extend the standard-object output inspector for DICTIONARY records that lack an explicit writer source-object binding. The fallback is limited to non-ambiguous source handles mapped by the writer's remap table. It decodes the staged OBJECTS record, compares the complete typed source baseline and mapped references, then requires one emitted DICTIONARY identity with the expected owner before transactional callback qualification. Other object families retain the explicit source-object binding requirement.",
+    "scope": "The 13 DICTIONARY identities in this AC1024 witness only. This closes its strict output gate but is not independent CAD semantics, external consumer qualification, or a general support claim."
+  },
+  "qualification": {
+    "before": 215,
+    "after": 228,
+    "totalOpaqueCallbacks": 228,
+    "newlyQualified": [
+      "0xC", "0x17", "0x1A", "0x66", "0x86", "0x99", "0xB6",
+      "0xD7", "0x104", "0x15D", "0x2A2", "0x2A7", "0x351"
+    ],
+    "remaining": 0,
+    "strictExport": "PASS in ASCII and Binary; both attempts qualify all 228 callback identities and publish the output.",
+    "legacyRetry": "The same adapter's Legacy retry also succeeds and publishes all 228 identities."
+  },
+  "failureAndRetry": {
+    "negativeControl": "The physical VIEWPORT selector injects an infinite field, verifies atomic refusal, preserves the destination sentinel and confirms no callback qualification was published.",
+    "retry": "The selector restores the source field and retries with the same adapter in ASCII and Binary. Fresh DXF import validates the physical viewport, extension DICTIONARY and XRECORD fields; the selector now also requires all 228 source callback identities to be qualified after success.",
+    "result": "PASS"
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured warning-as-error flags."
+    },
+    "strictGate": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_opaque_source_capture_and_strict_output_gate$' --output-on-failure",
+      "result": "PASS, 1/1."
+    },
+    "asciiCensus": {
+      "command": "/private/tmp/libdxfrw-p4-callback-census tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS; strict export and Legacy export both succeeded; all 228/228 callback identities qualified. The standard-object proof inventory contains all 24 DICTIONARY and 6 XRECORD frames."
+    },
+    "binaryCensus": {
+      "command": "/private/tmp/libdxfrw-p4-callback-census-binary tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS; strict export and Legacy export both succeeded; all 228/228 callback identities qualified."
+    },
+    "physicalReadback": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --viewport-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary. Reimports the emitted DXF, validates the physical VIEWPORT projection and its extension DICTIONARY/XRECORD graph, and asserts all 228 callback identities publish only after successful output."
+    },
+    "xrecordRegression": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --xrecord-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary, including payload equality, owner keys, rollback and retry."
+    },
+    "fullSuites": "NOT RUN; touched warning-as-error build, focused selectors, strict-gate CTest and bounded source-bound census were used."
+  },
+  "planImpact": {
+    "completedItemsRemoved": [
+      "Qualify the final 13 AC1024 witness DICTIONARY callbacks and close strict complete-export identity admission for this exact sample in ASCII and Binary."
+    ],
+    "nextPacket": "Run the fast import/census/strict-export sweep over other existing ~/doc/dwg/*.dwg and repository inputs. Work only the first reproduced source-backed missing body, owner or dependency profile; the current AC1024 witness has no remaining callback identities.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "dwg2dxf/dx_iface.cpp": "ba95f5e74cbc305acd314b97e3d59a67ba04d8e47b40e3dfff5a17311e2ea9ef",
+    "dwg2dxf/dx_iface.h": "7ae8cba637936f70160ab0c51271fbf619827cc7e3285bff817159301ed1c32f",
+    "tests/dwg2dxf_adapter_tests.cpp": "c2828925bb8b370188ea0f62466d15038557681d68a0e35fe9dd9ca32b347e45"
+  }
+}

@@ -30265,10 +30265,15 @@ bool physicalViewportOutputReadback(
                     source, source.importGeneration, callback.first))
                 return fail("successful physical VIEWPORT/XRECORD retry did not publish its exact opaque source identity");
         }
-        if (source.dwgReadOutcome.opaqueFramesOutputQualified
-            != DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
-                source))
-            return fail("physical VIEWPORT retry published a mismatched opaque qualification count");
+        const std::size_t qualifiedOpaqueCallbacks =
+            DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                source);
+        if (source.dwgReadOutcome.opaqueViewCallbacks != 228u
+            || source.dwgReadOutcome.opaqueFramesOutputQualified
+                != source.dwgReadOutcome.opaqueViewCallbacks
+            || qualifiedOpaqueCallbacks
+                != source.dwgReadOutcome.opaqueViewCallbacks)
+            return fail("physical VIEWPORT retry did not qualify all 228 source-bound callbacks in the AC1024 witness");
 
         dx_iface outputReader;
         dx_data output;
