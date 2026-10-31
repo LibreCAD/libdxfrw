@@ -31717,8 +31717,42 @@ bool DRW_DynamicBlockObject::parseDwg(DRW::Version version, dwgBuffer *buf, std:
     m_nodeId = static_cast<std::uint32_t>(nodeId);
     m_evalExprParsed = true;
 
-    if (m_kind == Kind::EvalExprOnly)
+    if (m_kind == Kind::EvalExprOnly) {
+        // The dynamic-block proxy node has no derived payload after its
+        // AcDbEvalExpr prefix in the observed AC1024 profile.  Treat it as a
+        // complete body only when both object streams and the common handle
+        // stream end exactly at their declared boundaries; otherwise retain
+        // the typed prefix but leave output qualification closed.
+        const bool observedAc1024ProxyNode = version == DRW::AC1024
+            && m_recordName == "ACDB_DYNAMICBLOCKPROXYNODE";
+        m_bodyFullyDecoded = observedAc1024ProxyNode
+            && consumeZeroPaddingWithinBounds(buf, dynamicBodyEnd, 7u)
+            && consumeZeroPaddingWithinBounds(sBuf, dynamicStringEnd, 7u)
+            && consumeObjectHandleAlignmentPaddingWithinBounds(
+                &hBuff, handleEndBit);
+        if (observedAc1024ProxyNode && !m_bodyFullyDecoded
+            && DRW_DBGGL == DRW_dbg::Level::Debug) {
+            const std::uint64_t bodyPosition = currentObjectDwgBit(buf);
+            const std::uint64_t stringPosition = currentObjectDwgBit(sBuf);
+            const std::uint64_t handlePosition = currentObjectDwgBit(&hBuff);
+            DRW_DBG("WARNING: DynamicBlock EvalExprOnly body span remains open: ");
+            DRW_DBG(m_recordName.c_str());
+            DRW_DBG(" data=");
+            DRW_DBG(bodyPosition);
+            DRW_DBG("/");
+            DRW_DBG(dynamicBodyEnd);
+            DRW_DBG(" strings=");
+            DRW_DBG(stringPosition);
+            DRW_DBG("/");
+            DRW_DBG(dynamicStringEnd);
+            DRW_DBG(" handles=");
+            DRW_DBG(handlePosition);
+            DRW_DBG("/");
+            DRW_DBG(handleEndBit);
+            DRW_DBG("\n");
+        }
         return true;
+    }
 
     if (m_kind == Kind::GripLocationComponent) {
         // AcDbBlockGripExpr: grip_type BL(91) + grip_expr T(300).

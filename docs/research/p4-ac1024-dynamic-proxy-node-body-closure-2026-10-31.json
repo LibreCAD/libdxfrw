@@ -1,0 +1,67 @@
+{
+  "receiptVersion": 1,
+  "phase": "P4",
+  "profile": "AC1024 dynamic block proxy node source-body closure",
+  "status": "BODY_CLOSED_OUTPUT_NOT_QUALIFIED",
+  "source": {
+    "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+    "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+    "version": "AC1024",
+    "handle": "0x1164",
+    "recordName": "ACDB_DYNAMICBLOCKPROXYNODE",
+    "className": "AcDbDynamicBlockProxyNode",
+    "empiricalObjectType": 547,
+    "ownerHandle": "0x1155",
+    "sourceFrameBytes": 18
+  },
+  "implementation": {
+    "file": "src/drw_objects.cpp",
+    "behavior": "Only this observed AC1024 record is marked fully decoded when its EvalExpr body leaves at most seven zero data-padding bits, its string stream closes, and its common handle stream ends at legal byte alignment. Other EvalExprOnly records remain incomplete.",
+    "observedCursorBeforePadding": {
+      "dataBits": "121/122",
+      "stringBits": "122/122",
+      "handleBits": "138/144"
+    },
+    "acceptedPadding": {
+      "zeroDataBits": 1,
+      "stringTailBits": 0,
+      "handleAlignmentBits": 6
+    }
+  },
+  "validation": {
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-proxy-node-body-closure tests/samples/AC1024/architectural_example-imperial.dwg",
+    "result": "PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "fixtureCommitted": false
+  },
+  "independentShapeObservation": {
+    "implementation": "GNU LibreDWG dwg2dxf 0.14",
+    "sourceCommit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "scratchOutput": "/private/tmp/window-libredwg.dxf",
+    "recordGroups": [
+      ["100", "AcDbEvalExpr"],
+      ["90", "226"],
+      ["98", "33"],
+      ["99", "29"]
+    ],
+    "limitation": "Supplementary wire-shape evidence only. LibreDWG reported instability in other object classes in this drawing; this does not qualify the owner graph, dynamic behavior, or output profile."
+  },
+  "specification": {
+    "oda": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "note": "ODA Open Design Specification v5.4.1 was checked for the custom-class name; it does not define this application-specific dynamic-block proxy node. No DWG decode layout was added."
+  },
+  "nonPromotion": {
+    "ownerGraphQualified": false,
+    "outputEligible": false,
+    "nativeDynamicBlockSemanticsQualified": false,
+    "supportClaimsPromoted": false,
+    "remaining": [
+      "18 other graph expression objects and their class-specific field projections",
+      "action and reactor reference roles",
+      "EED APPID dependency",
+      "purge-preventer source-profile compatibility",
+      "nested associative owner closure",
+      "emitted-byte identity and fresh DXF readback"
+    ]
+  }
+}

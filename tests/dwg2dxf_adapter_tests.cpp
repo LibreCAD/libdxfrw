@@ -9760,6 +9760,52 @@ bool dynamicBlockCaptureLimitsFailClosed() {
     return true;
 }
 
+bool dynamicBlockProxyNodeBodyClosure(const char* sourcePath) {
+    dx_iface reader;
+    dx_data source;
+    if (sourcePath == nullptr
+        || !reader.fileImport(sourcePath, &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024)
+        return fail("dynamic proxy-node witness is not a readable AC1024 DWG");
+
+    const DRW_DynamicBlockObject* proxy = nullptr;
+    std::size_t matches = 0u;
+    for (const DRW_DynamicBlockObject& object : source.dynamicBlockObjects) {
+        if (object.handle != 0x1164u)
+            continue;
+        proxy = &object;
+        ++matches;
+    }
+    const DRW_UnsupportedObject* frame =
+        DxIfaceStandardDwgCaptureTestAccess::opaqueSourceFrame(
+            source, source.importGeneration, 0x1164u);
+    if (matches != 1u || proxy == nullptr
+        || proxy->m_recordName != "ACDB_DYNAMICBLOCKPROXYNODE"
+        || proxy->m_kind != DRW_DynamicBlockObject::Kind::EvalExprOnly
+        || proxy->parentHandle != 0x1155u
+        || !proxy->m_evalExprParsed || !proxy->m_bodyFullyDecoded
+        || proxy->m_parentId != std::numeric_limits<std::uint32_t>::max()
+        || proxy->m_major != 29u || proxy->m_minor != 2u
+        || proxy->m_valueCode != -9999 || proxy->m_hasValueDouble
+        || proxy->m_valueHandle != 0u || proxy->m_nodeId != 226u
+        || !proxy->reactorHandles.empty() || proxy->xDictHandle != 0u
+        || !proxy->appData.empty() || !proxy->extData.empty()
+        || frame == nullptr || frame->m_objectType != 547
+        || frame->m_recordName != "ACDB_DYNAMICBLOCKPROXYNODE"
+        || frame->m_className != "AcDbDynamicBlockProxyNode"
+        || frame->m_parentHandle != 0x1155u
+        || !frame->m_isCustomClass || frame->m_isEntity
+        || frame->m_rawBytes.size() != frame->m_objectSize
+        || frame->m_bodyBitSize
+            > static_cast<std::uint64_t>(frame->m_objectSize) * 8u)
+        return fail("dynamic proxy-node source body or handle stream did not close exactly");
+
+    std::cerr << "AC1024 dynamic proxy-node body closure passed: source handle "
+              << "0x1164 consumes its declared data, string, and handle spans.\n";
+    return true;
+}
+
 bool dynamicBlockVisibilityComposedGraphOutputProfile() {
     constexpr std::uint32_t blockHandle = 0x127u;
     constexpr std::uint32_t dictionaryHandle = 0x1116u;
@@ -51967,6 +52013,9 @@ int main(int argc, char** argv) {
         && std::string(argv[1])
             == "--dynamic-block-visibility-composed-graph")
         return dynamicBlockVisibilityComposedGraphOutputProfile() ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--dynamic-block-proxy-node-body-closure")
+        return dynamicBlockProxyNodeBodyClosure(argv[2]) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--proxy-object-capture-limits")
         return proxyObjectCaptureLimitsFailClosed() ? 0 : 1;
     if (argc == 2

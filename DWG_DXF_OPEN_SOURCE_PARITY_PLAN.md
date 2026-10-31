@@ -78,6 +78,18 @@ unrepresented descendants refused and verify atomic refusal/retry. Then run one
 strict-complete conversion for this source. Do not infer native dynamic-block
 semantics from serializer readback.
 
+The AC1024 `ACDB_DYNAMICBLOCKPROXYNODE` at `0x1164` now has a bounded source-body
+closure check: the typed EvalExpr prefix is complete only for this observed
+class/version and when the data stream has at most seven zero padding bits, the
+string stream closes, and the handle stream ends at legal byte alignment. The
+current witness consumes 1 data padding bit and 6 handle-alignment bits. This
+closes only that object's body; it does not qualify the owner graph. Remaining
+in this packet are the other 18 expression records, their class-specific field
+projections, action/reactor reference roles, EED APPID dependency, purge-preventer
+source profile, nested associative owner closure, output mapping and fresh
+readback. Keep native dynamic-block behavior unclaimed pending independent
+consumer evidence.
+
 The sweep also reproduced separate unresolved gates: AC1021 proxy-graphics
 refusal and AC1018 `ET-Drawing-with-Border.dwg` with 23 opaque callbacks but no
 strict output qualifications. Keep these in P6 and P4 respectively; they are
