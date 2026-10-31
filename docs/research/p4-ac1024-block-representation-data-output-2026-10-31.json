@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-block-representation-data-output-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 BLOCKREPRESENTATIONDATA bounded body and isolated DXF output",
+  "status": "ISOLATED_BODY_AND_DXF_OUTPUT_QUALIFIED_PHYSICAL_GRAPH_OUTPUT_PENDING",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/title_block-arch.dwg",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "version": "AC1024",
+    "repositoryStatus": "local untracked test input; intentionally not added to Git",
+    "object": {
+      "ownerDictionary": "0xDD5",
+      "dictionaryKey": "AcDbRepData",
+      "handle": "0xDD6",
+      "sourceType": 520,
+      "className": "AcDbBlockRepresentationData",
+      "bodyFields": "BS flag, common object handle stream, one block-reference handle",
+      "observedBodySpan": "one zero alignment bit after the decoded flag; accepted only as bounded zero padding"
+    },
+    "schemaCrossChecks": [
+      "LibreDWG dwg2.spec: HANDLE_UNKNOWN_BITS, BS group 70, then block handle group 340",
+      "dwgTs and ACadSharp readers: common object header, flag and block reference",
+      "ACadSharp dynamic-block DXF sample: AcDbBlockRepresentationData subclass with groups 70 and 340"
+    ]
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.h",
+      "src/drw_objects.cpp",
+      "src/intern/dwgreader.cpp",
+      "src/libdxfrw.h",
+      "src/libdxfrw.cpp",
+      "dwg2dxf/dx_data.h",
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "summary": "Added typed AC1024 source parsing with exact bounded body completion, custom-class dispatch and raw companion retention; implemented a narrow DXF reader/writer profile; and connected source dictionary admission to owner/block-reference output checks. The DXF generic dynamic-block dispatcher explicitly excludes this record so its typed parser runs.",
+    "profileLimits": "Output requires AC1024, complete body, valid nonzero flag/block handle, one owner reactor, no extension dictionary, APPDATA, XDATA or DataStorage. The source-graph planner additionally requires exact source class/type, one matching block record and definition, and the canonical dictionary entry.",
+    "failureBehavior": "The record writer rejects incomplete or out-of-profile bodies transactionally. The focused selector checks destination preservation and same-writer corrected retry. Physical source output remains strict and unqualified until staged OBJECTS inspection succeeds."
+  },
+  "outputProof": {
+    "isolatedSelector": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_block_representation_data_output$' --output-on-failure",
+      "result": "PASS for ASCII and Binary: exact groups 100/70/340, fresh typed readback of handle/owner/reactor/flag/block reference, rollback and corrected retry."
+    },
+    "physicalSource": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/title_block-arch.dwg -y -d -v2010 /private/tmp/title_block_arch-current.dxf",
+      "result": "NOT YET PASSED. The source body and extension graph now pass admission; conversion stops before OBJECTS staging with unresolved-insert-target (INSERT target has no emitted BLOCK_RECORD).",
+      "effect": "No physical staged-byte or whole-graph output qualification is claimed."
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured warning-as-error flags."
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_(dynamic_block_(purge_preventer|grip_location|visibility_grip|visibility_parameter)|block_representation_data_output|dwg_layer_table_control_dictionary)$' --output-on-failure",
+      "result": "PASS, 6/6."
+    },
+    "graphRegressionTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_(extension_dictionary_owner_graphs|extension_graph_limits|linetype_extension_graph)|dwg2dxf_block_representation_data_output)$' --output-on-failure",
+      "result": "PASS, 4/4."
+    },
+    "fullSuites": "NOT RUN; focused selectors and one physical source conversion were used.",
+    "fixturesAdded": 0
+  },
+  "planImpact": {
+    "completedActionsRemoved": [
+      "Decode the AC1024 BLOCKREPRESENTATIONDATA flag and block-reference fields within the bounded source body, allowing only verified zero alignment padding.",
+      "Implement and isolate-test exact ASCII/Binary BLOCKREPRESENTATIONDATA serialization and readback, including refusal, rollback and corrected retry."
+    ],
+    "remainingP4Scope": "Resolve the current INSERT-to-BLOCK_RECORD output binding, then prove this source record's staged fields and remapped owner/block roles in the complete AC1024 output. Continue the separate Title_Block-ARCH dictionary 0x1116 graph and SORTENTSTABLE closure; do not relax strict refusal.",
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "src/drw_objects.cpp": "ddece2000db72f3f6542d0a2a953bacb6a96a0c1f6c419d51faccef4ea5e61d8",
+    "src/libdxfrw.cpp": "f907f44adf76c24e92e21eb3eea369d6a01dd09f3c4d5870e724babc6830e0f8",
+    "dwg2dxf/dx_iface.cpp": "7625769e0139b1011978178772f19d2f02d5375fcdc513f1bbccedd4b5aa5407",
+    "tests/dwg2dxf_adapter_tests.cpp": "68515405c89c20b90ea401e33bf23c9c4dd4b03b6342af9578242d8a980c70c3",
+    "build-gcc/dwg2dxf/dwg2dxf": "51b355e6af92d02dad574ff374f86688173a880ab45ec99721ddfb2a67811afe",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "2ebd46483a83b266dff5ef27a838d6719e2699afa979a0d20c0ed655854d4fee"
+  }
+}

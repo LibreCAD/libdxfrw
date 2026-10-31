@@ -558,6 +558,8 @@ public:
     void addSpatialFilter(const DRW_SpatialFilter& data) override;
     void addRawDxfEntity(const DRW_RawDxfObject& data) override;
     void addEvaluationGraph(const DRW_EvaluationGraph& data) override;
+    void addBlockRepresentationData(
+            const DRW_BlockRepresentationData& data) override;
     void addDynamicBlockObject(
             const DRW_DynamicBlockObject& data) override;
     void addAcShHistoryObject(const DRW_AcShHistoryObject& data) override;
@@ -1975,6 +1977,23 @@ public:
             if (!dxfW->writeDynamicBlockObject(&object))
                 return;
         }
+        objectWritePhase = "block representation data records";
+        for (const std::uint32_t handle :
+             m_extensionBlockRepresentationDataHandles) {
+            std::size_t matches = 0u;
+            for (DRW_BlockRepresentationData& object :
+                 cData->blockRepresentationData) {
+                if (object.handle != handle)
+                    continue;
+                ++matches;
+                if (!dxfW->writeBlockRepresentationData(&object))
+                    return;
+            }
+            if (matches != 1u) {
+                dxfW->writeRawDxfObject(nullptr);
+                return;
+            }
+        }
         objectWritePhase = "sort-entity tables and data links";
         for (DRW_SortEntsTable& table : m_sortEmissionTables) {
             if (!dxfW->writeSortEntsTable(&table))
@@ -3035,6 +3054,9 @@ private:
 
     std::vector<std::uint32_t> m_extensionDictionaryHandles;
     std::vector<std::uint32_t> m_extensionAssociativeHandles;
+    std::vector<std::uint32_t> m_extensionBlockRepresentationDataHandles;
+    std::vector<DRW_BlockRepresentationData>
+        m_extensionBlockRepresentationDataSources;
     std::vector<std::uint32_t> m_extensionDictionaryWithDefaultHandles;
     std::vector<std::uint32_t> m_extensionPlaceholderHandles;
     std::vector<std::uint32_t> m_extensionXRecordHandles;
@@ -3086,6 +3108,8 @@ private:
     bool hasUnchangedDwgSortEntsOutputSources() const noexcept;
     bool inspectDwgSortEntsOutput(
         const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept;
+    bool inspectDwgBlockRepresentationDataOutput(
+        const dxfRW::DxfObjectsWriteView& view) noexcept;
     std::unordered_map<std::uint32_t, DRW_Table*> m_tableFallbacks;
     std::unordered_set<std::uint32_t> m_emittedTableHandles;
     std::vector<std::uint32_t> m_tableStylesToEmit;

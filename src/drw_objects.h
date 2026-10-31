@@ -6914,9 +6914,16 @@ public:
     tType = DRW::BLOCKREPRESENTATIONDATA;
     m_flag = 0;
     m_blockHandle = 0;
+    m_bodyFullyDecoded = false;
+    m_dxfInBody = false;
+    m_dxfSubclassSeen = false;
+    m_dxfFlagSeen = false;
+    m_dxfBlockSeen = false;
+    m_dxfBodyComplete = true;
   }
 
 protected:
+  bool parseCode(int code, const std::unique_ptr<dxfReader> &reader) override;
   bool parseDwg(DRW::Version version, dwgBuffer *buf,
                 std::uint32_t bs = 0) override;
   [[nodiscard]] bool encodeDwg(DRW::Version version, dwgBufferW *buf,
@@ -6926,6 +6933,18 @@ protected:
 public:
   std::uint16_t m_flag = 0;
   std::uint32_t m_blockHandle = 0;
+  bool m_bodyFullyDecoded = false;
+  [[nodiscard]] bool bodyFullyDecoded() const noexcept {
+    return m_bodyFullyDecoded;
+  }
+  [[nodiscard]] bool finalizeDxf() noexcept;
+
+private:
+  bool m_dxfInBody{false};
+  bool m_dxfSubclassSeen{false};
+  bool m_dxfFlagSeen{false};
+  bool m_dxfBlockSeen{false};
+  bool m_dxfBodyComplete{true};
 };
 
 //! Minimal ACDBPLACEHOLDER carrier (ODA fixed type 80).

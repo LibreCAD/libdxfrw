@@ -1469,6 +1469,16 @@ set_tests_properties(dwg2dxf_dynamic_block_visibility_parameter PROPERTIES
     TIMEOUT 30
 )
 
+add_test(
+    NAME dwg2dxf_block_representation_data_output
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --block-representation-data-output
+)
+set_tests_properties(dwg2dxf_block_representation_data_output PROPERTIES
+    LABELS "fast;dxf;adapter;dynamic-block"
+    TIMEOUT 30
+)
+
 # File-format dispatch folds only ASCII extension letters; non-ASCII suffix
 # bytes must be preserved and rejected without locale-dependent ctype calls.
 add_test(

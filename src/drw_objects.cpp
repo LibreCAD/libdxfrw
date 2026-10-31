@@ -25274,16 +25274,90 @@ bool DRW_BlockRepresentationData::parseDwg(DRW::Version version,
     if (!bodyBuf->isGood() || !sBuf->isGood() || !hBuff.isGood()
         || !objectBodyFitsSize(bodyBitOffset, bodyEnd))
         return fail();
+    const bool bodyPaddingComplete =
+        consumeZeroPaddingWithinBounds(bodyBuf, bodyEnd, 7u);
+    const std::uint64_t bodyEndOffset =
+        bodyBuf->getPosition() * 8u + bodyBuf->getBitPos();
 
     m_flag = static_cast<std::uint16_t>(parsedFlag);
     m_blockHandle = blockHandle;
     parentHandle = parsedParentHandle;
     reactorHandles = std::move(parsedReactors);
     xDictHandle = parsedXDictHandle;
+    DRW_DBG("BLOCKREPRESENTATIONDATA body: flag=");
+    DRW_DBG(parsedFlag);
+    DRW_DBG(" cursor=");
+    DRW_DBG(static_cast<unsigned long long>(bodyEndOffset));
+    DRW_DBG(" end=");
+    DRW_DBG(static_cast<unsigned long long>(bodyEnd));
+    DRW_DBG(" block=");
+    DRW_DBG(blockHandle);
+    DRW_DBG("\n");
+    m_bodyFullyDecoded = parsedFlag >= 0
+        && parsedFlag <= std::numeric_limits<std::uint16_t>::max()
+        && bodyPaddingComplete && bodyEndOffset == bodyEnd
+        && blockHandle != 0 && blockHandle != DRW::NoHandle;
     return true;
     } catch (...) {
         return fail();
     }
+}
+
+bool DRW_BlockRepresentationData::parseCode(
+    int code, const std::unique_ptr<dxfReader>& reader) {
+    if (reader == nullptr)
+        return false;
+    if (code == 100) {
+        if (reader->getStringView() == "AcDbBlockRepresentationData") {
+            if (m_dxfSubclassSeen)
+                m_dxfBodyComplete = false;
+            m_dxfSubclassSeen = true;
+            m_dxfInBody = true;
+        } else if (m_dxfInBody) {
+            // The admitted record body has one subclass and only the fields
+            // below. Preserve later class data through the raw DXF companion,
+            // but do not claim the typed projection is complete.
+            m_dxfBodyComplete = false;
+            m_dxfInBody = false;
+        }
+        return true;
+    }
+    if (!m_dxfInBody)
+        return DRW_TableEntry::parseCode(code, reader);
+
+    switch (code) {
+    case 70: {
+        const std::int32_t flag = reader->getInt32();
+        if (m_dxfFlagSeen || flag < 0
+            || flag > std::numeric_limits<std::uint16_t>::max()) {
+            m_dxfBodyComplete = false;
+            return true;
+        }
+        m_flag = static_cast<std::uint16_t>(flag);
+        m_dxfFlagSeen = true;
+        return true;
+    }
+    case 340:
+        if (m_dxfBlockSeen || !reader->isValidHandleString()) {
+            (void)reader->getHandleString();
+            m_dxfBodyComplete = false;
+            return true;
+        }
+        m_blockHandle = reader->getHandleString();
+        m_dxfBlockSeen = true;
+        return true;
+    default:
+        if (code != 102 && (code < 1000 || code > 1071))
+            m_dxfBodyComplete = false;
+        return DRW_TableEntry::parseCode(code, reader);
+    }
+}
+
+bool DRW_BlockRepresentationData::finalizeDxf() noexcept {
+    m_bodyFullyDecoded = m_dxfInBody && m_dxfSubclassSeen
+        && m_dxfFlagSeen && m_dxfBlockSeen && m_dxfBodyComplete
+        && m_blockHandle != 0u && m_blockHandle != DRW::NoHandle;
+    return m_bodyFullyDecoded;
 }
 
 bool DRW_BlockRepresentationData::encodeDwg(

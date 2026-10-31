@@ -8744,6 +8744,171 @@ bool dynamicBlockVisibilityGripRecordOutputProfile() {
     return true;
 }
 
+bool readBlockRepresentationDataWireGroups(
+        const std::filesystem::path& path, bool binary,
+        std::vector<std::pair<int, std::string>>& groups) {
+    std::ifstream stream(path, std::ios::binary);
+    if (!stream)
+        return false;
+    if (binary)
+        stream.seekg(22);
+    if (!stream)
+        return false;
+    std::unique_ptr<dxfReader> reader = binary
+        ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
+        : std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+    bool inObject = false;
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            if (inObject)
+                return !groups.empty() && !stream.bad();
+            inObject = reader->getString()
+                == "ACDB_BLOCKREPRESENTATION_DATA";
+            continue;
+        }
+        if (!inObject || code == 5 || code == 330 || code == 102)
+            continue;
+        switch (code) {
+        case 100:
+            groups.emplace_back(code, reader->getString());
+            break;
+        case 70:
+            groups.emplace_back(code, std::to_string(reader->getInt32()));
+            break;
+        case 340: {
+            std::ostringstream value;
+            value << std::uppercase << std::hex << reader->getHandleString();
+            groups.emplace_back(code, value.str());
+            break;
+        }
+        default:
+            return false;
+        }
+    }
+    return inObject && !groups.empty() && !stream.bad();
+}
+
+bool blockRepresentationDataOutputProfile() {
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    class RecordAuthor final : public dx_iface {
+    public:
+        void writeHeader(DRW_Header& header) override {
+            header.vars.clear();
+        }
+
+        void writeObjects() override {
+            wrote = dxfW != nullptr
+                && dxfW->writeBlockRepresentationData(&object);
+        }
+
+        DRW_BlockRepresentationData object;
+        bool wrote{false};
+    };
+    const auto populate = [](RecordAuthor& author) {
+        author.object.handle = 0xE803u;
+        author.object.parentHandle = 0xE802u;
+        author.object.m_flag = 1u;
+        author.object.m_blockHandle = 0xE804u;
+        author.object.m_bodyFullyDecoded = true;
+        author.object.reactorHandles = {0xE802u};
+    };
+    const std::vector<std::pair<int, std::string>> expectedWire{
+        {100, "AcDbBlockRepresentationData"}, {70, "1"},
+        {340, "E804"}};
+
+    for (const bool binary : {false, true}) {
+        const std::string encoding = binary ? "binary" : "ascii";
+        const std::filesystem::path output =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-block-representation-data-" + encoding + "-"
+               + std::to_string(nonce) + ".dxf");
+        dx_data data;
+        RecordAuthor author;
+        author.cData = &data;
+        populate(author);
+        dxfRW writer(output.string().c_str());
+        author.dxfW = &writer;
+        const bool wrote = writer.write(&author, DRW::AC1024, binary)
+            && author.wrote;
+        std::vector<std::pair<int, std::string>> wireGroups;
+        const bool exactWire = wrote
+            && readBlockRepresentationDataWireGroups(
+                output, binary, wireGroups)
+            && wireGroups == expectedWire;
+        dx_data readback;
+        dx_iface rereader;
+        const bool imported = exactWire
+            && rereader.fileImport(output.string(), &readback, false);
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+        if (!wrote)
+            return fail("BLOCKREPRESENTATION_DATA " + encoding
+                        + " serializer rejected the admitted profile");
+        if (!exactWire)
+            return fail("BLOCKREPRESENTATION_DATA exact " + encoding
+                        + " wire groups changed");
+        if (!imported || readback.blockRepresentationData.size() != 1u)
+            return fail("BLOCKREPRESENTATION_DATA " + encoding
+                        + " typed readback was missing or ambiguous (import="
+                        + (imported ? "true" : "false") + ", callbacks="
+                        + std::to_string(
+                            readback.blockRepresentationData.size()) + ")");
+        const DRW_BlockRepresentationData& result =
+            readback.blockRepresentationData.front();
+        if (result.handle != 0xE803u || result.parentHandle != 0xE802u
+            || result.reactorHandles != std::vector<std::uint32_t>{0xE802u}
+            || result.m_flag != 1u || result.m_blockHandle != 0xE804u
+            || !result.bodyFullyDecoded())
+            return fail("BLOCKREPRESENTATION_DATA typed " + encoding
+                        + " readback changed an identity, role or body field");
+    }
+
+    const std::filesystem::path retryPath =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-block-representation-data-retry-"
+           + std::to_string(nonce) + ".dxf");
+    const std::string sentinel = "existing destination survives\n";
+    {
+        std::ofstream existing(retryPath, std::ios::binary);
+        existing << sentinel;
+    }
+    dx_data data;
+    RecordAuthor author;
+    author.cData = &data;
+    populate(author);
+    dxfRW writer(retryPath.string().c_str());
+    author.dxfW = &writer;
+    author.object.m_bodyFullyDecoded = false;
+    if (writer.write(&author, DRW::AC1024, false) || author.wrote) {
+        std::error_code ignored;
+        std::filesystem::remove(retryPath, ignored);
+        return fail("incomplete BLOCKREPRESENTATION_DATA body was emitted");
+    }
+    {
+        std::ifstream existing(retryPath, std::ios::binary);
+        const std::string preserved{
+            std::istreambuf_iterator<char>(existing),
+            std::istreambuf_iterator<char>()};
+        if (preserved != sentinel) {
+            std::error_code ignored;
+            std::filesystem::remove(retryPath, ignored);
+            return fail("invalid BLOCKREPRESENTATION_DATA replaced destination");
+        }
+    }
+    author.object.m_bodyFullyDecoded = true;
+    if (!writer.write(&author, DRW::AC1024, false) || !author.wrote) {
+        std::error_code ignored;
+        std::filesystem::remove(retryPath, ignored);
+        return fail("corrected BLOCKREPRESENTATION_DATA failed same-writer retry");
+    }
+    std::error_code ignored;
+    std::filesystem::remove(retryPath, ignored);
+    return true;
+}
+
 bool readDxfDynamicBlockVisibilityParameterWireGroups(
         const std::filesystem::path& path, bool binary,
         std::vector<std::pair<int, std::string>>& groups) {
@@ -11412,7 +11577,8 @@ bool dwgBlockRecordControlMembershipCapture() {
 }
 
 bool dwgLayerTableControlDictionaryCapture() {
-    const auto makeCase = [](std::uint32_t dictionaryHandle,
+    const auto makeCase = [](std::uint32_t sourceControlHandle,
+                             std::uint32_t dictionaryHandle,
                              std::uint32_t layerOwner,
                              std::vector<std::uint32_t> controlHandles,
                              bool duplicateReceipt,
@@ -11434,7 +11600,7 @@ bool dwgLayerTableControlDictionaryCapture() {
 
         DRW_DwgFramePublication control;
         control.m_version = DRW::AC1024;
-        control.m_handle = DRW::DwgLayerControlHandle;
+        control.m_handle = sourceControlHandle;
         control.m_sourceOffset = 0x80u;
         control.m_sourceMapOrdinal = 4u;
         control.m_sourceOffsetSpace =
@@ -11460,24 +11626,33 @@ bool dwgLayerTableControlDictionaryCapture() {
 
     std::uint32_t actualControl = 0u;
     std::uint32_t actualDictionary = 0u;
-    if (!makeCase(0x2A2u, DRW::DwgLayerControlHandle,
+    if (!makeCase(DRW::DwgLayerControlHandle, 0x2A2u,
+                  DRW::DwgLayerControlHandle,
                   {0x10u}, false, false, actualControl, actualDictionary)
         || actualControl != DRW::DwgLayerControlHandle
         || actualDictionary != 0x2A2u)
         return fail("source-matched LAYER_CONTROL XDictionary was not captured");
-    if (makeCase(0x2A2u, 0x03u, {0x10u}, false, false,
+    if (!makeCase(0x10u, 0x2A2u, 0x10u, {0x10u}, false, false,
+                  actualControl, actualDictionary)
+        || actualControl != 0x10u || actualDictionary != 0x2A2u)
+        return fail("noncanonical source LAYER_CONTROL identity was rejected");
+    if (makeCase(DRW::DwgLayerControlHandle, 0x2A2u, 0x03u,
+                 {0x10u}, false, false,
                  actualControl, actualDictionary))
         return fail("LAYER row with wrong control owner was accepted");
-    if (makeCase(0x2A2u, DRW::DwgLayerControlHandle,
+    if (makeCase(DRW::DwgLayerControlHandle, 0x2A2u,
+                 DRW::DwgLayerControlHandle,
                  {0x11u}, false, false, actualControl, actualDictionary))
         return fail("LAYER_CONTROL membership with a missing layer was accepted");
-    if (makeCase(0x2A2u, DRW::DwgLayerControlHandle,
+    if (makeCase(DRW::DwgLayerControlHandle, 0x2A2u,
+                 DRW::DwgLayerControlHandle,
                  {0x10u}, true, false, actualControl, actualDictionary))
         return fail("duplicate LAYER_CONTROL receipt was accepted");
-    if (makeCase(0x2A2u, DRW::DwgLayerControlHandle,
+    if (makeCase(DRW::DwgLayerControlHandle, 0x2A2u,
+                 DRW::DwgLayerControlHandle,
                  {0x10u}, false, true, actualControl, actualDictionary))
         return fail("stale LAYER_CONTROL receipt generation was accepted");
-    if (makeCase(DRW::DwgLayerControlHandle,
+    if (makeCase(DRW::DwgLayerControlHandle, DRW::DwgLayerControlHandle,
                  DRW::DwgLayerControlHandle, {0x10u}, false, false,
                  actualControl, actualDictionary))
         return fail("LAYER_CONTROL XDictionary aliasing its owner was accepted");
@@ -49466,6 +49641,10 @@ int main(int argc, char** argv) {
         && std::string(argv[1])
             == "--dynamic-block-visibility-parameter")
         return dynamicBlockVisibilityParameterRecordOutputProfile() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1])
+            == "--block-representation-data-output")
+        return blockRepresentationDataOutputProfile() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--object-context-data-loss-refusal")
         return objectContextDataLossRefusesExport() ? 0 : 1;

@@ -586,6 +586,8 @@ public:
     //! owner links must close through the owning dictionary and graph routes
     //! before a higher-level document writer admits them.
     bool writeDynamicBlockObject(DRW_DynamicBlockObject *ent);
+    bool writeBlockRepresentationData(
+        DRW_BlockRepresentationData *ent);
     bool writeRawDxfObject(DRW_RawDxfObject *obj);
     bool writeRawDxfObject(DRW_RawDxfObject *obj,
                            std::uint32_t ownerOverride);
@@ -1427,6 +1429,7 @@ public:
     bool processSection();
     bool processAssociativeObject();
     bool processDynamicBlockObject();
+    bool processBlockRepresentationData();
     bool processAcShHistoryObject();
 
     DxfEntityBoundary readEntityBoundary();

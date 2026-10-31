@@ -13419,6 +13419,25 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
               }
               break;
             }
+            if (rn == "ACDB_BLOCKREPRESENTATION_DATA"
+                && cit->second->className
+                    == "AcDbBlockRepresentationData") {
+              // Some AC1024 files store the fixed BLOCKREPRESENTATION body
+              // under its CLASSES ordinal (e.g. type 520) instead of fixed
+              // type 1120. The class identity is source-observed; decode with
+              // the existing typed body parser and keep its raw companion for
+              // source correlation.
+              DRW_BlockRepresentationData e;
+              ret = parseTableEntry(e);
+              if (ret) {
+                intfa.addBlockRepresentationData(e);
+                intfa.addUnsupportedObject(makeRawObject(oType, cit->second));
+              } else {
+                intfa.addUnsupportedObject(
+                    makeRawObject(oType, cit->second, false));
+              }
+              break;
+            }
             if (DRW_DynamicBlockObject::isDynamicBlockRecName(rn)) {
               // The dynamic-block object family (BLOCK*PARAMETER /
               // BLOCK*ACTION / BLOCK*GRIP / BLOCKGRIPLOCATIONCOMPONENT /

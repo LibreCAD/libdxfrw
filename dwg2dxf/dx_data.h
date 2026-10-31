@@ -893,6 +893,12 @@ public:
     dx_acdsHistoryDxfImportReceipt acdsHistoryDxfImport;
     std::size_t evaluationGraphRetainedBytes{0};
     bool evaluationGraphCaptureFailed{false};
+    // The BLOCKREPRESENTATION fixed record is also emitted as a file-local
+    // custom class in some AC1024 sources. Keep its typed source projection
+    // separate from the dynamic-block parameter/action family.
+    std::vector<DRW_BlockRepresentationData> blockRepresentationData;
+    std::size_t blockRepresentationDataRetainedBytes{0};
+    bool blockRepresentationDataCaptureFailed{false};
     std::vector<DRW_AcShHistoryObject> acshHistoryObjects;
     // Adapter accounting for typed AcSh history callbacks. A rejected
     // callback makes export fail closed instead of silently omitting it.

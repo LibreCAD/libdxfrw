@@ -20494,7 +20494,9 @@ bool dxfRW::processObjects() {
                  || normalizedEntity.rfind("ASSOC", 0) == 0) {
             processed = processAssociativeObject();
         }
-        else if (DRW_DynamicBlockObject::isDynamicBlockRecName(normalizedEntity)) {
+        else if (normalizedEntity != "ACDB_BLOCKREPRESENTATION_DATA"
+                 && DRW_DynamicBlockObject::isDynamicBlockRecName(
+                     normalizedEntity)) {
             processed = processDynamicBlockObject();
         }
         else if (normalizedEntity.rfind("ACSH_", 0) == 0
@@ -20507,6 +20509,10 @@ bool dxfRW::processObjects() {
                  || normalizedEntity == "ACDBEVALGRAPH"
                  || normalizedEntity == "ACAD_EVALUATION_GRAPH") {
             processed = processEvaluationGraph();
+        }
+        else if (normalizedEntity
+                 == "ACDB_BLOCKREPRESENTATION_DATA") {
+            processed = processBlockRepresentationData();
         }
         else if (normalizedEntity == "SOLIDBACKGROUND"
                  || normalizedEntity == "SOLID_BACKGROUND"
@@ -21814,6 +21820,29 @@ bool dxfRW::processEvaluationGraph() {
             if (!data.finalizeDxf())
                 return setError(DRW::BAD_CODE_PARSED);
             iface->addEvaluationGraph(data);
+            iface->addRawDxfObject(raw);
+            return true;
+        }
+        if (!captureAndParseRawDxfGroup(raw, code, data))
+            return setError(DRW::BAD_CODE_PARSED);
+    }
+    return setError(DRW::BAD_READ_OBJECTS);
+}
+
+bool dxfRW::processBlockRepresentationData() {
+    DRW_DBG("dxfRW::processBlockRepresentationData");
+    int code = 0;
+    DRW_BlockRepresentationData data;
+    DRW_RawDxfObject raw;
+    if (!copyRawDxfCarrierName(raw, nextentity))
+        return setError(DRW::BAD_CODE_PARSED);
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            if (!acceptObjectBoundary(code))
+                return setError(DRW::BAD_READ_OBJECTS);
+            if (!data.finalizeDxf())
+                return setError(DRW::BAD_CODE_PARSED);
+            iface->addBlockRepresentationData(data);
             iface->addRawDxfObject(raw);
             return true;
         }
@@ -31409,6 +31438,54 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         || !record.commit()) {
         return failDxfWrite();
     }
+    state.commit();
+    return true;
+}
+
+bool dxfRW::writeBlockRepresentationData(
+        DRW_BlockRepresentationData *ent) {
+    static constexpr char recordName[] = "ACDB_BLOCKREPRESENTATION_DATA";
+    static constexpr char subclassName[] = "AcDbBlockRepresentationData";
+    if (!preflightTableEntry(ent) || ent == nullptr || writer == nullptr
+        || version != DRW::AC1024 || ent->handle == 0u
+        || ent->handle == DRW::NoHandle || ent->parentHandle <= 0
+        || static_cast<std::uint64_t>(ent->parentHandle)
+            > std::numeric_limits<std::uint32_t>::max()
+        || ent->m_flag > static_cast<std::uint16_t>(
+               std::numeric_limits<std::int16_t>::max())
+        || ent->m_blockHandle == 0u
+        || ent->m_blockHandle == DRW::NoHandle
+        || !ent->bodyFullyDecoded() || ent->xDictHandle != 0u
+        || !ent->appData.empty() || !ent->extData.empty()
+        || ent->reactorHandles.size() != 1u
+        || ent->reactorHandles.front()
+            != static_cast<std::uint32_t>(ent->parentHandle))
+        return failDxfWrite();
+
+    RecordStateScope state(*this, ent);
+    const std::uint32_t emittedHandle = remapObjectHandle(ent->handle);
+    const std::uint32_t emittedOwner = remapObjectHandle(
+        static_cast<std::uint32_t>(ent->parentHandle));
+    const std::uint32_t emittedBlock = remapObjectHandle(ent->m_blockHandle);
+    if (emittedHandle == 0u || emittedHandle == DRW::NoHandle
+        || emittedOwner == 0u || emittedOwner == DRW::NoHandle
+        || emittedBlock == 0u || emittedBlock == DRW::NoHandle
+        || isDxfFixedOutputHandle(emittedHandle)
+        || !reserveHandle(emittedHandle))
+        return failDxfWrite();
+
+    DxfWriterRecordScope record(*writer);
+    const bool written = writer->writeString(0, recordName)
+        && writer->writeString(5, toHexStr(emittedHandle))
+        && writeTableEntryAppData(*ent)
+        && writer->writeString(330, toHexStr(emittedOwner))
+        && writer->writeString(100, subclassName)
+        && writer->writeInt16(70, static_cast<std::int16_t>(ent->m_flag))
+        && writer->writeString(340, toHexStr(emittedBlock));
+    if (!written || writer->hasWriteError() || !preflightDxfWrite()
+        || !bindDxfWriteSourceObjectHandle(ent->handle, emittedHandle)
+        || !record.commit())
+        return failDxfWrite();
     state.commit();
     return true;
 }

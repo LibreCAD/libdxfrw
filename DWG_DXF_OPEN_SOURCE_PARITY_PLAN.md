@@ -56,29 +56,39 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next packet — remaining AC1024 source-graph closure.** The existing
-`title_block-arch.dwg` input still fails strict export at SORTENTSTABLE
-extension-DICTIONARY reciprocity. The Title_Block-ARCH BLOCK_RECORD `0x127`
-has a three-entry DICTIONARY `0x1116`: `ACAD_ENHANCEDBLOCK` → EvaluationGraph
-`0x1117`, `ACAD_SORTENTS` → SORTENTSTABLE `0x111C`, and
-`AcDbDynamicBlockRoundTripPurgePreventer` → `0x1122`. Close all three source
-edges together. The EvaluationGraph `0x1117` has four nodes (IDs 16–19,
-targets `0x1118`–`0x111B`) and three source edges. Compose the four qualified
-isolated record bodies, bind all source identities, graph nodes/edges, owners
-and remapped references in the output, and retain the visibility parameter's
-117 flat handles and 116 ordered state references. Prove the SORTENTSTABLE's
-ordered membership plus reciprocal owner. Separately resolve
-`ACDB_BLOCKREPRESENTATION_DATA`
-`0xDD6` and owner `0xDD5`; do not infer that it belongs to `0x1116`. Bind every
-source identity, target role, field and remapped output reference before
-relaxing strict refusal. DXF-origin typed/raw replay remains unqualified.
-Current source and isolated-record evidence is in
+**P4 next packet — finish physical output proof, then close the source graph.**
+On the existing `title_block-arch.dwg`, the former strict-export failure was
+dictionary owner `0xDD5` referencing untyped target `0xDD6`; that record now
+routes as `ACDB_BLOCKREPRESENTATION_DATA`. Keep this dictionary (`0xDD5`)
+distinct from the Title_Block-ARCH dictionary `0x1116`. The DWG body profile is
+now bounded:
+the AC1024 source readers agree on one bit-short flag followed by the common
+object handle stream and one block reference, and the local parser requires the
+body cursor to end exactly at the source body boundary. The remaining slice is
+implemented and covered by an isolated ASCII/Binary exact-wire and fresh
+readback selector, including rollback and corrected retry. The bounded DWG
+parser accepts only up to seven zero alignment bits; it does not accept an
+unknown suffix. Remove those body-decoding and isolated-serializer actions from
+the queue. The physical source now passes extension-graph admission but still
+fails before OBJECTS staging at `unresolved-insert-target`; resolve that exact
+INSERT/BLOCK_RECORD binding, then prove this object's staged flag, owner,
+block-reference role and fresh ASCII/Binary readback. Strict output remains
+unqualified until the physical staged proof passes.
+
+Then close the Title_Block-ARCH BLOCK_RECORD `0x127` three-entry DICTIONARY
+`0x1116`: `ACAD_ENHANCEDBLOCK` → EvaluationGraph `0x1117`, `ACAD_SORTENTS` →
+SORTENTSTABLE `0x111C`, and `AcDbDynamicBlockRoundTripPurgePreventer` →
+`0x1122`. The graph has four nodes (IDs 16–19, targets `0x1118`–`0x111B`) and
+three source edges. Bind source identities, nodes, edges, owners and remapped
+references in one output. Preserve the visibility parameter's 117 flat handles
+and 116 ordered state references; prove SORTENTSTABLE ordered membership and
+reciprocal owner. Admit no partial graph: require exact source fields, target
+roles and emitted references, then staged-byte and fresh ASCII/Binary readback
+proof before relaxing strict refusal. DXF-origin typed/raw replay remains
+unqualified. Current composition and source evidence is in
+[`p4-ac1024-block-representation-data-output-2026-10-31.json`](docs/research/p4-ac1024-block-representation-data-output-2026-10-31.json),
 [`p4-ac1024-sortents-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-sortents-output-qualification-2026-10-31.json),
 [`p4-ac1024-dictionary-identity-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-dictionary-identity-output-qualification-2026-10-31.json),
-[`p5-dynamic-block-purge-preventer-record-output-2026-10-31.json`](docs/research/p5-dynamic-block-purge-preventer-record-output-2026-10-31.json),
-[`p5-dynamic-block-visibility-grip-output-qualification-2026-10-31.json`](docs/research/p5-dynamic-block-visibility-grip-output-qualification-2026-10-31.json),
-[`p5-dynamic-block-grip-location-output-qualification-2026-10-31.json`](docs/research/p5-dynamic-block-grip-location-output-qualification-2026-10-31.json),
-[`p5-dynamic-block-visibility-parameter-output-qualification-2026-10-31.json`](docs/research/p5-dynamic-block-visibility-parameter-output-qualification-2026-10-31.json),
 and [`p4-existing-dwg-corpus-strict-sweep-2026-10-31.json`](docs/research/p4-existing-dwg-corpus-strict-sweep-2026-10-31.json).
 
 ## P4 — original bodies and complete document closure
@@ -124,17 +134,15 @@ output gates are met.
 
 ## P5 — rendering and TABLE
 
-**Dynamic-block output profiles:** compose the actual AC1024
-`Title_Block-ARCH` three-entry owner graph rooted at BLOCK_RECORD `0x127` from
-the four qualified isolated record bodies (PurgePreventer, GripLocation,
-BLOCKVISIBILITYGRIP and BLOCKVISIBILITYPARAMETER; see the receipts above).
-Bind all four EvaluationGraph nodes (IDs 16–19), the three source edges and node
-17's links to nodes 18 and 19; preserve the visibility parameter's 117 flat
-handles and 116 ordered state references. Close the SORTENTSTABLE reciprocity.
-Emit all required graph targets with DICTIONARY edges, owners, reactors and
-remapped handles intact; prove staged bytes and fresh ASCII/Binary readback for
-the full closure. Keep the mixed-key graph refused until every required target
-is selected and emitted; do not relax SORTENTSTABLE owner validation to bypass
+**Dynamic-block output profiles:** close the composed AC1024
+`Title_Block-ARCH` graph rooted at BLOCK_RECORD `0x127`: bind all four
+EvaluationGraph nodes (IDs 16–19), the three source edges and node 17's links
+to nodes 18 and 19; preserve the visibility parameter's 117 flat handles and
+116 ordered state references; and close the SORTENTSTABLE reciprocity. Emit all
+required graph targets with DICTIONARY edges, owners, reactors and remapped
+handles intact; prove staged bytes and fresh ASCII/Binary readback for the full
+closure. Keep the mixed-key graph refused until every required target is
+selected and emitted; do not relax SORTENTSTABLE owner validation to bypass
 missing children. DXF-origin typed/raw replay remains unqualified until exact
 source pairing and one-emission proof pass. Qualify other subclasses only when
 an existing source identifies a required profile.
