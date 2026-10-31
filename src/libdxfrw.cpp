@@ -20669,9 +20669,10 @@ bool dxfRW::processAssociativeObject() {
 }
 
 // Dynamic-block DXF records keep their complete group stream in the raw net.
-// Decode only the explicitly profiled PurgePreventer and AC1024
-// GripLocationComponent bodies; other AcDbEvalExpr/AcDbBlockElement variants
-// remain opaque until their field layout is independently established.
+// Decode only the explicitly profiled PurgePreventer, AC1024
+// GripLocationComponent and BLOCKVISIBILITYGRIP bodies; other
+// AcDbEvalExpr/AcDbBlockElement variants remain opaque until their field
+// layout is independently established.
 bool dxfRW::processDynamicBlockObject() {
     DRW_DBG("dxfRW::processDynamicBlockObject");
     int code;
@@ -20860,6 +20861,133 @@ bool dxfRW::processDynamicBlockObject() {
                     }
                     expressionCheckpoint.commit();
                     data.m_evalExprParsed = true;
+                }
+                data.m_bodyFullyDecoded = completeBody;
+            } else if (data.m_kind
+                           == DRW_DynamicBlockObject::Kind::Grip
+                       && data.m_recordName == "BLOCKVISIBILITYGRIP"
+                       && reader->getSourceVersion() == DRW::AC1024) {
+                // This body is bounded to the source-backed AC1024
+                // BLOCKVISIBILITYGRIP profile. The EvalExpr value union is
+                // absent when the DWG value_code is -9999. The full stream
+                // stays in `raw`; this projection only certifies the exact
+                // body needed for typed output/readback.
+                std::array<const DRW_Variant*, 18> body{};
+                std::size_t bodyCount = 0u;
+                bool inBody = false;
+                bool completeBody = true;
+                for (const DRW_Variant& group : raw.groups) {
+                    if (!inBody) {
+                        if (group.code() != 100
+                            || group.type() != DRW_Variant::STRING)
+                            continue;
+                        const char* marker = group.c_str();
+                        if (marker != nullptr
+                            && std::string_view(marker) == "AcDbEvalExpr") {
+                            inBody = true;
+                            body[bodyCount++] = &group;
+                        }
+                        continue;
+                    }
+                    if (bodyCount >= body.size()) {
+                        completeBody = false;
+                        break;
+                    }
+                    body[bodyCount++] = &group;
+                }
+                const auto integerGroup = [](const DRW_Variant* group,
+                                             int code,
+                                             std::int32_t& value) {
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::INTEGER
+                        || group->i_val()
+                            < std::numeric_limits<std::int32_t>::min()
+                        || group->i_val()
+                            > std::numeric_limits<std::int32_t>::max())
+                        return false;
+                    value = static_cast<std::int32_t>(group->i_val());
+                    return true;
+                };
+                const auto markerGroup = [](const DRW_Variant* group,
+                                            std::string_view value) {
+                    if (group == nullptr || group->code() != 100
+                        || group->type() != DRW_Variant::STRING)
+                        return false;
+                    const char* marker = group->c_str();
+                    return marker != nullptr && std::string_view(marker) == value;
+                };
+                std::int32_t nodeId = 0;
+                std::int32_t evalMajor = 0;
+                std::int32_t evalMinor = 0;
+                std::int32_t elementMajor = 0;
+                std::int32_t elementMinor = 0;
+                std::int32_t eed1071 = 0;
+                std::int32_t grip91 = 0;
+                std::int32_t grip92 = 0;
+                std::int32_t cycling = 0;
+                std::int32_t weight = 0;
+                const DRW_Variant* elementName = body[5];
+                const DRW_Variant* x = body[12];
+                const DRW_Variant* y = body[13];
+                const DRW_Variant* z = body[14];
+                completeBody = completeBody && inBody
+                    && bodyCount == body.size()
+                    && markerGroup(body[0], "AcDbEvalExpr")
+                    && integerGroup(body[1], 90, nodeId)
+                    && integerGroup(body[2], 98, evalMajor)
+                    && integerGroup(body[3], 99, evalMinor)
+                    && markerGroup(body[4], "AcDbBlockElement")
+                    && elementName != nullptr && elementName->code() == 300
+                    && elementName->type() == DRW_Variant::STRING
+                    && elementName->c_str() != nullptr
+                    && std::string_view(elementName->c_str()) == "Grip"
+                    && integerGroup(body[6], 98, elementMajor)
+                    && integerGroup(body[7], 99, elementMinor)
+                    && integerGroup(body[8], 1071, eed1071)
+                    && markerGroup(body[9], "AcDbBlockGrip")
+                    && integerGroup(body[10], 91, grip91)
+                    && integerGroup(body[11], 92, grip92)
+                    && x != nullptr && x->code() == 1010
+                    && x->type() == DRW_Variant::DOUBLE
+                    && std::isfinite(x->d_val())
+                    && y != nullptr && y->code() == 1020
+                    && y->type() == DRW_Variant::DOUBLE
+                    && std::isfinite(y->d_val())
+                    && z != nullptr && z->code() == 1030
+                    && z->type() == DRW_Variant::DOUBLE
+                    && std::isfinite(z->d_val())
+                    && integerGroup(body[15], 280, cycling)
+                    && integerGroup(body[16], 93, weight)
+                    && markerGroup(body[17], "AcDbBlockVisibilityGrip")
+                    && nodeId >= 0 && evalMajor == 33 && evalMinor == 29
+                    && elementMajor == 33 && elementMinor == 29
+                    && eed1071 == 0 && grip91 == 18 && grip92 == 19
+                    && cycling == 0 && weight == -1
+                    && x->d_val() == 0.0 && y->d_val() == 0.0
+                    && z->d_val() == 0.0;
+                if (completeBody) {
+                    try {
+                        data.m_nodeId = static_cast<std::uint32_t>(nodeId);
+                        data.m_major = static_cast<std::uint32_t>(evalMajor);
+                        data.m_minor = static_cast<std::uint32_t>(evalMinor);
+                        data.m_valueCode = -9999;
+                        data.m_evalExprParsed = true;
+                        data.m_elementName = "Grip";
+                        data.m_elementMajor =
+                            static_cast<std::uint32_t>(elementMajor);
+                        data.m_elementMinor =
+                            static_cast<std::uint32_t>(elementMinor);
+                        data.m_eed1071 = eed1071;
+                        data.m_gripValue91 = grip91;
+                        data.m_gripValue92 = grip92;
+                        data.m_gripLocation = DRW_Coord(
+                            x->d_val(), y->d_val(), z->d_val());
+                        data.m_gripValue280 = cycling != 0;
+                        data.m_gripValue93 = weight;
+                        data.m_elementParsed = true;
+                    } catch (...) {
+                        return setError(DRW::BAD_CODE_PARSED);
+                    }
                 }
                 data.m_bodyFullyDecoded = completeBody;
             }
@@ -30697,9 +30825,9 @@ bool dxfRW::writeEvaluationGraph(DRW_EvaluationGraph *ent,
     return true;
 }
 
-// The two dynamic-block records below are admitted as separate, closed
-// profiles. Their DWG ownership links are represented by their enclosing DXF
-// graph/dictionary edges; do not invent body references absent from DXF.
+// These dynamic-block record bodies are serialized only for explicitly
+// profiled classes. The higher-level adapter separately validates DWG
+// ownership and graph closure; do not invent body references absent from DXF.
 bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
     static constexpr char purgeRecordName[] =
         "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION";
@@ -30708,6 +30836,8 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
     static constexpr char gripRecordName[] =
         "BLOCKGRIPLOCATIONCOMPONENT";
     static constexpr char gripSubclassName[] = "AcDbBlockGripExpr";
+    static constexpr char visibilityGripRecordName[] =
+        "BLOCKVISIBILITYGRIP";
     if (!preflightTableEntry(ent) || ent == nullptr || writer == nullptr
         || version < DRW::AC1024
         || ent->handle == 0 || ent->handle == DRW::NoHandle
@@ -30736,7 +30866,28 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         && std::isfinite(ent->m_valueDouble) && ent->m_valueHandle == 0
         && ent->m_gripType == 16 && !ent->m_gripExpr.empty()
         && ent->reactorHandles.empty();
-    if (!purgePreventer && !gripLocation)
+    const bool visibilityGrip = ent->m_kind
+            == DRW_DynamicBlockObject::Kind::Grip
+        && ent->m_recordName == visibilityGripRecordName
+        && version == DRW::AC1024 && ent->m_bodyFullyDecoded
+        && ent->m_evalExprParsed && ent->m_nodeId == 17u
+        && ent->m_parentId == DRW::NoHandle
+        && ent->m_major == 29u && ent->m_minor == 2u
+        && ent->m_valueCode == -9999 && !ent->m_hasValueDouble
+        && ent->m_valueHandle == 0
+        && ent->m_elementParsed && ent->m_elementName == "Grip"
+        && ent->m_elementMajor == 29u && ent->m_elementMinor == 2u
+        && ent->m_eed1071 == 0
+        && ent->m_gripValue91 == 18 && ent->m_gripValue92 == 19
+        && std::isfinite(ent->m_gripLocation.x)
+        && std::isfinite(ent->m_gripLocation.y)
+        && std::isfinite(ent->m_gripLocation.z)
+        && ent->m_gripLocation.x == 0.0
+        && ent->m_gripLocation.y == 0.0
+        && ent->m_gripLocation.z == 0.0
+        && !ent->m_gripValue280 && ent->m_gripValue93 == -1
+        && ent->reactorHandles.empty();
+    if (!purgePreventer && !gripLocation && !visibilityGrip)
         return failDxfWrite();
 
     RecordStateScope state(*this, ent);
@@ -30758,7 +30909,7 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         written = writer->writeString(100, purgeSubclassName)
             && writer->writeInt16(70,
                 static_cast<std::int16_t>(ent->m_purgeFlag));
-    } else if (written) {
+    } else if (written && gripLocation) {
         written = writer->writeString(100, "AcDbEvalExpr")
             && writer->writeInt32(90,
                 static_cast<std::int32_t>(ent->m_nodeId))
@@ -30772,6 +30923,29 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
             && writer->writeString(100, gripSubclassName)
             && writer->writeInt32(91, ent->m_gripType)
             && writer->writeUtf8String(300, ent->m_gripExpr);
+    } else if (written) {
+        written = writer->writeString(100, "AcDbEvalExpr")
+            && writer->writeInt32(90,
+                static_cast<std::int32_t>(ent->m_nodeId))
+            // AC1024 stores both source class versions as 29/2. The DXF
+            // schema writes the later-version identifiers 33/29.
+            && writer->writeInt32(98, 33)
+            && writer->writeInt32(99, 29)
+            && writer->writeString(100, "AcDbBlockElement")
+            && writer->writeUtf8String(300, ent->m_elementName)
+            && writer->writeInt32(98, 33)
+            && writer->writeInt32(99, 29)
+            && writer->writeInt32(1071, ent->m_eed1071)
+            && writer->writeString(100, "AcDbBlockGrip")
+            && writer->writeInt32(91, ent->m_gripValue91)
+            && writer->writeInt32(92, ent->m_gripValue92)
+            && writer->writeDouble(1010, ent->m_gripLocation.x)
+            && writer->writeDouble(1020, ent->m_gripLocation.y)
+            && writer->writeDouble(1030, ent->m_gripLocation.z)
+            && writer->writeInt16(280,
+                static_cast<std::int16_t>(ent->m_gripValue280 ? 1 : 0))
+            && writer->writeInt32(93, ent->m_gripValue93)
+            && writer->writeString(100, "AcDbBlockVisibilityGrip");
     }
     if (written && !ent->extData.empty())
         written = writeExtData(ent->extData);

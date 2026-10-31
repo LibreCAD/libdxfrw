@@ -1431,8 +1431,8 @@ set_tests_properties(dwg2dxf_modeler_dxf_move_dispatch PROPERTIES
     TIMEOUT 10
 )
 
-# The two isolated dynamic-block object profiles round-trip in ASCII and
-# Binary DXF; other subclasses and incomplete owner graphs remain fail-closed.
+# PurgePreventer and GripLocation have admitted owner-graph routes. Visibility
+# Grip has a separate record-body profile; incomplete owner graphs stay refused.
 add_test(
     NAME dwg2dxf_dynamic_block_purge_preventer
     COMMAND libdxfrw_dwg2dxf_adapter_tests --dynamic-block-purge-preventer
@@ -1447,6 +1447,15 @@ add_test(
     COMMAND libdxfrw_dwg2dxf_adapter_tests --dynamic-block-grip-location
 )
 set_tests_properties(dwg2dxf_dynamic_block_grip_location PROPERTIES
+    LABELS "fast;dxf;adapter;dynamic-block"
+    TIMEOUT 30
+)
+
+add_test(
+    NAME dwg2dxf_dynamic_block_visibility_grip
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --dynamic-block-visibility-grip
+)
+set_tests_properties(dwg2dxf_dynamic_block_visibility_grip PROPERTIES
     LABELS "fast;dxf;adapter;dynamic-block"
     TIMEOUT 30
 )

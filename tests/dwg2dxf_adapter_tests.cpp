@@ -8479,6 +8479,271 @@ bool dynamicBlockGripLocationOutputProfile() {
     return true;
 }
 
+bool readDxfDynamicBlockVisibilityGripWireGroups(
+        const std::filesystem::path& path, bool binary,
+        std::vector<std::pair<int, std::string>>& groups) {
+    std::ifstream stream(path, std::ios::binary);
+    if (!stream)
+        return false;
+    if (binary)
+        stream.seekg(22);
+    if (!stream)
+        return false;
+    std::unique_ptr<dxfReader> reader = binary
+        ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
+        : std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+    bool inObject = false;
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            if (inObject)
+                return !groups.empty() && !stream.bad();
+            inObject = reader->getString() == "BLOCKVISIBILITYGRIP";
+            continue;
+        }
+        if (!inObject || code == 5 || code == 330)
+            continue;
+        switch (code) {
+        case 100:
+        case 300:
+            groups.emplace_back(code, reader->getString());
+            break;
+        case 90:
+        case 98:
+        case 99:
+        case 1071:
+        case 91:
+        case 92:
+        case 280:
+        case 93:
+            groups.emplace_back(code, std::to_string(reader->getInt32()));
+            break;
+        case 1010:
+        case 1020:
+        case 1030:
+            groups.emplace_back(code, std::to_string(reader->getDouble()));
+            break;
+        default:
+            return false;
+        }
+    }
+    return inObject && !groups.empty() && !stream.bad();
+}
+
+bool dynamicBlockVisibilityGripRecordOutputProfile() {
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    class RecordAuthor final : public dx_iface {
+    public:
+        RecordAuthor() : object("BLOCKVISIBILITYGRIP") {}
+
+        void writeHeader(DRW_Header& header) override {
+            header.vars.clear();
+        }
+
+        void writeObjects() override {
+            wrote = dxfW != nullptr
+                && dxfW->writeDynamicBlockObject(&object);
+        }
+
+        DRW_DynamicBlockObject object;
+        bool wrote{false};
+    };
+    const auto populate = [](RecordAuthor& author, dx_data& data) {
+        author.cData = &data;
+        author.object.handle = 0xE803u;
+        author.object.parentHandle = 0xE802u;
+        author.object.m_kind = DRW_DynamicBlockObject::Kind::Grip;
+        author.object.m_bodyFullyDecoded = true;
+        author.object.m_evalExprParsed = true;
+        author.object.m_parentId = DRW::NoHandle;
+        author.object.m_major = 29u;
+        author.object.m_minor = 2u;
+        author.object.m_valueCode = -9999;
+        author.object.m_nodeId = 17u;
+        author.object.m_elementParsed = true;
+        author.object.m_elementName = "Grip";
+        author.object.m_elementMajor = 29u;
+        author.object.m_elementMinor = 2u;
+        author.object.m_eed1071 = 0;
+        author.object.m_gripValue91 = 18;
+        author.object.m_gripValue92 = 19;
+        author.object.m_gripLocation = DRW_Coord(0.0, 0.0, 0.0);
+        author.object.m_gripValue280 = false;
+        author.object.m_gripValue93 = -1;
+    };
+    const std::vector<std::pair<int, std::string>> expectedWire{
+        {100, "AcDbEvalExpr"}, {90, "17"}, {98, "33"}, {99, "29"},
+        {100, "AcDbBlockElement"}, {300, "Grip"}, {98, "33"},
+        {99, "29"}, {1071, "0"}, {100, "AcDbBlockGrip"},
+        {91, "18"}, {92, "19"}, {1010, "0.000000"},
+        {1020, "0.000000"}, {1030, "0.000000"}, {280, "0"},
+        {93, "-1"}, {100, "AcDbBlockVisibilityGrip"}};
+
+    for (const bool binary : {false, true}) {
+        const std::string encoding = binary ? "binary" : "ascii";
+        const std::filesystem::path output =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-dynamic-visibility-grip-" + encoding + "-"
+               + std::to_string(nonce) + ".dxf");
+        dx_data data;
+        RecordAuthor author;
+        populate(author, data);
+        dxfRW writer(output.string().c_str());
+        author.dxfW = &writer;
+        if (!writer.write(&author, DRW::AC1024, binary) || !author.wrote) {
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+            return fail("isolated BLOCKVISIBILITYGRIP record did not write: "
+                        + encoding);
+        }
+        std::vector<std::pair<int, std::string>> wireGroups;
+        dx_data readback;
+        dx_iface rereader;
+        const bool exactWire =
+            readDxfDynamicBlockVisibilityGripWireGroups(
+                output, binary, wireGroups)
+            && wireGroups == expectedWire;
+        const bool imported = rereader.fileImport(
+            output.string(), &readback, false);
+        bool malformedBodyRefused = true;
+        if (!binary) {
+            const std::filesystem::path alteredPath =
+                std::filesystem::temp_directory_path()
+                / ("libdxfrw-dynamic-visibility-grip-altered-"
+                   + std::to_string(nonce) + ".dxf");
+            std::ifstream input(output, std::ios::binary);
+            std::vector<std::string> lines;
+            std::string line;
+            while (std::getline(input, line))
+                lines.push_back(line);
+            bool inGripObject = false;
+            bool changedLink = false;
+            for (std::size_t index = 0; index + 1u < lines.size();
+                 index += 2u) {
+                int code = -1;
+                try {
+                    code = std::stoi(lines[index]);
+                } catch (...) {
+                    break;
+                }
+                if (code == 0) {
+                    inGripObject = lines[index + 1u]
+                        == "BLOCKVISIBILITYGRIP";
+                } else if (inGripObject && code == 92) {
+                    lines[index + 1u] = "20";
+                    changedLink = true;
+                    break;
+                }
+            }
+            bool wroteAltered = false;
+            if (changedLink) {
+                std::ofstream altered(alteredPath, std::ios::binary);
+                if (altered) {
+                    for (const std::string& value : lines)
+                        altered << value << '\n';
+                    wroteAltered = static_cast<bool>(altered);
+                }
+            }
+            dx_data alteredReadback;
+            dx_iface alteredReader;
+            malformedBodyRefused = wroteAltered
+                && alteredReader.fileImport(alteredPath.string(),
+                                             &alteredReadback, false)
+                && alteredReadback.dynamicBlockObjects.size() == 1u
+                && !alteredReadback.dynamicBlockObjects.front()
+                        .m_bodyFullyDecoded;
+            std::error_code alteredIgnored;
+            std::filesystem::remove(alteredPath, alteredIgnored);
+        }
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+        if (!exactWire || !imported || !malformedBodyRefused
+            || readback.dynamicBlockObjects.size() != 1u) {
+            return fail("BLOCKVISIBILITYGRIP exact " + encoding
+                        + " output/readback body changed");
+        }
+        const DRW_DynamicBlockObject& result =
+            readback.dynamicBlockObjects.front();
+        if (result.m_kind != DRW_DynamicBlockObject::Kind::Grip
+            || result.m_recordName != "BLOCKVISIBILITYGRIP"
+            || result.handle != 0xE803u || result.parentHandle != 0xE802u
+            || !result.m_bodyFullyDecoded || !result.m_evalExprParsed
+            || result.m_nodeId != 17u || result.m_major != 33u
+            || result.m_minor != 29u || result.m_valueCode != -9999
+            || result.m_hasValueDouble || !result.m_elementParsed
+            || result.m_elementName != "Grip"
+            || result.m_elementMajor != 33u || result.m_elementMinor != 29u
+            || result.m_eed1071 != 0 || result.m_gripValue91 != 18
+            || result.m_gripValue92 != 19
+            || result.m_gripLocation.x != 0.0
+            || result.m_gripLocation.y != 0.0
+            || result.m_gripLocation.z != 0.0
+            || result.m_gripValue280 || result.m_gripValue93 != -1) {
+            return fail("BLOCKVISIBILITYGRIP typed " + encoding
+                        + " readback changed a source-bound field");
+        }
+    }
+
+    const std::filesystem::path sentinelPath =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-dynamic-visibility-grip-retry-"
+           + std::to_string(nonce) + ".dxf");
+    const std::string sentinel = "existing destination survives\n";
+    { std::ofstream existing(sentinelPath, std::ios::binary); existing << sentinel; }
+    dx_data data;
+    RecordAuthor author;
+    populate(author, data);
+    dxfRW writer(sentinelPath.string().c_str());
+    author.dxfW = &writer;
+    author.object.m_gripValue92 = 20;
+    if (writer.write(&author, DRW::AC1024, false) || author.wrote) {
+        std::error_code ignored;
+        std::filesystem::remove(sentinelPath, ignored);
+        return fail("unsupported BLOCKVISIBILITYGRIP node link was emitted");
+    }
+    {
+        std::ifstream existing(sentinelPath, std::ios::binary);
+        const std::string preserved{
+            std::istreambuf_iterator<char>(existing),
+            std::istreambuf_iterator<char>()};
+        if (preserved != sentinel) {
+            std::error_code ignored;
+            std::filesystem::remove(sentinelPath, ignored);
+            return fail("invalid BLOCKVISIBILITYGRIP replaced destination");
+        }
+    }
+    author.object.m_gripValue92 = 19;
+    if (!writer.write(&author, DRW::AC1024, false) || !author.wrote) {
+        std::error_code ignored;
+        std::filesystem::remove(sentinelPath, ignored);
+        return fail("corrected BLOCKVISIBILITYGRIP failed same-writer retry");
+    }
+    std::error_code ignored;
+    std::filesystem::remove(sentinelPath, ignored);
+
+    dx_data incompleteGraph;
+    incompleteGraph.sourceFormat = dx_source_format::DWG;
+    incompleteGraph.sourceVersion = DRW::AC1024;
+    dx_iface graphWriter;
+    graphWriter.cData = &incompleteGraph;
+    graphWriter.currentBlock = incompleteGraph.mBlock;
+    graphWriter.addDynamicBlockObject(author.object);
+    const std::filesystem::path incompleteGraphPath =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-dynamic-visibility-grip-incomplete-graph-"
+           + std::to_string(nonce) + ".dxf");
+    const bool incompleteGraphRefused = !graphWriter.fileExport(
+        incompleteGraphPath.string(), DRW::AC1024, false,
+        &incompleteGraph, false)
+        && !std::filesystem::exists(incompleteGraphPath);
+    std::filesystem::remove(incompleteGraphPath, ignored);
+    if (!incompleteGraphRefused)
+        return fail("BLOCKVISIBILITYGRIP record bypassed owner-graph refusal");
+    return true;
+}
+
 bool objectContextDataLossRefusesExport() {
     const auto nonce = std::chrono::steady_clock::now()
                            .time_since_epoch()
@@ -48788,6 +49053,9 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--dynamic-block-grip-location")
         return dynamicBlockGripLocationOutputProfile() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1]) == "--dynamic-block-visibility-grip")
+        return dynamicBlockVisibilityGripRecordOutputProfile() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--object-context-data-loss-refusal")
         return objectContextDataLossRefusesExport() ? 0 : 1;
