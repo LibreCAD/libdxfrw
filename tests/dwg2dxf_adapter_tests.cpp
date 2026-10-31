@@ -20102,6 +20102,11 @@ bool typedDwgR24TableStyleDxfRoundTrip(bool binary, std::uint64_t nonce) {
         std::filesystem::temp_directory_path()
         / ("libdxfrw-typed-r24-dwg-tablestyle-" + std::to_string(nonce)
            + (binary ? "-binary.dxf" : "-ascii.dxf"));
+    const std::filesystem::path malformedOutput =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-typed-r24-dwg-tablestyle-malformed-"
+           + std::to_string(nonce)
+           + (binary ? "-binary.dxf" : "-ascii.dxf"));
     const std::string sentinel = "existing R24 TABLESTYLE destination\n";
     dx_data data;
     populateR24DwgTableStyleGraph(data);
@@ -20330,6 +20335,67 @@ bool typedDwgR24TableStyleDxfRoundTrip(bool binary, std::uint64_t nonce) {
         || contentFontHandles
             != std::vector<std::uint32_t>(3u, emittedFontHandle))
         return fail("R24 TABLESTYLE text-style references lost emitted identity");
+
+    if (std::filesystem::exists(malformedOutput))
+        return fail("R24 TABLESTYLE malformed-control path already exists");
+    if (!writer.fileExport(malformedOutput.string(), DRW::AC1024,
+                           binary, &data, false)) {
+        std::error_code ignored;
+        std::filesystem::remove(malformedOutput, ignored);
+        return fail("R24 TABLESTYLE malformed-control source export failed");
+    }
+    std::string malformedBytes;
+    {
+        std::ifstream input(malformedOutput, std::ios::binary);
+        malformedBytes.assign(std::istreambuf_iterator<char>(input),
+                              std::istreambuf_iterator<char>());
+    }
+    const std::string expectedMarker = "CONTENTFORMAT_BEGIN";
+    const std::string malformedMarker = "CONTENTFORMAT_BEG1N";
+    const std::size_t markerOffset = malformedBytes.find(expectedMarker);
+    if (markerOffset == std::string::npos
+        || malformedBytes.find(expectedMarker,
+                               markerOffset + expectedMarker.size())
+            == std::string::npos) {
+        std::error_code ignored;
+        std::filesystem::remove(malformedOutput, ignored);
+        return fail("R24 TABLESTYLE malformed-control marker was not found");
+    }
+    malformedBytes.replace(markerOffset, expectedMarker.size(),
+                           malformedMarker);
+    {
+        std::ofstream outputStream(malformedOutput,
+                                   std::ios::binary | std::ios::trunc);
+        outputStream.write(malformedBytes.data(),
+                           static_cast<std::streamsize>(malformedBytes.size()));
+        if (!outputStream) {
+            std::error_code ignored;
+            std::filesystem::remove(malformedOutput, ignored);
+            return fail("R24 TABLESTYLE malformed-control write failed");
+        }
+    }
+    dx_data malformedReadback;
+    dx_iface malformedReader;
+    const bool malformedImported = malformedReader.fileImport(
+        malformedOutput.string(), &malformedReadback, false);
+    {
+        std::error_code ignored;
+        std::filesystem::remove(malformedOutput, ignored);
+    }
+    const bool rawMalformedMarkerRetained =
+        malformedReadback.rawTableStyles.size() == 1u
+        && std::any_of(malformedReadback.rawTableStyles.front().groups.begin(),
+                       malformedReadback.rawTableStyles.front().groups.end(),
+            [&malformedMarker](const DRW_Variant& group) {
+                return group.code() == 1
+                    && group.type() == DRW_Variant::STRING
+                    && group.c_str() != nullptr
+                    && std::string(group.c_str()) == malformedMarker;
+            });
+    if (!malformedImported || malformedReadback.tables.size() != 1u
+        || !malformedReadback.tableStyles.empty()
+        || !rawMalformedMarkerRetained)
+        return fail("R24 TABLESTYLE malformed nested markers were not retained raw-only");
     return true;
 }
 
