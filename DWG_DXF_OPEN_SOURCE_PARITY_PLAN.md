@@ -61,13 +61,13 @@ action rather than evidence that earlier packets made no progress.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next packet — close the 19-identity source/output gap.** Reconcile each
-listed callback with the retained standard/opaque source records, source owner
-and dependency proofs, and existing serializer route. Select the smallest
+**P4 next packet — close the remaining 15-identity source/output gap.**
+Reconcile each listed callback with the retained standard/opaque source records,
+source owner and dependency proofs, and existing serializer route. Select the smallest
 source-backed family whose emitted fields and roles can be inspected; do not
 qualify a callback from its type/count or from opaque-byte retention alone.
-The current identity census and staged-output evidence are in the
-[`P4 output receipt`](docs/research/p4-ac1024-block-representation-data-staged-output-proof-2026-10-31.json).
+The current identity census is in the
+[`P4 remaining-identity receipt`](docs/research/p4-ac1024-sortents-multitable-output-proof-2026-10-31.json).
 Keep strict refusal until the complete source identity set is covered.
 
 ## P4 — original bodies and complete document closure
@@ -116,12 +116,12 @@ output gates are met.
 **Dynamic-block output profiles:** after the P4 source/output gap closes, finish
 the physical AC1024 `Title_Block-ARCH` graph rooted at BLOCK_RECORD `0x127` by
 binding the source's four EvaluationGraph nodes, three edges, linked
-Grip/GripLocation records, visibility flat/state handle sets, exact
-SORTENTSTABLE pairs and all DICTIONARY/owner/reactor roles to staged output and
-fresh ASCII/Binary readback. Prove atomic refusal/retry for a missing required
-source target. Native dynamic-block semantics and DXF-origin typed/raw replay
-remain separate open qualifications. Qualify other subclasses only when an
-existing source identifies a required profile.
+Grip/GripLocation records, visibility flat/state handle sets and all remaining
+DICTIONARY/owner/reactor roles to staged output and fresh ASCII/Binary readback.
+Prove atomic refusal/retry for a missing required source target. Native
+dynamic-block semantics and DXF-origin typed/raw replay remain separate open
+qualifications. Qualify other subclasses only when an existing source
+identifies a required profile.
 
 **Rendering:** close remaining engine/class-revision/schema and optional-presence
 profiles; active/global/environment and background/live-section relations; and

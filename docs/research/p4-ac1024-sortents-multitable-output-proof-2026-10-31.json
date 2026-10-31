@@ -1,0 +1,185 @@
+{
+  "schema": "libdxfrw-dwg-dxf-evidence-v1",
+  "id": "p4-ac1024-sortents-multitable-output-proof-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 multi-table SORTENTSTABLE staged output proof",
+  "source": {
+    "path": "tests/samples/AC1024/title_block-arch.dwg",
+    "sha256": "59876d9e1fa9f4d64304d6e7e35cbfafa127e0b5363b3afbe6ed48ef3d2e867d",
+    "version": "AC1024",
+    "trackedFixture": false,
+    "note": "Used as a local existing input for diagnosis and evidence. No DWG/DXF fixture was added to Git."
+  },
+  "implementation": {
+    "source": "dwg2dxf/dx_iface.cpp",
+    "sha256": "069aa74b13899f2f3200aa9b33d17711981e5a43d95b133299139d0b81153223",
+    "changes": [
+      "Bind each eligible SORTENTSTABLE source table to its parser-owned membership receipt, resolved class type, record/class identity, owner dictionary and BLOCK_RECORD instead of requiring one record or hard-coding custom class index 517.",
+      "Map model/paper-space and named BLOCK_RECORD owners through the DXF writer's actual output handles.",
+      "Inspect every selected emitted SORTENTSTABLE and owner DICTIONARY body, including exact projected entity/sort pairs, reactor/owner fields and unique emitted identities.",
+      "Index current owner/dictionary/table snapshots before comparison to keep validation bounded and avoid quadratic scans."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests --parallel 4",
+      "result": "PASS with warning-as-error enabled",
+      "dwg2dxfSha256": "0c925c4b33a2890e890f3eb114fe17293fd50b6ccde0c9c67f58612ee3bfd987",
+      "adapterTestSha256": "12c5232253b65d53faffa1eca097f7350d8f98e2b25e79ce6d027be58aca0758"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R 'sortents|nested_network_sortents' --output-on-failure",
+      "result": "PASS 3/3: libdxfrw_sortents_adapter, dwg2dxf_sortents_typed_capture_limits, dwg2dxf_associative_dwg_nested_network_sortents_output"
+    },
+    "strictCompleteConversion": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/title_block-arch.dwg -y -d -v2010 <output.dxf>",
+      "result": "Expected atomic refusal at the document completeness gate after output qualification advanced from 90/109 to 94/109. All four SORTENTSTABLE callbacks (0x00F3, 0x106A, 0x111C, 0x121D) cleared; 15 unrelated identities remain unqualified.",
+      "destinationSentinelPreserved": true,
+      "logSha256": "3a8b21dcc76fd4b3d8f212f467a027ce4ade392f83459e258bab1108a82e3bcc",
+      "supportClaimEffect": "none"
+    },
+    "partialOutputReadback": {
+      "mode": "Explicit --allow-partial-dwg-read; output files are evidence only and do not claim complete conversion.",
+      "ascii": {
+        "sha256": "7d4c62e177870b6914e417655df1757ac436493c3410078da9d033019533a41a",
+        "bytes": 358883
+      },
+      "binary": {
+        "sha256": "4c2146f12faa2890463eb62e3ddf57ff84b0ce6481dccec8718b84614894c5e7",
+        "bytes": 215085
+      },
+      "readerHarness": {
+        "path": "scratch:/private/tmp/sortents_readback.cpp",
+        "sha256": "a653dd2f8a72283052981b3ff4f1db92ced819282b20aebdb797d4f26d39b3b7",
+        "binarySha256": "b36b7eca852eb02b90f19e118aa5d5c5a6869484d03fb3d896e2b2fb8525a846"
+      },
+      "result": "Both files freshly imported as DXF and yielded the same four-record semantic projection with closed SORTENTSTABLE to DICTIONARY to BLOCK_RECORD links. The staged writer inspector matched each emitted table body and projected ordered entity/sort pair against its source-backed emission. Output table/pair counts: 0x121D/117, 0x111C/117, 0x106A/117, 0x00F3/1.",
+      "semanticProjectionSha256": "15529fc7b855e8f0a103ea67986d26b1637362a82db629dd91ea77dda0528461"
+    },
+    "sameWriterFailureRetry": {
+      "harness": "scratch:/private/tmp/sortents_same_writer_retry.cpp",
+      "harnessSha256": "247acb7c8878e85fe295cc637677aec8030e2c5a2a1818cc36786def991bd6bd",
+      "binarySha256": "78c56f5bc5f57cb2189477d8a7bd0075ee3485b92e2b2b96e55619fae5124b3d",
+      "result": "PASS. The same dx_iface writer refused RequireComplete, preserved the pre-existing sentinel byte-for-byte, then succeeded on AllowPartial; fresh readback found four typed and four raw SORTENTSTABLE records.",
+      "retryOutputSha256": "7d4c62e177870b6914e417655df1757ac436493c3410078da9d033019533a41a"
+    },
+    "sortEntsRecords": [
+      {
+        "sourceHandle": "0x00F3",
+        "resolvedCustomClassType": 510,
+        "record": "SORTENTSTABLE",
+        "class": "AcDbSortentsTable",
+        "sourcePairs": 0,
+        "outputPairs": 1
+      },
+      {
+        "sourceHandle": "0x106A",
+        "resolvedCustomClassType": 510,
+        "record": "SORTENTSTABLE",
+        "class": "AcDbSortentsTable",
+        "sourcePairs": 25,
+        "outputPairs": 117
+      },
+      {
+        "sourceHandle": "0x111C",
+        "resolvedCustomClassType": 510,
+        "record": "SORTENTSTABLE",
+        "class": "AcDbSortentsTable",
+        "sourcePairs": 25,
+        "outputPairs": 117
+      },
+      {
+        "sourceHandle": "0x121D",
+        "resolvedCustomClassType": 510,
+        "record": "SORTENTSTABLE",
+        "class": "AcDbSortentsTable",
+        "sourcePairs": 25,
+        "outputPairs": 117
+      }
+    ]
+  },
+  "remainingUnqualifiedIdentities": [
+    {
+      "handle": "0x000A",
+      "type": 82
+    },
+    {
+      "handle": "0x000F",
+      "type": 82
+    },
+    {
+      "handle": "0x0052",
+      "type": 34
+    },
+    {
+      "handle": "0x0096",
+      "type": 506,
+      "record": "TABLESTYLE",
+      "class": "AcDbTableStyle"
+    },
+    {
+      "handle": "0x00F2",
+      "type": 42,
+      "standardPayloadMatched": true
+    },
+    {
+      "handle": "0x0107",
+      "type": 42,
+      "standardPayloadMatched": true
+    },
+    {
+      "handle": "0x1069",
+      "type": 42,
+      "standardPayloadMatched": true
+    },
+    {
+      "handle": "0x1116",
+      "type": 42,
+      "standardPayloadMatched": true
+    },
+    {
+      "handle": "0x1117",
+      "sourceFrame": "missing"
+    },
+    {
+      "handle": "0x1118",
+      "type": 513,
+      "record": "BLOCKVISIBILITYPARAMETER",
+      "class": "AcDbBlockVisibilityParameter"
+    },
+    {
+      "handle": "0x1119",
+      "type": 514,
+      "record": "BLOCKVISIBILITYGRIP",
+      "class": "AcDbBlockVisibilityGrip"
+    },
+    {
+      "handle": "0x111A",
+      "type": 515,
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "class": "AcDbBlockGripExpr"
+    },
+    {
+      "handle": "0x111B",
+      "type": 515,
+      "record": "BLOCKGRIPLOCATIONCOMPONENT",
+      "class": "AcDbBlockGripExpr"
+    },
+    {
+      "handle": "0x1122",
+      "type": 519,
+      "record": "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION",
+      "class": "AcDbDynamicBlockPurgePreventer"
+    },
+    {
+      "handle": "0x121C",
+      "type": 42,
+      "standardPayloadMatched": true
+    }
+  ],
+  "supportClaimEffect": "none",
+  "planImpact": {
+    "completedLocalActionRemoved": "Source-bound staged output inspection and fresh ASCII/Binary readback for the four AC1024 SORTENTSTABLE table/owner-dictionary pairs in this input.",
+    "next": "Reconcile and close the remaining 15 callback identities without weakening strict document refusal."
+  }
+}

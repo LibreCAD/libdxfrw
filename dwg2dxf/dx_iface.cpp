@@ -34616,14 +34616,13 @@ bool dx_iface::hasUnchangedDwgSortEntsOutputSources() const noexcept {
         || cData->sourceVersion != DRW::AC1024
         || !cData->dwgReadOutcome.attempted
         || cData->sortEntsCaptureFailed
-        || cData->sortEntsTables.size() != 1u
-        || cData->dwgSortEntsMemberships.size() != 1u
-        || m_sortEmissionTables.size() != 1u
-        || m_dwgSortEntsOutputSources.size() != 1u)
+        || cData->sortEntsTables.size() != m_sortEmissionTables.size()
+        || cData->sortEntsTables.size()
+            != cData->dwgSortEntsMemberships.size()
+        || m_dwgSortEntsOutputSources.size()
+            > cData->sortEntsTables.size())
         return false;
     try {
-        const auto& item = *m_dwgSortEntsOutputSources.begin();
-        const DwgSortEntsOutputSource& source = item.second;
         const auto tableEqual = [](const DRW_SortEntsTable& left,
                                    const DRW_SortEntsTable& right) {
             return standardDwgCommonEqual(left, right, DRW::AC1024)
@@ -34631,87 +34630,125 @@ bool dx_iface::hasUnchangedDwgSortEntsOutputSources() const noexcept {
                 && left.m_entityHandles == right.m_entityHandles
                 && left.m_sortHandles == right.m_sortHandles;
         };
-        const DRW_SortEntsTable& current = cData->sortEntsTables.front();
-        const DRW_DwgSortEntsMembership& membership =
-            cData->dwgSortEntsMemberships.front();
-        const DRW_SortEntsTable& currentEmission =
-            m_sortEmissionTables.front();
-        const DRW_Dictionary* currentDictionary = nullptr;
+        std::unordered_map<std::uint32_t, const DRW_SortEntsTable*> tables;
+        std::unordered_map<std::uint32_t, const DRW_DwgSortEntsMembership*>
+            memberships;
+        std::unordered_map<std::uint32_t, const DRW_SortEntsTable*> emissions;
+        std::unordered_map<std::uint32_t, const DRW_Dictionary*> dictionaries;
+        std::unordered_map<std::uint32_t, const DRW_Block_Record*> blocks;
+        tables.reserve(cData->sortEntsTables.size());
+        memberships.reserve(cData->dwgSortEntsMemberships.size());
+        emissions.reserve(m_sortEmissionTables.size());
+        dictionaries.reserve(cData->dictionaries.size());
+        blocks.reserve(cData->blockRecords.size());
+        for (const DRW_SortEntsTable& table : cData->sortEntsTables)
+            if (!tables.emplace(table.handle, &table).second)
+                return false;
+        for (const DRW_DwgSortEntsMembership& membership :
+             cData->dwgSortEntsMemberships)
+            if (!memberships.emplace(membership.m_tableHandle, &membership)
+                     .second)
+                return false;
+        for (const DRW_SortEntsTable& emission : m_sortEmissionTables)
+            if (!emissions.emplace(emission.handle, &emission).second)
+                return false;
         for (const DRW_Dictionary& dictionary : cData->dictionaries)
-            if (dictionary.handle == source.ownerDictionary.handle) {
-                if (currentDictionary != nullptr)
-                    return false;
-                currentDictionary = &dictionary;
-            }
-        const DRW_Block_Record* currentBlock = nullptr;
+            if (!dictionaries.emplace(dictionary.handle, &dictionary).second)
+                return false;
         for (const DRW_Block_Record& block : cData->blockRecords)
-            if (block.handle == source.ownerBlock.handle) {
-                if (currentBlock != nullptr)
+            if (!blocks.emplace(block.handle, &block).second)
+                return false;
+
+        for (const auto& item : m_dwgSortEntsOutputSources) {
+            const DwgSortEntsOutputSource& source = item.second;
+            const auto currentIt = tables.find(source.table.handle);
+            const auto membershipIt = memberships.find(source.table.handle);
+            const auto emissionIt = emissions.find(source.table.handle);
+            if (item.first != source.table.handle || currentIt == tables.end()
+                || membershipIt == memberships.end()
+                || emissionIt == emissions.end())
+                return false;
+            const DRW_SortEntsTable& current = *currentIt->second;
+            const DRW_DwgSortEntsMembership& membership =
+                *membershipIt->second;
+            const DRW_SortEntsTable& currentEmission = *emissionIt->second;
+            const auto currentDictionaryIt =
+                dictionaries.find(source.ownerDictionary.handle);
+            const auto currentBlockIt = blocks.find(source.ownerBlock.handle);
+            const DRW_Dictionary* currentDictionary =
+                currentDictionaryIt == dictionaries.end()
+                    ? nullptr : currentDictionaryIt->second;
+            const DRW_Block_Record* currentBlock =
+                currentBlockIt == blocks.end() ? nullptr
+                                               : currentBlockIt->second;
+            if (current.handle != source.table.handle
+                || !tableEqual(source.table, current)
+                || !tableEqual(source.emission, currentEmission)
+                || membership.m_version != source.membership.m_version
+                || membership.m_tableHandle != source.membership.m_tableHandle
+                || membership.m_sourceOffset
+                    != source.membership.m_sourceOffset
+                || membership.m_sourceMapOrdinal
+                    != source.membership.m_sourceMapOrdinal
+                || membership.m_sourceOffsetSpace
+                    != source.membership.m_sourceOffsetSpace
+                || membership.m_hasSourceLocation
+                    != source.membership.m_hasSourceLocation
+                || membership.m_complete != source.membership.m_complete
+                || membership.m_encodedType != source.membership.m_encodedType
+                || membership.m_resolvedType
+                    != source.membership.m_resolvedType
+                || membership.m_recordName != source.membership.m_recordName
+                || membership.m_className != source.membership.m_className
+                || membership.m_classStreamOrdinal
+                    != source.membership.m_classStreamOrdinal
+                || membership.m_blockOwnerHandle
+                    != source.membership.m_blockOwnerHandle
+                || membership.m_entries.size()
+                    != source.membership.m_entries.size()
+                || currentDictionary == nullptr
+                || !standardDwgModelsEqual(source.ownerDictionary,
+                    *currentDictionary, DRW::AC1024, dwgObjType::DICTIONARY)
+                || currentBlock == nullptr
+                || !standardDwgCommonEqual(source.ownerBlock, *currentBlock,
+                                            DRW::AC1024)
+                || source.ownerBlock.xDictHandle
+                    != currentBlock->xDictHandle
+                || source.ownerBlock.handle != source.table.m_blockOwnerHandle
+                || source.ownerDictionary.handle != source.table.parentHandle
+                || source.ownerDictionary.parentHandle
+                    != source.ownerBlock.handle
+                || source.ownerBlock.xDictHandle
+                    != source.ownerDictionary.handle)
+                return false;
+            for (std::size_t index = 0u;
+                 index < source.membership.m_entries.size(); ++index) {
+                const auto& left = source.membership.m_entries[index];
+                const auto& right = membership.m_entries[index];
+                if (left.m_entityHandle != right.m_entityHandle
+                    || left.m_sortHandle != right.m_sortHandle
+                    || left.m_ordinal != right.m_ordinal
+                    || left.m_sortFallsBackToEntity
+                        != right.m_sortFallsBackToEntity)
                     return false;
-                currentBlock = &block;
             }
-        if (item.first != source.table.handle
-            || current.handle != source.table.handle
-            || !tableEqual(source.table, current)
-            || !tableEqual(source.emission, currentEmission)
-            || membership.m_version != source.membership.m_version
-            || membership.m_tableHandle != source.membership.m_tableHandle
-            || membership.m_sourceOffset != source.membership.m_sourceOffset
-            || membership.m_sourceMapOrdinal
-                != source.membership.m_sourceMapOrdinal
-            || membership.m_sourceOffsetSpace
-                != source.membership.m_sourceOffsetSpace
-            || membership.m_hasSourceLocation
-                != source.membership.m_hasSourceLocation
-            || membership.m_complete != source.membership.m_complete
-            || membership.m_encodedType != source.membership.m_encodedType
-            || membership.m_resolvedType != source.membership.m_resolvedType
-            || membership.m_recordName != source.membership.m_recordName
-            || membership.m_className != source.membership.m_className
-            || membership.m_classStreamOrdinal
-                != source.membership.m_classStreamOrdinal
-            || membership.m_blockOwnerHandle
-                != source.membership.m_blockOwnerHandle
-            || membership.m_entries.size()
-                != source.membership.m_entries.size()
-            || currentDictionary == nullptr
-            || !standardDwgModelsEqual(source.ownerDictionary,
-                *currentDictionary, DRW::AC1024, dwgObjType::DICTIONARY)
-            || currentBlock == nullptr
-            || !standardDwgCommonEqual(source.ownerBlock, *currentBlock,
-                                        DRW::AC1024)
-            || source.ownerBlock.xDictHandle
-                != currentBlock->xDictHandle
-            || source.ownerBlock.handle != source.table.m_blockOwnerHandle
-            || source.ownerDictionary.handle != source.table.parentHandle
-            || source.ownerDictionary.parentHandle
-                != source.ownerBlock.handle
-            || source.ownerBlock.xDictHandle
-                != source.ownerDictionary.handle)
-            return false;
-        for (std::size_t index = 0u;
-             index < source.membership.m_entries.size(); ++index) {
-            const auto& left = source.membership.m_entries[index];
-            const auto& right = membership.m_entries[index];
-            if (left.m_entityHandle != right.m_entityHandle
-                || left.m_sortHandle != right.m_sortHandle
-                || left.m_ordinal != right.m_ordinal
-                || left.m_sortFallsBackToEntity
-                    != right.m_sortFallsBackToEntity)
+            const auto frame = cData->m_opaqueDwgSourceFrames.find(
+                {cData->importGeneration, source.table.handle});
+            if (source.objectType != source.membership.m_resolvedType
+                || !source.membership.m_classStreamOrdinal.has_value()
+                || !asciiIdentifierEquals(source.recordName,
+                                          "SORTENTSTABLE")
+                || source.className != "AcDbSortentsTable"
+                || frame == cData->m_opaqueDwgSourceFrames.end()
+                || frame->second.m_handle != source.table.handle
+                || frame->second.m_objectType != source.objectType
+                || frame->second.m_version != DRW::AC1024
+                || !asciiIdentifierEquals(frame->second.m_recordName,
+                                          source.recordName)
+                || frame->second.m_className != source.className)
                 return false;
         }
-        const auto frame = cData->m_opaqueDwgSourceFrames.find(
-            {cData->importGeneration, source.table.handle});
-        return source.objectType == 517
-            && asciiIdentifierEquals(source.recordName, "SORTENTSTABLE")
-            && source.className == "AcDbSortentsTable"
-            && frame != cData->m_opaqueDwgSourceFrames.end()
-            && frame->second.m_handle == source.table.handle
-            && frame->second.m_objectType == source.objectType
-            && frame->second.m_version == DRW::AC1024
-            && asciiIdentifierEquals(frame->second.m_recordName,
-                                     source.recordName)
-            && frame->second.m_className == source.className;
+        return true;
     } catch (...) {
         return false;
     }
@@ -34736,6 +34773,14 @@ bool dx_iface::inspectDwgSortEntsOutput(
                 std::cerr << "SORTENTSTABLE output binding rejected: "
                           << stage << '\n';
             return false;
+        };
+        struct ExpectedOutput {
+            std::uint32_t sourceHandle{0u};
+            std::uint32_t emittedTable{0u};
+            std::uint32_t emittedDictionary{0u};
+            std::uint32_t emittedBlock{0u};
+            DRW_SortEntsTable table;
+            DRW_Dictionary dictionary;
         };
         const auto mapHandle = [this](std::uint32_t source,
                                       std::uint32_t& emitted) {
@@ -34762,137 +34807,216 @@ bool dx_iface::inspectDwgSortEntsOutput(
             }
             return emitted != 0u && emitted != DRW::NoHandle;
         };
-        const auto& item = *m_dwgSortEntsOutputSources.begin();
-        const DwgSortEntsOutputSource& source = item.second;
-        std::uint32_t emittedTable = 0u;
-        std::uint32_t emittedDictionary = 0u;
-        std::uint32_t emittedBlock = 0u;
-        if (!mapHandle(source.table.handle, emittedTable)
-            || !mapHandle(source.table.parentHandle, emittedDictionary)
-            || !mapHandle(source.table.m_blockOwnerHandle, emittedBlock)
-            )
-            return reject("source handle remapping");
-        if (emittedTable == emittedDictionary
-            || emittedTable == emittedBlock
-            || emittedDictionary == emittedBlock
-            || !dxfW->dxfWriteRecordHasIdentity(
-                emittedTable, "SORTENTSTABLE", "OBJECTS")
-            || !dxfW->dxfWriteRecordHasOwner(
-                emittedTable, emittedDictionary)
-            || !dxfW->dxfWriteRecordHasIdentity(
-                emittedDictionary, "DICTIONARY", "OBJECTS")
-            || !dxfW->dxfWriteRecordHasOwner(
-                emittedDictionary, emittedBlock)
-            || !dxfW->dxfWriteRecordHasIdentity(
-                emittedBlock, "BLOCK_RECORD", "TABLES")
-            || dxfW->dxfWriteRecordHandleCount(emittedTable) != 1u
-            || dxfW->dxfWriteRecordHandleCount(emittedDictionary) != 1u
-            || dxfW->dxfWriteRecordHandleCount(emittedBlock) != 1u)
-            return reject("emitted SORTENTSTABLE, DICTIONARY or BLOCK_RECORD identity/owner");
 
-        DRW_SortEntsTable expected = source.emission;
-        if (!mapHandle(expected.handle, expected.handle)
-            || !mapHandle(expected.parentHandle, expected.parentHandle)
-            || !mapHandle(expected.m_blockOwnerHandle,
-                          expected.m_blockOwnerHandle)
-            || expected.handle != emittedTable
-            || expected.parentHandle != emittedDictionary
-            || expected.m_blockOwnerHandle != emittedBlock)
-            return false;
-        for (std::uint32_t& reactor : expected.reactorHandles)
-            if (!mapHandle(reactor, reactor))
-                return false;
-        for (std::uint32_t& handle : expected.m_entityHandles) {
-            handle = dxfW->remapEntityHandle(handle);
-            if (handle == 0u || handle == DRW::NoHandle
-                || dxfW->dxfWriteRecordHandleCount(handle) != 1u
-                || !dxfW->dxfWriteRecordHasOwner(handle, emittedBlock))
-                return false;
-        }
-        expected.setDwgCommonObjectState(0, 0u, false);
-        expected.setDwgCommonLinkTailValidated(false);
-        if (!expected.reactorHandles.empty()) {
-            std::list<DRW_Variant> reactors;
-            reactors.emplace_back(102, UTF8STRING("ACAD_REACTORS"));
-            for (const std::uint32_t handle : expected.reactorHandles)
-                reactors.emplace_back(330,
-                    UTF8STRING(proxyHandleString(handle)));
-            reactors.emplace_back(102, UTF8STRING("}"));
-            expected.appData.push_front(std::move(reactors));
+        const auto mapBlockOwner = [this](
+                const DRW_Block_Record& source,
+                std::uint32_t& emitted) {
+            if (asciiIdentifierEquals(source.name, "*MODEL_SPACE")) {
+                emitted = DRW::DxfModelSpaceBlockRecordHandle;
+                return true;
+            }
+            if (asciiIdentifierEquals(source.name, "*PAPER_SPACE")) {
+                emitted = DRW::DxfPaperSpaceBlockRecordHandle;
+                return true;
+            }
+            emitted = dxfW->getBlockRecordHandleToWrite(source.name);
+            return emitted != 0u && emitted != DRW::NoHandle;
+        };
+        std::vector<ExpectedOutput> expected;
+        std::unordered_map<std::uint32_t, std::size_t> tableIndices;
+        std::unordered_map<std::uint32_t, std::size_t> dictionaryIndices;
+        std::unordered_set<std::uint32_t> emittedIdentities;
+        const std::size_t sourceCount =
+            m_dwgSortEntsOutputSources.size();
+        expected.reserve(sourceCount);
+        tableIndices.reserve(sourceCount);
+        dictionaryIndices.reserve(sourceCount);
+        emittedIdentities.reserve(sourceCount * 3u);
+        for (const auto& item : m_dwgSortEntsOutputSources) {
+            const DwgSortEntsOutputSource& source = item.second;
+            ExpectedOutput output;
+            output.sourceHandle = source.table.handle;
+            if (item.first != source.table.handle
+                || !mapHandle(source.table.handle, output.emittedTable)
+                || !mapHandle(source.table.parentHandle,
+                              output.emittedDictionary)
+                || source.ownerBlock.handle
+                    != source.table.m_blockOwnerHandle
+                || !mapBlockOwner(source.ownerBlock, output.emittedBlock))
+                return reject("source handle remapping");
+            const bool tableIdentity = dxfW->dxfWriteRecordHasIdentity(
+                output.emittedTable, "SORTENTSTABLE", "OBJECTS");
+            const bool tableOwner = dxfW->dxfWriteRecordHasOwner(
+                output.emittedTable, output.emittedDictionary);
+            const bool dictionaryIdentity = dxfW->dxfWriteRecordHasIdentity(
+                output.emittedDictionary, "DICTIONARY", "OBJECTS");
+            const bool dictionaryOwner = dxfW->dxfWriteRecordHasOwner(
+                output.emittedDictionary, output.emittedBlock);
+            const bool blockIdentity = dxfW->dxfWriteRecordHasIdentity(
+                output.emittedBlock, "BLOCK_RECORD", "TABLES");
+            const bool tableUnique = dxfW->dxfWriteRecordHandleCount(
+                output.emittedTable) == 1u;
+            const bool dictionaryUnique = dxfW->dxfWriteRecordHandleCount(
+                output.emittedDictionary) == 1u;
+            const bool blockUnique = dxfW->dxfWriteRecordHandleCount(
+                output.emittedBlock) == 1u;
+            const bool uniqueIdentities =
+                output.emittedTable != output.emittedDictionary
+                && output.emittedTable != output.emittedBlock
+                && output.emittedDictionary != output.emittedBlock
+                && emittedIdentities.insert(output.emittedTable).second
+                && emittedIdentities.insert(
+                    output.emittedDictionary).second
+                && emittedIdentities.insert(output.emittedBlock).second;
+            if (!uniqueIdentities || !tableIdentity || !tableOwner
+                || !dictionaryIdentity || !dictionaryOwner || !blockIdentity
+                || !tableUnique || !dictionaryUnique || !blockUnique) {
+                if (debug)
+                    std::cerr << "SORTENTSTABLE staged roles: source="
+                              << output.sourceHandle << " emitted=("
+                              << output.emittedTable << ','
+                              << output.emittedDictionary << ','
+                              << output.emittedBlock << ") identity=("
+                              << tableIdentity << ',' << dictionaryIdentity
+                              << ',' << blockIdentity << ") owner=("
+                              << tableOwner << ',' << dictionaryOwner
+                              << ") unique=(" << tableUnique << ','
+                              << dictionaryUnique << ',' << blockUnique
+                              << ',' << uniqueIdentities << ")\n";
+                return reject(
+                    "emitted SORTENTSTABLE, DICTIONARY or BLOCK_RECORD identity/owner");
+            }
+
+            output.table = source.emission;
+            if (!mapHandle(output.table.handle, output.table.handle)
+                || !mapHandle(output.table.parentHandle,
+                              output.table.parentHandle)
+                || !mapBlockOwner(source.ownerBlock,
+                                  output.table.m_blockOwnerHandle)
+                || output.table.handle != output.emittedTable
+                || output.table.parentHandle != output.emittedDictionary
+                || output.table.m_blockOwnerHandle != output.emittedBlock)
+                return reject("projected SORTENTSTABLE identity mapping");
+            for (std::uint32_t& reactor : output.table.reactorHandles)
+                if (!mapHandle(reactor, reactor))
+                    return reject("SORTENTSTABLE reactor mapping");
+            for (std::uint32_t& handle : output.table.m_entityHandles) {
+                handle = dxfW->remapEntityHandle(handle);
+                if (handle == 0u || handle == DRW::NoHandle
+                    || dxfW->dxfWriteRecordHandleCount(handle) != 1u
+                    || !dxfW->dxfWriteRecordHasOwner(
+                        handle, output.emittedBlock))
+                    return reject("SORTENTSTABLE target identity/owner");
+            }
+            output.table.setDwgCommonObjectState(0, 0u, false);
+            output.table.setDwgCommonLinkTailValidated(false);
+            if (!output.table.reactorHandles.empty()) {
+                std::list<DRW_Variant> reactors;
+                reactors.emplace_back(102, UTF8STRING("ACAD_REACTORS"));
+                for (const std::uint32_t handle :
+                     output.table.reactorHandles)
+                    reactors.emplace_back(330,
+                        UTF8STRING(proxyHandleString(handle)));
+                reactors.emplace_back(102, UTF8STRING("}"));
+                output.table.appData.push_front(std::move(reactors));
+            }
+
+            output.dictionary = source.ownerDictionary;
+            if (!mapHandle(output.dictionary.handle,
+                           output.dictionary.handle)
+                || output.dictionary.parentHandle
+                    != source.ownerBlock.handle)
+                return reject(
+                    "SORTENTSTABLE owner DICTIONARY identity mapping");
+            output.dictionary.parentHandle = output.emittedBlock;
+            if (output.dictionary.xDictHandle != 0u
+                && !mapHandle(output.dictionary.xDictHandle,
+                              output.dictionary.xDictHandle))
+                return reject(
+                    "SORTENTSTABLE owner DICTIONARY xdictionary mapping");
+            for (std::uint32_t& reactor : output.dictionary.reactorHandles)
+                if (!mapHandle(reactor, reactor))
+                    return reject(
+                        "SORTENTSTABLE owner DICTIONARY reactor mapping");
+            for (DRW_Dictionary::Entry& entry :
+                 output.dictionary.m_entries) {
+                if (!mapHandle(entry.m_handle, entry.m_handle))
+                    return reject(
+                        "SORTENTSTABLE owner DICTIONARY entry mapping");
+                if (entry.m_dxfHandleCode
+                    == DRW_Dictionary::Entry::DxfHandleCode::Unspecified)
+                    entry.m_dxfHandleCode = output.dictionary.hardOwner
+                        ? DRW_Dictionary::Entry::DxfHandleCode::HardOwner
+                        : DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+            }
+            if (output.dictionary.handle != output.emittedDictionary)
+                return reject(
+                    "SORTENTSTABLE owner DICTIONARY mapped identity");
+            output.dictionary.setDwgCommonObjectState(0, 0u, false);
+            output.dictionary.setDwgCommonLinkTailValidated(false);
+            if (!output.dictionary.reactorHandles.empty()) {
+                std::list<DRW_Variant> reactors;
+                reactors.emplace_back(102, UTF8STRING("ACAD_REACTORS"));
+                for (const std::uint32_t handle :
+                     output.dictionary.reactorHandles)
+                    reactors.emplace_back(330,
+                        UTF8STRING(proxyHandleString(handle)));
+                reactors.emplace_back(102, UTF8STRING("}"));
+                output.dictionary.appData.push_front(std::move(reactors));
+            }
+
+            const std::size_t index = expected.size();
+            if (!tableIndices.emplace(output.emittedTable, index).second
+                || !dictionaryIndices.emplace(
+                    output.emittedDictionary, index).second)
+                return reject(
+                    "duplicate emitted SORTENTSTABLE owner identities");
+            expected.push_back(std::move(output));
         }
 
-        DRW_Dictionary expectedDictionary = source.ownerDictionary;
-        if (!mapHandle(expectedDictionary.handle, expectedDictionary.handle)
-            || !mapHandle(static_cast<std::uint32_t>(
-                    expectedDictionary.parentHandle),
-                expectedDictionary.parentHandle))
-            return false;
-        if (expectedDictionary.xDictHandle != 0u
-            && !mapHandle(expectedDictionary.xDictHandle,
-                          expectedDictionary.xDictHandle))
-            return false;
-        for (std::uint32_t& reactor : expectedDictionary.reactorHandles)
-            if (!mapHandle(reactor, reactor))
-                return false;
-        for (DRW_Dictionary::Entry& entry : expectedDictionary.m_entries) {
-            if (!mapHandle(entry.m_handle, entry.m_handle))
-                return false;
-            if (entry.m_dxfHandleCode
-                == DRW_Dictionary::Entry::DxfHandleCode::Unspecified)
-                entry.m_dxfHandleCode = expectedDictionary.hardOwner
-                    ? DRW_Dictionary::Entry::DxfHandleCode::HardOwner
-                    : DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
-        }
-        expectedDictionary.setDwgCommonObjectState(0, 0u, false);
-        expectedDictionary.setDwgCommonLinkTailValidated(false);
-        if (!expectedDictionary.reactorHandles.empty()) {
-            std::list<DRW_Variant> reactors;
-            reactors.emplace_back(102, UTF8STRING("ACAD_REACTORS"));
-            for (const std::uint32_t handle :
-                 expectedDictionary.reactorHandles)
-                reactors.emplace_back(330,
-                    UTF8STRING(proxyHandleString(handle)));
-            reactors.emplace_back(102, UTF8STRING("}"));
-            expectedDictionary.appData.push_front(std::move(reactors));
-        }
-
+        std::vector<std::size_t> tableSeen(expected.size(), 0u);
+        std::vector<std::size_t> dictionarySeen(expected.size(), 0u);
         dx_standard_output::Decoder decoder(view);
-        std::size_t tableSeen = 0u;
-        std::size_t dictionarySeen = 0u;
         bool namesMatch = true;
         const char* failingStage = "selected output record inventory";
         const bool inspected = dx_standard_output::inspectSelected(
             view,
             [&](std::string_view name, std::uint32_t handle) {
-                if ((handle == emittedTable
+                const auto table = tableIndices.find(handle);
+                const auto dictionary = dictionaryIndices.find(handle);
+                if ((table != tableIndices.end()
                         && !asciiIdentifierEquals(name, "SORTENTSTABLE"))
-                    || (handle == emittedDictionary
+                    || (dictionary != dictionaryIndices.end()
                         && !asciiIdentifierEquals(name, "DICTIONARY")))
                     namesMatch = false;
-                return handle == emittedTable
-                    || handle == emittedDictionary;
+                return table != tableIndices.end()
+                    || dictionary != dictionaryIndices.end();
             },
             [&](const dx_standard_output::Shape& shape,
                 std::string_view body) {
-                if (shape.handle == emittedTable) {
+                const auto table = tableIndices.find(shape.handle);
+                if (table != tableIndices.end()) {
                     failingStage = "SORTENTSTABLE output body";
-                    if (++tableSeen != 1u
+                    const std::size_t index = table->second;
+                    if (++tableSeen[index] != 1u
                         || shape.kind != dx_standard_output::Family::Other)
                         return false;
                     return decoder.decodeRecord<DRW_SortEntsTable>(
                         body, [&](const DRW_SortEntsTable& actual) {
+                            const DRW_SortEntsTable& expectedTable =
+                                expected[index].table;
                             const bool commonEqual =
                                 standardDwgCommonEqual(
-                                    expected, actual, DRW::AC1024);
+                                    expectedTable, actual, DRW::AC1024);
                             const bool ownerEqual = commonEqual
                                 && actual.m_blockOwnerHandle
-                                    == expected.m_blockOwnerHandle;
+                                    == expectedTable.m_blockOwnerHandle;
                             const bool entitiesEqual = ownerEqual
                                 && actual.m_entityHandles
-                                    == expected.m_entityHandles;
+                                    == expectedTable.m_entityHandles;
                             const bool sortsEqual = entitiesEqual
                                 && actual.m_sortHandles
-                                    == expected.m_sortHandles;
+                                    == expectedTable.m_sortHandles;
                             if (debug && !sortsEqual)
                                 std::cerr
                                     << "SORTENTSTABLE body comparison: common="
@@ -34900,29 +35024,37 @@ bool dx_iface::inspectDwgSortEntsOutput(
                                     << " owner=" << ownerEqual
                                     << " entities=" << entitiesEqual
                                     << " sorts=" << sortsEqual
-                                    << " expected=(" << expected.handle << ','
-                                    << expected.parentHandle << ','
-                                    << expected.m_blockOwnerHandle << ','
-                                    << expected.m_entityHandles.size() << ','
-                                    << expected.m_sortHandles.size() << ") actual=("
-                                    << actual.handle << ',' << actual.parentHandle
-                                    << ',' << actual.m_blockOwnerHandle << ','
+                                    << " source="
+                                    << expected[index].sourceHandle
+                                    << " expected=(" << expectedTable.handle
+                                    << ',' << expectedTable.parentHandle << ','
+                                    << expectedTable.m_blockOwnerHandle << ','
+                                    << expectedTable.m_entityHandles.size()
+                                    << ',' << expectedTable.m_sortHandles.size()
+                                    << ") actual=(" << actual.handle << ','
+                                    << actual.parentHandle << ','
+                                    << actual.m_blockOwnerHandle << ','
                                     << actual.m_entityHandles.size() << ','
                                     << actual.m_sortHandles.size() << ")\n";
                             return sortsEqual;
                         });
                 }
-                if (shape.handle != emittedDictionary
-                    || ++dictionarySeen != 1u
+
+                const auto dictionary =
+                    dictionaryIndices.find(shape.handle);
+                if (dictionary == dictionaryIndices.end())
+                    return false;
+                failingStage = "SORTENTSTABLE owner DICTIONARY output body";
+                const std::size_t index = dictionary->second;
+                if (++dictionarySeen[index] != 1u
                     || shape.kind
                         != dx_standard_output::Family::Dictionary)
                     return false;
-                failingStage = "SORTENTSTABLE owner DICTIONARY output body";
                 return decoder.decodeRecord<DRW_Dictionary>(body,
                     [&](const DRW_Dictionary& actual) {
                         if (!standardDwgModelsEqual(
-                                expectedDictionary, actual, DRW::AC1024,
-                                dwgObjType::DICTIONARY))
+                                expected[index].dictionary, actual,
+                                DRW::AC1024, dwgObjType::DICTIONARY))
                             return false;
                         std::size_t sortEntries = 0u;
                         for (const DRW_Dictionary::Entry& entry :
@@ -34930,16 +35062,20 @@ bool dx_iface::inspectDwgSortEntsOutput(
                             if (layoutSymbolKey(entry.m_name)
                                 != "ACAD_SORTENTS")
                                 continue;
-                            if (entry.m_handle != emittedTable)
+                            if (entry.m_handle
+                                != expected[index].emittedTable)
                                 return false;
                             ++sortEntries;
                         }
                         return sortEntries == 1u;
                     });
             });
-        if (!inspected || !namesMatch || tableSeen != 1u
-            || dictionarySeen != 1u)
+        if (!inspected || !namesMatch)
             return reject(failingStage);
+        for (std::size_t index = 0u; index < expected.size(); ++index)
+            if (tableSeen[index] != 1u || dictionarySeen[index] != 1u)
+                return reject(
+                    "selected SORTENTSTABLE/DICTIONARY output count");
         m_dwgSortEntsOutputInspected = true;
         return true;
     } catch (...) {
@@ -50081,60 +50217,77 @@ bool dx_iface::validateSortEntsGraph(const dx_data& data) {
         }
         if (data.sourceFormat == dx_source_format::DWG
             && data.sourceVersion == DRW::AC1024
-            && data.dwgReadOutcome.attempted
-            && data.sortEntsTables.size() == 1u
-            && data.dwgSortEntsMemberships.size() == 1u
-            && m_sortEmissionTables.size() == 1u) {
-            const DRW_SortEntsTable& table =
-                data.sortEntsTables.front();
-            const DRW_DwgSortEntsMembership& membership =
-                data.dwgSortEntsMemberships.front();
-            const auto dictionary = std::find_if(
-                data.dictionaries.begin(), data.dictionaries.end(),
-                [&table](const DRW_Dictionary& value) {
-                    return value.handle == table.parentHandle;
-                });
-            const auto blockOwner = std::find_if(
-                data.blockRecords.begin(), data.blockRecords.end(),
-                [&table](const DRW_Block_Record& value) {
-                    return value.handle == table.m_blockOwnerHandle;
-                });
-            const auto frame = data.m_opaqueDwgSourceFrames.find(
-                {data.importGeneration, table.handle});
-            if (dictionary != data.dictionaries.end()
-                && blockOwner != data.blockRecords.end()
-                && frame != data.m_opaqueDwgSourceFrames.end()
-                && table.handle != 0u && table.handle != DRW::NoHandle
-                && table.hasCompleteDwgEntries()
-                && membership.m_complete
-                && membership.m_version == DRW::AC1024
-                && membership.m_tableHandle == table.handle
-                && membership.m_recordName == "SORTENTSTABLE"
-                && membership.m_className == "AcDbSortentsTable"
-                && membership.m_blockOwnerHandle
-                    == table.m_blockOwnerHandle
-                && frame->second.m_objectType == 517
-                && frame->second.m_handle == table.handle
-                && frame->second.m_version == DRW::AC1024
-                && asciiIdentifierEquals(frame->second.m_recordName,
-                                         "SORTENTSTABLE")
-                && frame->second.m_className == "AcDbSortentsTable"
-                && dictionary->parentHandle == table.m_blockOwnerHandle
-                && blockOwner->xDictHandle == dictionary->handle) {
+            && data.dwgReadOutcome.attempted) {
+            std::unordered_map<std::uint32_t,
+                const DRW_DwgSortEntsMembership*> memberships;
+            std::unordered_map<std::uint32_t, const DRW_SortEntsTable*>
+                emissions;
+            memberships.reserve(data.dwgSortEntsMemberships.size());
+            emissions.reserve(m_sortEmissionTables.size());
+            for (const DRW_DwgSortEntsMembership& membership :
+                 data.dwgSortEntsMemberships)
+                if (!memberships.emplace(membership.m_tableHandle,
+                                         &membership).second)
+                    return reject();
+            for (const DRW_SortEntsTable& emission : m_sortEmissionTables)
+                if (!emissions.emplace(emission.handle, &emission).second)
+                    return reject();
+
+            for (const DRW_SortEntsTable& table : data.sortEntsTables) {
+                const auto membership = memberships.find(table.handle);
+                const auto emission = emissions.find(table.handle);
+                if (membership == memberships.end()
+                    || emission == emissions.end())
+                    continue;
+                const auto dictionary = dictionaries.find(table.parentHandle);
+                const auto blockOwner = owners.find(
+                    table.m_blockOwnerHandle);
+                const auto frame = data.m_opaqueDwgSourceFrames.find(
+                    {data.importGeneration, table.handle});
+                const DRW_DwgSortEntsMembership& sourceMembership =
+                    *membership->second;
+                if (dictionary == dictionaries.end()
+                    || blockOwner == owners.end()
+                    || frame == data.m_opaqueDwgSourceFrames.end()
+                    || table.handle == 0u || table.handle == DRW::NoHandle
+                    || table.hasCompleteDwgEntries() == false
+                    || !sourceMembership.m_complete
+                    || !sourceMembership.m_hasSourceLocation
+                    || !sourceMembership.m_classStreamOrdinal.has_value()
+                    || sourceMembership.m_version != DRW::AC1024
+                    || sourceMembership.m_tableHandle != table.handle
+                    || sourceMembership.m_recordName != "SORTENTSTABLE"
+                    || sourceMembership.m_className != "AcDbSortentsTable"
+                    || sourceMembership.m_blockOwnerHandle
+                        != table.m_blockOwnerHandle
+                    || sourceMembership.m_resolvedType
+                        != frame->second.m_objectType
+                    || frame->second.m_handle != table.handle
+                    || frame->second.m_version != DRW::AC1024
+                    || !asciiIdentifierEquals(frame->second.m_recordName,
+                                              "SORTENTSTABLE")
+                    || frame->second.m_className != "AcDbSortentsTable"
+                    || dictionary->second->parentHandle
+                        != table.m_blockOwnerHandle
+                    || blockOwner->second->xDictHandle
+                        != dictionary->second->handle)
+                    continue;
+
                 DwgSortEntsOutputSource source;
                 source.table = table;
-                source.emission = m_sortEmissionTables.front();
-                source.membership = membership;
-                source.ownerDictionary = *dictionary;
-                source.ownerBlock = *blockOwner;
+                source.emission = *emission->second;
+                source.membership = sourceMembership;
+                source.ownerDictionary = *dictionary->second;
+                source.ownerBlock = *blockOwner->second;
                 source.objectType = frame->second.m_objectType;
                 source.recordName = frame->second.m_recordName;
                 source.className = frame->second.m_className;
-                if (m_dwgSortEntsOutputSources.emplace(
-                        table.handle, std::move(source)).second) {
-                    m_dwgSortEntsOutputSourceOwner = &data;
-                    m_dwgSortEntsOutputGeneration = data.importGeneration;
-                }
+                m_dwgSortEntsOutputSources.emplace(
+                    table.handle, std::move(source));
+            }
+            if (!m_dwgSortEntsOutputSources.empty()) {
+                m_dwgSortEntsOutputSourceOwner = &data;
+                m_dwgSortEntsOutputGeneration = data.importGeneration;
             }
         }
         return true;
