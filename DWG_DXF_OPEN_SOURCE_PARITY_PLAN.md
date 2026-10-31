@@ -46,7 +46,7 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — physical profile output-coverage closure | Continue from the completed 228-identity census and current profile receipts; do not repeat the census or recertify closed profiles. Bind the 54 physical AC1024 `ACDBASSOCGEOMDEPENDENCY` identities (type 524), source edges, target/owner/reactor roles, staged output and fresh readback; then close remaining required descendants and strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — strict complete-export coverage closure | Reconcile the existing 228-identity census against all committed source-to-output/readback receipts; remove identities already closed, then bind the highest-incidence still-uncovered required profile and its descendants to emitted output. Recheck strict complete-export admission on the current source and code after coverage is reconciled. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN | Close remaining rendering metadata/native rendering profiles; add typed import/readback for rich R24 TABLESTYLE nested groups; close FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -56,38 +56,24 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next action — bind the 54 physical AC1024 `ACDBASSOCGEOMDEPENDENCY`
-records (type 524) to emitted output.** The existing census gives this the
-highest remaining callback incidence. Prior source-link audits and a generated
-SingleEdge graph do not prove the physical records' one-to-one output identity
-or fresh physical readback. Bind each selected identity and admitted field,
-the inline node reference, owning group/action, dependency target, target owner
-route and reactor backlink; preserve the distinct `readdep`/`node` reference
-roles and keep unsupported tails raw. Verify staged bytes plus ASCII/Binary
-fresh readback, atomic refusal, and corrected same-adapter retry. Reuse the
-existing mechanical AC1024 DWG and focused adapter patterns; add no
-investigation DWG/DXF fixture. Start from the existing census and source-route
-receipts; do not rerun the census. The completed physical group/node proof is
-recorded in
-[`p4-ac1024-constraint-group-physical-output-readback-2026-10-31.json`](docs/research/p4-ac1024-constraint-group-physical-output-readback-2026-10-31.json).
-See
-[`p4-ac1024-opaque-callback-census-2026-10-30.json`](docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json)
-for the identity/count inventory,
-[`p4-ac1024-associative-constraint-group-dxf-writer-2026-10-30.json`](docs/research/p4-ac1024-associative-constraint-group-dxf-writer-2026-10-30.json)
-for parser/writer and source-node scope,
-[`p4-ac1024-assoc-node-dependency-source-links-2026-10-30.json`](docs/research/p4-ac1024-assoc-node-dependency-source-links-2026-10-30.json)
-for prior source target/owner/reactor joins, and
-[`p4-ac1024-assocdependency-physical-output-binding-2026-10-31.json`](docs/research/p4-ac1024-assocdependency-physical-output-binding-2026-10-31.json)
-for the completed dimension-dependency output/readback proof.
+**P4 next action — reconcile the existing physical coverage ledger.** Use the
+228-identity census and the committed P4 receipts as inputs; do not recollect
+the census or reopen any profile whose source identities, admitted fields,
+reference roles, emitted records and required readback are already proved.
+Produce a compact per-identity delta that marks each census entry as covered by
+typed output, covered by a proven replay path, or still uncovered. Then take the
+highest-incidence uncovered required profile and close only its missing source,
+graph, output or readback edge. Keep strict admission closed until this join
+proves complete required coverage. Add no investigation DWG/DXF fixture;
+preserve refusal, atomic publication and corrected retry for the selected
+slice. The original identity inventory is
+[`p4-ac1024-opaque-callback-census-2026-10-30.json`](docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json).
 
-The latest physical partial-output baseline is recorded in
+The last physical partial-output observation is recorded in
 [`p4-ac1024-current-partial-output-refresh-2026-10-31.json`](docs/research/p4-ac1024-current-partial-output-refresh-2026-10-31.json).
-The earlier SubDMesh registration and MATERIAL-inspection stops do not reproduce
-on this input/build, and this source has no `AcDbSubDMesh` CLASS row or MESH
-callback/output. Do not retry those stale gates without changed source or code.
-This partial conversion does not open strict complete-export admission: the
-source census still has 228 opaque callback views and zero retained correlation
-frames.
+It predates later profile closures and is not current strict-gate evidence;
+refresh strict admission only after the existing census is reconciled against
+those receipts.
 
 ## P4 — original bodies and complete document closure
 
