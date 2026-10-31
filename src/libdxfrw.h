@@ -415,8 +415,9 @@ public:
     bool writeAcDbPlaceholder(DRW_AcDbPlaceholder *ent);
     bool writeXRecord(DRW_XRecord *ent);
     /// Explicit producer-compatibility path for observed AC1021+ DWG-origin
-    /// XRECORD Int32 group 1071 values. Ordinary DXF-origin writes must use
-    /// writeXRecord(), which retains the standard XRECORD code-domain check.
+    /// XRECORD Int16/Int32 groups 1070/1071. Ordinary DXF-origin writes must
+    /// use writeXRecord(), which retains the standard XRECORD code-domain
+    /// check.
     bool writeXRecordDwgCompatibility(DRW_XRecord *ent);
     /// Emits the typed AcDbDataLink object profile. Referenced custom-data
     /// targets must already have a valid source-to-output handle mapping.
@@ -1809,7 +1810,7 @@ private:
         const std::vector<std::pair<std::size_t, std::int32_t>>*
             int32Overrides = nullptr);
     bool writeXRecordInternal(DRW_XRecord *ent,
-                              bool allowDwgGroup1071Compatibility);
+                              bool allowDwgCompatibilityCodes);
     void beginDxfReadRetainedBudget();
     bool appendDxfReadHeaderComment(const std::string& comment);
     bool recordDxfTableRow() noexcept;

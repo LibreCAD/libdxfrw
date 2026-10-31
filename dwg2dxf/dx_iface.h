@@ -1465,20 +1465,32 @@ public:
                 if (record.handle == handle) {
                     const auto& values = record.m_dataEntries.empty()
                         ? record.m_values : record.m_dataEntries;
-                    const bool hasDwgGroup1071 = std::any_of(
+                    const bool hasDwgCompatibilityCode = std::any_of(
                         values.cbegin(), values.cend(), [](const auto& value) {
                             return isDxfXRecordDwgCompatibilityCode(
                                 value.code());
                         });
-                    const bool useDwgCompatibility = hasDwgGroup1071
+                    const bool useDwgCompatibility = hasDwgCompatibilityCode
                         && cData->sourceFormat == dx_source_format::DWG
                         && cData->sourceVersion >= DRW::AC1021
                         && cData->sourceVersion == dxfW->getVersion();
                     const bool written = useDwgCompatibility
                         ? dxfW->writeXRecordDwgCompatibility(&record)
                         : dxfW->writeXRecord(&record);
-                    if (!written)
+                    if (!written) {
+                        DRW_DBG("XRECORD write failure: handle=");
+                        DRW_DBGH(record.handle);
+                        DRW_DBG(" compatibility=");
+                        DRW_DBG(useDwgCompatibility ? "1" : "0");
+                        DRW_DBG(" source-version=");
+                        DRW_DBG(static_cast<int>(cData->sourceVersion));
+                        DRW_DBG(" target-version=");
+                        DRW_DBG(static_cast<int>(dxfW->getVersion()));
+                        DRW_DBG(" has-1070/1071=");
+                        DRW_DBG(hasDwgCompatibilityCode ? "1" : "0");
+                        DRW_DBG("\n");
                         return;
+                    }
                     break;
                 }
             }
@@ -3163,8 +3175,22 @@ private:
     };
     struct DwgDynamicBlockEntityOutputSource {
         std::uint32_t handle{0u};
+        std::uint32_t ownerBlockHandle{0u};
         std::string recordName;
     };
+    struct DwgDynamicBlockOwnerOutputSource {
+        std::uint32_t blockHandle{0u};
+        std::uint32_t graphHandle{0u};
+        std::uint32_t sortEntsHandle{0u};
+        std::uint32_t purgeHandle{0u};
+        std::uint32_t nestedNetworkDictionaryHandle{0u};
+        std::string blockName;
+    };
+    std::map<std::uint32_t, std::uint32_t>
+        m_dwgDynamicBlockOutputDictionaries;
+    std::map<std::uint32_t, std::string> m_dwgDynamicBlockOutputBlocks;
+    std::map<std::uint32_t, DwgDynamicBlockOwnerOutputSource>
+        m_dwgDynamicBlockOutputOwners;
     std::map<std::uint32_t, DwgDynamicBlockOutputSource>
         m_dwgDynamicBlockOutputSources;
     std::map<std::uint32_t, DRW_UnsupportedObject>
@@ -3178,10 +3204,15 @@ private:
     bool m_dwgDynamicBlockOutputPrepared{false};
     bool m_dwgDynamicBlockOutputInspected{false};
     bool prepareDwgDynamicBlockOutputSources(bool debug) noexcept;
+    bool prepareDwgDynamicBlockOutputGraphSet(bool debug) noexcept;
     bool hasUnchangedDwgDynamicBlockOutputSources() const noexcept;
+    bool hasUnchangedDwgDynamicBlockOutputGraphSet() const noexcept;
     bool inspectDwgDynamicBlockOutput(
         const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept;
+    bool inspectDwgDynamicBlockOutputGraphSet(
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept;
     bool finalizeDwgDynamicBlockOutput() const noexcept;
+    bool finalizeDwgDynamicBlockOutputGraphSet() const noexcept;
     bool inspectDwgBlockRepresentationDataOutput(
         const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept;
     bool finalizeDwgBlockRepresentationDataOutput() const noexcept;

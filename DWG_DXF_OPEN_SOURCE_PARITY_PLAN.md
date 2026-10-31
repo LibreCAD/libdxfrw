@@ -58,9 +58,12 @@ Implementation history and evidence stay in Git and `docs/research/`.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next implementation packet — bind and close both AC1024 dynamic-block output
-graphs in `architectural_example-imperial.dwg`.** Strict whole-document
-conversion still refuses these records. The source-edge census is complete in
+**Next implementation packet — qualify the remaining source-backed callbacks
+after the two-root dynamic-block OBJECTS proof.** The strict conversion now
+serializes OBJECTS and passes the staged output inspection for both AC1024
+dynamic-block roots in `architectural_example-imperial.dwg`; finalization then
+refuses publication because 10 opaque DWG callbacks still lack output
+qualification. The source-edge census is complete in
 [the edge-census receipt](docs/research/p5-ac1024-architectural-dynamic-block-edge-census-2026-10-31.json):
 65/65 dynamic objects have fully decoded bodies and retained source frames;
 the Door - Imperial root `0x110F` has 38 nodes/43 edges and the Window - Imperial
@@ -71,33 +74,56 @@ action dependencies, 8 action handle references, 11 visibility block handles,
 two root SORTENTSTABLE records, the nested ACAD_ASSOCNETWORK dictionary, six
 ACDBASSOCDEPENDENCY records and six BLOCKPARAMDEPENDENCYBODY objects. One
 BLOCKFLIPPARAMETER carries APPID `ACAUTHENVIRON` XDATA and a point; no layer
-XDATA occurs in this input. This is source evidence only: staged output,
-readback, native dynamic semantics, and support claims remain unqualified.
+XDATA occurs in this input. Focused writer controls pass for the observed
+XRECORD 1070/1071 payload, both witnessed R24 TABLESTYLE prefix values (`0`
+and `8`), and the observed `BLOCKGRIPLOCATIONCOMPONENT` value shapes and grip
+types pass focused ASCII/Binary controls. The `BLOCKVISIBILITYPARAMETER`
+profile at `0x111E` now also emits all 11 flat block handles, five state lists,
+and 21 parameter handles per state; its focused controls pass exact wire,
+fresh readback, wrong-role/out-of-profile refusal, rollback, and retry. The
+staged whole-document proof now checks the two root BLOCK_RECORDs, nested
+dictionaries, all 65 dynamic objects, both EvaluationGraphs, and reachable
+dynamic-block entities. The 14 separate dimension dependency/body pairs and
+their constraint group also pass physical staged-output proof. These results
+establish serializer and staged-record identity/field transport only; native
+dynamic meaning, fresh whole-document readback, and support claims remain
+unqualified. See [the dynamic writer progress receipt](docs/research/p5-ac1024-architectural-dynamic-writer-progress-2026-10-31.json).
 
-Implementation order, using the current object/graph models and retained source
-frames rather than adding another graph engine: (1) **adapter field projections
-implemented** for the two remaining witnessed bodies—ACDB_DYNAMICBLOCKPROXYNODE
-and BLOCKPARAMDEPENDENCYBODY—by reusing their bounded typed-writer fields. The
-adapter target builds with `-Werror`; focused proxy-span and dependency-body
-ASCII/Binary rollback, retry and readback controls pass. These controls establish
-the object writers, not source-bound whole-graph output qualification. (2)
-generalize source preparation from the Title_Block-ARCH single-root profile to
-both roots, all 65 dynamic records, their source frames, two owner
-BLOCK_RECORD/DICTIONARY routes, SORTENTSTABLE records, purge preventers and the
-Window - Imperial nested associative-network dictionary. Both source graph
-frames were captured as AC1024 `AcDbEvalGraph`, observed oType 517; keep the
-separate Title_Block-ARCH oType 511 observation profile-specific; (3) bind every graph
-expression, action index (match object nodeId), action/constraint dependency,
-reactor, XDATA APPID, visibility-state and geometry-entity reference to its
-unique planned identity and role, including the six dependency-body owner and
-dependency-node chains; reject unresolved, aliased, wrong-owner and unsupported
-targets; (4) generalize staged-output inspection and finalization across both
-roots and every reachable required object/reference, proving exact fields,
-remapped handles and owner roles; (5) add missing-edge/wrong-owner/late-mutation
-refusal, whole-destination atomicity, corrected retry, and fresh ASCII/Binary
-readback controls; then run one strict-complete conversion for this source.
-Keep native dynamic-block meaning separate from serializer/readback evidence
-and leave the support ledger closed until its consumer gate passes.
+Remaining implementation order, using the current object/graph models and
+retained source frames rather than adding another graph engine:
+
+1. **Prove the remaining dynamic-graph associative callbacks.** The strict
+   finalizer reports three `ACDBASSOC2DCONSTRAINTGROUP` callbacks (`0x4425`,
+   `0x8230`, `0x8319`) and six `ACDBASSOCDEPENDENCY` callbacks (`0x4427`,
+   `0x4433`, `0x8232`, `0x8238`, `0x8321`, `0x8327`) as unqualified. Bind each
+   source model to its emitted record and owner; verify exact scalar fields,
+   handles, dependency/body/group roles, reactor and dictionary/network edges.
+   Do not count the separate 14-pair dimension proof as evidence for these
+   records. Preserve refusal for unsupported subclasses and unresolved or
+   aliased references.
+2. **Resolve the remaining standard source frame** at handle `0x4229`, object
+   type 79. The strict finalizer reports it as `standard-payload=1/0`; trace its
+   captured source frame and determine whether an exact bounded typed/raw
+   output proof exists. Implement only that source-backed profile, or retain
+   strict refusal if any bytes or reference roles cannot be proved.
+3. **Add document-level failure controls** for the now-emitted two-root graph:
+   remove a required edge, substitute a wrong owner/role, and mutate the source
+   after staging. Each case must refuse publication and preserve the complete
+   destination; a corrected retry must succeed. Add fresh ASCII/Binary
+   whole-document readback using generated in-memory inputs, without adding
+   drawing fixtures.
+4. **Repeat strict conversion after each source profile closes.** The current
+   run passes serialization and staged OBJECTS proofs, then fails finalization
+   at 480/490 opaque callbacks qualified. Continue until the strict conversion
+   completes, then perform the independent native dynamic-block semantic check.
+   Keep the support ledger closed until that consumer gate passes.
+
+Both source graph frames were captured as AC1024 `AcDbEvalGraph`, observed oType
+517; keep the separate Title_Block-ARCH oType 511 observation profile-specific.
+Source census, reference/role preflight, source BLOCK_RECORD identity binding,
+staged field/output proof, and staged owner/reference proof now pass in the
+current strict run. Fresh whole-document readback and native semantics have not
+passed.
 
 The sweep also reproduced separate unresolved gates: AC1021 proxy-graphics
 refusal and AC1018 `ET-Drawing-with-Border.dwg` with 23 opaque callbacks but no

@@ -95,7 +95,10 @@ template<class Mapper> bool rawScalarTransportEqual(
         std::size_t retainedByteBudget = DRW::kMaxDxfBinaryPayloadBytes,
         bool literalSourceHandles = false,
         RawHandleTransport handleTransport = RawHandleTransport::Translate,
-        bool packedVisualStyleColors = false) {
+        bool packedVisualStyleColors = false,
+        std::size_t* mismatchIndex = nullptr) {
+    if (mismatchIndex != nullptr)
+        *mismatchIndex = 0u;
     InputBuffer buffer(body); std::istream input(&buffer);
     auto reader = readerFor(input, view,
         std::make_shared<DxfReadRetainedBudget>(retainedByteBudget));
@@ -104,7 +107,10 @@ template<class Mapper> bool rawScalarTransportEqual(
     reader->setVisualStyleUnsignedColorValues(packedVisualStyleColors);
     if(literalSourceHandles)reader->setAllowWideHandleLexemes(true);
     std::size_t applicationDepth = 0u;
+    std::size_t index = 0u;
     for (const auto& value : source) {
+        if (mismatchIndex != nullptr)
+            *mismatchIndex = index++;
         int code = 0;
         if (!reader->readRec(&code) || code != value.code()) return false;
         if (handleTransport == RawHandleTransport::ObjectScopes && code == 102) {
@@ -155,6 +161,8 @@ template<class Mapper> bool rawScalarTransportEqual(
             if (std::memcmp(&actual, &expected, sizeof(double)) != 0) return false;
         } else return false;
     }
+    if (mismatchIndex != nullptr)
+        *mismatchIndex = source.size();
     return buffer.position() == body.size() && applicationDepth == 0u;
 }
 
@@ -251,9 +259,10 @@ struct Shape {
                 if (!isDxfXRecordApplicationCode(code)) valid = false;
                 return;
             }
-            if (!xdata && code == 1071 && version >= DRW::AC1021) {
-                // This producer compatibility tag remains part of the
-                // AcDbXrecord body; it does not begin trailing XDATA.
+            if (!xdata && isDxfXRecordDwgCompatibilityCode(code)
+                && version >= DRW::AC1021) {
+                // These producer compatibility values remain in the
+                // AcDbXrecord body; they do not begin trailing XDATA.
                 (void)reader.getInt32();
                 return;
             }

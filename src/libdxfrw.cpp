@@ -10411,10 +10411,23 @@ bool dxfRW::writeTableStyle(
         if (version < DRW::AC1024)
             return failR24("R24 TABLESTYLE requires DXF R2010 or later");
         if (ent->m_r24ClassVersion != 0u
-            || ent->m_r24UnknownValue1 != 8
+            || (ent->m_r24UnknownValue1 != 0
+                && ent->m_r24UnknownValue1 != 8)
             || ent->m_r24UnknownValue2 != 101
-            || ent->m_unknownHandle != 0u)
+            || ent->m_unknownHandle != 0u) {
+            DRW_DBG("R24 TABLESTYLE prefix source values: handle=");
+            DRW_DBGH(ent->handle);
+            DRW_DBG(" class-version=");
+            DRW_DBG(static_cast<unsigned>(ent->m_r24ClassVersion));
+            DRW_DBG(" value1=");
+            DRW_DBG(ent->m_r24UnknownValue1);
+            DRW_DBG(" value2=");
+            DRW_DBG(ent->m_r24UnknownValue2);
+            DRW_DBG(" handle-ref=");
+            DRW_DBGH(ent->m_unknownHandle);
+            DRW_DBG("\n");
             return failR24("R24 TABLESTYLE prefix is outside the witnessed source profile");
+        }
         if (ent->m_flowDirection != 0 || ent->m_flags != 0
             || ent->m_horizontalCellMargin != 0.0
             || ent->m_verticalCellMargin != 0.0
@@ -14036,6 +14049,23 @@ bool dxfRW::emitBlockRecord(const PendingDxfBlockRecord& record) {
     }
     if (!record.extData.empty() && !writeExtData(record.extData))
         return false;
+    const std::string key = dxfSymbolNameKey(record.name);
+    std::uint32_t sourceHandle = 0u;
+    for (const auto& source : m_sourceBlockRecordNamesByHandle) {
+        if (source.second != key)
+            continue;
+        if (sourceHandle != 0u && sourceHandle != source.first)
+            return failDxfWrite();
+        sourceHandle = source.first;
+    }
+    if (sourceHandle != 0u) {
+        const auto planned = m_sourceBlockRecordHandles.find(sourceHandle);
+        if (planned == m_sourceBlockRecordHandles.end()
+            || planned->second != record.handle
+            || !bindDxfWriteSourceTableHandle(
+                sourceHandle, record.handle))
+            return failDxfWrite();
+    }
     return !writer->hasWriteError();
 }
 
@@ -22652,10 +22682,9 @@ bool dxfRW::processDynamicBlockObject() {
                        && data.m_recordName
                            == "BLOCKGRIPLOCATIONCOMPONENT"
                        && reader->getSourceVersion() == DRW::AC1024) {
-                // The admitted AC1024 DXF witness uses this exact
-                // AcDbEvalExpr value-pair and AcDbBlockGripExpr field order.
-                // Keep other producer/version variants on the raw shell path
-                // until their field mapping is independently established.
+                // AC1024 sources contain both the absent EvalExpr value
+                // sentinel and the code-40 double variant. Preserve their
+                // distinct DXF field spans; other value codes stay raw-only.
                 std::array<const DRW_Variant*, 10> body{};
                 std::size_t bodyCount = 0u;
                 bool inBody = false;
@@ -22673,7 +22702,7 @@ bool dxfRW::processDynamicBlockObject() {
                             }
                             continue;
                         }
-                        if (bodyCount == 7u
+                        if ((bodyCount == 4u || bodyCount == 7u)
                             && name == "AcDbBlockGripExpr") {
                             body[bodyCount++] = &group;
                             continue;
@@ -22707,32 +22736,41 @@ bool dxfRW::processDynamicBlockObject() {
                 std::int32_t minor = 0;
                 std::int32_t valueCode = 0;
                 std::int32_t gripType = 0;
+                const bool hasValueDouble = bodyCount == body.size();
+                const bool hasNoValue = bodyCount == 7u;
+                const std::size_t gripSubclassIndex = hasValueDouble ? 7u : 4u;
+                const std::size_t gripTypeIndex = gripSubclassIndex + 1u;
+                const std::size_t gripExpressionIndex = gripSubclassIndex + 2u;
                 const DRW_Variant* evaluatedText =
-                    bodyCount == body.size() ? body[4] : nullptr;
+                    hasValueDouble ? body[4] : nullptr;
                 const DRW_Variant* evaluatedDouble =
-                    bodyCount == body.size() ? body[6] : nullptr;
+                    hasValueDouble ? body[6] : nullptr;
                 const DRW_Variant* gripExpression =
-                    bodyCount == body.size() ? body[9] : nullptr;
+                    (hasValueDouble || hasNoValue)
+                        ? body[gripExpressionIndex] : nullptr;
+                if (hasNoValue)
+                    valueCode = -9999;
                 completeBody = completeBody && inBody
-                    && bodyCount == body.size()
+                    && (hasValueDouble || hasNoValue)
                     && body[0] != nullptr && body[0]->code() == 100
                     && body[1] != nullptr && body[1]->code() == 90
                     && body[2] != nullptr && body[2]->code() == 98
                     && body[3] != nullptr && body[3]->code() == 99
-                    && evaluatedText != nullptr
-                    && evaluatedText->code() == 1
-                    && evaluatedText->type() == DRW_Variant::STRING
-                    && evaluatedText->c_str() != nullptr
-                    && evaluatedText->c_str()[0] == '\0'
-                    && integerGroup(body[5], 70, valueCode)
-                    && valueCode == 40
-                    && evaluatedDouble != nullptr
-                    && evaluatedDouble->code() == 40
-                    && evaluatedDouble->type() == DRW_Variant::DOUBLE
-                    && std::isfinite(evaluatedDouble->d_val())
-                    && body[7] != nullptr && body[7]->code() == 100
-                    && integerGroup(body[8], 91, gripType)
-                    && gripType == 16
+                    && (!hasValueDouble
+                        || (evaluatedText != nullptr
+                            && evaluatedText->code() == 1
+                            && evaluatedText->type() == DRW_Variant::STRING
+                            && evaluatedText->c_str() != nullptr
+                            && evaluatedText->c_str()[0] == '\0'
+                            && integerGroup(body[5], 70, valueCode)
+                            && valueCode == 40
+                            && evaluatedDouble != nullptr
+                            && evaluatedDouble->code() == 40
+                            && evaluatedDouble->type() == DRW_Variant::DOUBLE
+                            && std::isfinite(evaluatedDouble->d_val())))
+                    && body[gripSubclassIndex] != nullptr
+                    && body[gripSubclassIndex]->code() == 100
+                    && integerGroup(body[gripTypeIndex], 91, gripType)
                     && gripExpression != nullptr
                     && gripExpression->code() == 300
                     && gripExpression->type() == DRW_Variant::STRING
@@ -22754,9 +22792,12 @@ bool dxfRW::processDynamicBlockObject() {
                         data.m_nodeId = static_cast<std::uint32_t>(nodeId);
                         data.m_major = static_cast<std::uint32_t>(major);
                         data.m_minor = static_cast<std::uint32_t>(minor);
+                        data.m_parentId =
+                            std::numeric_limits<std::uint32_t>::max();
                         data.m_valueCode = static_cast<std::int16_t>(valueCode);
-                        data.m_valueDouble = evaluatedDouble->d_val();
-                        data.m_hasValueDouble = true;
+                        data.m_valueDouble = hasValueDouble
+                            ? evaluatedDouble->d_val() : 0.0;
+                        data.m_hasValueDouble = hasValueDouble;
                         data.m_gripType = gripType;
                         data.m_gripExpr = expression;
                     } catch (...) {
@@ -22770,11 +22811,9 @@ bool dxfRW::processDynamicBlockObject() {
                            == DRW_DynamicBlockObject::Kind::Grip
                        && data.m_recordName == "BLOCKVISIBILITYGRIP"
                        && reader->getSourceVersion() == DRW::AC1024) {
-                // This body is bounded to the source-backed AC1024
-                // BLOCKVISIBILITYGRIP profile. The EvalExpr value union is
-                // absent when the DWG value_code is -9999. The full stream
-                // stays in `raw`; this projection only certifies the exact
-                // body needed for typed output/readback.
+                // The AC1024 visibility-grip body has a fixed DXF field
+                // order. Keep its version/subclass framing exact while
+                // preserving the source's signed fields and finite point.
                 std::array<const DRW_Variant*, 18> body{};
                 std::size_t bodyCount = 0u;
                 bool inBody = false;
@@ -22833,6 +22872,12 @@ bool dxfRW::processDynamicBlockObject() {
                 const DRW_Variant* x = body[12];
                 const DRW_Variant* y = body[13];
                 const DRW_Variant* z = body[14];
+                const char* elementNameText = elementName != nullptr
+                    ? elementName->c_str() : nullptr;
+                const std::string_view elementNameValue =
+                    elementNameText != nullptr
+                        ? std::string_view(elementNameText)
+                        : std::string_view();
                 completeBody = completeBody && inBody
                     && bodyCount == body.size()
                     && markerGroup(body[0], "AcDbEvalExpr")
@@ -22842,8 +22887,10 @@ bool dxfRW::processDynamicBlockObject() {
                     && markerGroup(body[4], "AcDbBlockElement")
                     && elementName != nullptr && elementName->code() == 300
                     && elementName->type() == DRW_Variant::STRING
-                    && elementName->c_str() != nullptr
-                    && std::string_view(elementName->c_str()) == "Grip"
+                    && elementNameText != nullptr
+                    && !elementNameValue.empty()
+                    && elementNameValue.size()
+                        <= DRW::kMaxDxfBinaryPayloadBytes
                     && integerGroup(body[6], 98, elementMajor)
                     && integerGroup(body[7], 99, elementMinor)
                     && integerGroup(body[8], 1071, eed1071)
@@ -22864,18 +22911,25 @@ bool dxfRW::processDynamicBlockObject() {
                     && markerGroup(body[17], "AcDbBlockVisibilityGrip")
                     && nodeId >= 0 && evalMajor == 33 && evalMinor == 29
                     && elementMajor == 33 && elementMinor == 29
-                    && eed1071 == 0 && grip91 == 18 && grip92 == 19
-                    && cycling == 0 && weight == -1
-                    && x->d_val() == 0.0 && y->d_val() == 0.0
-                    && z->d_val() == 0.0;
+                    && (cycling == 0 || cycling == 1);
                 if (completeBody) {
+                    DxfReadRetainedLeaseCheckpoint nameCheckpoint(
+                        data.m_dxfRetainedStringLease);
+                    if (!retainDxfReadBytes(
+                            data.m_dxfRetainedStringLease,
+                            reader->retainedByteBudget(),
+                            elementNameValue.size()))
+                        return setError(DRW::BAD_CODE_PARSED);
                     try {
                         data.m_nodeId = static_cast<std::uint32_t>(nodeId);
                         data.m_major = static_cast<std::uint32_t>(evalMajor);
                         data.m_minor = static_cast<std::uint32_t>(evalMinor);
+                        data.m_parentId =
+                            std::numeric_limits<std::uint32_t>::max();
                         data.m_valueCode = -9999;
                         data.m_evalExprParsed = true;
-                        data.m_elementName = "Grip";
+                        data.m_elementName.assign(
+                            elementNameValue.data(), elementNameValue.size());
                         data.m_elementMajor =
                             static_cast<std::uint32_t>(elementMajor);
                         data.m_elementMinor =
@@ -22891,6 +22945,7 @@ bool dxfRW::processDynamicBlockObject() {
                     } catch (...) {
                         return setError(DRW::BAD_CODE_PARSED);
                     }
+                    nameCheckpoint.commit();
                 }
                 data.m_bodyFullyDecoded = completeBody;
             } else if (data.m_kind
@@ -23051,12 +23106,11 @@ bool dxfRW::processDynamicBlockObject() {
                            == DRW_DynamicBlockObject::Kind::VisibilityParameter
                        && data.m_recordName == "BLOCKVISIBILITYPARAMETER"
                        && reader->getSourceVersion() == DRW::AC1024) {
-                // This projection is restricted to the observed AC1024
-                // visibility-state body: one flat 117-handle list, four
-                // ordered 29-handle states, and no state parameters. The raw
-                // record remains authoritative outside this exact profile.
-                static constexpr std::array<std::string_view, 4> stateNames{
-                    "ARCH D", "ARCH C", "ARCH B", "ARCH A"};
+                // Decode the represented visibility-state fields while
+                // preserving the source ordering. Counts are bounded by the
+                // already-captured record before any vector allocation; an
+                // unrepresented property-info payload or body tail remains
+                // raw-only.
                 std::size_t bodyStart = raw.groups.size();
                 for (std::size_t index = 0u; index < raw.groups.size();
                      ++index) {
@@ -23086,15 +23140,21 @@ bool dxfRW::processDynamicBlockObject() {
                     return marker != nullptr
                         && std::string_view(marker) == value;
                 };
-                const auto readText = [&](int code,
-                                          std::string_view expected) {
+                const auto readText = [&](int code, std::string& value) {
                     const DRW_Variant* group = takeGroup();
                     if (group == nullptr || group->code() != code
-                        || group->type() != DRW_Variant::STRING)
+                        || group->type() != DRW_Variant::STRING
+                        || group->c_str() == nullptr)
                         return false;
-                    const char* value = group->c_str();
-                    return value != nullptr
-                        && std::string_view(value) == expected;
+                    const std::string_view source(group->c_str());
+                    if (source.size() > DRW::kMaxDxfBinaryPayloadBytes)
+                        return false;
+                    try {
+                        value.assign(source.data(), source.size());
+                    } catch (...) {
+                        return false;
+                    }
+                    return true;
                 };
                 const auto readInteger = [&](int code,
                                              std::int32_t& value) {
@@ -23109,12 +23169,14 @@ bool dxfRW::processDynamicBlockObject() {
                     value = static_cast<std::int32_t>(group->i_val());
                     return true;
                 };
-                const auto readZeroDouble = [&](int code) {
+                const auto readDouble = [&](int code, double& value) {
                     const DRW_Variant* group = takeGroup();
-                    return group != nullptr && group->code() == code
-                        && group->type() == DRW_Variant::DOUBLE
-                        && std::isfinite(group->d_val())
-                        && group->d_val() == 0.0;
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::DOUBLE
+                        || !std::isfinite(group->d_val()))
+                        return false;
+                    value = group->d_val();
+                    return true;
                 };
                 const auto readHandle = [&](int code,
                                             std::uint32_t& handle) {
@@ -23147,13 +23209,19 @@ bool dxfRW::processDynamicBlockObject() {
                 std::int32_t unknownBool = 0;
                 std::int32_t flatBlockCount = 0;
                 std::int32_t stateCount = 0;
+                std::string elementName;
+                std::string visibilityName;
+                std::string visibilityDescription;
+                double defPointX = 0.0;
+                double defPointY = 0.0;
+                double defPointZ = 0.0;
                 bool completeBody = bodyStart < raw.groups.size()
                     && readMarker("AcDbEvalExpr")
                     && readInteger(90, nodeId)
                     && readInteger(98, evalMajor)
                     && readInteger(99, evalMinor)
                     && readMarker("AcDbBlockElement")
-                    && readText(300, "Visibility State")
+                    && readText(300, elementName)
                     && readInteger(98, elementMajor)
                     && readInteger(99, elementMinor)
                     && readInteger(1071, eed1071)
@@ -23161,40 +23229,43 @@ bool dxfRW::processDynamicBlockObject() {
                     && readInteger(280, showProperties)
                     && readInteger(281, chainActions)
                     && readMarker("AcDbBlock1PtParameter")
-                    && readZeroDouble(1010)
-                    && readZeroDouble(1020)
-                    && readZeroDouble(1030)
+                    && readDouble(1010, defPointX)
+                    && readDouble(1020, defPointY)
+                    && readDouble(1030, defPointZ)
                     && readInteger(93, propertyInfoCount)
                     && readInteger(170, propertyInfo1Count)
                     && readInteger(171, propertyInfo2Count)
                     && readMarker("AcDbBlockVisibilityParameter")
                     && readInteger(281, initialized)
-                    && readText(301, "ARCH Title Block")
-                    && readText(302, "")
+                    && readText(301, visibilityName)
+                    && readText(302, visibilityDescription)
                     && readInteger(91, unknownBool)
                     && readInteger(93, flatBlockCount)
-                    && nodeId == 16 && evalMajor == 33 && evalMinor == 29
+                    && nodeId >= 0 && evalMajor == 33 && evalMinor == 29
                     && elementMajor == 33 && elementMinor == 29
-                    && eed1071 == 0 && showProperties == 1
-                    && chainActions == 0 && propertyInfoCount == 17
+                    && !elementName.empty() && showProperties >= 0
+                    && showProperties <= 1 && chainActions >= 0
+                    && chainActions <= 1 && propertyInfoCount >= 0
                     && propertyInfo1Count == 0 && propertyInfo2Count == 0
-                    && initialized == 1 && unknownBool == 0
-                    && flatBlockCount == 117;
+                    && initialized >= 0 && initialized <= 1
+                    && (unknownBool == 0 || unknownBool == 1)
+                    && !visibilityName.empty() && flatBlockCount > 0
+                    && static_cast<std::size_t>(flatBlockCount)
+                        <= raw.groups.size();
                 std::vector<std::uint32_t> flatHandles;
                 std::vector<std::vector<std::uint32_t>> stateBlocks;
                 std::vector<std::vector<std::uint32_t>> stateParameters;
                 if (completeBody) {
                     try {
-                        if (!DRW::reserve(flatHandles, 117)
-                            || !DRW::reserve(stateBlocks, 4)
-                            || !DRW::reserve(stateParameters, 4))
+                        if (!DRW::reserve(flatHandles, flatBlockCount))
                             completeBody = false;
                     } catch (...) {
                         completeBody = false;
                     }
                 }
                 if (completeBody) {
-                    for (std::int32_t index = 0; index < 117; ++index) {
+                    for (std::int32_t index = 0;
+                         index < flatBlockCount; ++index) {
                         std::uint32_t handle = 0u;
                         if (!readHandle(331, handle)
                             || std::find(flatHandles.begin(),
@@ -23208,84 +23279,173 @@ bool dxfRW::processDynamicBlockObject() {
                 }
                 if (completeBody)
                     completeBody = readInteger(92, stateCount)
-                        && stateCount == 4;
-                std::vector<std::uint32_t> allStateHandles;
+                        && stateCount > 0
+                        && static_cast<std::size_t>(stateCount)
+                            <= raw.groups.size() - cursor;
                 if (completeBody) {
                     try {
-                        if (!DRW::reserve(allStateHandles, 116))
+                        if (!DRW::reserve(stateBlocks, stateCount)
+                            || !DRW::reserve(stateParameters, stateCount)
+                            || !DRW::reserve(data.m_stateNames, stateCount))
+                            completeBody = false;
+                    } catch (...) {
+                        completeBody = false;
+                    }
+                }
+                std::vector<std::string> stateNames;
+                if (completeBody) {
+                    try {
+                        if (!DRW::reserve(stateNames, stateCount))
                             completeBody = false;
                     } catch (...) {
                         completeBody = false;
                     }
                 }
                 if (completeBody) {
-                    for (std::size_t state = 0u; state < stateNames.size();
-                         ++state) {
+                    for (std::int32_t state = 0;
+                         state < stateCount && completeBody; ++state) {
+                        std::string stateName;
                         std::int32_t stateBlockCount = 0;
                         std::int32_t stateParameterCount = 0;
-                        std::vector<std::uint32_t> handles;
+                        std::vector<std::uint32_t> blockHandles;
+                        std::vector<std::uint32_t> parameterHandles;
                         try {
-                            if (!DRW::reserve(handles, 29)) {
+                            if (!DRW::reserve(blockHandles, 1)
+                                || !DRW::reserve(parameterHandles, 1))
                                 completeBody = false;
-                                break;
-                            }
                         } catch (...) {
                             completeBody = false;
-                            break;
                         }
-                        if (!readText(303, stateNames[state])
+                        if (!completeBody || !readText(303, stateName)
+                            || stateName.empty()
                             || !readInteger(94, stateBlockCount)
-                            || stateBlockCount != 29) {
+                            || stateBlockCount < 0
+                            || static_cast<std::size_t>(stateBlockCount)
+                                > raw.groups.size() - cursor) {
                             completeBody = false;
                             break;
                         }
-                        for (std::int32_t item = 0; item < 29; ++item) {
+                        try {
+                            if (!DRW::reserve(blockHandles, stateBlockCount))
+                                completeBody = false;
+                        } catch (...) {
+                            completeBody = false;
+                        }
+                        std::unordered_set<std::uint32_t> stateBlockSet;
+                        if (completeBody) {
+                            try {
+                                stateBlockSet.reserve(
+                                    static_cast<std::size_t>(stateBlockCount));
+                            } catch (...) {
+                                completeBody = false;
+                            }
+                        }
+                        for (std::int32_t item = 0;
+                             item < stateBlockCount && completeBody; ++item) {
                             std::uint32_t handle = 0u;
+                            bool inserted = false;
                             if (!readHandle(332, handle)
                                 || std::find(flatHandles.begin(),
                                              flatHandles.end(), handle)
-                                    == flatHandles.end()
-                                || std::find(allStateHandles.begin(),
-                                             allStateHandles.end(), handle)
-                                    != allStateHandles.end()) {
+                                    == flatHandles.end()) {
                                 completeBody = false;
                                 break;
                             }
-                            handles.push_back(handle);
-                            allStateHandles.push_back(handle);
+                            try {
+                                inserted = stateBlockSet.insert(handle).second;
+                            } catch (...) {
+                                completeBody = false;
+                                break;
+                            }
+                            if (!inserted) {
+                                completeBody = false;
+                                break;
+                            }
+                            blockHandles.push_back(handle);
                         }
                         if (!completeBody
                             || !readInteger(95, stateParameterCount)
-                            || stateParameterCount != 0) {
+                            || stateParameterCount < 0
+                            || static_cast<std::size_t>(stateParameterCount)
+                                > raw.groups.size() - cursor) {
                             completeBody = false;
                             break;
                         }
-                        stateBlocks.push_back(std::move(handles));
-                        stateParameters.emplace_back();
+                        try {
+                            if (!DRW::reserve(parameterHandles,
+                                              stateParameterCount))
+                                completeBody = false;
+                        } catch (...) {
+                            completeBody = false;
+                        }
+                        std::unordered_set<std::uint32_t> stateParameterSet;
+                        if (completeBody) {
+                            try {
+                                stateParameterSet.reserve(
+                                    static_cast<std::size_t>(
+                                        stateParameterCount));
+                            } catch (...) {
+                                completeBody = false;
+                            }
+                        }
+                        for (std::int32_t item = 0;
+                             item < stateParameterCount && completeBody;
+                             ++item) {
+                            std::uint32_t handle = 0u;
+                            bool inserted = false;
+                            if (!readHandle(333, handle)
+                                || std::find(flatHandles.begin(),
+                                             flatHandles.end(), handle)
+                                    != flatHandles.end()) {
+                                completeBody = false;
+                                break;
+                            }
+                            try {
+                                inserted = stateParameterSet.insert(handle).second;
+                            } catch (...) {
+                                completeBody = false;
+                                break;
+                            }
+                            if (!inserted) {
+                                completeBody = false;
+                                break;
+                            }
+                            parameterHandles.push_back(handle);
+                        }
+                        if (completeBody) {
+                            stateNames.push_back(std::move(stateName));
+                            stateBlocks.push_back(std::move(blockHandles));
+                            stateParameters.push_back(
+                                std::move(parameterHandles));
+                        }
                     }
                 }
+                std::size_t typedStringBytes = 0u;
                 if (completeBody) {
-                    std::size_t unusedFlatHandles = 0u;
-                    for (const std::uint32_t handle : flatHandles) {
-                        if (std::find(allStateHandles.begin(),
-                                      allStateHandles.end(), handle)
-                            == allStateHandles.end())
-                            ++unusedFlatHandles;
-                    }
+                    const auto accountTypedString =
+                        [&typedStringBytes](const std::string& value) {
+                            if (value.size()
+                                > DRW::kMaxDxfBinaryPayloadBytes
+                                    - typedStringBytes)
+                                return false;
+                            typedStringBytes += value.size();
+                            return true;
+                        };
                     completeBody = cursor == raw.groups.size()
-                        && unusedFlatHandles == 1u
                         && data.appData.empty() && data.extData.empty()
                         && data.reactorHandles.empty()
-                        && data.xDictHandle == 0;
+                        && data.xDictHandle == 0
+                        && accountTypedString(elementName)
+                        && accountTypedString(visibilityName)
+                        && accountTypedString(visibilityDescription);
+                    for (const std::string& stateName : stateNames) {
+                        if (!accountTypedString(stateName)) {
+                            completeBody = false;
+                            break;
+                        }
+                    }
                 }
                 if (completeBody) {
-                    constexpr std::size_t typedStringBytes =
-                        sizeof("Visibility State") - 1u
-                        + sizeof("ARCH Title Block") - 1u
-                        + (sizeof("ARCH D") - 1u)
-                        + (sizeof("ARCH C") - 1u)
-                        + (sizeof("ARCH B") - 1u)
-                        + (sizeof("ARCH A") - 1u);
                     DxfReadRetainedLeaseCheckpoint typedCheckpoint(
                         data.m_dxfRetainedStringLease);
                     if (!retainDxfReadBytes(data.m_dxfRetainedStringLease,
@@ -23295,9 +23455,10 @@ bool dxfRW::processDynamicBlockObject() {
                         data.m_nodeId = static_cast<std::uint32_t>(nodeId);
                         data.m_major = static_cast<std::uint32_t>(evalMajor);
                         data.m_minor = static_cast<std::uint32_t>(evalMinor);
+                        data.m_parentId = DRW::NoHandle;
                         data.m_valueCode = -9999;
                         data.m_evalExprParsed = true;
-                        data.m_elementName = "Visibility State";
+                        data.m_elementName = std::move(elementName);
                         data.m_elementMajor =
                             static_cast<std::uint32_t>(elementMajor);
                         data.m_elementMinor =
@@ -23306,18 +23467,19 @@ bool dxfRW::processDynamicBlockObject() {
                         data.m_elementParsed = true;
                         data.m_showProperties = showProperties != 0;
                         data.m_chainActions = chainActions != 0;
-                        data.m_defPoint = DRW_Coord(0.0, 0.0, 0.0);
+                        data.m_defPoint = DRW_Coord(
+                            defPointX, defPointY, defPointZ);
                         data.m_propertyInfoCount = propertyInfoCount;
                         data.m_propertyInfo1Count = propertyInfo1Count;
                         data.m_propertyInfo2Count = propertyInfo2Count;
                         data.m_isInitialized = initialized != 0;
-                        data.m_visibilityName = "ARCH Title Block";
-                        data.m_visibilityDescription.clear();
+                        data.m_visibilityName = std::move(visibilityName);
+                        data.m_visibilityDescription =
+                            std::move(visibilityDescription);
                         data.m_unknownBool = unknownBool != 0;
                         data.m_blockCount = flatBlockCount;
                         data.m_stateCount = stateCount;
-                        data.m_stateNames.assign(stateNames.begin(),
-                                                 stateNames.end());
+                        data.m_stateNames = std::move(stateNames);
                         data.m_blockHandles = std::move(flatHandles);
                         data.m_stateBlockHandles = std::move(stateBlocks);
                         data.m_stateParameterHandles =
@@ -28014,6 +28176,7 @@ bool dxfRW::dxfClassForRecordName(const std::string &recName, DRW_Class &out) {
         {"ACSH_TORUS_CLASS", "AcDbShTorus", "ObjectDBX Classes", 1153, 0},
         {"ACSH_WEDGE_CLASS", "AcDbShWedge", "ObjectDBX Classes", 1153, 0},
         {"ACDBBLOCKPARAMDEPENDENCYBODY", "AcDbBlockParameterDependencyBody", "ObjectDBX Classes", 1153, 0},
+        {"BLOCKPARAMDEPENDENCYBODY", "AcDbBlockParameterDependencyBody", "ObjectDBX Classes", 1153, 0},
         {"ACDB_BLOCKREPRESENTATION_DATA", "AcDbBlockRepresentationData", "ObjectDBX Classes", 1153, 0},
         {"BLOCKARRAYACTION", "AcDbBlockArrayAction", "ObjectDBX Classes", 1153, 0},
         {"BLOCKANGULARCONSTRAINTPARAMETER", "AcDbBlockAngularConstraintParameter", "ObjectDBX Classes", 1153, 0},
@@ -28630,7 +28793,7 @@ bool dxfRW::writeXRecordDwgCompatibility(DRW_XRecord *ent) {
 }
 
 bool dxfRW::writeXRecordInternal(
-        DRW_XRecord *ent, bool allowDwgGroup1071Compatibility) {
+        DRW_XRecord *ent, bool allowDwgCompatibilityCodes) {
     if (!preflightDxfWrite())
         return false;
     if (ent != nullptr && !ent->hasExactDxfCoordinateTuples()) {
@@ -28665,16 +28828,21 @@ bool dxfRW::writeXRecordInternal(
 
     const std::vector<DRW_Variant>& values = ent->m_dataEntries.empty()
         ? ent->m_values : ent->m_dataEntries;
-    const auto invalidApplicationCode = [this,
-            allowDwgGroup1071Compatibility](int code) {
+    const auto invalidApplicationCode = [this, ent,
+            allowDwgCompatibilityCodes](int code) {
         if (isDxfXRecordApplicationCode(code)
-            || (allowDwgGroup1071Compatibility
+            || (allowDwgCompatibilityCodes
                 && version >= DRW::AC1021
                 && isDxfXRecordDwgCompatibilityCode(code)))
             return false;
+        DRW_DBG("XRECORD rejected application group code=");
+        DRW_DBG(code);
+        DRW_DBG("\n");
         recordOperationDiagnostic(DRW::OperationPhase::Validation,
             DRW::OperationCause::ValidationFailure, "xrecord-application-code-domain",
-            "XRECORD application values require normal object groups 1..369 except 5/105; group 1071 requires explicit AC1021+ DWG compatibility output");
+            "XRECORD application values require normal object groups 1..369 except 5/105; groups 1070/1071 require explicit AC1021+ DWG compatibility output",
+            0, false, ent != nullptr ? ent->handle : 0u,
+            ent != nullptr);
         m_writeError = true;
         return true;
     };
@@ -28686,7 +28854,7 @@ bool dxfRW::writeXRecordInternal(
             recordOperationDiagnostic(DRW::OperationPhase::Validation,
                 DRW::OperationCause::ValidationFailure,
                 "xrecord-dwg-compatibility-value-kind",
-                "the AC1021+ DWG XRECORD compatibility profile permits group 1071 only as Int32");
+                "the AC1021+ DWG XRECORD compatibility profile requires Int16 group 1070 and Int32 group 1071");
             m_writeError = true;
             return false;
         }
@@ -30955,7 +31123,9 @@ bool dxfRW::writeSortEntsTable(DRW_SortEntsTable *ent) {
     }
     if (!ent->extData.empty() && !writeExtData(ent->extData))
         return failDxfWrite();
-    if (!preflightDxfWrite() || !record.commit())
+    if (!preflightDxfWrite()
+        || !bindDxfWriteSourceObjectHandle(ent->handle, self)
+        || !record.commit())
         return failDxfWrite();
     return true;
 }
@@ -33788,6 +33958,10 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         && std::isfinite(ent->m_secondPoint.x)
         && std::isfinite(ent->m_secondPoint.y)
         && std::isfinite(ent->m_secondPoint.z);
+    const bool gripLocationNoValue = ent->m_valueCode == -9999
+        && !ent->m_hasValueDouble && ent->m_valueDouble == 0.0;
+    const bool gripLocationDoubleValue = ent->m_valueCode == 40
+        && ent->m_hasValueDouble && std::isfinite(ent->m_valueDouble);
     const bool gripLocation = ent->m_kind
             == DRW_DynamicBlockObject::Kind::GripLocationComponent
         && ent->m_recordName == gripRecordName
@@ -33795,34 +33969,38 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         && ent->m_evalExprParsed && ent->m_nodeId <= static_cast<std::uint32_t>(
                std::numeric_limits<std::int32_t>::max())
         && ent->m_major == 29u && ent->m_minor == 2u
-        && ent->m_valueCode == 40 && ent->m_hasValueDouble
-        && std::isfinite(ent->m_valueDouble) && ent->m_valueHandle == 0
-        && ent->m_gripType == 16 && !ent->m_gripExpr.empty()
+        && (gripLocationNoValue || gripLocationDoubleValue)
+        && ent->m_valueHandle == 0
+        && (ent->m_parentId == 0u
+            || ent->m_parentId == std::numeric_limits<std::uint32_t>::max())
+        && !ent->m_gripExpr.empty()
+        && ent->m_gripExpr.size() <= DRW::kMaxDxfBinaryPayloadBytes
         && ent->reactorHandles.empty();
+    const bool visibilityGripNoValue = ent->m_valueCode == -9999
+        && !ent->m_hasValueDouble && ent->m_valueDouble == 0.0;
     const bool visibilityGrip = ent->m_kind
             == DRW_DynamicBlockObject::Kind::Grip
         && ent->m_recordName == visibilityGripRecordName
         && version == DRW::AC1024 && ent->m_bodyFullyDecoded
-        && ent->m_evalExprParsed && ent->m_nodeId == 17u
-        // 0 is the legacy direct-model sentinel; DWG stores the absent
-        // EvalExpr parent as unsigned -1.
+        && ent->m_evalExprParsed && ent->m_nodeId <= static_cast<std::uint32_t>(
+               std::numeric_limits<std::int32_t>::max())
         && (ent->m_parentId == DRW::NoHandle
             || ent->m_parentId
                 == std::numeric_limits<std::uint32_t>::max())
         && ent->m_major == 29u && ent->m_minor == 2u
-        && ent->m_valueCode == -9999 && !ent->m_hasValueDouble
+        && visibilityGripNoValue
         && ent->m_valueHandle == 0
-        && ent->m_elementParsed && ent->m_elementName == "Grip"
+        && ent->m_elementParsed && !ent->m_elementName.empty()
+        && ent->m_elementName.size() <= DRW::kMaxDxfBinaryPayloadBytes
         && ent->m_elementMajor == 29u && ent->m_elementMinor == 2u
-        && ent->m_eed1071 == 0
-        && ent->m_gripValue91 == 18 && ent->m_gripValue92 == 19
         && std::isfinite(ent->m_gripLocation.x)
         && std::isfinite(ent->m_gripLocation.y)
         && std::isfinite(ent->m_gripLocation.z)
-        && ent->m_gripLocation.x == 0.0
-        && ent->m_gripLocation.y == 0.0
-        && ent->m_gripLocation.z == 0.0
-        && !ent->m_gripValue280 && ent->m_gripValue93 == -1
+        && ent->m_gripCombinedState == 0
+        && !ent->m_gripHasOrientation
+        && ent->m_gripOrientation.x == 0.0
+        && ent->m_gripOrientation.y == 0.0
+        && ent->m_gripOrientation.z == 0.0
         && ent->reactorHandles.empty();
     const bool isAlignmentGrip =
         ent->m_recordName == "BLOCKALIGNMENTGRIP";
@@ -33854,79 +34032,113 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         && std::isfinite(ent->m_gripOrientation.z)
         && (isFlipGrip || ent->m_gripCombinedState == 0)
         && ent->reactorHandles.empty();
-    static constexpr std::array<std::string_view, 4> visibilityStateNames{
-        "ARCH D", "ARCH C", "ARCH B", "ARCH A"};
+    const std::size_t maxVisibilityGroups =
+        DRW::kMaxDxfRawRecordGroups;
     bool visibilityParameter = ent->m_kind
             == DRW_DynamicBlockObject::Kind::VisibilityParameter
         && ent->m_recordName == "BLOCKVISIBILITYPARAMETER"
         && version == DRW::AC1024 && ent->m_bodyFullyDecoded
-        && ent->m_evalExprParsed && ent->m_nodeId == 16u
+        && ent->m_evalExprParsed
+        && ent->m_nodeId <= static_cast<std::uint32_t>(
+               std::numeric_limits<std::int32_t>::max())
         // Accept both the legacy direct-model sentinel and DWG's unsigned -1.
         && (ent->m_parentId == DRW::NoHandle
             || ent->m_parentId
                 == std::numeric_limits<std::uint32_t>::max())
         && ent->m_major == 29u && ent->m_minor == 2u
         && ent->m_valueCode == -9999 && !ent->m_hasValueDouble
-        && ent->m_valueHandle == 0
-        && ent->m_elementParsed
-        && ent->m_elementName == "Visibility State"
+        && ent->m_valueDouble == 0.0 && ent->m_valueHandle == 0
+        && ent->m_elementParsed && !ent->m_elementName.empty()
+        && ent->m_elementName.size() <= DRW::kMaxDxfBinaryPayloadBytes
         && ent->m_elementMajor == 29u && ent->m_elementMinor == 2u
-        && ent->m_eed1071 == 0 && ent->m_showProperties
-        && !ent->m_chainActions
-        && std::isfinite(ent->m_defPoint.x)
-        && std::isfinite(ent->m_defPoint.y)
-        && std::isfinite(ent->m_defPoint.z)
-        && ent->m_defPoint.x == 0.0 && ent->m_defPoint.y == 0.0
-        && ent->m_defPoint.z == 0.0
+        && ent->m_propertyInfoCount >= 0
+        && static_cast<std::size_t>(ent->m_propertyInfoCount)
+            <= maxVisibilityGroups
+        // The DXF projection carries only the property-info counts. Keep
+        // records with unrepresented code/name pairs raw-only.
         && ent->m_propertyInfo1Count == 0
         && ent->m_propertyInfo1Codes.empty()
         && ent->m_propertyInfo1Names.empty()
         && ent->m_propertyInfo2Count == 0
         && ent->m_propertyInfo2Codes.empty()
         && ent->m_propertyInfo2Names.empty()
-        && ent->m_propertyInfoCount == 17 && ent->m_isInitialized
-        && ent->m_visibilityName == "ARCH Title Block"
-        && ent->m_visibilityDescription.empty() && !ent->m_unknownBool
-        && ent->m_blockCount == 117 && ent->m_blockHandles.size() == 117u
-        && ent->m_stateCount == 4 && ent->m_stateNames.size() == 4u
-        && ent->m_stateBlockHandles.size() == 4u
-        && ent->m_stateParameterHandles.size() == 4u
+        && std::isfinite(ent->m_defPoint.x)
+        && std::isfinite(ent->m_defPoint.y)
+        && std::isfinite(ent->m_defPoint.z)
+        && !ent->m_visibilityName.empty()
+        && ent->m_visibilityName.size() <= DRW::kMaxDxfBinaryPayloadBytes
+        && ent->m_visibilityDescription.size()
+            <= DRW::kMaxDxfBinaryPayloadBytes
+        && ent->m_blockCount > 0
+        && static_cast<std::size_t>(ent->m_blockCount)
+            == ent->m_blockHandles.size()
+        && ent->m_blockHandles.size() <= maxVisibilityGroups
+        && ent->m_stateCount > 0
+        && static_cast<std::size_t>(ent->m_stateCount)
+            == ent->m_stateNames.size()
+        && ent->m_stateNames.size() == ent->m_stateBlockHandles.size()
+        && ent->m_stateNames.size() == ent->m_stateParameterHandles.size()
+        && ent->m_stateNames.size() <= maxVisibilityGroups
         && ent->reactorHandles.empty();
     if (visibilityParameter) {
+        std::size_t visibilityGroupCount = 25u;
+        std::unordered_set<std::uint32_t> flatBlockHandles;
+        flatBlockHandles.reserve(ent->m_blockHandles.size());
+        std::unordered_map<std::uint32_t, std::uint32_t> outputTargets;
+        outputTargets.reserve(ent->m_blockHandles.size());
+        const auto addOutputTarget = [&outputTargets](
+                std::uint32_t source, std::uint32_t target) {
+            const auto inserted = outputTargets.emplace(target, source);
+            return inserted.second || inserted.first->second == source;
+        };
         for (std::size_t index = 0u;
              index < ent->m_blockHandles.size() && visibilityParameter;
              ++index) {
             const std::uint32_t source = ent->m_blockHandles[index];
             const std::uint32_t target = remapObjectHandle(source);
             if (source == 0u || source == DRW::NoHandle || target == 0u
-                || target == DRW::NoHandle) {
+                || target == DRW::NoHandle
+                || !flatBlockHandles.insert(source).second
+                || !addOutputTarget(source, target)
+                || visibilityGroupCount >= maxVisibilityGroups) {
                 visibilityParameter = false;
                 break;
             }
-            for (std::size_t previous = 0u; previous < index; ++previous) {
-                if (ent->m_blockHandles[previous] == source
-                    || remapObjectHandle(ent->m_blockHandles[previous])
-                        == target) {
-                    visibilityParameter = false;
-                    break;
-                }
-            }
+            ++visibilityGroupCount;
         }
-        std::size_t stateReferenceCount = 0u;
+        if (visibilityParameter) {
+            if (visibilityGroupCount >= maxVisibilityGroups)
+                visibilityParameter = false;
+            else
+                ++visibilityGroupCount; // DXF 92: state count
+        }
+        std::unordered_set<std::string> stateNames;
+        stateNames.reserve(ent->m_stateNames.size());
         for (std::size_t stateIndex = 0u;
-             stateIndex < visibilityStateNames.size()
-                 && visibilityParameter;
+             stateIndex < ent->m_stateNames.size() && visibilityParameter;
              ++stateIndex) {
-            const auto& handles = ent->m_stateBlockHandles[stateIndex];
-            if (ent->m_stateNames[stateIndex]
-                    != visibilityStateNames[stateIndex]
-                || handles.size() != 29u
-                || !ent->m_stateParameterHandles[stateIndex].empty()) {
+            const std::string& stateName = ent->m_stateNames[stateIndex];
+            const auto& blockHandles = ent->m_stateBlockHandles[stateIndex];
+            const auto& parameterHandles =
+                ent->m_stateParameterHandles[stateIndex];
+            if (stateName.empty()
+                || stateName.size() > DRW::kMaxDxfBinaryPayloadBytes
+                || !stateNames.insert(stateName).second
+                || visibilityGroupCount > maxVisibilityGroups - 3u
+                || blockHandles.size()
+                    > maxVisibilityGroups - visibilityGroupCount - 3u
+                || parameterHandles.size()
+                    > maxVisibilityGroups - visibilityGroupCount - 3u
+                        - blockHandles.size()) {
                 visibilityParameter = false;
                 break;
             }
-            for (std::size_t item = 0u; item < handles.size(); ++item) {
-                const std::uint32_t source = handles[item];
+            visibilityGroupCount += 3u;
+            visibilityGroupCount += blockHandles.size();
+            visibilityGroupCount += parameterHandles.size();
+            std::unordered_set<std::uint32_t> stateBlockHandles;
+            stateBlockHandles.reserve(blockHandles.size());
+            for (const std::uint32_t source : blockHandles) {
                 const std::uint32_t target = remapObjectHandle(source);
                 if (source == 0u || source == DRW::NoHandle || target == 0u
                     || target == DRW::NoHandle
@@ -33936,44 +34148,25 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
                     visibilityParameter = false;
                     break;
                 }
-                for (std::size_t previousState = 0u;
-                     previousState <= stateIndex && visibilityParameter;
-                     ++previousState) {
-                    const auto& previousHandles =
-                        ent->m_stateBlockHandles[previousState];
-                    const std::size_t previousLimit = previousState
-                            == stateIndex ? item : previousHandles.size();
-                    for (std::size_t previousItem = 0u;
-                         previousItem < previousLimit; ++previousItem) {
-                        if (previousHandles[previousItem] == source) {
-                            visibilityParameter = false;
-                            break;
-                        }
-                    }
+                if (!stateBlockHandles.insert(source).second) {
+                    visibilityParameter = false;
+                    break;
                 }
-                if (visibilityParameter)
-                    ++stateReferenceCount;
+            }
+            std::unordered_set<std::uint32_t> stateParameterHandles;
+            stateParameterHandles.reserve(parameterHandles.size());
+            for (const std::uint32_t source : parameterHandles) {
+                const std::uint32_t target = remapObjectHandle(source);
+                if (source == 0u || source == DRW::NoHandle || target == 0u
+                    || target == DRW::NoHandle
+                    || flatBlockHandles.count(source) != 0u
+                    || !addOutputTarget(source, target)
+                    || !stateParameterHandles.insert(source).second) {
+                    visibilityParameter = false;
+                    break;
+                }
             }
         }
-        visibilityParameter = visibilityParameter
-            && stateReferenceCount == 116u;
-        std::size_t unusedFlatHandles = 0u;
-        if (visibilityParameter) {
-            for (const std::uint32_t handle : ent->m_blockHandles) {
-                bool used = false;
-                for (const auto& stateHandles : ent->m_stateBlockHandles) {
-                    if (std::find(stateHandles.begin(), stateHandles.end(),
-                                  handle) != stateHandles.end()) {
-                        used = true;
-                        break;
-                    }
-                }
-                if (!used)
-                    ++unusedFlatHandles;
-            }
-        }
-        visibilityParameter = visibilityParameter
-            && unusedFlatHandles == 1u;
     }
     if (!purgePreventer && !parameterDependencyBody && !proxyNode
         && !basePointParameter && !alignmentParameter && !flipAction
@@ -34365,13 +34558,17 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
             // AC1024 DWG stores EvalExpr version 29/2, while the DXF
             // representation uses the schema identifiers 33/29.
             && writer->writeInt32(98, 33)
-            && writer->writeInt32(99, 29)
-            && writer->writeUtf8String(1, "")
-            && writer->writeInt16(70, ent->m_valueCode)
-            && writer->writeDouble(40, ent->m_valueDouble)
-            && writer->writeString(100, gripSubclassName)
-            && writer->writeInt32(91, ent->m_gripType)
-            && writer->writeUtf8String(300, ent->m_gripExpr);
+            && writer->writeInt32(99, 29);
+        if (written && gripLocationDoubleValue) {
+            written = writer->writeUtf8String(1, "")
+                && writer->writeInt16(70, ent->m_valueCode)
+                && writer->writeDouble(40, ent->m_valueDouble);
+        }
+        if (written) {
+            written = writer->writeString(100, gripSubclassName)
+                && writer->writeInt32(91, ent->m_gripType)
+                && writer->writeUtf8String(300, ent->m_gripExpr);
+        }
     } else if (written && visibilityGrip) {
         written = writer->writeString(100, "AcDbEvalExpr")
             && writer->writeInt32(90,
@@ -34477,6 +34674,11 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
             written = written && writer->writeInt32(95,
                 static_cast<std::int32_t>(
                     ent->m_stateParameterHandles[state].size()));
+            for (const std::uint32_t handle :
+                 ent->m_stateParameterHandles[state]) {
+                written = written && writer->writeString(333, toHexStr(
+                    remapObjectHandle(handle)));
+            }
         }
     }
     if (written && !ent->extData.empty())

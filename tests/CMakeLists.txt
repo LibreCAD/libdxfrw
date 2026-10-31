@@ -1483,6 +1483,16 @@ set_tests_properties(dwg2dxf_dynamic_block_visibility_parameter PROPERTIES
 )
 
 add_test(
+    NAME dwg2dxf_dynamic_block_visibility_parameter_door_profile
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --dynamic-block-visibility-parameter-door-profile
+)
+set_tests_properties(dwg2dxf_dynamic_block_visibility_parameter_door_profile PROPERTIES
+    LABELS "fast;dxf;adapter;dynamic-block"
+    TIMEOUT 30
+)
+
+add_test(
     NAME dwg2dxf_block_representation_data_output
     COMMAND libdxfrw_dwg2dxf_adapter_tests
         --block-representation-data-output
@@ -2133,9 +2143,9 @@ add_test(NAME dwg2dxf_xrecord_application_chunk_controls
     COMMAND libdxfrw_dwg2dxf_adapter_tests --xrecord-application-chunk-controls)
 set_tests_properties(dwg2dxf_xrecord_application_chunk_controls PROPERTIES
     LABELS "fast;dxf;objects;xrecord;adapter;generated" TIMEOUT 30)
-add_test(NAME dwg2dxf_xrecord_dwg_group_1071_compatibility
-    COMMAND libdxfrw_dwg2dxf_adapter_tests --xrecord-dwg-group-1071-compatibility)
-set_tests_properties(dwg2dxf_xrecord_dwg_group_1071_compatibility PROPERTIES
+add_test(NAME dwg2dxf_xrecord_dwg_compatibility_codes
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --xrecord-dwg-compatibility-codes)
+set_tests_properties(dwg2dxf_xrecord_dwg_compatibility_codes PROPERTIES
     LABELS "fast;dxf;objects;xrecord;compatibility;generated" TIMEOUT 30)
 add_test(NAME dwg2dxf_native_xrecord_coordinates
     COMMAND libdxfrw_dwg2dxf_adapter_tests --native-xrecord-coordinates)

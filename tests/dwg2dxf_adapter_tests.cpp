@@ -89,6 +89,14 @@ public:
         return found == data.m_opaqueDwgSourceFrames.end()
             ? nullptr : &found->second;
     }
+    static const DRW_UnsupportedObject* standardSourceFrame(
+            const dx_data& data, std::uint64_t generation,
+            std::uint32_t handle) {
+        const auto found = data.m_standardDwgObjectFrames.find(
+            {generation, handle});
+        return found == data.m_standardDwgObjectFrames.end()
+            ? nullptr : &found->second.raw;
+    }
     static std::size_t opaqueSourceFrameCount(const dx_data& data) {
         return data.m_opaqueDwgSourceFrames.size();
     }
@@ -5044,7 +5052,7 @@ bool xrecordApplicationChunkControls() {
     return true;
 }
 
-bool xrecordDwgGroup1071CompatibilityOutput() {
+bool xrecordDwgCompatibilityCodesOutput() {
     class DirectXRecordWriter final : public dx_iface {
     public:
         DRW_XRecord record;
@@ -5065,12 +5073,13 @@ bool xrecordDwgGroup1071CompatibilityOutput() {
         writer.record.handle = 0xA620u;
         writer.record.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
         writer.record.m_values = {
-            DRW_Variant(1071, static_cast<std::int32_t>(135625452)),
-            DRW_Variant(1071, static_cast<std::int32_t>(184556386)),
-            DRW_Variant(70, static_cast<std::int32_t>(25)),
-            DRW_Variant(70, static_cast<std::int32_t>(104)),
-            DRW_Variant(10, DRW_Coord(0.0, 0.0, 0.0)),
-            DRW_Variant(1, std::string("ARCH D"))};
+            DRW_Variant(1070, static_cast<std::int32_t>(3)),
+            DRW_Variant(1071, static_cast<std::int32_t>(9)),
+            DRW_Variant(300, std::string("GRIPLOC")),
+            DRW_Variant(11, DRW_Coord(0.0, -1.0, 0.0)),
+            DRW_Variant(1071, static_cast<std::int32_t>(27)),
+            DRW_Variant(300, std::string("GRIPFLIP")),
+            DRW_Variant(70, static_cast<std::int32_t>(1))};
         writer.record.m_dataEntries = writer.record.m_values;
 
         const auto nonce = std::chrono::steady_clock::now()
@@ -5078,19 +5087,19 @@ bool xrecordDwgGroup1071CompatibilityOutput() {
                                .count();
         const std::filesystem::path output =
             std::filesystem::temp_directory_path()
-            / ("libdxfrw-xrecord-1071-" + std::to_string(nonce) + ".dxf");
+            / ("libdxfrw-xrecord-compat-" + std::to_string(nonce) + ".dxf");
         const std::string sentinel =
-            "unsupported pre-AC1021 XRECORD 1071 must preserve destination\n";
+            "unsupported XRECORD compatibility payload must preserve destination\n";
         {
             std::ofstream existing(output, std::ios::binary | std::ios::trunc);
             existing << sentinel;
             if (!existing)
-                return fail("could not create XRECORD 1071 destination sentinel");
+                return fail("could not create XRECORD compatibility destination sentinel");
         }
         dx_data authored;
         if (writer.fileExport(output.string(), DRW::AC1024, binary,
                               &authored, false, true))
-            return fail("ordinary XRECORD writer accepted group 1071");
+            return fail("ordinary XRECORD writer accepted compatibility groups");
         {
             std::ifstream existing(output, std::ios::binary);
             const std::string preserved{
@@ -5100,11 +5109,10 @@ bool xrecordDwgGroup1071CompatibilityOutput() {
                 return fail("standard-route refusal replaced the destination");
         }
         writer.useCompatibility = true;
-        writer.record.m_dataEntries[0] = DRW_Variant(
-            1071, 135625452.0);
+        writer.record.m_dataEntries[0] = DRW_Variant(1070, 3.0);
         if (writer.fileExport(output.string(), DRW::AC1024, binary,
                               &authored, false, true))
-            return fail("non-Int32 XRECORD 1071 was emitted");
+            return fail("non-Int16 XRECORD 1070 was emitted");
         {
             std::ifstream existing(output, std::ios::binary);
             const std::string preserved{
@@ -5114,10 +5122,39 @@ bool xrecordDwgGroup1071CompatibilityOutput() {
                 return fail("bad-type refusal replaced the destination");
         }
         writer.record.m_dataEntries[0] = DRW_Variant(
-            1071, static_cast<std::int32_t>(135625452));
+            1070, static_cast<std::int32_t>(3));
+        writer.record.m_dataEntries[1] = DRW_Variant(1071, 9.0);
+        if (writer.fileExport(output.string(), DRW::AC1024, binary,
+                              &authored, false, true))
+            return fail("non-Int32 XRECORD 1071 was emitted");
+        {
+            std::ifstream existing(output, std::ios::binary);
+            const std::string preserved{
+                std::istreambuf_iterator<char>(existing),
+                std::istreambuf_iterator<char>()};
+            if (preserved != sentinel)
+                return fail("bad 1071 type refusal replaced the destination");
+        }
+        writer.record.m_dataEntries[1] = DRW_Variant(
+            1071, static_cast<std::int32_t>(9));
+        writer.record.m_dataEntries[0] = DRW_Variant(
+            1070, static_cast<std::int32_t>(65536));
+        if (writer.fileExport(output.string(), DRW::AC1024, binary,
+                              &authored, false, true))
+            return fail("out-of-range XRECORD 1070 was emitted");
+        {
+            std::ifstream existing(output, std::ios::binary);
+            const std::string preserved{
+                std::istreambuf_iterator<char>(existing),
+                std::istreambuf_iterator<char>()};
+            if (preserved != sentinel)
+                return fail("out-of-range 1070 refusal replaced the destination");
+        }
+        writer.record.m_dataEntries[0] = DRW_Variant(
+            1070, static_cast<std::int32_t>(3));
         if (writer.fileExport(output.string(), DRW::AC1018, binary,
                               &authored, false, true))
-            return fail("pre-AC1021 XRECORD 1071 was emitted");
+            return fail("pre-AC1021 XRECORD compatibility values were emitted");
         {
             std::ifstream existing(output, std::ios::binary);
             const std::string preserved{
@@ -5134,7 +5171,7 @@ bool xrecordDwgGroup1071CompatibilityOutput() {
             || !writer.called || !writer.emitted) {
             std::error_code ignored;
             std::filesystem::remove(output, ignored);
-            return fail("AC1024 XRECORD 1071 compatibility retry failed");
+            return fail("AC1024 XRECORD compatibility retry failed");
         }
         dx_data readback;
         dx_iface reader;
@@ -5142,27 +5179,31 @@ bool xrecordDwgGroup1071CompatibilityOutput() {
         std::error_code ignored;
         std::filesystem::remove(output, ignored);
         if (!imported || readback.xRecords.size() != 1u)
-            return fail("AC1024 XRECORD 1071 output failed fresh readback");
+            return fail("AC1024 XRECORD compatibility output failed fresh readback");
 
         const auto& values = readback.xRecords.front().m_dataEntries;
-        const bool exact = values.size() == 6u
-            && values[0].code() == 1071
+        const bool exact = values.size() == 7u
+            && values[0].code() == 1070
             && values[0].type() == DRW_Variant::INTEGER
-            && values[0].i_val() == 135625452
+            && values[0].i_val() == 3
             && values[1].code() == 1071
             && values[1].type() == DRW_Variant::INTEGER
-            && values[1].i_val() == 184556386
-            && values[2].code() == 70 && values[2].i_val() == 25
-            && values[3].code() == 70 && values[3].i_val() == 104
-            && values[4].code() == 10
-            && values[4].type() == DRW_Variant::COORD
-            && values[4].content.v->x == 0.0
-            && values[4].content.v->y == 0.0
-            && values[4].content.v->z == 0.0
-            && values[5].code() == 1 && values[5].c_str() != nullptr
-            && std::string(values[5].c_str()) == "ARCH D";
+            && values[1].i_val() == 9
+            && values[2].code() == 300 && values[2].c_str() != nullptr
+            && std::string(values[2].c_str()) == "GRIPLOC"
+            && values[3].code() == 11
+            && values[3].type() == DRW_Variant::COORD
+            && values[3].content.v->x == 0.0
+            && values[3].content.v->y == -1.0
+            && values[3].content.v->z == 0.0
+            && values[4].code() == 1071
+            && values[4].type() == DRW_Variant::INTEGER
+            && values[4].i_val() == 27
+            && values[5].code() == 300 && values[5].c_str() != nullptr
+            && std::string(values[5].c_str()) == "GRIPFLIP"
+            && values[6].code() == 70 && values[6].i_val() == 1;
         if (!exact)
-            return fail("XRECORD 1071 compatibility changed ordered values");
+            return fail("XRECORD compatibility changed ordered values");
     }
     return true;
 }
@@ -8340,10 +8381,22 @@ bool dynamicBlockPurgePreventerOutputProfile() {
 }
 
 bool dynamicBlockGripLocationOutputProfile() {
+    struct GripValueProfile {
+        std::int16_t valueCode;
+        bool hasValueDouble;
+        double valueDouble;
+        std::int32_t gripType;
+        const char* expression;
+    };
+    const std::array<GripValueProfile, 3> profiles{{
+        {40, true, 0.0, 16, "UpdatedX"},
+        {-9999, false, 0.0, 1, "UpdatedEndX"},
+        {40, true, -2.0, 227, "UpdatedEndY"}}};
     const auto nonce = std::chrono::steady_clock::now()
                            .time_since_epoch()
                            .count();
-    const auto populate = [](dx_data& data, dx_iface& iface) {
+    const auto populate = [](dx_data& data, dx_iface& iface,
+                             const GripValueProfile& profile) {
         iface.cData = &data;
         data.sourceFormat = dx_source_format::DWG;
         data.sourceVersion = DRW::AC1024;
@@ -8385,15 +8438,16 @@ bool dynamicBlockGripLocationOutputProfile() {
         DRW_DynamicBlockObject grip("BLOCKGRIPLOCATIONCOMPONENT");
         grip.handle = gripHandle;
         grip.parentHandle = graphHandle;
+        grip.m_parentId = std::numeric_limits<std::uint32_t>::max();
         grip.m_nodeId = 18u;
         grip.m_major = 29u;
         grip.m_minor = 2u;
-        grip.m_valueCode = 40;
-        grip.m_valueDouble = 0.0;
-        grip.m_hasValueDouble = true;
+        grip.m_valueCode = profile.valueCode;
+        grip.m_valueDouble = profile.valueDouble;
+        grip.m_hasValueDouble = profile.hasValueDouble;
         grip.m_evalExprParsed = true;
-        grip.m_gripType = 16;
-        grip.m_gripExpr = "UpdatedX";
+        grip.m_gripType = profile.gripType;
+        grip.m_gripExpr = profile.expression;
         grip.m_bodyFullyDecoded = true;
         iface.addDynamicBlockObject(grip);
         return !data.dynamicBlockCaptureFailed
@@ -8402,11 +8456,8 @@ bool dynamicBlockGripLocationOutputProfile() {
             && data.evaluationGraphs.size() == 1u;
     };
 
-    const std::vector<std::pair<int, std::string>> expectedWire{
-        {100, "AcDbEvalExpr"}, {90, "18"}, {98, "33"}, {99, "29"},
-        {1, ""}, {70, "40"}, {40, "0.000000"},
-        {100, "AcDbBlockGripExpr"}, {91, "16"}, {300, "UpdatedX"}};
-    for (const bool binary : {false, true}) {
+    for (const GripValueProfile& profile : profiles) {
+      for (const bool binary : {false, true}) {
         const std::string encoding = binary ? "binary" : "ascii";
         const std::filesystem::path output =
             std::filesystem::temp_directory_path()
@@ -8414,7 +8465,7 @@ bool dynamicBlockGripLocationOutputProfile() {
                + std::to_string(nonce) + ".dxf");
         dx_data data;
         dx_iface iface;
-        if (!populate(data, iface))
+        if (!populate(data, iface, profile))
             return fail("GripLocation input graph was not retained");
         if (!iface.fileExport(output.string(), DRW::AC1024, binary,
                               &data, false)) {
@@ -8425,6 +8476,20 @@ bool dynamicBlockGripLocationOutputProfile() {
         }
 
         std::vector<std::pair<int, std::string>> wireGroups;
+        std::vector<std::pair<int, std::string>> expectedWire{
+            {100, "AcDbEvalExpr"}, {90, "18"}, {98, "33"}, {99, "29"}};
+        if (profile.hasValueDouble) {
+            expectedWire.emplace_back(1, "");
+            expectedWire.emplace_back(70,
+                                      std::to_string(profile.valueCode));
+            std::ostringstream value;
+            value << std::fixed << std::setprecision(6)
+                  << profile.valueDouble;
+            expectedWire.emplace_back(40, value.str());
+        }
+        expectedWire.emplace_back(100, "AcDbBlockGripExpr");
+        expectedWire.emplace_back(91, std::to_string(profile.gripType));
+        expectedWire.emplace_back(300, profile.expression);
         const bool exactWire = readDxfDynamicBlockGripWireGroups(
             output, binary, wireGroups) && wireGroups == expectedWire;
         dx_data readback;
@@ -8456,11 +8521,18 @@ bool dynamicBlockGripLocationOutputProfile() {
             || readback.dynamicBlockObjects.front().m_nodeId != 18u
             || readback.dynamicBlockObjects.front().m_major != 33u
             || readback.dynamicBlockObjects.front().m_minor != 29u
-            || readback.dynamicBlockObjects.front().m_valueCode != 40
-            || !readback.dynamicBlockObjects.front().m_hasValueDouble
-            || readback.dynamicBlockObjects.front().m_valueDouble != 0.0
-            || readback.dynamicBlockObjects.front().m_gripType != 16
-            || readback.dynamicBlockObjects.front().m_gripExpr != "UpdatedX"
+            || readback.dynamicBlockObjects.front().m_parentId
+                != std::numeric_limits<std::uint32_t>::max()
+            || readback.dynamicBlockObjects.front().m_valueCode
+                != profile.valueCode
+            || readback.dynamicBlockObjects.front().m_hasValueDouble
+                != profile.hasValueDouble
+            || readback.dynamicBlockObjects.front().m_valueDouble
+                != profile.valueDouble
+            || readback.dynamicBlockObjects.front().m_gripType
+                != profile.gripType
+            || readback.dynamicBlockObjects.front().m_gripExpr
+                != profile.expression
             || readback.evaluationGraphs.front().handle != 0xE602u
             || readback.evaluationGraphs.front().parentHandle != 0xE601u
             || readback.evaluationGraphs.front().m_nodes.size() != 1u
@@ -8541,11 +8613,12 @@ bool dynamicBlockGripLocationOutputProfile() {
         }
         std::error_code ignored;
         std::filesystem::remove(output, ignored);
+      }
     }
 
     dx_data retry;
     dx_iface retryIface;
-    if (!populate(retry, retryIface))
+    if (!populate(retry, retryIface, profiles.front()))
         return fail("could not construct GripLocation retry input");
     retry.dynamicBlockObjects.front().m_nodeId = 19u;
     const std::filesystem::path sentinelPath =
@@ -8604,6 +8677,60 @@ bool dynamicBlockGripLocationOutputProfile() {
     }
     std::error_code ignored;
     std::filesystem::remove(sentinelPath, ignored);
+
+    dx_data valueRetry;
+    dx_iface valueRetryIface;
+    if (!populate(valueRetry, valueRetryIface, profiles.front()))
+        return fail("could not construct GripLocation value retry input");
+    DRW_DynamicBlockObject& valueObject =
+        valueRetry.dynamicBlockObjects.front();
+    valueObject.m_hasValueDouble = false;
+    const std::filesystem::path valueSentinelPath =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-dynamic-grip-location-value-sentinel-"
+           + std::to_string(nonce) + ".dxf");
+    {
+        std::ofstream existing(valueSentinelPath, std::ios::binary);
+        existing << sentinel;
+    }
+    if (valueRetryIface.fileExport(valueSentinelPath.string(), DRW::AC1024,
+                                   false, &valueRetry, false)) {
+        std::filesystem::remove(valueSentinelPath, ignored);
+        return fail("code-40 GripLocation without a double was accepted");
+    }
+    {
+        std::ifstream preservedInput(valueSentinelPath, std::ios::binary);
+        const std::string preserved{
+            std::istreambuf_iterator<char>(preservedInput),
+            std::istreambuf_iterator<char>()};
+        if (preserved != sentinel) {
+            std::filesystem::remove(valueSentinelPath, ignored);
+            return fail("invalid GripLocation value replaced the destination");
+        }
+    }
+    valueObject.m_valueCode = profiles[1].valueCode;
+    valueObject.m_hasValueDouble = profiles[1].hasValueDouble;
+    valueObject.m_valueDouble = profiles[1].valueDouble;
+    valueObject.m_gripType = profiles[1].gripType;
+    valueObject.m_gripExpr = profiles[1].expression;
+    dx_data valueRetryReadback;
+    dx_iface valueRetryReader;
+    if (!valueRetryIface.fileExport(valueSentinelPath.string(), DRW::AC1024,
+                                    false, &valueRetry, false)
+        || !valueRetryReader.fileImport(valueSentinelPath.string(),
+                                        &valueRetryReadback, false)
+        || valueRetryReadback.dynamicBlockObjects.size() != 1u
+        || valueRetryReadback.dynamicBlockObjects.front().m_valueCode
+            != profiles[1].valueCode
+        || valueRetryReadback.dynamicBlockObjects.front().m_hasValueDouble
+        || valueRetryReadback.dynamicBlockObjects.front().m_gripType
+            != profiles[1].gripType
+        || valueRetryReadback.dynamicBlockObjects.front().m_gripExpr
+            != profiles[1].expression) {
+        std::filesystem::remove(valueSentinelPath, ignored);
+        return fail("corrected no-value GripLocation failed same-adapter retry");
+    }
+    std::filesystem::remove(valueSentinelPath, ignored);
     return true;
 }
 
@@ -9557,6 +9684,7 @@ bool readDxfDynamicBlockVisibilityParameterWireGroups(
             break;
         case 331:
         case 332:
+        case 333:
             groups.emplace_back(code,
                 hexHandle(reader->getHandleString()));
             break;
@@ -9875,13 +10003,13 @@ bool dynamicBlockVisibilityParameterRecordOutputProfile() {
     dxfRW writer(sentinelPath.string().c_str());
     writer.setHandleRemap(remap);
     author.dxfW = &writer;
-    const std::uint32_t lastStateReference =
-        author.object.m_stateBlockHandles.front().back();
-    author.object.m_stateBlockHandles.front().pop_back();
+    const std::uint32_t firstStateReference =
+        author.object.m_stateBlockHandles.front().front();
+    author.object.m_stateBlockHandles.front().front() = 0u;
     if (writer.write(&author, DRW::AC1024, false) || author.wrote) {
         std::error_code ignored;
         std::filesystem::remove(sentinelPath, ignored);
-        return fail("incomplete visibility state list was emitted");
+        return fail("zero visibility-state block handle was emitted");
     }
     {
         std::ifstream existing(sentinelPath, std::ios::binary);
@@ -9894,7 +10022,7 @@ bool dynamicBlockVisibilityParameterRecordOutputProfile() {
             return fail("invalid visibility parameter replaced destination");
         }
     }
-    author.object.m_stateBlockHandles.front().push_back(lastStateReference);
+    author.object.m_stateBlockHandles.front().front() = firstStateReference;
     if (!writer.write(&author, DRW::AC1024, false) || !author.wrote) {
         std::error_code ignored;
         std::filesystem::remove(sentinelPath, ignored);
@@ -9921,6 +10049,331 @@ bool dynamicBlockVisibilityParameterRecordOutputProfile() {
     std::filesystem::remove(incompleteGraphPath, ignored);
     if (!incompleteGraphRefused)
         return fail("visibility parameter bypassed owner-graph refusal");
+    return true;
+}
+
+bool dynamicBlockVisibilityParameterDoorProfile() {
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    class RecordAuthor final : public dx_iface {
+    public:
+        RecordAuthor() : object("BLOCKVISIBILITYPARAMETER") {}
+
+        void writeHeader(DRW_Header& header) override {
+            header.vars.clear();
+        }
+
+        void writeObjects() override {
+            wrote = dxfW != nullptr
+                && dxfW->writeDynamicBlockObject(&object);
+        }
+
+        DRW_DynamicBlockObject object;
+        bool wrote{false};
+    };
+
+    static constexpr std::array<std::uint32_t, 11> blockHandles{{
+        0x1139u, 0x113Au, 0x113Bu, 0x113Cu, 0x113Du, 0x113Eu,
+        0x113Fu, 0x1140u, 0x1141u, 0x1142u, 0x1143u}};
+    static constexpr std::array<std::uint32_t, 21> stateParameters{{
+        0x1110u, 0x1111u, 0x1114u, 0x1115u, 0x1118u, 0x1119u,
+        0x111Du, 0x1122u, 0x1126u, 0x1127u, 0x112Au, 0x112Bu,
+        0x112Cu, 0x112Du, 0x112Eu, 0x112Fu, 0x1130u, 0x1131u,
+        0x1132u, 0x1133u, 0x1134u}};
+    static constexpr std::array<std::string_view, 5> stateNames{{
+        "Open 30º", "Open 45º", "Open 60º", "Open 90º", "Closed"}};
+    const auto makeStateBlocks = [] {
+        return std::vector<std::vector<std::uint32_t>>{
+            {0x113Au, 0x1141u, 0x1142u, 0x1143u},
+            {0x113Bu, 0x1140u, 0x1142u, 0x1143u},
+            {0x113Cu, 0x113Fu, 0x1142u, 0x1143u},
+            {0x113Du, 0x1142u, 0x1143u, 0x113Eu},
+            {0x1139u, 0x1142u, 0x1143u}};
+    };
+    const auto makeStateParameters = [] {
+        return std::vector<std::vector<std::uint32_t>>(
+            stateNames.size(),
+            std::vector<std::uint32_t>(stateParameters.begin(),
+                                       stateParameters.end()));
+    };
+    const auto populate = [&](RecordAuthor& author, dx_data& data) {
+        author.cData = &data;
+        author.object.handle = 0xE828u;
+        author.object.parentHandle = 0x110Fu;
+        author.object.m_kind =
+            DRW_DynamicBlockObject::Kind::VisibilityParameter;
+        author.object.m_bodyFullyDecoded = true;
+        author.object.m_evalExprParsed = true;
+        author.object.m_parentId = std::numeric_limits<std::uint32_t>::max();
+        author.object.m_major = 29u;
+        author.object.m_minor = 2u;
+        author.object.m_valueCode = -9999;
+        author.object.m_nodeId = 46u;
+        author.object.m_elementParsed = true;
+        author.object.m_elementName = "Visibility State";
+        author.object.m_elementMajor = 29u;
+        author.object.m_elementMinor = 2u;
+        author.object.m_showProperties = true;
+        author.object.m_defPoint = DRW_Coord(-5.0, 15.0, 0.0);
+        author.object.m_propertyInfoCount = 47;
+        author.object.m_isInitialized = true;
+        author.object.m_visibilityName = "Opening Angle";
+        author.object.m_visibilityDescription =
+            "Sets the angle of the door opening";
+        author.object.m_blockCount =
+            static_cast<std::int32_t>(blockHandles.size());
+        author.object.m_blockHandles.assign(
+            blockHandles.begin(), blockHandles.end());
+        author.object.m_stateCount =
+            static_cast<std::int32_t>(stateNames.size());
+        for (const std::string_view name : stateNames)
+            author.object.m_stateNames.emplace_back(name);
+        author.object.m_stateBlockHandles = makeStateBlocks();
+        author.object.m_stateParameterHandles = makeStateParameters();
+    };
+    const auto makeHandleRemap = [](const DRW_DynamicBlockObject& object) {
+        std::map<std::uint32_t, std::uint32_t> remap;
+        for (const std::uint32_t handle : object.m_blockHandles)
+            remap.emplace(handle, handle + 0x5000u);
+        for (const auto& state : object.m_stateParameterHandles)
+            for (const std::uint32_t handle : state)
+                remap.emplace(handle, handle + 0x5000u);
+        return remap;
+    };
+    const auto makeExpectedWire = [&] (
+            const DRW_DynamicBlockObject& object,
+            const std::map<std::uint32_t, std::uint32_t>& remap) {
+        std::vector<std::pair<int, std::string>> expected;
+        const auto add = [&expected](int code, std::string value) {
+            expected.emplace_back(code, std::move(value));
+        };
+        const auto integer = [&add](int code, std::int32_t value) {
+            add(code, std::to_string(value));
+        };
+        const auto handle = [&add, &remap](int code, std::uint32_t source) {
+            const auto found = remap.find(source);
+            if (found == remap.end())
+                return false;
+            std::ostringstream text;
+            text << std::uppercase << std::hex << found->second;
+            add(code, text.str());
+            return true;
+        };
+        add(100, "AcDbEvalExpr");
+        integer(90, 46); integer(98, 33); integer(99, 29);
+        add(100, "AcDbBlockElement");
+        add(300, "Visibility State");
+        integer(98, 33); integer(99, 29); integer(1071, 0);
+        add(100, "AcDbBlockParameter");
+        integer(280, 1); integer(281, 0);
+        add(100, "AcDbBlock1PtParameter");
+        add(1010, "-5.000000"); add(1020, "15.000000");
+        add(1030, "0.000000");
+        integer(93, 47); integer(170, 0); integer(171, 0);
+        add(100, "AcDbBlockVisibilityParameter");
+        integer(281, 1); add(301, "Opening Angle");
+        add(302, "Sets the angle of the door opening");
+        integer(91, 0); integer(93, 11);
+        for (const std::uint32_t source : object.m_blockHandles)
+            if (!handle(331, source))
+                return std::vector<std::pair<int, std::string>>{};
+        integer(92, 5);
+        for (std::size_t state = 0u;
+             state < object.m_stateNames.size(); ++state) {
+            add(303, object.m_stateNames[state]);
+            integer(94, static_cast<std::int32_t>(
+                object.m_stateBlockHandles[state].size()));
+            for (const std::uint32_t source :
+                 object.m_stateBlockHandles[state])
+                if (!handle(332, source))
+                    return std::vector<std::pair<int, std::string>>{};
+            integer(95, static_cast<std::int32_t>(
+                object.m_stateParameterHandles[state].size()));
+            for (const std::uint32_t source :
+                 object.m_stateParameterHandles[state])
+                if (!handle(333, source))
+                    return std::vector<std::pair<int, std::string>>{};
+        }
+        return expected;
+    };
+
+    for (const bool binary : {false, true}) {
+        const std::string encoding = binary ? "binary" : "ascii";
+        const std::filesystem::path output =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-dynamic-visibility-parameter-door-" + encoding
+               + "-" + std::to_string(nonce) + ".dxf");
+        dx_data data;
+        RecordAuthor author;
+        populate(author, data);
+        const auto remap = makeHandleRemap(author.object);
+        dxfRW writer(output.string().c_str());
+        writer.setHandleRemap(remap);
+        author.dxfW = &writer;
+        const bool wrote = writer.write(&author, DRW::AC1024, binary)
+            && author.wrote;
+        const auto expected = makeExpectedWire(author.object, remap);
+        std::vector<std::pair<int, std::string>> actual;
+        dx_data readback;
+        dx_iface rereader;
+        const bool exactWire = wrote
+            && readDxfDynamicBlockVisibilityParameterWireGroups(
+                output, binary, actual)
+            && actual == expected && expected.size() == 176u;
+        const bool imported = rereader.fileImport(
+            output.string(), &readback, false);
+        bool malformedBodyRefused = true;
+        if (!binary) {
+            const std::filesystem::path alteredPath =
+                std::filesystem::temp_directory_path()
+                / ("libdxfrw-dynamic-visibility-parameter-door-altered-"
+                   + std::to_string(nonce) + ".dxf");
+            std::ifstream input(output, std::ios::binary);
+            std::vector<std::string> lines;
+            std::string line;
+            while (std::getline(input, line))
+                lines.push_back(line);
+            bool inObject = false;
+            bool changedRole = false;
+            for (std::size_t index = 0u; index + 1u < lines.size();
+                 index += 2u) {
+                int code = -1;
+                try {
+                    code = std::stoi(lines[index]);
+                } catch (...) {
+                    break;
+                }
+                if (code == 0) {
+                    inObject = lines[index + 1u]
+                        == "BLOCKVISIBILITYPARAMETER";
+                } else if (inObject && code == 333) {
+                    lines[index + 1u] = "6139";
+                    changedRole = true;
+                    break;
+                }
+            }
+            bool wroteAltered = false;
+            if (changedRole) {
+                std::ofstream altered(alteredPath, std::ios::binary);
+                if (altered) {
+                    for (const std::string& value : lines)
+                        altered << value << '\n';
+                    wroteAltered = static_cast<bool>(altered);
+                }
+            }
+            dx_data alteredReadback;
+            dx_iface alteredReader;
+            malformedBodyRefused = wroteAltered
+                && alteredReader.fileImport(alteredPath.string(),
+                                             &alteredReadback, false)
+                && alteredReadback.dynamicBlockObjects.size() == 1u
+                && !alteredReadback.dynamicBlockObjects.front()
+                        .m_bodyFullyDecoded;
+            std::error_code alteredIgnored;
+            std::filesystem::remove(alteredPath, alteredIgnored);
+        }
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+        if (!exactWire || !imported || !malformedBodyRefused
+            || readback.dynamicBlockObjects.size() != 1u) {
+            return fail("physical BLOCKVISIBILITYPARAMETER " + encoding
+                        + " wire/readback profile changed");
+        }
+        const DRW_DynamicBlockObject& result =
+            readback.dynamicBlockObjects.front();
+        std::vector<std::uint32_t> expectedFlat;
+        for (const std::uint32_t source : blockHandles)
+            expectedFlat.push_back(remap.at(source));
+        auto expectedBlocks = author.object.m_stateBlockHandles;
+        auto expectedParameters = author.object.m_stateParameterHandles;
+        for (auto& state : expectedBlocks)
+            for (std::uint32_t& handle : state)
+                handle = remap.at(handle);
+        for (auto& state : expectedParameters)
+            for (std::uint32_t& handle : state)
+                handle = remap.at(handle);
+        if (!result.m_bodyFullyDecoded || result.handle != 0xE828u
+            || result.parentHandle != 0x110Fu || result.m_nodeId != 46u
+            || result.m_major != 33u || result.m_minor != 29u
+            || result.m_parentId != DRW::NoHandle
+            || result.m_elementName != "Visibility State"
+            || result.m_defPoint.x != -5.0 || result.m_defPoint.y != 15.0
+            || result.m_defPoint.z != 0.0
+            || result.m_propertyInfoCount != 47
+            || result.m_visibilityName != "Opening Angle"
+            || result.m_visibilityDescription
+                != "Sets the angle of the door opening"
+            || result.m_blockCount != 11
+            || result.m_blockHandles != expectedFlat
+            || result.m_stateCount != 5
+            || result.m_stateBlockHandles != expectedBlocks
+            || result.m_stateParameterHandles != expectedParameters
+            || result.m_stateNames.size() != stateNames.size())
+            return fail("physical BLOCKVISIBILITYPARAMETER typed readback lost fields or references");
+        for (std::size_t state = 0u; state < stateNames.size(); ++state)
+            if (result.m_stateNames[state] != stateNames[state])
+                return fail("physical visibility-state name changed on readback");
+    }
+
+    const std::filesystem::path sentinelPath =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-dynamic-visibility-parameter-door-retry-"
+           + std::to_string(nonce) + ".dxf");
+    const std::string sentinel = "existing destination survives\n";
+    { std::ofstream existing(sentinelPath, std::ios::binary); existing << sentinel; }
+    dx_data data;
+    RecordAuthor author;
+    populate(author, data);
+    const auto remap = makeHandleRemap(author.object);
+    dxfRW writer(sentinelPath.string().c_str());
+    writer.setHandleRemap(remap);
+    author.dxfW = &writer;
+    const std::uint32_t firstParameter =
+        author.object.m_stateParameterHandles.front().front();
+    author.object.m_stateParameterHandles.front().front() = 0u;
+    if (writer.write(&author, DRW::AC1024, false) || author.wrote) {
+        std::error_code ignored;
+        std::filesystem::remove(sentinelPath, ignored);
+        return fail("zero visibility-state parameter handle was emitted");
+    }
+    {
+        std::ifstream existing(sentinelPath, std::ios::binary);
+        const std::string preserved{
+            std::istreambuf_iterator<char>(existing),
+            std::istreambuf_iterator<char>()};
+        if (preserved != sentinel) {
+            std::error_code ignored;
+            std::filesystem::remove(sentinelPath, ignored);
+            return fail("invalid visibility-state parameter replaced destination");
+        }
+    }
+    author.object.m_stateParameterHandles.front().front() = firstParameter;
+    if (!writer.write(&author, DRW::AC1024, false) || !author.wrote) {
+        std::error_code ignored;
+        std::filesystem::remove(sentinelPath, ignored);
+        return fail("corrected visibility parameter failed same-writer retry");
+    }
+    std::error_code ignored;
+    std::filesystem::remove(sentinelPath, ignored);
+
+    RecordAuthor wrongRole;
+    dx_data wrongRoleData;
+    populate(wrongRole, wrongRoleData);
+    wrongRole.object.m_stateParameterHandles.front().front() = blockHandles[0];
+    const std::filesystem::path wrongRolePath =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-dynamic-visibility-parameter-door-wrong-role-"
+           + std::to_string(nonce) + ".dxf");
+    dxfRW wrongRoleWriter(wrongRolePath.string().c_str());
+    wrongRoleWriter.setHandleRemap(makeHandleRemap(wrongRole.object));
+    wrongRole.dxfW = &wrongRoleWriter;
+    const bool wrongRoleRefused =
+        !wrongRoleWriter.write(&wrongRole, DRW::AC1024, false)
+        && !wrongRole.wrote;
+    std::filesystem::remove(wrongRolePath, ignored);
+    if (!wrongRoleRefused)
+        return fail("visibility-state parameter accepted a block-entity handle role");
     return true;
 }
 
@@ -12220,6 +12673,15 @@ public:
 
 bool dynamicBlockParameterDependencyBodyDxfWriter(
         const std::filesystem::path& sourcePath = {}) {
+    DRW_Class parameterDependencyBodyClass;
+    if (!dxfRW::dxfClassForRecordName(
+            "BLOCKPARAMDEPENDENCYBODY",
+            parameterDependencyBodyClass)
+        || parameterDependencyBodyClass.recName
+            != "BLOCKPARAMDEPENDENCYBODY"
+        || parameterDependencyBodyClass.className
+            != "AcDbBlockParameterDependencyBody")
+        return fail("BLOCKPARAMDEPENDENCYBODY has no canonical DXF CLASS metadata");
     std::vector<DRW_DynamicBlockObject> sourceBodies;
     if (!sourcePath.empty()) {
         dx_data source;
@@ -12530,7 +12992,6 @@ bool dynamicBlockSourceGraphCensus(const std::filesystem::path& sourcePath) {
         || data.sourceFormat != dx_source_format::DWG
         || data.sourceVersion != DRW::AC1024)
         return fail("dynamic-block graph census requires an AC1024 DWG");
-
     const auto quote = [](std::string_view value) {
         std::string result("\"");
         for (const unsigned char ch : value) {
@@ -12655,6 +13116,49 @@ bool dynamicBlockSourceGraphCensus(const std::filesystem::path& sourcePath) {
             addAssociativeReference(handle);
         for (const std::uint32_t handle : object.m_dependencyHandles)
             addAssociativeReference(handle);
+    }
+    bool associativeClosureChanged = true;
+    while (associativeClosureChanged) {
+        associativeClosureChanged = false;
+        for (const DRW_AssociativeObject& object : data.dwgAssociativeObjects) {
+            if (referencedAssociativeHandles.count(object.handle) == 0u)
+                continue;
+            const auto addAssociativeReference = [&roles,
+                    &referencedAssociativeHandles,
+                    &associativeClosureChanged](std::uint32_t handle) {
+                const auto target = roles.find(handle);
+                if (target == roles.end()
+                    || !std::any_of(target->second.begin(), target->second.end(),
+                        [](const std::string& role) {
+                            return role.compare(0u, 12u, "ASSOCIATIVE:") == 0;
+                        }))
+                    return;
+                associativeClosureChanged =
+                    referencedAssociativeHandles.insert(handle).second
+                    || associativeClosureChanged;
+            };
+            addAssociativeReference(static_cast<std::uint32_t>(
+                object.parentHandle));
+            addAssociativeReference(object.m_owningNetworkHandle);
+            addAssociativeReference(object.m_actionBodyHandle);
+            addAssociativeReference(object.m_dependencyHandle);
+            addAssociativeReference(object.m_readDependencyHandle);
+            addAssociativeReference(object.m_writeDependencyHandle);
+            addAssociativeReference(object.m_dependencyNodeHandle);
+            addAssociativeReference(object.m_dependencyBodyHandle);
+            for (const std::uint32_t handle : object.reactorHandles)
+                addAssociativeReference(handle);
+            for (const DRW_AssociativeHandleRef& ref : object.m_dependencies)
+                addAssociativeReference(ref.m_handle);
+            for (const DRW_AssociativeHandleRef& ref : object.m_actions)
+                addAssociativeReference(ref.m_handle);
+            for (const std::uint32_t handle : object.m_ownedParams)
+                addAssociativeReference(handle);
+            for (const std::uint32_t handle : object.m_ownedActions)
+                addAssociativeReference(handle);
+            for (const std::uint32_t handle : object.m_constraintActions)
+                addAssociativeReference(handle);
+        }
     }
     const auto emitReference = [&hex, &quote, &targetRole](
                                    std::uint32_t handle) {
@@ -12900,6 +13404,56 @@ bool dynamicBlockSourceGraphCensus(const std::filesystem::path& sourcePath) {
         emitReference(object.m_dependencyBodyHandle);
         std::cout << ",\"dependencyNode\":";
         emitOptionalReference(object.m_dependencyNodeHandle);
+        std::cout << ",\"dependencyProfile\":{\"fieldsParsed\":"
+                  << (object.m_dependencyFieldsParsed ? "true" : "false")
+                  << ",\"wireComplete\":"
+                  << (object.m_dependencyWireComplete ? "true" : "false")
+                  << ",\"classVersion\":" << object.m_classVersion
+                  << ",\"status\":" << object.m_status
+                  << ",\"read\":"
+                  << (object.m_dependencyIsRead ? "true" : "false")
+                  << ",\"write\":"
+                  << (object.m_dependencyIsWrite ? "true" : "false")
+                  << ",\"attached\":"
+                  << (object.m_dependencyIsAttachedToObject
+                          ? "true" : "false")
+                  << ",\"delegating\":"
+                  << (object.m_dependencyIsDelegatingToOwningAction
+                          ? "true" : "false")
+                  << ",\"order\":" << object.m_dependencyOrder
+                  << ",\"namePresent\":"
+                  << (object.m_dependencyNamePresent ? "true" : "false")
+                  << ",\"name\":" << quote(object.m_dependencyName)
+                  << ",\"target\":";
+        emitOptionalReference(object.m_dependencyHandle);
+        std::cout << ",\"readDependency\":";
+        emitOptionalReference(object.m_readDependencyHandle);
+        std::cout << ",\"writeDependency\":";
+        emitOptionalReference(object.m_writeDependencyHandle);
+        std::cout << ",\"dependencyBodyId\":"
+                  << object.m_dependencyBodyId
+                  << ",\"prefixStatuses\":[";
+        for (std::size_t index = 0u;
+             index < object.m_prefixStatuses.size(); ++index) {
+            const DRW_AssociativePrefixStatus& status =
+                object.m_prefixStatuses[index];
+            if (index != 0u)
+                std::cout << ',';
+            std::cout << "{\"kind\":"
+                      << static_cast<unsigned>(status.m_kind)
+                      << ",\"status\":"
+                      << static_cast<unsigned>(status.m_status)
+                      << ",\"classVersion\":" << status.m_classVersion
+                      << ",\"decodedHandles\":"
+                      << status.m_decodedHandleCount
+                      << ",\"decodedValues\":"
+                      << status.m_decodedValueCount
+                      << ",\"countValue\":"
+                      << status.m_decodedCountValue
+                      << ",\"startBit\":" << status.m_startBit
+                      << ",\"bitSize\":" << status.m_bitSize << '}';
+        }
+        std::cout << "]}";
         std::cout << ",\"readWrite\":["
                   << (object.m_dependencyIsRead ? "true" : "false") << ','
                   << (object.m_dependencyIsWrite ? "true" : "false")
@@ -12926,6 +13480,219 @@ bool dynamicBlockSourceGraphCensus(const std::filesystem::path& sourcePath) {
         }
         std::cout << "]}";
     }
+    std::cout << "],\"xrecordHandleRefs\":[";
+    bool firstXrecordHandleRef = true;
+    std::unordered_set<std::uint32_t> xrecordHandleTargets;
+    for (const DRW_XRecord& record : data.xRecords) {
+        const auto emitHandleRef = [&](int code, std::uint64_t target) {
+            if (code != 330u)
+                return;
+            if (target > (std::numeric_limits<std::uint32_t>::max)())
+                return;
+            xrecordHandleTargets.insert(static_cast<std::uint32_t>(target));
+            if (!firstXrecordHandleRef)
+                std::cout << ',';
+            firstXrecordHandleRef = false;
+            std::cout << "{\"record\":\"" << hex(record.handle)
+                      << "\",\"owner\":\"" << hex(record.parentHandle)
+                      << "\",\"code\":" << code << ",\"target\":\""
+                      << hex(static_cast<std::uint32_t>(target)) << "\"}";
+        };
+        const std::vector<DRW_Variant>& values =
+            record.m_dataEntries.empty() ? record.m_values
+                                         : record.m_dataEntries;
+        for (const DRW_Variant& value : values) {
+            if (value.type() == DRW_Variant::INTEGER)
+                emitHandleRef(value.code(), static_cast<std::uint32_t>(
+                    value.i_val()));
+            else if (value.type() == DRW_Variant::INTEGER64)
+                emitHandleRef(value.code(), static_cast<std::uint64_t>(
+                    value.i64_val()));
+            else if (value.type() == DRW_Variant::STRING) {
+                const char* text = value.c_str();
+                if (text != nullptr && *text != '\0') {
+                    std::uint64_t target = 0u;
+                    const char* end = text
+                        + std::char_traits<char>::length(text);
+                    const auto parsed = std::from_chars(text, end, target, 16);
+                    if (parsed.ec == std::errc{} && parsed.ptr == end)
+                        emitHandleRef(value.code(), target);
+                }
+            }
+        }
+        for (const auto& value : record.m_handleValues)
+            emitHandleRef(value.first, value.second);
+    }
+    std::cout << "],\"xrecordEntityTargets\":[";
+    bool firstXrecordEntityTarget = true;
+    const auto emitXrecordEntityTargets = [&] (
+            const dx_ifaceBlock* block) {
+        if (block == nullptr)
+            return;
+        const auto blockRecord = std::find_if(
+            data.blockRecords.begin(), data.blockRecords.end(),
+            [block](const DRW_Block_Record& candidate) {
+                return candidate.name == block->name;
+            });
+        for (const DRW_Entity* entity : block->ent) {
+            if (entity == nullptr
+                || xrecordHandleTargets.count(entity->handle) == 0u)
+                continue;
+            if (!firstXrecordEntityTarget)
+                std::cout << ',';
+            firstXrecordEntityTarget = false;
+            std::cout << "{\"handle\":\"" << hex(entity->handle)
+                      << "\",\"type\":"
+                      << static_cast<unsigned>(entity->eType)
+                      << ",\"block\":" << quote(block->name)
+                      << ",\"blockRecord\":\""
+                      << hex(blockRecord == data.blockRecords.end()
+                                 ? 0u : blockRecord->handle)
+                      << "\",\"layer\":" << quote(entity->layer) << '}';
+        }
+        for (const dx_ifaceRawEntityEvent& event : block->rawEntities) {
+            if (xrecordHandleTargets.count(event.record.handle) == 0u)
+                continue;
+            if (!firstXrecordEntityTarget)
+                std::cout << ',';
+            firstXrecordEntityTarget = false;
+            std::cout << "{\"handle\":\"" << hex(event.record.handle)
+                      << "\",\"type\":" << quote(event.record.name)
+                      << ",\"block\":" << quote(block->name)
+                      << ",\"blockRecord\":\""
+                      << hex(blockRecord == data.blockRecords.end()
+                                 ? 0u : blockRecord->handle)
+                      << "\",\"layer\":\"raw\"}";
+        }
+    };
+    emitXrecordEntityTargets(data.mBlock);
+    for (const dx_ifaceBlock* block : data.blocks)
+        if (block != data.mBlock)
+            emitXrecordEntityTargets(block);
+    std::cout << "],\"xrecordBlockTargetHandles\":[";
+    bool firstXrecordBlockTarget = true;
+    const auto emitBlockTarget = [&](std::uint32_t handle,
+                                     std::string_view role,
+                                     std::string_view name) {
+        if (xrecordHandleTargets.count(handle) == 0u)
+            return;
+        if (!firstXrecordBlockTarget)
+            std::cout << ',';
+        firstXrecordBlockTarget = false;
+        std::cout << "{\"handle\":\"" << hex(handle)
+                  << "\",\"role\":" << quote(role)
+                  << ",\"name\":" << quote(name) << '}';
+    };
+    for (const DRW_Block_Record& record : data.blockRecords)
+        emitBlockTarget(record.handle, "BLOCK_RECORD", record.name);
+    emitBlockTarget(data.mBlock->handle, "BLOCK_BEGIN", data.mBlock->name);
+    if (data.mBlock->hasEndBlockData)
+        emitBlockTarget(data.mBlock->endBlockData.handle, "ENDBLK",
+                        data.mBlock->name);
+    for (const dx_ifaceBlock* block : data.blocks) {
+        if (block == nullptr)
+            continue;
+        emitBlockTarget(block->handle, "BLOCK_BEGIN", block->name);
+        if (block->hasEndBlockData)
+            emitBlockTarget(block->endBlockData.handle, "ENDBLK", block->name);
+    }
+    std::cout << "],\"xrecordTypedTargetKinds\":[";
+    bool firstXrecordTypedTarget = true;
+    const auto emitTypedTarget = [&](std::uint32_t handle,
+                                     std::string_view kind) {
+        if (xrecordHandleTargets.count(handle) == 0u)
+            return;
+        if (!firstXrecordTypedTarget)
+            std::cout << ',';
+        firstXrecordTypedTarget = false;
+        std::cout << "{\"handle\":\"" << hex(handle)
+                  << "\",\"kind\":" << quote(kind) << '}';
+    };
+    for (const DRW_LType& entry : data.lineTypes)
+        emitTypedTarget(entry.handle, "LTYPE");
+    for (const DRW_Layer& entry : data.layers)
+        emitTypedTarget(entry.handle, "LAYER");
+    for (const DRW_Dimstyle& entry : data.dimStyles)
+        emitTypedTarget(entry.handle, "DIMSTYLE");
+    for (const DRW_Vport& entry : data.VPorts)
+        emitTypedTarget(entry.handle, "VPORT");
+    for (const DRW_View& entry : data.views)
+        emitTypedTarget(entry.handle, "VIEW");
+    for (const DRW_UCS& entry : data.ucsList)
+        emitTypedTarget(entry.handle, "UCS");
+    for (const DRW_Textstyle& entry : data.textStyles)
+        emitTypedTarget(entry.handle, "STYLE");
+    for (const DRW_AppId& entry : data.appIds)
+        emitTypedTarget(entry.handle, "APPID");
+    for (const DRW_Dictionary& entry : data.dictionaries)
+        emitTypedTarget(entry.handle, "DICTIONARY");
+    for (const DRW_Group& entry : data.groups)
+        emitTypedTarget(entry.handle, "GROUP");
+    for (const DRW_Table& entry : data.tables)
+        emitTypedTarget(entry.handle, "ACAD_TABLE");
+    for (const DRW_TableContentObject& entry : data.tableContents)
+        emitTypedTarget(entry.handle, "TABLECONTENT");
+    for (const DRW_DataLink& entry : data.dataLinks)
+        emitTypedTarget(entry.handle, "DATALINK");
+    for (const DRW_Field& entry : data.fields)
+        emitTypedTarget(entry.handle, "FIELD");
+    for (const DRW_FieldList& entry : data.fieldLists)
+        emitTypedTarget(entry.handle, "FIELDLIST");
+    for (const DRW_DictionaryWithDefault& entry : data.dictionaryWithDefaults)
+        emitTypedTarget(entry.handle, "DICTIONARYWDFLT");
+    for (const DRW_AcDbPlaceholder& entry : data.placeholders)
+        emitTypedTarget(entry.handle, "PLACEHOLDER");
+    for (const DRW_MLineStyle& entry : data.mLineStyles)
+        emitTypedTarget(entry.handle, "MLINESTYLE");
+    for (const DRW_MLeaderStyle& entry : data.mLeaderStyles)
+        emitTypedTarget(entry.handle, "MLEADERSTYLE");
+    for (const DRW_TableStyle& entry : data.tableStyles)
+        emitTypedTarget(entry.handle, "TABLESTYLE");
+    for (const DRW_CellStyleMap& entry : data.cellStyleMaps)
+        emitTypedTarget(entry.handle, "CELLSTYLEMAP");
+    for (const DRW_DetailViewStyle& entry : data.detailViewStyles)
+        emitTypedTarget(entry.handle, "DETAILVIEWSTYLE");
+    for (const DRW_SectionViewStyle& entry : data.sectionViewStyles)
+        emitTypedTarget(entry.handle, "SECTIONVIEWSTYLE");
+    for (const DRW_Scale& entry : data.scales)
+        emitTypedTarget(entry.handle, "SCALE");
+    for (const DRW_DictionaryVar& entry : data.dictionaryVars)
+        emitTypedTarget(entry.handle, "DICTIONARYVAR");
+    for (const DRW_XRecord& entry : data.xRecords)
+        emitTypedTarget(entry.handle, "XRECORD");
+    for (const DRW_Material& entry : data.materials)
+        emitTypedTarget(entry.handle, "MATERIAL");
+    for (const DRW_VisualStyle& entry : data.visualStyles)
+        emitTypedTarget(entry.handle, "VISUALSTYLE");
+    for (const DRW_AssociativeObject& entry : data.dwgAssociativeObjects)
+        emitTypedTarget(entry.handle, "ASSOCIATIVE");
+    for (const DRW_DynamicBlockObject& entry : data.dynamicBlockObjects)
+        emitTypedTarget(entry.handle, "DYNAMICBLOCK");
+    for (const std::uint32_t target : xrecordHandleTargets) {
+        const DRW_UnsupportedObject* sourceFrame =
+            DxIfaceStandardDwgCaptureTestAccess::opaqueSourceFrame(
+                data, data.importGeneration, target);
+        std::string_view frameKind = "OPAQUE";
+        if (sourceFrame == nullptr) {
+            sourceFrame =
+                DxIfaceStandardDwgCaptureTestAccess::standardSourceFrame(
+                    data, data.importGeneration, target);
+            frameKind = "STANDARD";
+        }
+        if (sourceFrame == nullptr)
+            continue;
+        if (!firstXrecordTypedTarget)
+            std::cout << ',';
+        firstXrecordTypedTarget = false;
+        std::cout << "{\"handle\":\"" << hex(target)
+                  << "\",\"kind\":" << quote(frameKind)
+                  << ",\"record\":" << quote(sourceFrame->m_recordName)
+                  << ",\"class\":" << quote(sourceFrame->m_className)
+                  << ",\"entity\":"
+                  << (sourceFrame->m_isEntity ? "true" : "false")
+                  << ",\"owner\":\""
+                  << hex(sourceFrame->m_parentHandle) << "\"}";
+    }
     std::cout << "],\"objects\":[";
     for (std::size_t objectIndex = 0u;
          objectIndex < data.dynamicBlockObjects.size(); ++objectIndex) {
@@ -12949,6 +13716,28 @@ bool dynamicBlockSourceGraphCensus(const std::filesystem::path& sourcePath) {
                   << ",\"minor\":" << object.m_minor
                   << ",\"nodeId\":" << object.m_nodeId
                   << ",\"parentId\":" << object.m_parentId
+                  << ",\"valueCode\":" << object.m_valueCode
+                  << ",\"hasValueDouble\":"
+                  << (object.m_hasValueDouble ? "true" : "false")
+                  << ",\"valueDouble\":"
+                  << std::setprecision(17) << object.m_valueDouble
+                  << ",\"valueHandle\":" << object.m_valueHandle
+                  << ",\"gripType\":" << object.m_gripType
+                  << ",\"gripExpr\":" << quote(object.m_gripExpr)
+                  << ",\"gripBody\":{\"value91\":"
+                  << object.m_gripValue91
+                  << ",\"value92\":" << object.m_gripValue92
+                  << ",\"location\":";
+        emitPoint(object.m_gripLocation);
+        std::cout << ",\"cycling\":"
+                  << (object.m_gripValue280 ? "true" : "false")
+                  << ",\"weight\":" << object.m_gripValue93
+                  << ",\"combinedState\":" << object.m_gripCombinedState
+                  << ",\"hasOrientation\":"
+                  << (object.m_gripHasOrientation ? "true" : "false")
+                  << ",\"orientation\":";
+        emitPoint(object.m_gripOrientation);
+        std::cout << '}'
                   << ",\"element\":" << quote(object.m_elementName)
                   << ",\"elementMajor\":" << object.m_elementMajor
                   << ",\"elementMinor\":" << object.m_elementMinor
@@ -24252,7 +25041,8 @@ void populateTypedDwgTableStyleGraph(dx_data& data,
 }
 
 void populateR24DwgTableStyleGraph(dx_data& data,
-                                  bool inheritedCustomMargins = false) {
+                                  bool inheritedCustomMargins = false,
+                                  std::int32_t prefixValue1 = 8) {
     data.sourceFormat = dx_source_format::DWG;
     data.sourceVersion = DRW::AC1024;
     data.hasNamedObjectDictionary = true;
@@ -24328,7 +25118,7 @@ void populateR24DwgTableStyleGraph(dx_data& data,
     style.m_name = "Standard";
     style.m_r24PrefixPresent = true;
     style.m_r24ClassVersion = 0u;
-    style.m_r24UnknownValue1 = 8;
+    style.m_r24UnknownValue1 = prefixValue1;
     style.m_r24UnknownValue2 = 101;
     style.m_tableCellStyle = makeStyle(4, 2, "Table", 1, 0.18, 0, 0u);
     style.m_tableCellStyle.m_borders.clear();
@@ -24353,7 +25143,8 @@ void populateR24DwgTableStyleGraph(dx_data& data,
 }
 
 bool typedDwgR24TableStyleDxfRoundTrip(bool binary, std::uint64_t nonce,
-                                      bool inheritedCustomMargins = false) {
+                                      bool inheritedCustomMargins = false,
+                                      std::int32_t prefixValue1 = 8) {
     const std::string profileSuffix = inheritedCustomMargins
         ? "-inherited-margins" : "-explicit-margins";
     const std::filesystem::path output =
@@ -24368,7 +25159,8 @@ bool typedDwgR24TableStyleDxfRoundTrip(bool binary, std::uint64_t nonce,
            + (binary ? "-binary.dxf" : "-ascii.dxf"));
     const std::string sentinel = "existing R24 TABLESTYLE destination\n";
     dx_data data;
-    populateR24DwgTableStyleGraph(data, inheritedCustomMargins);
+    populateR24DwgTableStyleGraph(
+        data, inheritedCustomMargins, prefixValue1);
     dx_iface writer;
     writer.cData = &data;
     writer.currentBlock = data.mBlock;
@@ -24405,7 +25197,7 @@ bool typedDwgR24TableStyleDxfRoundTrip(bool binary, std::uint64_t nonce,
     if (!destinationIsSentinel())
         return fail("unwitnessed R24 TABLESTYLE prefix replaced the destination");
 
-    data.tableStyles.front().m_r24UnknownValue1 = 8;
+    data.tableStyles.front().m_r24UnknownValue1 = prefixValue1;
     data.tableStyles.front().m_cellStyles.front()
         .m_contentFormat.m_textStyleHandle = 0x999u;
     if (writer.fileExport(output.string(), DRW::AC1024, binary,
@@ -38003,7 +38795,8 @@ bool physicalTableStyleOutputReadback(
         inheritedMargins);
     if (!sourceStyle.m_r24PrefixPresent
         || sourceStyle.m_r24ClassVersion != 0u
-        || sourceStyle.m_r24UnknownValue1 != 8
+        || (sourceStyle.m_r24UnknownValue1 != 0
+            && sourceStyle.m_r24UnknownValue1 != 8)
         || sourceStyle.m_r24UnknownValue2 != 101
         || sourceStyle.m_unknownHandle != 0u
         || sourceStyle.m_flowDirection != 0 || sourceStyle.m_flags != 0
@@ -38069,9 +38862,11 @@ bool physicalTableStyleOutputReadback(
                 std::istreambuf_iterator<char>{input}, {}};
             return input.good() || input.eof() ? contents == sentinel : false;
         };
+        const std::int32_t sourcePrefixValue1 =
+            sourceStyle.m_r24UnknownValue1;
         sourceStyle.m_r24UnknownValue1 = 9;
         const bool prefixRejected = !exportPartial();
-        sourceStyle.m_r24UnknownValue1 = 8;
+        sourceStyle.m_r24UnknownValue1 = sourcePrefixValue1;
         if (!prefixRejected || !destinationIsSentinel())
             return fail("unwitnessed physical R24 TABLESTYLE prefix was not refused atomically");
         sourceStyle.m_cellStyles.front().m_contentFormat.m_textStyleHandle =
@@ -55336,6 +56131,10 @@ int main(int argc, char** argv) {
         return dynamicBlockVisibilityParameterRecordOutputProfile() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1])
+            == "--dynamic-block-visibility-parameter-door-profile")
+        return dynamicBlockVisibilityParameterDoorProfile() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1])
             == "--block-representation-data-output")
         return blockRepresentationDataOutputProfile() ? 0 : 1;
     if (argc == 2
@@ -55549,8 +56348,12 @@ int main(int argc, char** argv) {
         return typedDwgR24TableStyleDxfRoundTrip(false, nonce)
                 && typedDwgR24TableStyleDxfRoundTrip(
                     false, nonce, true)
+                && typedDwgR24TableStyleDxfRoundTrip(
+                    false, nonce, false, 0)
                 && typedDwgR24TableStyleDxfRoundTrip(true, nonce)
                 && typedDwgR24TableStyleDxfRoundTrip(true, nonce, true)
+                && typedDwgR24TableStyleDxfRoundTrip(
+                    true, nonce, false, 0)
             ? 0 : 1;
     }
     if (argc == 2 && std::string(argv[1]) == "--raster-dwg-source-profile-eed")
@@ -55593,9 +56396,8 @@ int main(int argc, char** argv) {
     if (argc == 2 && std::string(argv[1]) == "--xrecord-application-chunk-controls")
         return xrecordApplicationChunkControls() ? 0 : 1;
     if (argc == 2
-        && std::string(argv[1])
-            == "--xrecord-dwg-group-1071-compatibility")
-        return xrecordDwgGroup1071CompatibilityOutput() ? 0 : 1;
+        && std::string(argv[1]) == "--xrecord-dwg-compatibility-codes")
+        return xrecordDwgCompatibilityCodesOutput() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--standard-dwg-profile-isolation")
         return standardDwgBinaryTransport(StandardDwgProbe::ProfileIsolation) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--native-xrecord-application-scope")
