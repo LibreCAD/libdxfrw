@@ -2325,6 +2325,7 @@ private:
     std::size_t m_rasterOutputBytes{0u};
     std::size_t m_rasterOutputByteLimit{ImageDefinitionCaptureMaxRetainedBytes};
     bool m_rasterOutputInspected{false}, m_rasterOutputFinalized{false}, m_rasterOutputPublished{false};
+    bool m_requireCompleteDwgOutputQualification{false};
     bool inspectRasterOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
     bool inspectRasterImageEdges(const dxfRW::DxfObjectsWriteView& view, std::string_view section) noexcept;
     bool finalizeRasterOutputProofs() noexcept;

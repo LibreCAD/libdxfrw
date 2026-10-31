@@ -10493,6 +10493,14 @@ bool opaqueDwgSourceCaptureAndStrictOutputGate() {
            + std::to_string(nonce) + ".dxf");
     if (std::filesystem::exists(output))
         return fail("opaque DWG output-gate path unexpectedly exists");
+    const std::string destinationSentinel =
+        "strict opaque DWG output gate preserves prior destination\n";
+    {
+        std::ofstream prior(output, std::ios::binary);
+        if (!prior)
+            return fail("could not create opaque DWG output-gate destination");
+        prior << destinationSentinel;
+    }
     std::ostringstream diagnostics;
     std::streambuf* const oldError = std::cerr.rdbuf(diagnostics.rdbuf());
     const bool wrote = exporter.fileExport(
@@ -10502,11 +10510,26 @@ bool opaqueDwgSourceCaptureAndStrictOutputGate() {
         dx_dxfProxyGraphicsPolicy::Compatible,
         dx_dwgReadCompletenessPolicy::RequireComplete);
     std::cerr.rdbuf(oldError);
-    if (wrote || std::filesystem::exists(output)
+    std::ifstream retainedOutput(output, std::ios::binary);
+    const std::string retainedBytes{
+        std::istreambuf_iterator<char>{retainedOutput},
+        std::istreambuf_iterator<char>{}};
+    if (wrote || retainedBytes != destinationSentinel
         || diagnostics.str().find(
                "strict-complete conversion requires output qualification for every opaque DWG callback")
                == std::string::npos)
-        return fail("strict export treated retained raw bytes as output proof");
+        return fail("strict finalization treated retained raw bytes as output proof or replaced the destination");
+
+    const bool legacyRetry = exporter.fileExport(
+        output.string(), DRW::AC1024, false, &strict, false, false,
+        dx_dxfSourceTextPolicy::Compatible,
+        DRW::DxfTextWritePolicy::Compatible,
+        dx_dxfProxyGraphicsPolicy::Compatible,
+        dx_dwgReadCompletenessPolicy::Legacy);
+    std::error_code outputRemovalError;
+    std::filesystem::remove(output, outputRemovalError);
+    if (!legacyRetry || outputRemovalError)
+        return fail("non-strict output retry did not recover after strict rollback");
 
     dx_data rejected;
     dx_iface retry;

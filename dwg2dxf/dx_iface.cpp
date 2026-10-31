@@ -49033,6 +49033,19 @@ bool dx_iface::finalizeDxfWrite() {
             return false;
         }
     }
+    if (m_requireCompleteDwgOutputQualification && cData != nullptr
+        && cData->sourceFormat == dx_source_format::DWG
+        && !strictDwgOutputDispositionIsComplete(*cData)) {
+        try {
+            std::cerr
+                << "DXF export finalization failed: "
+                   "strict-complete conversion requires output qualification "
+                   "for every opaque DWG callback\n";
+        } catch (...) {
+            // Diagnostics cannot authorize publication of incomplete output.
+        }
+        return false;
+    }
     return true;
 }
 
@@ -49892,6 +49905,16 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                           DRW::DxfTextWritePolicy targetTextPolicy,
                           dx_dxfProxyGraphicsPolicy proxyGraphicsPolicy,
                           dx_dwgReadCompletenessPolicy readCompletenessPolicy){
+    const bool previousCompleteOutputRequirement =
+        m_requireCompleteDwgOutputQualification;
+    m_requireCompleteDwgOutputQualification = false;
+    struct CompleteOutputRequirementScope {
+        bool& value;
+        bool previous;
+        ~CompleteOutputRequirementScope() { value = previous; }
+    } completeOutputRequirementScope{
+        m_requireCompleteDwgOutputQualification,
+        previousCompleteOutputRequirement};
     m_dxfMLineDependencySourceLivePreflightPassed=false;
     m_dxfHeaderMaterialState={};
     m_dxfLayerMaterialState.clear();
@@ -50280,6 +50303,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         readCompletenessPolicy == dx_dwgReadCompletenessPolicy::RequireComplete
         || (readCompletenessPolicy == dx_dwgReadCompletenessPolicy::Legacy
             && requireResolvedOwners);
+    m_requireCompleteDwgOutputQualification = requireCompleteDwgRead
+        && cData->sourceFormat == dx_source_format::DWG;
     if (requireResolvedOwners
         && cData->sourceFormat == dx_source_format::DXF) {
         const dx_associativeDxfImportReceipt& receipt =
@@ -50708,13 +50733,6 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         && !strictDwgReadOutcomeIsComplete(*cData)) {
         reportPreflightFailure(
             "strict-complete conversion requires successful, complete DWG read disposition");
-        return false;
-    }
-    if (requireCompleteDwgRead
-        && cData->sourceFormat == dx_source_format::DWG
-        && !strictDwgOutputDispositionIsComplete(*cData)) {
-        reportPreflightFailure(
-            "strict-complete conversion requires output qualification for every opaque DWG callback");
         return false;
     }
     std::string backgroundSunPairingFailure;

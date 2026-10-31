@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-strict-output-gate-finalization-2026-10-31",
+  "date": "2026-10-31",
+  "title": "Run strict opaque-output admission after staged DXF emission",
+  "status": "OUTPUT_GATE_AFTER_STAGING_NO_PUBLICATION",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "fixturePolicy": "Used the existing local sample matching its recorded digest. No DWG/DXF fixture was added to Git."
+  },
+  "implementation": {
+    "sourceFiles": [
+      {
+        "path": "dwg2dxf/dx_iface.h",
+        "sha256": "0a403c09ece92732516e7aa8fd99f2d427ef785a8a3dbcfb455fc2d371f12cb5"
+      },
+      {
+        "path": "dwg2dxf/dx_iface.cpp",
+        "sha256": "7047944e1875f34a9bbfeeb48687636ca5b7989c1d515718fe8198ccddbcd723"
+      },
+      {
+        "path": "tests/dwg2dxf_adapter_tests.cpp",
+        "sha256": "d1cf7a8ed4c0026313836b035128d8fb85edd33895d3e76ed75fe59ff101fc98"
+      }
+    ],
+    "behavior": [
+      "Strict complete-DWG output qualification runs from dx_iface::finalizeDxfWrite after the codec serializes and flushes a transactional temporary DXF, before DwgDxfOutputTransaction commits the destination.",
+      "The strict check remains closed when a source callback identity has no output qualification; retained callback bytes and aggregate counters do not pass it.",
+      "The check's reason is reported at finalization, preserving the diagnostic while allowing output observers and serializers to run against unpublished bytes."
+    ],
+    "limitations": [
+      "No opaque callback identity is qualified by this slice; strict conversion remains refused.",
+      "Per-family field, ownership/dependency, emitted-byte and fresh-readback output proofs remain open.",
+      "The strict gate checks current output qualifications already stored in dx_data; transactional staging of new per-attempt qualifications must be in place before new proof producers are connected."
+    ]
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS with configured warning-as-error flags.",
+      "dwg2dxfSha256": "8bd2012014ed45568ac3bb88110f1dd4b03c77543b5a00359965b9c07d8c8438",
+      "adapterTestSha256": "f2f816d9a280eda5824ffddb02909358d1df46bd66d0fc3f5b1428fc14808699"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_opaque_source_capture_and_strict_output_gate$' --output-on-failure",
+      "result": "PASS, 1/1.",
+      "coverage": [
+        "Strict admission runs at writer finalization after staged emission rather than at preflight.",
+        "A pre-existing destination sentinel survives refusal, proving the unpublished attempt does not replace it.",
+        "A subsequent non-strict retry on the same adapter succeeds and cleans up its destination."
+      ]
+    },
+    "strictCheckpoint": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/mechanical_example-imperial.dwg -y -d -v2010 /tmp/libdxfrw-p4-strict-finalization-check-20261031.dxf",
+      "result": "REFUSED in writer finalization after staged output generation; the requested destination was not published.",
+      "opaqueCallbackViews": 228,
+      "opaqueFramesOutputQualified": 0,
+      "diagnostic": "strict-complete conversion requires output qualification for every opaque DWG callback",
+      "destinationAfterRefusal": "absent"
+    },
+    "fullSuites": "NOT RUN; one focused adapter selector and one strict CLI checkpoint used."
+  },
+  "planImpact": {
+    "completedActionRemoved": "Move strict output admission to the transactional writer-finalization point, after staged bytes exist and before destination publication.",
+    "nextAction": "Stage per-attempt output identities transactionally, then bind the highest-incidence callback family to complete typed output or a proven replay route with owner/dependency closure and fresh readback. Keep strict publication blocked until every required identity is qualified.",
+    "externalItemsPromoted": 0
+  }
+}

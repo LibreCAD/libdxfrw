@@ -62,9 +62,11 @@ highest-incidence family still lacking an end-to-end output proof. Bind each
 required source identity, body, owner/dependency and tail to planned output,
 emitted bytes and fresh readback. Keep unresolved identities refused, rerun the
 strict checkpoint after each family, and do not weaken either gate. Add no
-investigation DWG/DXF fixture. The latest strict checkpoint still refuses at
-output qualification before publication; its exact result is recorded in
-[`p4-ac1024-opaque-callback-source-retention-2026-10-31.json`](docs/research/p4-ac1024-opaque-callback-source-retention-2026-10-31.json).
+investigation DWG/DXF fixture. The strict output check now runs after DXF bytes
+are staged and before atomic publication; it still refuses because no callback
+identity has an output qualification. The refusal, destination rollback and
+retry result are recorded in
+[`p4-strict-output-gate-finalization-2026-10-31.json`](docs/research/p4-strict-output-gate-finalization-2026-10-31.json).
 
 ## P4 — original bodies and complete document closure
 
@@ -86,9 +88,11 @@ engines.
    through owner/dependency planning and writer admission. Keep reader
    completeness distinct from output qualification: neither a typed callback nor
    retained raw bytes alone proves output preservation. Admit only complete
-   typed output or a proven end-to-end replay path. Keep unresolved records
-   refused. Never weaken the completeness predicate, emit a partial graph, or
-   infer edges from adjacent handle values.
+   typed output or a proven end-to-end replay path. The strict output check runs
+   in writer finalization after the staged bytes are complete and before the
+   output transaction commits. Keep unresolved records refused. Never weaken
+   the completeness predicate, emit a partial graph, or infer edges from
+   adjacent handle values.
 3. **Recursive closure:** follow only source-required edges reached from the
    admitted graph. Reuse a qualified provider when it closes the exact target
    role; otherwise resolve that source-required body and its descendants, and
