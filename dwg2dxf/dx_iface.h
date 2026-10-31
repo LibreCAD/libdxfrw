@@ -1921,6 +1921,11 @@ public:
                 written = dxfW->writeAssociativeConstraintGroup(object);
             else if (object->m_recordName == "ACDBASSOCVARIABLE")
                 written = dxfW->writeAssociativeVariable(object);
+            else if (object->m_recordName
+                         == "ACDBASSOCDIMDEPENDENCYBODY"
+                     || object->m_recordName
+                         == "ASSOCDIMDEPENDENCYBODY")
+                written = dxfW->writeAssociativeDependencyBody(object);
             else if (object->m_recordName == "ACDBASSOCGEOMDEPENDENCY"
                      || object->m_recordName
                          == "ACDBASSOCVALUEDEPENDENCY")

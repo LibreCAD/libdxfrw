@@ -8533,7 +8533,85 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                             std::unordered_set<std::uint32_t> actionHandles;
                             actionHandles.reserve(
                                 object.m_constraintActions.size());
-                            std::size_t geometryNodeReferences = 0u;
+                            std::unordered_map<std::uint32_t,
+                                const DRW_AssociativeObject*> actionTargets;
+                            actionTargets.reserve(
+                                object.m_constraintActions.size());
+                            std::unordered_map<std::uint32_t, std::size_t>
+                                inlineActionReferences;
+                            inlineActionReferences.reserve(
+                                object.m_constraintActions.size());
+                            std::size_t expectedGroupHandleCount =
+                                object.m_constraintActions.size();
+                            if (expectedGroupHandleCount
+                                > m_extensionGraphLimits.maxEdges)
+                                return reject(
+                                    ExtensionGraphFailure::EdgeLimit);
+                            for (const DRW_AssociativeConstraintNode& node :
+                                 object.m_constraintNodes) {
+                                const std::size_t nodeHandleCount =
+                                    static_cast<std::size_t>(
+                                        node.m_hasGeometryDependency)
+                                    + static_cast<std::size_t>(
+                                        node.m_hasValueDependencyHandle)
+                                    + static_cast<std::size_t>(
+                                        node.m_hasDimensionDependencyHandle);
+                                if (nodeHandleCount
+                                    > m_extensionGraphLimits.maxEdges
+                                        - expectedGroupHandleCount)
+                                    return reject(
+                                        ExtensionGraphFailure::EdgeLimit);
+                                expectedGroupHandleCount += nodeHandleCount;
+                            }
+                            const auto classIs = [](
+                                    const DRW_AssociativeConstraintNode& node,
+                                    const char* className) {
+                                return layoutSymbolKey(node.m_className)
+                                    == layoutSymbolKey(className);
+                            };
+                            const auto addNodeActionReference = [&] (
+                                    bool present, std::uint64_t reference,
+                                    const char* expectedRecord,
+                                    bool nullAllowed) {
+                                if (!present)
+                                    return true;
+                                if (reference == 0u)
+                                    return nullAllowed;
+                                if (reference == DRW::NoHandle
+                                    || reference
+                                        > std::numeric_limits<std::uint32_t>::max())
+                                    return false;
+                                const auto handle = static_cast<std::uint32_t>(
+                                    reference);
+                                const auto action = actionTargets.find(handle);
+                                if (action == actionTargets.end()
+                                    || layoutSymbolKey(
+                                        action->second->m_recordName)
+                                        != layoutSymbolKey(expectedRecord)
+                                    || action->second->parentHandle
+                                        != object.handle)
+                                    return false;
+                                ++inlineActionReferences[handle];
+                                return inlineActionReferences[handle] == 1u;
+                            };
+                            static constexpr const char* kGeometricalClasses[] = {
+                                "AcCenterPointConstraint",
+                                "AcColinearConstraint",
+                                "AcConcentricConstraint",
+                                "AcEqualCurvatureConstraint",
+                                "AcEqualDistanceConstraint",
+                                "AcEqualHelpParameterConstraint",
+                                "AcEqualLengthConstraint",
+                                "AcEqualRadiusConstraint",
+                                "AcParallelConstraint",
+                                "AcFixedConstraint",
+                                "AcMidpointConstraint",
+                                "AcNormalConstraint",
+                                "AcPerpendicularConstraint",
+                                "AcPointCoincidenceConstraint",
+                                "AcPointCurveConstraint",
+                                "AcSymmetricConstraint",
+                                "AcTangentConstraint"};
                             if (!object.m_constraintGroupBodyParsed
                                 || object.m_constraintGroupVersion != 0
                                 || !object.m_constraintActionsParsed
@@ -8558,7 +8636,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                     != "ACDBASSOCNETWORK"
                                 || ownedMemberships != 1u
                                 || object.m_actionBodyHandle != 0u
-                                || object.m_maxDependencyIndex != 0
+                                || object.m_maxDependencyIndex < 0
+                                || static_cast<std::size_t>(
+                                    object.m_maxDependencyIndex)
+                                    > m_extensionGraphLimits.maxEdges
                                 || !object.m_dependencies.empty()
                                 || !object.m_ownedParams.empty()
                                 || !object.m_ownedActions.empty()
@@ -8575,13 +8656,12 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 || !completePrefix(
                                     DRW_AssociativePrefixStatus::Kind::AcDbAssoc2dConstraintGroup,
                                     1u,
-                                    object.m_constraintActions.size()
-                                        + object.m_constraintNodes.size(),
+                                    expectedGroupHandleCount,
                                     object.m_constraintNodes.size(),
                                     object.m_constraintNodeCount))
                                 return reject(
                                     ExtensionGraphFailure::InvalidGraph,
-                                    "ACDBASSOC2DCONSTRAINTGROUP is outside the fully consumed AC1024 inline geometry-dependency profile");
+                                    "ACDBASSOC2DCONSTRAINTGROUP is outside the fully consumed AC1024 inline constraint-node profile");
 
                             for (const std::uint32_t actionHandle :
                                  object.m_constraintActions) {
@@ -8595,47 +8675,357 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 const auto action = associativeRecords.find(
                                     actionHandle);
                                 if (action == associativeRecords.end()
-                                    || layoutSymbolKey(
-                                        action->second->m_recordName)
-                                        != "ACDBASSOCGEOMDEPENDENCY"
+                                    || (layoutSymbolKey(
+                                            action->second->m_recordName)
+                                            != "ACDBASSOCGEOMDEPENDENCY"
+                                        && layoutSymbolKey(
+                                            action->second->m_recordName)
+                                            != "ACDBASSOCVALUEDEPENDENCY"
+                                        && layoutSymbolKey(
+                                            action->second->m_recordName)
+                                            != "ACDBASSOCDEPENDENCY")
                                     || action->second->parentHandle
                                         != object.handle)
                                     return reject(
                                         ExtensionGraphFailure::InvalidGraph,
-                                        "ACDBASSOC2DCONSTRAINTGROUP action is not an owned AC1024 geometry dependency");
+                                        "ACDBASSOC2DCONSTRAINTGROUP action is not an owned AC1024 dependency");
+                                actionTargets.emplace(actionHandle,
+                                                      action->second);
                             }
                             for (const DRW_AssociativeConstraintNode& node :
                                  object.m_constraintNodes) {
-                                if (!node.m_classDataParsed
-                                    || node.m_dataKind
-                                        != DRW_AssociativeConstraintNode::DataKind::ImplicitPoint
-                                    || node.m_className
-                                        != "AcConstrainedImplicitPoint"
-                                    || !node.m_hasGeometryDependency
-                                    || node.m_geometryDependencyHandle == 0u
-                                    || node.m_hasValueDependencyHandle
-                                    || node.m_hasDimensionDependencyHandle)
+                                using DataKind =
+                                    DRW_AssociativeConstraintNode::DataKind;
+                                bool classAndFlagsValid =
+                                    node.m_classDataParsed
+                                    && !node.m_hasActiveFlag;
+                                const bool noGeometry =
+                                    !node.m_hasGeometryDependency;
+                                const bool noValue =
+                                    !node.m_hasValueDependencyHandle;
+                                const bool noDimension =
+                                    !node.m_hasDimensionDependencyHandle;
+                                switch (node.m_dataKind) {
+                                case DataKind::Geometrical:
+                                    classAndFlagsValid = classAndFlagsValid
+                                        && std::any_of(
+                                            std::begin(kGeometricalClasses),
+                                            std::end(kGeometricalClasses),
+                                            [&](const char* name) {
+                                                return classIs(node, name);
+                                            })
+                                        && noGeometry && noValue && noDimension
+                                        && !node.m_hasDatumLineIndex
+                                        && !node.m_hasPoint
+                                        && !node.m_hasDistance
+                                        && !node.m_hasReserved
+                                        && !node.m_hasRigidSetReservedFlag
+                                        && !node.m_hasRigidSetTransform;
+                                    break;
+                                case DataKind::Horizontal:
+                                case DataKind::Vertical:
+                                    classAndFlagsValid = classAndFlagsValid
+                                        && classIs(node,
+                                            node.m_dataKind
+                                                == DataKind::Horizontal
+                                            ? "AcHorizontalConstraint"
+                                            : "AcVerticalConstraint")
+                                        && noGeometry && noValue && noDimension
+                                        && node.m_hasDatumLineIndex
+                                        && !node.m_hasPoint
+                                        && !node.m_hasDistance
+                                        && !node.m_hasReserved
+                                        && !node.m_hasRigidSetReservedFlag
+                                        && !node.m_hasRigidSetTransform;
+                                    break;
+                                case DataKind::RadiusDiameter:
+                                    classAndFlagsValid = classAndFlagsValid
+                                        && classIs(node,
+                                            "AcRadiusDiameterConstraint")
+                                        && noGeometry
+                                        && node.m_hasValueDependencyHandle
+                                        && node.m_hasDimensionDependencyHandle
+                                        && !node.m_hasDatumLineIndex
+                                        && !node.m_hasPoint
+                                        && !node.m_hasDistance
+                                        && !node.m_hasReserved
+                                        && !node.m_hasRigidSetReservedFlag
+                                        && !node.m_hasRigidSetTransform;
+                                    break;
+                                case DataKind::Line:
+                                    classAndFlagsValid = classAndFlagsValid
+                                        && classIs(node,
+                                            "AcConstrainedDatumLine")
+                                        && node.m_hasGeometryDependency
+                                        && noValue && noDimension
+                                        && !node.m_hasDatumLineIndex
+                                        && node.m_hasPoint
+                                        && !node.m_hasDistance
+                                        && !node.m_hasReserved
+                                        && !node.m_hasRigidSetReservedFlag
+                                        && !node.m_hasRigidSetTransform;
+                                    break;
+                                case DataKind::ImplicitPoint:
+                                    classAndFlagsValid = classAndFlagsValid
+                                        && classIs(node,
+                                            "AcConstrainedImplicitPoint")
+                                        && node.m_hasGeometryDependency
+                                        && noValue && noDimension
+                                        && !node.m_hasDatumLineIndex
+                                        && !node.m_hasDistance
+                                        && !node.m_hasReserved
+                                        && !node.m_hasRigidSetReservedFlag
+                                        && !node.m_hasRigidSetTransform;
+                                    break;
+                                case DataKind::BoundedLine:
+                                    classAndFlagsValid = classAndFlagsValid
+                                        && classIs(node,
+                                            "AcConstrainedBoundedLine")
+                                        && node.m_hasGeometryDependency
+                                        && noValue && noDimension
+                                        && !node.m_hasDatumLineIndex
+                                        && node.m_hasPoint
+                                        && !node.m_hasDistance
+                                        && !node.m_hasReserved
+                                        && !node.m_hasRigidSetReservedFlag
+                                        && !node.m_hasRigidSetTransform;
+                                    break;
+                                case DataKind::Circle:
+                                case DataKind::Arc:
+                                    classAndFlagsValid = classAndFlagsValid
+                                        && classIs(node,
+                                            node.m_dataKind == DataKind::Circle
+                                                ? "AcConstrainedCircle"
+                                                : "AcConstrainedArc")
+                                        && node.m_hasGeometryDependency
+                                        && noValue && noDimension
+                                        && !node.m_hasDatumLineIndex
+                                        && !node.m_hasPoint
+                                        && !node.m_hasDistance
+                                        && !node.m_hasReserved
+                                        && !node.m_hasRigidSetReservedFlag
+                                        && !node.m_hasRigidSetTransform;
+                                    break;
+                                case DataKind::Distance:
+                                    classAndFlagsValid = classAndFlagsValid
+                                        && classIs(node,
+                                            "AcDistanceConstraint")
+                                        && noGeometry
+                                        && node.m_hasValueDependencyHandle
+                                        && node.m_hasDimensionDependencyHandle
+                                        && !node.m_hasDatumLineIndex
+                                        && !node.m_hasPoint
+                                        && !node.m_hasReserved
+                                        && !node.m_hasRigidSetReservedFlag
+                                        && !node.m_hasRigidSetTransform;
+                                    break;
+                                case DataKind::RigidSet:
+                                    classAndFlagsValid = classAndFlagsValid
+                                        && classIs(node,
+                                            "AcConstrainedRigidSet")
+                                        && node.m_hasGeometryDependency
+                                        && noValue && noDimension
+                                        && !node.m_hasDatumLineIndex
+                                        && !node.m_hasPoint
+                                        && !node.m_hasDistance
+                                        && !node.m_hasReserved
+                                        && node.m_hasRigidSetReservedFlag
+                                        && node.m_hasRigidSetTransform;
+                                    break;
+                                case DataKind::Unsupported:
+                                    classAndFlagsValid = false;
+                                    break;
+                                }
+                                if (!classAndFlagsValid)
                                     return reject(
                                         ExtensionGraphFailure::InvalidGraph,
-                                        "ACDBASSOC2DCONSTRAINTGROUP node is outside the AC1024 implicit-point geometry-dependency profile");
-                                if (node.m_geometryDependencyCode
-                                        != DRW::DwgSoftPointer
-                                    || node.m_geometryDependencyHandle
-                                        > std::numeric_limits<std::uint32_t>::max()
-                                    || actionHandles.count(
-                                        static_cast<std::uint32_t>(
-                                            node.m_geometryDependencyHandle))
-                                        != 1u)
+                                        "ACDBASSOC2DCONSTRAINTGROUP node is outside the witnessed AC1024 class/DataKind profile");
+                                const bool nullGeometryAllowed =
+                                    node.m_dataKind == DataKind::Line
+                                    || node.m_dataKind == DataKind::RigidSet
+                                    || (node.m_dataKind
+                                            == DataKind::ImplicitPoint
+                                        && !node.m_hasPoint);
+                                if (!addNodeActionReference(
+                                        node.m_hasGeometryDependency,
+                                        node.m_geometryDependencyHandle,
+                                        "ACDBASSOCGEOMDEPENDENCY",
+                                        nullGeometryAllowed)
+                                    || (node.m_hasGeometryDependency
+                                        && node.m_geometryDependencyCode
+                                            != DRW::DwgSoftPointer)
+                                    ) {
                                     return reject(
                                         ExtensionGraphFailure::InvalidGraph,
-                                        "ACDBASSOC2DCONSTRAINTGROUP node geometry reference is not a listed owned action");
-                                ++geometryNodeReferences;
+                                        "ACDBASSOC2DCONSTRAINTGROUP geometry reference is outside its listed AC1024 geometry-dependency role (node "
+                                            + std::to_string(node.m_nodeId)
+                                            + ", handle "
+                                            + std::to_string(
+                                                node.m_geometryDependencyHandle)
+                                            + ")");
+                                }
+                                if (!addNodeActionReference(
+                                        node.m_hasValueDependencyHandle,
+                                        node.m_valueDependencyHandle,
+                                        "ACDBASSOCVALUEDEPENDENCY", false)
+                                    || (node.m_hasValueDependencyHandle
+                                        && node.m_valueDependencyCode
+                                            != DRW::DwgHardPointer))
+                                    return reject(
+                                        ExtensionGraphFailure::InvalidGraph,
+                                        "ACDBASSOC2DCONSTRAINTGROUP value reference is outside its listed AC1024 value-dependency role (node "
+                                            + std::to_string(node.m_nodeId)
+                                            + ", handle "
+                                            + std::to_string(
+                                                node.m_valueDependencyHandle)
+                                            + ")");
+                                if (!addNodeActionReference(
+                                        node.m_hasDimensionDependencyHandle,
+                                        node.m_dimensionDependencyHandle,
+                                        "ACDBASSOCDEPENDENCY", false)
+                                    || (node.m_hasDimensionDependencyHandle
+                                        && node.m_dimensionDependencyCode
+                                            != DRW::DwgHardPointer))
+                                    return reject(
+                                        ExtensionGraphFailure::InvalidGraph,
+                                        "ACDBASSOC2DCONSTRAINTGROUP dimension reference is outside its listed AC1024 dependency role (node "
+                                            + std::to_string(node.m_nodeId)
+                                            + ", handle "
+                                            + std::to_string(
+                                                node.m_dimensionDependencyHandle)
+                                            + ")");
                             }
-                            if (geometryNodeReferences
-                                != actionHandles.size())
+                            for (const std::uint32_t actionHandle :
+                                 actionHandles) {
+                                if (inlineActionReferences[actionHandle] != 1u)
+                                    return reject(
+                                        ExtensionGraphFailure::InvalidGraph,
+                                        "ACDBASSOC2DCONSTRAINTGROUP action list and inline node references do not close exactly once");
+                            }
+                        } else if (layoutSymbolKey(object.m_recordName)
+                                   == "ACDBASSOCDEPENDENCY") {
+                            const auto owner = associativeRecords.find(
+                                static_cast<std::uint32_t>(object.parentHandle));
+                            const DRW_AssociativeObject* ownerGroup =
+                                owner == associativeRecords.end()
+                                    ? nullptr : owner->second;
+                            const auto targetEntity =
+                                associativeEntityTargets.find(
+                                    object.m_dependencyHandle);
+                            const auto body = associativeRecords.find(
+                                object.m_dependencyBodyHandle);
+                            const std::size_t actionMembership =
+                                ownerGroup == nullptr ? 0u
+                                : static_cast<std::size_t>(std::count(
+                                    ownerGroup->m_constraintActions.begin(),
+                                    ownerGroup->m_constraintActions.end(),
+                                    object.handle));
+                            const std::size_t bodyOwners =
+                                static_cast<std::size_t>(std::count_if(
+                                    associativeRecords.begin(),
+                                    associativeRecords.end(),
+                                    [&object](const auto& candidate) {
+                                        return candidate.second
+                                                ->m_dependencyBodyHandle
+                                            == object.m_dependencyBodyHandle;
+                                    }));
+                            const DRW_Entity* target =
+                                targetEntity == associativeEntityTargets.end()
+                                    ? nullptr : targetEntity->second;
+                            const bool dimensionTarget =
+                                target != nullptr
+                                && ((target->eType == DRW::DIMLINEAR
+                                     && dynamic_cast<const DRW_DimLinear*>(
+                                            target) != nullptr)
+                                    || (target->eType == DRW::DIMDIAMETRIC
+                                        && dynamic_cast<const DRW_DimDiametric*>(
+                                               target) != nullptr));
+                            const bool targetBacklink = target != nullptr
+                                && std::count(target->reactorHandles.begin(),
+                                              target->reactorHandles.end(),
+                                              object.handle) == 1;
+                            const DRW_AssociativeObject* bodyObject =
+                                body == associativeRecords.end()
+                                    ? nullptr : body->second;
+                            const bool completeDimensionBodyPrefix =
+                                bodyObject != nullptr
+                                && std::count_if(
+                                    bodyObject->m_prefixStatuses.begin(),
+                                    bodyObject->m_prefixStatuses.end(),
+                                    [](const DRW_AssociativePrefixStatus& status) {
+                                        return status.m_kind
+                                                == DRW_AssociativePrefixStatus::Kind::AcDbAssocDependencyBody
+                                            && status.m_status
+                                                == DRW_AssociativePrefixStatus::ParseStatus::Complete
+                                            && status.m_classVersion == 1u
+                                            && status.m_decodedHandleCount == 0u
+                                            && status.m_decodedValueCount == 4u
+                                            && status.m_decodedCountValue == 0;
+                                    }) == 1;
+                            if (!object.m_dependencyFieldsParsed
+                                || !object.m_dependencyWireComplete
+                                || object.m_classVersion != 1u
+                                || object.m_dependencyOrder != 0
+                                || !object.m_dependencyIsWrite
+                                || !object.m_dependencyIsAttachedToObject
+                                || !object.m_dependencyIsDelegatingToOwningAction
+                                || object.m_dependencyHandle == 0u
+                                || object.m_dependencyHandle == DRW::NoHandle
+                                || object.m_dependencyBodyHandle == 0u
+                                || object.m_dependencyBodyHandle == DRW::NoHandle
+                                || object.m_dependencyNamePresent
+                                || !object.m_dependencyName.empty()
+                                || object.m_readDependencyHandle != 0u
+                                || object.m_dependencyNodeHandle != 0u
+                                || object.m_writeDependencyHandle != 0u
+                                || object.xDictHandle != 0u
+                                || !object.appData.empty()
+                                || !object.extData.empty()
+                                || object.reactorHandles.size() != 0u
+                                || object.m_prefixStatuses.size() != 1u
+                                || !completePrefix(
+                                    DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency,
+                                    1u, 4u, 0u, 0)
+                                || ownerGroup == nullptr
+                                || layoutSymbolKey(ownerGroup->m_recordName)
+                                    != "ACDBASSOC2DCONSTRAINTGROUP"
+                                || actionMembership != 1u
+                                || !ownerGroup->m_constraintActionsParsed
+                                || !dimensionTarget || !targetBacklink
+                                || bodyObject == nullptr
+                                || (layoutSymbolKey(bodyObject->m_recordName)
+                                        != "ACDBASSOCDIMDEPENDENCYBODY"
+                                    && layoutSymbolKey(bodyObject->m_recordName)
+                                        != "ASSOCDIMDEPENDENCYBODY")
+                                || !bodyObject->m_dimensionDependencyBodyParsed
+                                || bodyObject->m_dependencyBodyVersion != 1u
+                                || bodyObject->m_dimBaseVersion != 1u
+                                || bodyObject->m_classVersion != 1u
+                                || bodyObject->parentHandle != object.handle
+                                || bodyOwners != 1u
+                                || bodyObject->xDictHandle != 0u
+                                || !bodyObject->appData.empty()
+                                || !bodyObject->extData.empty()
+                                || !bodyObject->reactorHandles.empty()
+                                || bodyObject->m_prefixStatuses.size() != 1u
+                                || !completeDimensionBodyPrefix)
                                 return reject(
                                     ExtensionGraphFailure::InvalidGraph,
-                                    "ACDBASSOC2DCONSTRAINTGROUP action list and inline geometry references do not close");
+                                    "ACDBASSOCDEPENDENCY or its dimension body is outside the source-bound AC1024 group-owned dimension profile");
+                        } else if (layoutSymbolKey(object.m_recordName)
+                                       == "ACDBASSOCDIMDEPENDENCYBODY"
+                                   || layoutSymbolKey(object.m_recordName)
+                                       == "ASSOCDIMDEPENDENCYBODY") {
+                            const auto owner = associativeRecords.find(
+                                static_cast<std::uint32_t>(object.parentHandle));
+                            if (owner == associativeRecords.end()
+                                || layoutSymbolKey(owner->second->m_recordName)
+                                    != "ACDBASSOCDEPENDENCY"
+                                || owner->second->m_dependencyBodyHandle
+                                    != object.handle)
+                                return reject(
+                                    ExtensionGraphFailure::InvalidGraph,
+                                    "ASSOCDIMDEPENDENCYBODY is not the selected body of its source-bound dimension dependency");
                         } else if (layoutSymbolKey(object.m_recordName)
                                    == "ACDBASSOCGEOMDEPENDENCY") {
                             const auto owner = associativeRecords.find(
@@ -8673,7 +9063,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                             if (!object.m_dependencyFieldsParsed
                                 || !object.m_dependencyWireComplete
                                 || object.m_classVersion != 1u
-                                || object.m_dependencyOrder != 0
+                                || (object.m_dependencyOrder != 0
+                                    && object.m_dependencyOrder != -10000)
                                 || object.m_dependencyHandle == 0u
                                 || object.m_dependencyHandle == DRW::NoHandle
                                 || object.m_dependencyBodyHandle != 0u
@@ -8785,6 +9176,13 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                         candidate->m_recordName)
                                         == "ACDBASSOCVARIABLE";
                             };
+                            const auto isConstraintGroup = [](
+                                    const DRW_AssociativeObject* candidate) {
+                                return candidate != nullptr
+                                    && layoutSymbolKey(
+                                        candidate->m_recordName)
+                                        == "ACDBASSOC2DCONSTRAINTGROUP";
+                            };
                             const auto countOwnedAction = [](
                                     const DRW_AssociativeObject& network,
                                     std::uint32_t actionHandle) {
@@ -8797,15 +9195,23 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                             && ref.m_isOwned;
                                     });
                             };
-                            const DRW_AssociativeObject* ownerVariable =
+                            const DRW_AssociativeObject* ownerAction =
                                 owner == associativeRecords.end()
                                     ? nullptr : owner->second;
                             const DRW_AssociativeObject* targetVariable =
                                 target == associativeRecords.end()
                                     ? nullptr : target->second;
-                            const auto network = isVariable(ownerVariable)
+                            const bool ownerIsVariable =
+                                isVariable(ownerAction);
+                            const bool ownerIsGroup =
+                                isConstraintGroup(ownerAction);
+                            const std::uint32_t ownerNetworkHandle =
+                                ownerIsVariable || ownerIsGroup
+                                    ? ownerAction->m_owningNetworkHandle : 0u;
+                            const auto network = ownerNetworkHandle != 0u
+                                && ownerNetworkHandle != DRW::NoHandle
                                 ? associativeRecords.find(
-                                    ownerVariable->m_owningNetworkHandle)
+                                    ownerNetworkHandle)
                                 : associativeRecords.end();
                             const DRW_AssociativeObject* owningNetwork =
                                 network == associativeRecords.end()
@@ -8817,13 +9223,35 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                         targetVariable->reactorHandles.end(),
                                         object.handle))
                                     : 0u;
+                            const auto validActionOwner = [&] (
+                                    const DRW_AssociativeObject* candidate,
+                                    std::uint32_t dependencyHandle) {
+                                if (candidate == nullptr
+                                    || candidate->parentHandle
+                                        != ownerNetworkHandle
+                                    || ownerNetworkHandle == 0u
+                                    || ownerNetworkHandle == DRW::NoHandle)
+                                    return false;
+                                if (isConstraintGroup(candidate)) {
+                                    return candidate->m_owningNetworkHandle
+                                            == ownerNetworkHandle
+                                        && candidate->m_constraintActionsParsed
+                                        && std::count(
+                                            candidate->m_constraintActions.begin(),
+                                            candidate->m_constraintActions.end(),
+                                            dependencyHandle) == 1;
+                                }
+                                return isVariable(candidate)
+                                    && candidate->m_owningNetworkHandle
+                                        == ownerNetworkHandle
+                                    && variableOwnsDependency(
+                                        *candidate, dependencyHandle);
+                            };
                             const auto validDependencyPeer =
                                 [&](std::uint32_t peerHandle,
                                     bool peerNode) {
                                 if (peerHandle == 0u)
                                     return true;
-                                if (!isVariable(ownerVariable))
-                                    return false;
                                 const auto peerIt = associativeRecords.find(
                                     peerHandle);
                                 if (peerIt == associativeRecords.end()
@@ -8847,23 +9275,23 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                     associativeRecords.find(
                                         static_cast<std::uint32_t>(
                                             peer.parentHandle));
-                                if (!isVariable(peerOwner
-                                        == associativeRecords.end()
-                                            ? nullptr : peerOwner->second))
+                                const DRW_AssociativeObject* peerOwnerAction =
+                                    peerOwner == associativeRecords.end()
+                                        ? nullptr : peerOwner->second;
+                                if (!validActionOwner(peerOwnerAction,
+                                                      peer.handle))
                                     return false;
-                                const DRW_AssociativeObject& peerOwnerVar =
-                                    *peerOwner->second;
                                 const auto peerNetwork =
                                     associativeRecords.find(
-                                        peerOwnerVar.m_owningNetworkHandle);
-                                if (peerOwnerVar.parentHandle
-                                        != ownerVariable->m_owningNetworkHandle
-                                    || peerOwnerVar.m_owningNetworkHandle
-                                        != ownerVariable->m_owningNetworkHandle
+                                        peerOwnerAction->m_owningNetworkHandle);
+                                if (peerOwnerAction->m_owningNetworkHandle
+                                        != ownerNetworkHandle
                                     || peerNetwork == associativeRecords.end()
-                                    || layoutSymbolKey(
-                                        peerNetwork->second->m_recordName)
-                                        != "ACDBASSOCNETWORK")
+                                    || layoutSymbolKey(peerNetwork->second
+                                            ->m_recordName)
+                                        != "ACDBASSOCNETWORK"
+                                    || countOwnedAction(*peerNetwork->second,
+                                            peerOwnerAction->handle) != 1)
                                     return false;
                                 return peerNode
                                     ? peer.m_dependencyNodeHandle
@@ -8889,12 +9317,11 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 || !completePrefix(
                                     DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency,
                                     1u, 4u, 0u, 0)
-                                || !isVariable(ownerVariable)
-                                || !ownerVariable->m_associativeVariableFieldsParsed
-                                || !ownerVariable->m_associativeVariableWireComplete
-                                || !variableOwnsDependency(
-                                    *ownerVariable, object.handle)
-                                || ownerVariable->m_maxDependencyIndex <= 0
+                                || (!ownerIsVariable && !ownerIsGroup)
+                                || !validActionOwner(ownerAction,
+                                                     object.handle)
+                                || (ownerIsVariable
+                                    && ownerAction->m_maxDependencyIndex <= 0)
                                 || !isVariable(targetVariable)
                                 || !targetVariable->m_associativeVariableFieldsParsed
                                 || !targetVariable->m_associativeVariableWireComplete
@@ -8902,24 +9329,24 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 || layoutSymbolKey(owningNetwork->m_recordName)
                                     != "ACDBASSOCNETWORK"
                                 || !owningNetwork->m_networkFieldsParsed
-                                || owningNetwork->m_owningNetworkHandle != 0u
-                                || ownerVariable->m_owningNetworkHandle
+                                || ownerAction->m_owningNetworkHandle
                                     != owningNetwork->handle
                                 || targetVariable->m_owningNetworkHandle
                                     != owningNetwork->handle
-                                || ownerVariable->parentHandle
+                                || ownerAction->parentHandle
                                     != owningNetwork->handle
                                 || targetVariable->parentHandle
                                     != owningNetwork->handle
                                 || countOwnedAction(*owningNetwork,
-                                        ownerVariable->handle) != 1
+                                        ownerAction->handle) != 1
                                 || countOwnedAction(*owningNetwork,
                                         targetVariable->handle) != 1
                                 || targetBacklinks != 1u
                                 || !validPeerLinks)
                                 return reject(
                                     ExtensionGraphFailure::InvalidGraph,
-                                    "ACDBASSOCVALUEDEPENDENCY is outside the fully consumed AC1024 variable-owned profile");
+                                    "ACDBASSOCVALUEDEPENDENCY is outside the fully consumed AC1024 group/variable-owned profile (handle "
+                                        + std::to_string(object.handle) + ")");
                         } else {
                             return reject(ExtensionGraphFailure::InvalidGraph,
                                 "associative record has no admitted AC1024 writer profile");
@@ -9246,6 +9673,23 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                             && visitedAssociatives.count(dependencyHandle) == 0u
                             && !queueTarget(dependencyHandle, false))
                             return false;
+                        break;
+                    }
+                    if (layoutSymbolKey(frame.associative->m_recordName)
+                            == "ACDBASSOCDEPENDENCY"
+                        && frame.index == 0u) {
+                        const std::uint32_t bodyHandle =
+                            frame.associative->m_dependencyBodyHandle;
+                        ++frame.index;
+                        if (bodyHandle == 0u
+                            || bodyHandle == DRW::NoHandle
+                            || !examineEdge()
+                            || (visiting.count(bodyHandle) == 0u
+                                && visitedAssociatives.count(bodyHandle) == 0u
+                                && !queueTarget(bodyHandle, false)))
+                            return reject(
+                                ExtensionGraphFailure::InvalidGraph,
+                                "ACDBASSOCDEPENDENCY dimension body is not reachable in the selected graph");
                         break;
                     }
                     if (layoutSymbolKey(frame.associative->m_recordName)
@@ -45522,6 +45966,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                         != "ACDBASSOC2DCONSTRAINTGROUP"
                     && selected->m_recordName
                         != "ACDBASSOCGEOMDEPENDENCY"
+                    && selected->m_recordName
+                        != "ACDBASSOCDIMDEPENDENCYBODY"
                     && selected->m_recordName
                         != "ACDBASSOCVALUEDEPENDENCY"))
                 return false;

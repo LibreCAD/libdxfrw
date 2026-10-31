@@ -29096,10 +29096,12 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
             ? m_valueDependencyFieldsParsed
                 && consumeZeroPaddingWithinBounds(sBuf, stringDataEnd, 7u)
             : consumeZeroPaddingWithinBounds(sBuf, stringDataEnd, 7u);
-        const bool handleWireComplete = valueDependency
-            ? consumeObjectHandleAlignmentPaddingWithinBounds(
-                &hBuff, handleEndBit)
-            : consumeZeroPaddingWithinBounds(&hBuff, handleEndBit, 7u);
+        // ODA 5.4.1 §20.1 specifies that the R2010+ handle-stream size
+        // includes padding bits so the object stream ends on a byte boundary.
+        // Those bits are alignment, not zero-valued data.
+        const bool handleWireComplete =
+            consumeObjectHandleAlignmentPaddingWithinBounds(
+                &hBuff, handleEndBit);
         m_dependencyWireComplete = m_dependencyWireComplete
             && bodyWireComplete && stringWireComplete && handleWireComplete;
     }

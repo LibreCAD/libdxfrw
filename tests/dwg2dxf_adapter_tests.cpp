@@ -28901,6 +28901,7 @@ bool associativeDwgGeometryDependencyGraphExport() {
         group.handle = 0x903u;
         group.parentHandle = network.handle;
         group.m_classVersion = 1u;
+        group.m_maxDependencyIndex = 143;
         group.m_owningNetworkHandle = network.handle;
         group.m_constraintGroupBodyParsed = true;
         group.m_constraintGroupVersion = 0;
@@ -28942,6 +28943,7 @@ bool associativeDwgGeometryDependencyGraphExport() {
         dependency.m_dependencyIsRead = true;
         dependency.m_dependencyIsAttachedToObject = true;
         dependency.m_dependencyIsDelegatingToOwningAction = true;
+        dependency.m_dependencyOrder = -10000;
         dependency.m_dependencyHandle = line->handle;
         dependency.m_geomDependencyFieldsParsed = true;
         dependency.m_geomClassVersion = 0;
@@ -29051,7 +29053,8 @@ bool associativeDwgGeometryDependencyGraphExport() {
         if (readNetwork->m_actions.size() != 1u
             || !readNetwork->m_actions.front().m_isOwned
             || readNetwork->m_actions.front().m_handle != readGroup->handle
-            || readGroup->parentHandle != readNetwork->handle)
+            || readGroup->parentHandle != readNetwork->handle
+            || readGroup->m_maxDependencyIndex != 143)
             return fail("geometry-associative network to group ownership changed on readback");
         if (readGroup->m_constraintActions !=
                 std::vector<std::uint32_t>{readDependency->handle}
@@ -29072,6 +29075,7 @@ bool associativeDwgGeometryDependencyGraphExport() {
                                 .m_geometryDependencyHandle)));
         if (readDependency->parentHandle != readGroup->handle
             || !readDependency->m_dependencyWireComplete
+            || readDependency->m_dependencyOrder != -10000
             || readDependency->m_dependencyHandle != readLine->handle
             || !readDependency->m_geomDependencyFieldsParsed
             || readDependency->m_geomClassVersion != 0

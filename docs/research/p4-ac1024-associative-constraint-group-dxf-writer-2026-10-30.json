@@ -3,10 +3,10 @@
   "id": "p4-ac1024-associative-constraint-group-dxf-writer-2026-10-30",
   "date": "2026-10-30",
   "title": "AC1024 complete constraint-group DXF record writer primitive",
-  "status": "LOCAL_WRITER_AND_WIRE_VERIFIED_GRAPH_ROUTING_OPEN",
+  "status": "LOCAL_WRITER_AND_ASSOCIATIVE_GRAPH_ROUTE_VERIFIED_DOCUMENT_PREFLIGHT_OPEN",
   "supportClaimEffect": "none",
   "baselineCommit": "7fe3b156",
-  "scope": "Implement a direct DXF record writer for one source-backed AC1024 version-0 inline constraint-group profile when its action and group prefixes and every inline node body are complete. The primitive is not routed through dx_iface; whole-document associative export remains refused.",
+  "scope": "Implement a direct DXF record writer for one source-backed AC1024 version-0 inline constraint-group profile when its action and group prefixes and every inline node body are complete. The selected source-bound associative graph is now routed through dx_iface preflight; whole-document publication remains blocked by a separate dictionary edge and the global opaque-callback gate.",
   "sourceProfile": {
     "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
     "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
@@ -49,6 +49,9 @@
       "src/libdxfrw.h",
       "src/libdxfrw.cpp",
       "tests/wave1_tests.cpp",
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
       "CMakeLists.txt",
       "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
     ],
@@ -69,7 +72,7 @@
       "CMakeLists.txt",
       "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md"
     ],
-    "result": "The direct AC1024 version-0 constraint-group record primitive emits all admitted node DataKinds, validates exact class/DataKind and dependency roles, remaps handles, and rolls back record bytes and source identity on failure. It is not invoked by dx_iface and does not qualify whole-document output.",
+    "result": "The direct AC1024 version-0 constraint-group record primitive emits all admitted node DataKinds, validates exact class/DataKind and dependency roles, remaps handles, and rolls back record bytes and source identity on failure. The selected physical AC1024 associative profile is routed through the existing graph planner and advances past its group, geometry, dimension-body, and value-dependency records; document preflight then fails closed at dictionary owner 0x72 to target 0x97. No physical DXF is published and no support claim is promoted.",
     "validation": [
       {
         "command": "cmake --build build --target libdxfrw_wave1_tests dwg2dxf -j4",
@@ -92,19 +95,23 @@
         "result": "PASS negative gate; exits 1 with dwg-associative-graph-not-serialized and does not publish the destination DXF"
       }
     ],
+    "latestPhysicalPartialDiagnostic": {
+      "receipt": "p4-ac1024-associative-graph-route-2026-10-31",
+      "result": "The explicit-partial diagnostic reaches 143 visited nodes and 371 examined edges, then refuses the dictionary entry owner=0x72, target=0x97. It does not publish a DXF."
+    },
     "fixturePolicy": "All writer test records are generated in memory; no DWG/DXF fixture was added.",
     "sourceHashesSha256": {
       "src/libdxfrw.h": "6bca608309cca68cdcdd1236eb9acc677a85cb08ac5f9fc3748056655cc9cc28",
       "src/libdxfrw.cpp": "e8803d0340c9e05e6fa122e2b154a146a1a0a04d0e26478db0dfd6d463511600",
       "tests/wave1_tests.cpp": "036888a2926d7dfae85dc7df19e996bc7701b3b5f5f1ee095825f361a18ebc9e",
       "CMakeLists.txt": "4a29bf674ce04a1a1b686b5d5cc467f40ed0c496a14ac6c8ce3b2adf2a279187",
-      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "52146551c943c6d9d2d1c85d0e5630f87ce7d0b965b0d327bc5081ceec53dc81"
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "7c5308b99f02420800aecb2e759c8e00bb73138a571a6862bad569090c9a7546"
     },
-    "remaining": "Source-bound graph planner routing, descendant closure, staged-output independent inspection/readback, and whole-operation publication/retry proof remain open under P4."
+    "remaining": "Resolve the physical dictionary owner 0x72 to target 0x97 edge, continue the P4 opaque-callback census and required descendants, then prove physical output inspection/readback and whole-operation publication/retry. Strict complete-export remains blocked."
   },
   "nonGoals": [
     "Do not add reader/parser fields or change DWG bytes in this packet.",
-    "Do not route any associative object through dx_iface.",
+    "Do not claim complete physical-document conversion from graph preflight alone.",
     "Do not relax dwg-associative-graph-not-serialized.",
     "Do not treat the LibreDWG group output as a complete node-data oracle."
   ],

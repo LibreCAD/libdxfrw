@@ -47,7 +47,7 @@ close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage; implement only missing required providers, close their required descendants, and pass strict complete-export admission. The current workspace partial trace passes constraint-group admission and stops at the first `ACDBASSOCGEOMDEPENDENCY` profile gate. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage; implement only missing required providers, close their required descendants, and pass strict complete-export admission. The current explicit-partial diagnostic passes the selected AC1024 associative network/group/action/dependency profiles, then stops at dictionary owner `0x72` targeting `0x97` (143 visited nodes, 371 examined edges). | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN | Close remaining rendering metadata and native rendering profiles, nested FIELD dependency/value/object-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, and AC1018 TABLE. | Implement only source- or consumer-witnessed gaps; keep unsupported profiles refused until their schema and wire layout are established. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -57,24 +57,22 @@ close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next P4 implementation packet:** finish routing the source-bound AC1024
-associative graph for the physical mechanical witness
+**Next P4 implementation packet:** resolve the first remaining physical graph
+closure failure in the existing mechanical witness
 (`/Users/dli/doc/dwg/mechanical_example-imperial.dwg`, SHA-256
-`854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858`). Use
-source group handle `0x42B` and the existing receipt's 399-node/88-action
-version-0 profile. Route only node DataKinds and handle roles covered by
-`docs/research/p4-ac1024-associative-constraint-group-dxf-writer-2026-10-30.json`.
-The current workspace trace reaches geometry dependency `0x6fb`, then refuses
-it because `m_dependencyWireComplete` is false and `m_dependencyOrder` is
-`-10000`; resolve those fields against the ODA specification and the actual
-parser span before admitting this dependency. Do not weaken the completeness
-gate or change DWG parsing without that proof. Then bind the group's action
-list, owner network, node dependencies and descendant records to planned and
-emitted handles; add ASCII/Binary generated graph readback plus invalid-target
-rollback/retry. If any source node or dependency falls outside the receipt,
-keep the unsupported part refused and split off the smallest witnessed packet.
-Keep strict complete-export admission closed while required profiles or the
-228 opaque callback identities remain uncovered.
+`854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858`). Trace
+the dictionary record at owner handle `0x72` and its entry targeting `0x97`;
+establish the exact source class, entry name, ownership route, callback
+identity, and why the selected typed/raw provider is missing or ambiguous.
+Implement only that source-required edge/provider, reusing the current graph
+planner and preserving handle uniqueness, destination rollback and corrected
+retry. Verify ASCII/Binary generated readback at the changed boundary and
+rerun the explicit-partial diagnostic. Do not infer the target from adjacent
+handles or relax graph completeness. Keep strict complete-export admission
+closed while required profiles or the 228 opaque callback identities remain
+uncovered.
+Evidence for the current stopping point and the associative route is recorded
+in `docs/research/p4-ac1024-associative-graph-route-2026-10-31.json`.
 
 ## Parked P2 — nested named-resource bodies
 
@@ -106,9 +104,9 @@ engines.
    identities and fields to planned records, emitted bytes and fresh readback.
    Strict complete-export of the physical mechanical source remains blocked:
    the global strict-read predicate rejects opaque callback views that are
-   not retained for output. The explicit partial diagnostic can reach graph
-   preflight and currently stops at the AC1024 constraint-group profile. The
-   callback census is recorded in
+   not retained for output. The explicit partial diagnostic now passes the
+   selected associative graph profiles and stops at dictionary owner `0x72`,
+   entry target `0x97`. The callback census is recorded in
    `docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json`. Use its
    source identities and the existing family receipts to map each profile to
    complete typed output or a proven end-to-end replay path; a typed callback
