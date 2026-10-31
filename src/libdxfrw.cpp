@@ -3941,6 +3941,52 @@ std::uint32_t dxfRW::getBlockRecordHandleToWrite(const std::string& blockName) c
                                   : static_cast<std::uint32_t>(DRW::NoHandle);
 }
 
+bool dxfRW::resolveInsertBlockRecordName(
+        const DRW_Insert& insert, std::string& emittedName) const noexcept {
+    emittedName.clear();
+    try {
+        if (!m_requireResolvedBlockOwners || version <= DRW::AC1009) {
+            emittedName = insert.name;
+            return !emittedName.empty();
+        }
+
+        // DWG consumers can disambiguate anonymous BLOCK_RECORD rows by
+        // source handle even when their original names collide or have been
+        // made unique by the adapter for DXF. Preserve that identity through
+        // the BLOCK_RECORD plan instead of falling back to the lossy INSERT
+        // group-2 name retained by the reader.
+        if (insert.blockRecH.ref != 0u
+            && insert.blockRecH.ref != DRW::NoHandle) {
+            if (insert.blockRecH.ref64
+                    > std::numeric_limits<std::uint32_t>::max()
+                || (insert.blockRecH.ref64 != 0u
+                    && insert.blockRecH.ref64 != insert.blockRecH.ref))
+                return false;
+            const auto sourceName = m_sourceBlockRecordNamesByHandle.find(
+                insert.blockRecH.ref);
+            const auto emittedHandle = m_sourceBlockRecordHandles.find(
+                insert.blockRecH.ref);
+            if (sourceName == m_sourceBlockRecordNamesByHandle.end()
+                || emittedHandle == m_sourceBlockRecordHandles.end())
+                return false;
+            const std::uint32_t namedHandle = getBlockRecordHandleToWrite(
+                sourceName->second);
+            if (namedHandle == DRW::NoHandle
+                || namedHandle != emittedHandle->second)
+                return false;
+            emittedName = sourceName->second;
+            return !emittedName.empty();
+        }
+
+        emittedName = insert.name;
+        return !emittedName.empty()
+            && getBlockRecordHandleToWrite(emittedName) != DRW::NoHandle;
+    } catch (...) {
+        emittedName.clear();
+        return false;
+    }
+}
+
 std::uint32_t dxfRW::getBlockEndHandleToWrite(
         const std::string& blockName) const {
     if (version <= DRW::AC1009)
@@ -9066,7 +9112,12 @@ bool dxfRW::preflightInsertTargetBody(const DRW_Insert *insert) {
         || insert == nullptr || insert->name.empty())
         return true;
 
-    const std::string key = dxfSymbolNameKey(insert->name);
+    std::string emittedName;
+    if (!resolveInsertBlockRecordName(*insert, emittedName)) {
+        m_writeError = true;
+        return false;
+    }
+    const std::string key = dxfSymbolNameKey(emittedName);
     if (key.empty()) {
         m_writeError = true;
         return false;
@@ -9468,12 +9519,16 @@ bool dxfRW::writeInsert(DRW_Insert *ent){
         m_writeError = true;
         return false;
     }
+    std::string emittedBlockName;
+    if (!resolveInsertBlockRecordName(*ent, emittedBlockName))
+        return failDxfWrite();
     // Strict converter closure applies to the referenced definition as well
     // as this entity's owner. TABLES has already planned all BLOCK_RECORDs,
     // including forward/nested references; reuse that index, not a new walk.
     // R12 has no BLOCK_RECORD table and keeps its existing fallback contract.
     if (m_requireResolvedBlockOwners && version > DRW::AC1009
-        && getBlockRecordHandleToWrite(ent->name) == DRW::NoHandle) {
+        && getBlockRecordHandleToWrite(emittedBlockName)
+            == DRW::NoHandle) {
         recordOperationDiagnostic(writingBlock ? DRW::OperationPhase::Blocks
                                                : DRW::OperationPhase::Entities,
             DRW::OperationCause::ValidationFailure, "unresolved-insert-target",
@@ -9512,11 +9567,11 @@ bool dxfRW::writeInsert(DRW_Insert *ent){
         writer->writeString(100, isMInsert ? "AcDbMInsertBlock" : "AcDbBlockReference");
         if (hasSequenceEnd)
             writer->writeInt16(66, 1); //attributes-follow flag
-        writer->writeUtf8String(2, ent->name);
+        writer->writeUtf8String(2, emittedBlockName);
     } else {
         if (hasSequenceEnd)
             writer->writeInt16(66, 1);
-        writer->writeUtf8Caps(2, ent->name);
+        writer->writeUtf8Caps(2, emittedBlockName);
     }
     writer->writeDouble(10, ent->basePoint.x);
     writer->writeDouble(20, ent->basePoint.y);

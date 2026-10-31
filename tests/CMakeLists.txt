@@ -1479,6 +1479,16 @@ set_tests_properties(dwg2dxf_block_representation_data_output PROPERTIES
     TIMEOUT 30
 )
 
+add_test(
+    NAME dwg2dxf_insert_block_record_source_handle_binding
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --insert-block-record-source-handle-binding
+)
+set_tests_properties(dwg2dxf_insert_block_record_source_handle_binding PROPERTIES
+    LABELS "fast;dxf;adapter;ownership"
+    TIMEOUT 30
+)
+
 # File-format dispatch folds only ASCII extension letters; non-ASCII suffix
 # bytes must be preserved and rejected without locale-dependent ctype calls.
 add_test(

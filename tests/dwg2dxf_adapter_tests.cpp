@@ -8909,6 +8909,177 @@ bool blockRepresentationDataOutputProfile() {
     return true;
 }
 
+bool readDxfInsertBlockName(const std::filesystem::path& path, bool binary,
+                            std::string& blockName) {
+    std::ifstream stream(path, std::ios::binary);
+    if (!stream)
+        return false;
+    if (binary)
+        stream.seekg(22);
+    if (!stream)
+        return false;
+    std::unique_ptr<dxfReader> reader = binary
+        ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
+        : std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+    bool inInsert = false;
+    bool foundName = false;
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            if (inInsert)
+                return foundName && !blockName.empty();
+            inInsert = reader->getString() == "INSERT";
+        } else if (inInsert && code == 2) {
+            if (foundName)
+                return false;
+            blockName = reader->getString();
+            foundName = true;
+        }
+    }
+    return inInsert && foundName && !blockName.empty() && !stream.bad();
+}
+
+bool insertBlockRecordSourceHandleBinding() {
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    class RecordAuthor final : public dx_iface {
+    public:
+        RecordAuthor() {
+            cData = &storage;
+            currentBlock = storage.mBlock;
+        }
+
+        void writeHeader(DRW_Header& header) override {
+            header.vars.clear();
+        }
+
+        void writeBlockRecords() override {
+            wroteBlockRecords = dxfW != nullptr
+                && dxfW->writeBlockRecord("*U3")
+                && dxfW->writeBlockRecord("*U6");
+        }
+
+        void writeBlocks() override {
+            if (dxfW == nullptr)
+                return;
+            const auto writeEmptyBlock = [this](const char* name,
+                                                 std::uint32_t sourceHandle) {
+                DRW_Block block;
+                block.name = name;
+                block.handle = sourceHandle + 0x10u;
+                block.parentHandle = sourceHandle;
+                return dxfW->writeBlock(&block)
+                    && dxfW->writeBlockEnd(nullptr);
+            };
+            wroteBlocks = writeEmptyBlock("*U3", 0xA001u)
+                && writeEmptyBlock("*U6", 0xA002u);
+        }
+
+        void writeEntities() override {
+            wroteInsert = dxfW != nullptr
+                && dxfW->writeInsert(&insert);
+        }
+
+        dx_data storage;
+        DRW_Insert insert;
+        bool wroteBlockRecords{false};
+        bool wroteBlocks{false};
+        bool wroteInsert{false};
+    };
+
+    const std::vector<DRW_Block_Record> sourceRecords = [] {
+        DRW_Block_Record first;
+        first.handle = 0xA001u;
+        first.name = "*U3";
+        DRW_Block_Record second;
+        second.handle = 0xA002u;
+        second.name = "*U6";
+        return std::vector<DRW_Block_Record>{first, second};
+    }();
+
+    for (const bool binary : {false, true}) {
+        const std::string encoding = binary ? "binary" : "ascii";
+        const std::filesystem::path output =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-insert-source-block-record-" + encoding + "-"
+               + std::to_string(nonce) + ".dxf");
+        const std::string sentinel = "existing destination survives\n";
+        {
+            std::ofstream existing(output, std::ios::binary);
+            existing << sentinel;
+        }
+        RecordAuthor author;
+        author.insert.handle = 0xA020u;
+        author.insert.parentHandle = 0u;
+        author.insert.name = "*U";
+        author.insert.blockRecH.ref = 0xA002u;
+        dxfRW writer(output.string().c_str());
+        author.dxfW = &writer;
+        writer.setSourceBlockRecords(sourceRecords, true);
+
+        author.insert.blockRecH.ref = 0xA003u;
+        if (writer.write(&author, DRW::AC1024, binary) || author.wroteInsert) {
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+            return fail("INSERT with an unresolved source BLOCK_RECORD handle was emitted");
+        }
+        {
+            std::ifstream existing(output, std::ios::binary);
+            const std::string preserved{
+                std::istreambuf_iterator<char>(existing),
+                std::istreambuf_iterator<char>()};
+            if (preserved != sentinel) {
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+                return fail("unresolved INSERT target replaced destination");
+            }
+        }
+
+        author.insert.blockRecH.ref = 0xA002u;
+        author.insert.blockRecH.ref64 = 0x100000000ULL | 0xA002u;
+        author.wroteBlockRecords = false;
+        author.wroteBlocks = false;
+        author.wroteInsert = false;
+        if (writer.write(&author, DRW::AC1024, binary)
+            || author.wroteInsert) {
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+            return fail("INSERT with an unmapped wide source handle was emitted");
+        }
+        {
+            std::ifstream existing(output, std::ios::binary);
+            const std::string preserved{
+                std::istreambuf_iterator<char>(existing),
+                std::istreambuf_iterator<char>()};
+            if (preserved != sentinel) {
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+                return fail("wide-handle INSERT failure replaced destination");
+            }
+        }
+
+        author.insert.blockRecH.ref = 0xA002u;
+        author.insert.blockRecH.ref64 = 0u;
+        if (!writer.write(&author, DRW::AC1024, binary)
+            || !author.wroteBlockRecords || !author.wroteBlocks
+            || !author.wroteInsert) {
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+            return fail("corrected INSERT source target failed same-writer retry");
+        }
+        std::string outputBlockName;
+        const bool exactTarget = readDxfInsertBlockName(
+            output, binary, outputBlockName)
+            && outputBlockName == "*U6";
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+        if (!exactTarget)
+            return fail("INSERT output did not bind to the source handle's unique BLOCK_RECORD name");
+    }
+    return true;
+}
+
 bool readDxfDynamicBlockVisibilityParameterWireGroups(
         const std::filesystem::path& path, bool binary,
         std::vector<std::pair<int, std::string>>& groups) {
@@ -49645,6 +49816,10 @@ int main(int argc, char** argv) {
         && std::string(argv[1])
             == "--block-representation-data-output")
         return blockRepresentationDataOutputProfile() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1])
+            == "--insert-block-record-source-handle-binding")
+        return insertBlockRecordSourceHandleBinding() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--object-context-data-loss-refusal")
         return objectContextDataLossRefusesExport() ? 0 : 1;

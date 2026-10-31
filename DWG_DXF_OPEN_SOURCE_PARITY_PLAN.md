@@ -69,11 +69,18 @@ implemented and covered by an isolated ASCII/Binary exact-wire and fresh
 readback selector, including rollback and corrected retry. The bounded DWG
 parser accepts only up to seven zero alignment bits; it does not accept an
 unknown suffix. Remove those body-decoding and isolated-serializer actions from
-the queue. The physical source now passes extension-graph admission but still
-fails before OBJECTS staging at `unresolved-insert-target`; resolve that exact
-INSERT/BLOCK_RECORD binding, then prove this object's staged flag, owner,
-block-reference role and fresh ASCII/Binary readback. Strict output remains
-unqualified until the physical staged proof passes.
+the queue. The physical source now passes extension-graph admission and INSERT
+target resolution. The reader's anonymous INSERT name may be lossy (`*U`);
+strict output now binds its source `blockRecH` to the source BLOCK_RECORD's
+unique planned name, and refuses missing or wider-than-indexed handles. The
+focused ASCII/Binary selector proves exact group-2 binding, destination
+rollback and same-writer retry. The physical source currently stops before
+OBJECTS staging at XRECORD `0x121F`: its payload contains group `1071`, outside
+the [documented normal XRECORD group-code domain](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm).
+Keep this refusal until an independent semantics-backed representation
+exists; do not reinterpret it as XDATA or rely on a peer converter's emission
+as acceptance evidence. The physical BLOCKREPRESENTATIONDATA staged-byte and
+fresh readback proof remains pending.
 
 Then close the Title_Block-ARCH BLOCK_RECORD `0x127` three-entry DICTIONARY
 `0x1116`: `ACAD_ENHANCEDBLOCK` → EvaluationGraph `0x1117`, `ACAD_SORTENTS` →
@@ -87,6 +94,7 @@ roles and emitted references, then staged-byte and fresh ASCII/Binary readback
 proof before relaxing strict refusal. DXF-origin typed/raw replay remains
 unqualified. Current composition and source evidence is in
 [`p4-ac1024-block-representation-data-output-2026-10-31.json`](docs/research/p4-ac1024-block-representation-data-output-2026-10-31.json),
+[`p4-ac1024-insert-block-record-source-handle-binding-2026-10-31.json`](docs/research/p4-ac1024-insert-block-record-source-handle-binding-2026-10-31.json),
 [`p4-ac1024-sortents-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-sortents-output-qualification-2026-10-31.json),
 [`p4-ac1024-dictionary-identity-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-dictionary-identity-output-qualification-2026-10-31.json),
 and [`p4-existing-dwg-corpus-strict-sweep-2026-10-31.json`](docs/research/p4-existing-dwg-corpus-strict-sweep-2026-10-31.json).

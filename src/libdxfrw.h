@@ -1686,6 +1686,8 @@ public:
     bool preflightDimensionStyle(const DRW_Dimension *dimension);
     bool preflightDimensionPictureBlock(const DRW_Dimension *dimension);
     bool preflightInsertTargetBody(const DRW_Insert *insert);
+    bool resolveInsertBlockRecordName(
+        const DRW_Insert& insert, std::string& emittedName) const noexcept;
     bool recordEmittedDxfBlockBody(const std::string& name);
     bool recordEmittedDxfDimStyleName(const std::string& name);
     bool recordSourceLinetypeTarget(std::uint32_t sourceHandle,

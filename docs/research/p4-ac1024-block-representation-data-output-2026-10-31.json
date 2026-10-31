@@ -49,7 +49,7 @@
     },
     "physicalSource": {
       "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/title_block-arch.dwg -y -d -v2010 /private/tmp/title_block_arch-current.dxf",
-      "result": "NOT YET PASSED. The source body and extension graph now pass admission; conversion stops before OBJECTS staging with unresolved-insert-target (INSERT target has no emitted BLOCK_RECORD).",
+      "result": "NOT YET PASSED. The source body and extension graph pass admission, and INSERT targets now resolve through their source BLOCK_RECORD handles. Conversion stops before OBJECTS staging at XRECORD 0x121F because the source payload includes group code 1071, outside the documented normal XRECORD group-code domain.",
       "effect": "No physical staged-byte or whole-graph output qualification is claimed."
     }
   },
@@ -74,7 +74,7 @@
       "Decode the AC1024 BLOCKREPRESENTATIONDATA flag and block-reference fields within the bounded source body, allowing only verified zero alignment padding.",
       "Implement and isolate-test exact ASCII/Binary BLOCKREPRESENTATIONDATA serialization and readback, including refusal, rollback and corrected retry."
     ],
-    "remainingP4Scope": "Resolve the current INSERT-to-BLOCK_RECORD output binding, then prove this source record's staged fields and remapped owner/block roles in the complete AC1024 output. Continue the separate Title_Block-ARCH dictionary 0x1116 graph and SORTENTSTABLE closure; do not relax strict refusal.",
+    "remainingP4Scope": "The INSERT-to-BLOCK_RECORD output binding is implemented and separately receipted. Keep strict refusal for source XRECORD 0x121F group 1071 pending an independently supported representation. Prove this source record's staged fields and remapped owner/block roles only after the physical output reaches staging. Continue the separate Title_Block-ARCH dictionary 0x1116 graph and SORTENTSTABLE closure; do not relax strict refusal.",
     "externalItemsPromoted": 0
   },
   "sourceHashesSha256": {
