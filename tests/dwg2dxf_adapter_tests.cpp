@@ -2,6 +2,7 @@
 #include "intern/dxfreader.h"
 #include "intern/dxfwriter.h"
 #include "intern/dwgbufferw.h"
+#include "intern/dwg_fixed_handles.h"
 #include "libdxfrw.h"
 #include "libdwgr.h"
 #include "xrecord_test_helpers.h"
@@ -53,6 +54,20 @@ public:
 
     static bool materialSourcesUnchanged(const dx_iface& interface_) {
         return interface_.hasUnchangedExtensionMaterialSources();
+    }
+
+    static void seedLayerTableControlSource(dx_data& data,
+            std::uint32_t handle, std::uint32_t xDictHandle) {
+        data.m_dxfLayerControlHandle = handle;
+        data.m_dxfLayerControlXDictHandle = xDictHandle;
+        data.m_dxfLayerControlGeneration = data.importGeneration;
+        data.m_dxfLayerControlSourceSeen = true;
+        data.m_dxfLayerControlCaptureFailed = false;
+    }
+
+    static void setLayerTableControlDictionary(dx_data& data,
+                                                std::uint32_t handle) {
+        data.m_dxfLayerControlXDictHandle = handle;
     }
 };
 
@@ -10203,6 +10218,79 @@ bool dwgBlockRecordControlMembershipCapture() {
     overLimitData.dwgReadOutcome.operationSucceeded = true;
     if (overLimitData.hasCompleteDwgBlockRecordControlMembership())
         return fail("over-limit BLOCK_CONTROL publication was accepted");
+    return true;
+}
+
+bool dwgLayerTableControlDictionaryCapture() {
+    const auto makeCase = [](std::uint32_t dictionaryHandle,
+                             std::uint32_t layerOwner,
+                             std::vector<std::uint32_t> controlHandles,
+                             bool duplicateReceipt,
+                             bool mutateGeneration,
+                             std::uint32_t& actualControl,
+                             std::uint32_t& actualDictionary) {
+        dx_data data;
+        dx_iface iface;
+        iface.cData = &data;
+        data.sourceFormat = dx_source_format::DWG;
+        data.sourceVersion = DRW::AC1024;
+        data.importGeneration = 7u;
+        data.dwgReadOutcome.attempted = true;
+        data.dwgReadOutcome.sourceVersion = DRW::AC1024;
+        DRW_Layer layer;
+        layer.handle = 0x10u;
+        layer.parentHandle = layerOwner;
+        data.layers.push_back(layer);
+
+        DRW_DwgFramePublication control;
+        control.m_version = DRW::AC1024;
+        control.m_handle = DRW::DwgLayerControlHandle;
+        control.m_sourceOffset = 0x80u;
+        control.m_sourceMapOrdinal = 4u;
+        control.m_sourceOffsetSpace =
+            DRW_DwgFrameOffsetSpace::PhysicalFile;
+        control.m_hasSourceLocation = true;
+        control.m_encodedType = DRW::DwgLayerControlObjectType;
+        control.m_resolvedType = DRW::DwgLayerControlObjectType;
+        control.m_recordName = "LAYER_CONTROL";
+        control.m_commonLinkEvidence =
+            DRW_DwgCommonLinkEvidence::NotApplicable;
+        control.m_controlHandles = std::move(controlHandles);
+        control.m_xDictHandle = dictionaryHandle;
+        control.m_xDictFlag = dictionaryHandle == DRW::NoHandle ? 1u : 0u;
+        control.m_carrier = DRW_DwgFramePublication::Carrier::Control;
+        iface.addDwgFramePublication(control);
+        if (duplicateReceipt)
+            iface.addDwgFramePublication(control);
+        if (mutateGeneration)
+            ++data.importGeneration;
+        return data.getLayerTableControlExtensionDictionary(
+            actualControl, actualDictionary);
+    };
+
+    std::uint32_t actualControl = 0u;
+    std::uint32_t actualDictionary = 0u;
+    if (!makeCase(0x2A2u, DRW::DwgLayerControlHandle,
+                  {0x10u}, false, false, actualControl, actualDictionary)
+        || actualControl != DRW::DwgLayerControlHandle
+        || actualDictionary != 0x2A2u)
+        return fail("source-matched LAYER_CONTROL XDictionary was not captured");
+    if (makeCase(0x2A2u, 0x03u, {0x10u}, false, false,
+                 actualControl, actualDictionary))
+        return fail("LAYER row with wrong control owner was accepted");
+    if (makeCase(0x2A2u, DRW::DwgLayerControlHandle,
+                 {0x11u}, false, false, actualControl, actualDictionary))
+        return fail("LAYER_CONTROL membership with a missing layer was accepted");
+    if (makeCase(0x2A2u, DRW::DwgLayerControlHandle,
+                 {0x10u}, true, false, actualControl, actualDictionary))
+        return fail("duplicate LAYER_CONTROL receipt was accepted");
+    if (makeCase(0x2A2u, DRW::DwgLayerControlHandle,
+                 {0x10u}, false, true, actualControl, actualDictionary))
+        return fail("stale LAYER_CONTROL receipt generation was accepted");
+    if (makeCase(DRW::DwgLayerControlHandle,
+                 DRW::DwgLayerControlHandle, {0x10u}, false, false,
+                 actualControl, actualDictionary))
+        return fail("LAYER_CONTROL XDictionary aliasing its owner was accepted");
     return true;
 }
 
@@ -41212,6 +41300,151 @@ bool extensionDictionaryOwnerGraphs() {
     return true;
 }
 
+bool layerTableControlDictionaryOwnerOutput() {
+    const auto nonce = std::chrono::steady_clock::now()
+        .time_since_epoch().count();
+    const auto directory = std::filesystem::temp_directory_path()
+        / ("libdxfrw-layer-table-control-owner-"
+           + std::to_string(nonce));
+    if (!std::filesystem::create_directory(directory))
+        return fail("could not create isolated Layer TABLE control directory");
+    struct Cleanup {
+        std::filesystem::path directory;
+        ~Cleanup() {
+            std::error_code error;
+            std::filesystem::remove_all(directory, error);
+        }
+    } cleanup{directory};
+
+    const auto contents = [](const std::filesystem::path& path) {
+        std::ifstream input(path, std::ios::binary);
+        return std::string(std::istreambuf_iterator<char>(input), {});
+    };
+    const auto populate = [](dx_data& data, dx_iface& writer) {
+        data.sourceFormat = dx_source_format::DXF;
+        data.sourceVersion = DRW::AC1027;
+        data.importGeneration = 1u;
+        DRW_Layer layer;
+        layer.handle = 0x10u;
+        layer.parentHandle = 2u;
+        layer.name = "0";
+        data.layers.push_back(layer);
+
+        DRW_Dictionary layerControlDictionary;
+        layerControlDictionary.handle = 0x2A2u;
+        layerControlDictionary.parentHandle = 2u;
+        layerControlDictionary.cloning = 1u;
+        layerControlDictionary.hardOwner = 1u;
+        layerControlDictionary.m_entries.push_back(
+            {"ACAD_LAYERSTATES", 0x2A3u});
+        data.dictionaries.push_back(layerControlDictionary);
+        DRW_Dictionary layerStates;
+        layerStates.handle = 0x2A3u;
+        layerStates.parentHandle = 0x2A2u;
+        layerStates.cloning = 1u;
+        layerStates.hardOwner = 1u;
+        data.dictionaries.push_back(layerStates);
+        DxIfaceExtensionGraphTestAccess::seedLayerTableControlSource(
+            data, 2u, 0x2A2u);
+        writer.cData = &data;
+        writer.currentBlock = data.mBlock;
+    };
+
+    class LateControlMutation final : public dx_iface {
+    public:
+        bool mutate{false};
+        void writeObjects() override {
+            dx_iface::writeObjects();
+            if (mutate && cData != nullptr)
+                DxIfaceExtensionGraphTestAccess::setLayerTableControlDictionary(
+                    *cData, 0u);
+        }
+    };
+
+    for (const bool binary : {false, true}) {
+        const auto output = directory
+            / (binary ? "layer-control-binary.dxf"
+                      : "layer-control-ascii.dxf");
+        dx_data source;
+        dx_iface writer;
+        populate(source, writer);
+        const std::string sentinel = "Layer TABLE owner sentinel\n";
+        { std::ofstream file(output, std::ios::binary | std::ios::trunc);
+          file << sentinel; }
+        source.dictionaries.front().parentHandle = 0x2A1u;
+        if (writer.fileExport(output.string(), DRW::AC1027, binary,
+                              &source, false)
+            || contents(output) != sentinel)
+            return fail("wrong Layer TABLE control dictionary owner was accepted or published");
+        source.dictionaries.front().parentHandle = 2u;
+        if (!writer.fileExport(output.string(), DRW::AC1027, binary,
+                               &source, false))
+            return fail("corrected Layer TABLE control owner could not retry");
+
+        if (!binary) {
+            const std::string wire = contents(output);
+            const std::size_t layerTable = wire.find("2\nLAYER\n");
+            if (layerTable == std::string::npos
+                || wire.find("102\n{ACAD_XDICTIONARY\n360\n",
+                             layerTable) == std::string::npos)
+                return fail("ASCII LAYER TABLE header omitted its XDICTIONARY hard-owner field");
+        }
+
+        dx_iface reader;
+        dx_data readback;
+        if (!reader.fileImport(output.string(), &readback, false))
+            return fail("Layer TABLE control dictionary output did not re-import");
+        std::uint32_t controlHandle = 0u;
+        std::uint32_t dictionaryHandle = 0u;
+        if (!readback.getLayerTableControlExtensionDictionary(
+                controlHandle, dictionaryHandle)
+            || controlHandle != 2u || dictionaryHandle == 0u
+            || dictionaryHandle == DRW::NoHandle)
+            return fail("LAYER TABLE header extension-dictionary identity was not captured on readback");
+        const auto dictionary = std::find_if(readback.dictionaries.begin(),
+            readback.dictionaries.end(), [dictionaryHandle](
+                const DRW_Dictionary& item) {
+                    return item.handle == dictionaryHandle;
+                });
+        if (dictionary == readback.dictionaries.end()
+            || dictionary->parentHandle != controlHandle
+            || dictionary->m_entries.size() != 1u
+            || dictionary->m_entries.front().m_name != "ACAD_LAYERSTATES")
+            return fail("Layer TABLE control dictionary owner or entry changed on readback");
+        const std::uint32_t childHandle = dictionary->m_entries.front().m_handle;
+        const auto child = std::find_if(readback.dictionaries.begin(),
+            readback.dictionaries.end(), [childHandle](
+                const DRW_Dictionary& item) {
+                    return item.handle == childHandle;
+                });
+        if (child == readback.dictionaries.end()
+            || child->parentHandle != dictionaryHandle
+            || !child->m_entries.empty())
+            return fail("ACAD_LAYERSTATES child dictionary did not close on readback");
+
+        LateControlMutation lateWriter;
+        dx_data lateSource;
+        populate(lateSource, lateWriter);
+        const auto lateOutput = directory
+            / (binary ? "late-layer-control-binary.dxf"
+                      : "late-layer-control-ascii.dxf");
+        { std::ofstream file(lateOutput, std::ios::binary | std::ios::trunc);
+          file << sentinel; }
+        lateWriter.mutate = true;
+        if (lateWriter.fileExport(lateOutput.string(), DRW::AC1027, binary,
+                                  &lateSource, false)
+            || contents(lateOutput) != sentinel)
+            return fail("late Layer TABLE control mutation did not roll back output");
+        DxIfaceExtensionGraphTestAccess::setLayerTableControlDictionary(
+            lateSource, 0x2A2u);
+        lateWriter.mutate = false;
+        if (!lateWriter.fileExport(lateOutput.string(), DRW::AC1027, binary,
+                                   &lateSource, false))
+            return fail("restored Layer TABLE control owner could not retry");
+    }
+    return true;
+}
+
 bool generateExtensionCycle(const std::string& path, bool binary) {
     // From-scratch invalid ownership control for the real CLI's publication
     // boundary. No large/deep graph or stack-exhaustion experiment is needed.
@@ -42115,7 +42348,9 @@ int main(int argc, char** argv) {
         return extensionGraphLimits() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--extension-dictionary-owner-graphs")
-        return extensionDictionaryOwnerGraphs() ? 0 : 1;
+        return extensionDictionaryOwnerGraphs()
+                && layerTableControlDictionaryOwnerOutput()
+            ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--reject-dynamic-block")
         return rejectDynamicBlockWithoutSerializer() ? 0 : 1;
     if (argc == 2
@@ -42141,6 +42376,10 @@ int main(int argc, char** argv) {
         && std::string(argv[1])
             == "--dwg-block-record-control-membership")
         return dwgBlockRecordControlMembershipCapture() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dwg-layer-table-control-dictionary")
+        return dwgLayerTableControlDictionaryCapture() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--xrecord-group-reference-admission")
         return xrecordGroupReferenceAdmission() ? 0 : 1;

@@ -1976,6 +1976,15 @@ set_tests_properties(dwg2dxf_dwg_block_record_control_membership PROPERTIES
     LABELS "fast;dwg;adapter;tables;ownership;generated"
     TIMEOUT 15
 )
+add_test(
+    NAME dwg2dxf_dwg_layer_table_control_dictionary
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --dwg-layer-table-control-dictionary
+)
+set_tests_properties(dwg2dxf_dwg_layer_table_control_dictionary PROPERTIES
+    LABELS "fast;dwg;adapter;tables;ownership;generated"
+    TIMEOUT 15
+)
 add_test(NAME dwg2dxf_standard_dwg_object_payload_correlation
     COMMAND libdxfrw_dwg2dxf_adapter_tests --standard-dwg-object-payload-correlation)
 set_tests_properties(dwg2dxf_standard_dwg_object_payload_correlation PROPERTIES

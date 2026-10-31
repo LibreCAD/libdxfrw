@@ -14412,10 +14412,42 @@ bool dxfRW::writeTables() {
     if (!writeEndTable())
         return false;
 /*** LAYER ***/
+    std::uint32_t sourceLayerControlHandle = 0u;
+    std::uint32_t sourceLayerControlDictionary = 0u;
+    auto* layerControlHandler =
+        dynamic_cast<DRW_DxfLayerTableControlHandler*>(iface);
+    const bool writeLayerControlExtension = layerControlHandler != nullptr
+        && layerControlHandler->wantsDxfLayerTableControl();
+    if (writeLayerControlExtension) {
+        if (!layerControlHandler->getDxfLayerTableControl(
+                sourceLayerControlHandle, sourceLayerControlDictionary)
+            || sourceLayerControlHandle == 0u
+            || sourceLayerControlHandle == DRW::NoHandle
+            || sourceLayerControlDictionary == 0u
+            || sourceLayerControlDictionary == DRW::NoHandle
+            || version <= DRW::AC1009
+            || !bindSourceEntityHandle(sourceLayerControlHandle, 2u)) {
+            m_writeError = true;
+            return false;
+        }
+    }
     writer->writeString(0, "TABLE");
     writer->writeString(2, "LAYER");
     if (version > DRW::AC1009) {
         writer->writeString(5, "2");
+        if (writeLayerControlExtension) {
+            const std::uint32_t emittedDictionary = m_referenceResolver
+                ? resolveReference(sourceLayerControlDictionary)
+                : remapObjectHandle(sourceLayerControlDictionary);
+            if (emittedDictionary == 0u
+                || emittedDictionary == DRW::NoHandle) {
+                m_writeError = true;
+                return false;
+            }
+            writer->writeString(102, "{ACAD_XDICTIONARY");
+            writer->writeString(360, toHexStr(emittedDictionary));
+            writer->writeString(102, "}");
+        }
         if (version > DRW::AC1014) {
             writer->writeString(330, "0");
         }
@@ -16277,7 +16309,10 @@ namespace {
 class DxfTableControlIdentity {
     dxfReader& input;
     std::size_t depth{0};
+    std::size_t xDictionaryDepth{0};
+    std::uint32_t handle{0},xDictionaryHandleValue{0};
     bool header{true},ambiguous{false},xdata{false};
+    bool handleSeen{false},xDictionaryHandleSeen{false};
 public:
     explicit DxfTableControlIdentity(dxfReader& reader):input(reader) {}
     bool observe(int code) {
@@ -16285,17 +16320,58 @@ public:
         if(code==0){header=false;return true;}
         if(code==102) {
             const auto value=input.getStringView();
-            if(value=="}") {if(depth)--depth;else ambiguous=true;}
+            if(value=="}") {
+                if(depth) {
+                    if(depth==xDictionaryDepth)xDictionaryDepth=0;
+                    --depth;
+                } else ambiguous=true;
+            }
             else if(value.size()>1u&&value.front()=='{') {
                 if(depth==DRW::kMaxDxfApplicationGroupNesting)ambiguous=true;
-                else ++depth;
+                else {
+                    ++depth;
+                    if(depth==1u
+                       && dxfKeywordEquals(value,
+                                           "{ACAD_XDICTIONARY"))
+                        xDictionaryDepth=depth;
+                }
             } else ambiguous=true;
             return true;
         }
-        if(depth||ambiguous)return true;
+        if(ambiguous)return true;
+        if(code==360&&depth==1u&&xDictionaryDepth==1u) {
+            std::uint64_t parsed=0u;
+            if(xDictionaryHandleSeen
+               ||!parseRawDxfHandleLexeme(input.getStringView(),parsed)
+               ||parsed==0u||parsed>UINT32_MAX
+               ||parsed==DRW::NoHandle) {
+                ambiguous=true;
+                return true;
+            }
+            xDictionaryHandleValue=static_cast<std::uint32_t>(parsed);
+            xDictionaryHandleSeen=true;
+            return true;
+        }
+        if(depth)return true;
         if(code==1001){xdata=true;return true;}
-        if(!xdata&&code==5&&input.isValidHandleLexeme())return input.registerSelfHandle();
+        if(!xdata&&code==5) {
+            std::uint64_t parsed=0u;
+            if(handleSeen||!input.isValidHandleLexeme()
+               ||!parseRawDxfHandleLexeme(input.getStringView(),parsed)
+               ||parsed>UINT32_MAX||parsed==DRW::NoHandle) {
+                ambiguous=true;
+                return true;
+            }
+            if(!input.registerSelfHandle())return false;
+            handle=static_cast<std::uint32_t>(parsed);
+            handleSeen=true;
+        }
         return true;
+    }
+    bool usable() const noexcept { return !ambiguous; }
+    std::uint32_t tableHandle() const noexcept { return handle; }
+    std::uint32_t xDictionaryHandle() const noexcept {
+        return xDictionaryHandleValue;
     }
 };
 }
@@ -16814,6 +16890,8 @@ bool dxfRW::processLayer() {
     std::vector<DRW_Layer> pendingLayers;
     auto* sourceHandler=dynamic_cast<DRW_DxfNamespaceSourceHandler*>(iface);
     const bool captureSource=sourceHandler&&sourceHandler->wantsDxfNamespaceSource();
+    auto* layerControlHandler =
+        dynamic_cast<DRW_DxfLayerTableControlHandler*>(iface);
     DRW_RawDxfObject raw;std::vector<DRW_RawDxfObject> pendingSources;std::vector<DxfSymbolOriginalState> pendingSourceStates;
     DxfReadRetainedReservation sourceStateReservation(reader->retainedByteBudget(),0u);
     std::set<std::uint32_t> seenHandles;
@@ -16854,6 +16932,16 @@ bool dxfRW::processLayer() {
                 layer.reset();
                 if(captureSource){raw=DRW_RawDxfObject{};if(!copyRawDxfCarrierName(raw,std::string(sectionstr)))return setError(DRW::BAD_CODE_PARSED);}
             } else if (dxfKeywordEquals(sectionstr, "ENDTAB")) {
+                if (layerControlHandler
+                    && layerControlHandler->wantsDxfLayerTableControl()) {
+                    if (tableControl.usable())
+                        layerControlHandler->addDxfLayerTableControl(
+                            tableControl.tableHandle(),
+                            tableControl.xDictionaryHandle());
+                    else
+                        layerControlHandler->addDxfLayerTableControl(
+                            DRW::NoHandle, DRW::NoHandle);
+                }
                 if(captureSource) {
                     if(pendingSources.size()!=pendingLayers.size()||pendingSourceStates.size()!=pendingLayers.size())return setError(DRW::BAD_CODE_PARSED);
                     for(const auto& source:pendingSources)if(!validateCapturedRawDxfObject(source,binFile,reader->classifierProfile()))return setError(DRW::BAD_CODE_PARSED);

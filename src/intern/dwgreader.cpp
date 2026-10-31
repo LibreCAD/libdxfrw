@@ -7752,6 +7752,8 @@ bool dwgReader::readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
       publication.m_resolvedType = descriptor.controlType;
       publication.m_isEntity = false;
       publication.m_recordName = descriptor.controlReceiptName;
+      publication.m_xDictHandle = control.xDictHandle;
+      publication.m_xDictFlag = control.extensionDictionaryFlag();
       publication.setCommonLinkEvidence(
           DRW_DwgCommonLinkEvidence::NotApplicable);
       publication.m_controlHandles.assign(control.handlesList.cbegin(),

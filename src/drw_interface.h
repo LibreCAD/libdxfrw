@@ -769,6 +769,29 @@ public:
   virtual void addDxfNamespaceSource(const DRW_TableEntry&,const DRW_RawDxfObject&) {}
 };
 
+/** Optional source/output route for the LAYER symbol TABLE control header.
+ * Kept separate from DRW_Interface so existing consumer vtables do not change.
+ * The source carries the TABLE header's handle and optional extension-dictionary
+ * target; output consumers must resolve that target through their admitted
+ * object graph before returning it to the writer. */
+class DRW_DxfLayerTableControlHandler {
+public:
+  virtual ~DRW_DxfLayerTableControlHandler() = default;
+  virtual bool wantsDxfLayerTableControl() const { return false; }
+  virtual bool addDxfLayerTableControl(std::uint32_t handle,
+                                       std::uint32_t xDictHandle) {
+    (void)handle;
+    (void)xDictHandle;
+    return true;
+  }
+  virtual bool getDxfLayerTableControl(std::uint32_t& handle,
+                                       std::uint32_t& xDictHandle) const {
+    handle = 0u;
+    xDictHandle = 0u;
+    return false;
+  }
+};
+
 /** Separate explicit VIEW/UCS source opt-in. Source/typed pairs are published
  * only after valid ENDTAB. Existing DRW_Interface and symbol/resource facets
  * retain their callback and kind contracts. Transport is not semantic proof. */

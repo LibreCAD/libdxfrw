@@ -46,6 +46,7 @@ class dx_iface : public DRW_Interface, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DxfEntitiesDeliveryHandler, public DRW_DxfLayoutSourceHandler,
                  public DRW_DxfIdentitySourceHandler, public DRW_DxfDictionarySourceHandler,
                  public DRW_DxfResourceSourceHandler, public DRW_DxfNamespaceSourceHandler,
+                 public DRW_DxfLayerTableControlHandler,
                  public DRW_DxfViewUcsSourceHandler, public WholeSourceV2::Handler {
 public:
     // Internal-only groundwork; opting in captures decoded physical scalars,
@@ -108,6 +109,11 @@ public:
     bool wantsDxfResourceSource() const override;
     bool wantsDxfNamespaceSource() const override;
     void addDxfNamespaceSource(const DRW_TableEntry&,const DRW_RawDxfObject&) override;
+    bool wantsDxfLayerTableControl() const override;
+    bool addDxfLayerTableControl(std::uint32_t handle,
+                                 std::uint32_t xDictHandle) override;
+    bool getDxfLayerTableControl(std::uint32_t& handle,
+                                 std::uint32_t& xDictHandle) const override;
     enum class ResourceOriginState {NotCaptured,Reading,ImportFailed,ContextMismatch,CaptureFailed,SourceNotReady,NoOrigins,OriginsBound,Unqualified};
     struct ResourceOriginReport {
         ResourceOriginState state{ResourceOriginState::NotCaptured};
@@ -2773,7 +2779,9 @@ private:
     bool finalizeDxfAssociativeValueOutput() const noexcept;
 
     struct ExtensionDictionaryOwnerSource {
-        enum class Kind : std::uint8_t { Entity, Layer, Layout };
+        enum class Kind : std::uint8_t {
+            Entity, Layer, Layout, LayerTableControl
+        };
         Kind kind{Kind::Entity};
         std::uint32_t handle{0u};
         std::uint32_t parentHandle{0u};

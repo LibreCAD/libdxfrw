@@ -1187,6 +1187,12 @@ public:
     // Confirms the current source-matched BLOCK_CONTROL handle list is an
     // exact, duplicate-free membership of the retained BLOCK_RECORD table.
     bool hasCompleteDwgBlockRecordControlMembership() const noexcept;
+    // Returns the current Layer TABLE control identity and extension-dictionary
+    // handle only when the imported control/header is uniquely tied to every
+    // retained LAYER row.
+    bool getLayerTableControlExtensionDictionary(
+        std::uint32_t& controlHandle,
+        std::uint32_t& dictionaryHandle) const noexcept;
     // Read-only current-import source lease; null means no report, never an
     // empty/qualified CLASSES section. Mutable public class rows are separate.
     const DRW_DwgClassSourceReport* dwgClassSource() const noexcept {
@@ -2192,7 +2198,17 @@ private:
     std::uint64_t m_dwgBlockControlGeneration{0u};
     bool m_dwgBlockControlPublicationSeen{false};
     bool m_dwgBlockControlCaptureFailed{false};
+    DRW_DwgFramePublication m_dwgLayerControlPublication;
+    std::uint64_t m_dwgLayerControlGeneration{0u};
+    bool m_dwgLayerControlPublicationSeen{false};
+    bool m_dwgLayerControlCaptureFailed{false};
+    std::uint32_t m_dxfLayerControlHandle{0u};
+    std::uint32_t m_dxfLayerControlXDictHandle{0u};
+    std::uint64_t m_dxfLayerControlGeneration{0u};
+    bool m_dxfLayerControlSourceSeen{false};
+    bool m_dxfLayerControlCaptureFailed{false};
     friend class DxIfaceStandardDwgCaptureTestAccess;
+    friend class DxIfaceExtensionGraphTestAccess;
     // Immutable-by-API snapshots used to admit exact same-version DXF replay
     // of CELLSTYLEMAP. They are adapter provenance, not consumer-editable
     // drawing state. Snapshot storage shares the family resource ceilings

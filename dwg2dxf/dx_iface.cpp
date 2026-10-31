@@ -54,6 +54,7 @@
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
 #include "intern/dwgreader.h"
+#include "intern/dwg_fixed_handles.h"
 #include "intern/dxftablecontent.h"
 #include "intern/dxffield.h"
 #include "intern/dxfblockrecord.h"
@@ -6825,6 +6826,21 @@ bool dx_iface::hasUnchangedExtensionDictionaryOwnerSources() const noexcept {
                 owner.xDictHandle});
             return true;
         };
+        std::uint32_t layerControlHandle = 0u;
+        std::uint32_t layerControlDictionary = 0u;
+        if (!data->getLayerTableControlExtensionDictionary(
+                layerControlHandle, layerControlDictionary))
+            return false;
+        if (layerControlDictionary != 0u) {
+            struct LayerControlOwner {
+                std::uint32_t handle;
+                std::uint32_t parentHandle;
+                std::uint32_t xDictHandle;
+            } owner{layerControlHandle, 0u, layerControlDictionary};
+            if (!append(ExtensionDictionaryOwnerSource::Kind::LayerTableControl,
+                        owner))
+                return false;
+        }
         for (const DRW_Layer& layer : data->layers) {
             if (!append(ExtensionDictionaryOwnerSource::Kind::Layer, layer))
                 return false;
@@ -10304,6 +10320,23 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 owner.parentHandle, owner.xDictHandle});
             return visit(owner.xDictHandle, true);
         };
+        std::uint32_t layerControlHandle = 0u;
+        std::uint32_t layerControlDictionary = 0u;
+        if (!data->getLayerTableControlExtensionDictionary(
+                layerControlHandle, layerControlDictionary))
+            return reject(ExtensionGraphFailure::InvalidGraph,
+                "Layer TABLE control identity or LAYER membership is incomplete");
+        if (layerControlDictionary != 0u) {
+            struct LayerControlOwner {
+                std::uint32_t handle;
+                std::uint32_t parentHandle;
+                std::uint32_t xDictHandle;
+            } owner{layerControlHandle, 0u, layerControlDictionary};
+            if (!visitOwnerExtension(
+                    ExtensionDictionaryOwnerSource::Kind::LayerTableControl,
+                    owner))
+                return false;
+        }
         for (const DRW_Layer& layer : data->layers) {
             if (!visitOwnerExtension(
                     ExtensionDictionaryOwnerSource::Kind::Layer, layer))
@@ -18464,6 +18497,61 @@ void dx_iface::addDwgFramePublication(const DRW_DwgFramePublication& data) {
             cData->m_dwgBlockControlPublication = data;
             cData->m_dwgBlockControlGeneration = cData->importGeneration;
             cData->m_dwgBlockControlPublicationSeen = true;
+        } catch (...) {
+            reject();
+        }
+        return;
+    }
+    const bool layerControlCandidate =
+        data.m_recordName == "LAYER_CONTROL"
+        || data.m_encodedType == DRW::DwgLayerControlObjectType
+        || data.m_resolvedType == DRW::DwgLayerControlObjectType;
+    if (layerControlCandidate) {
+        const auto reject = [this]() {
+            cData->m_dwgLayerControlCaptureFailed = true;
+        };
+        std::size_t estimate = sizeof(DRW_DwgFramePublication);
+        if (data.m_carrier != DRW_DwgFramePublication::Carrier::Control
+            || cData->sourceFormat != dx_source_format::DWG
+            || data.m_version < DRW::AC1012 || data.m_version > DRW::AC1032
+            || data.m_handle != DRW::DwgLayerControlHandle
+            || !data.m_hasSourceLocation
+            || (data.m_sourceOffsetSpace
+                    != DRW_DwgFrameOffsetSpace::PhysicalFile
+                && data.m_sourceOffsetSpace
+                    != DRW_DwgFrameOffsetSpace::DecodedBuffer)
+            || data.m_encodedType != DRW::DwgLayerControlObjectType
+            || data.m_resolvedType != DRW::DwgLayerControlObjectType
+            || data.m_isEntity || data.m_isCustomClass
+            || data.m_classStreamOrdinal.has_value()
+            || data.m_recordName != "LAYER_CONTROL"
+            || !data.m_className.empty()
+            || data.m_commonLinkEvidence
+                != DRW_DwgCommonLinkEvidence::NotApplicable
+            || data.m_controlHandles.size()
+                > kMaxAdapterBasicTableRecords
+            || data.m_xDictFlag > 1u
+            || cData->m_dwgLayerControlPublicationSeen
+            || cData->m_dwgLayerControlCaptureFailed
+            || !addVectorPayloadBytes(data.m_controlHandles, estimate)
+            || !addStringPayloadBytes(data.m_recordName, estimate)
+            || estimate > kMaxDwgBlockControlPublicationBytes) {
+            reject();
+            return;
+        }
+        try {
+            std::unordered_set<std::uint32_t> uniqueHandles;
+            uniqueHandles.reserve(data.m_controlHandles.size());
+            for (std::uint32_t handle : data.m_controlHandles) {
+                if (handle == 0u || handle == DRW::NoHandle
+                    || !uniqueHandles.insert(handle).second) {
+                    reject();
+                    return;
+                }
+            }
+            cData->m_dwgLayerControlPublication = data;
+            cData->m_dwgLayerControlGeneration = cData->importGeneration;
+            cData->m_dwgLayerControlPublicationSeen = true;
         } catch (...) {
             reject();
         }
@@ -33542,6 +33630,61 @@ void dx_iface::addDxfNamespaceSource(const DRW_TableEntry& row,const DRW_RawDxfO
     retainTableResourceSource(raw,&row);observeResourceOrigin(&row,&raw);
 }
 
+bool dx_iface::addDxfLayerTableControl(std::uint32_t handle,
+                                       std::uint32_t xDictHandle) {
+    if (cData == nullptr || cData->sourceFormat != dx_source_format::DXF
+        || cData->importGeneration == 0u || handle == DRW::NoHandle
+        || xDictHandle == DRW::NoHandle
+        || (handle == 0u && xDictHandle != 0u)
+        || cData->m_dxfLayerControlSourceSeen
+        || cData->m_dxfLayerControlCaptureFailed) {
+        if (cData != nullptr)
+            cData->m_dxfLayerControlCaptureFailed = true;
+        return false;
+    }
+    cData->m_dxfLayerControlHandle = handle;
+    cData->m_dxfLayerControlXDictHandle = xDictHandle;
+    cData->m_dxfLayerControlGeneration = cData->importGeneration;
+    cData->m_dxfLayerControlSourceSeen = true;
+    return true;
+}
+
+bool dx_iface::wantsDxfLayerTableControl() const {
+    if (cData == nullptr)
+        return false;
+    if (cData->sourceFormat == dx_source_format::DWG)
+        return cData->m_dwgLayerControlCaptureFailed
+            || (cData->m_dwgLayerControlPublicationSeen
+                && cData->m_dwgLayerControlPublication.m_xDictHandle != 0u
+                && cData->m_dwgLayerControlPublication.m_xDictHandle
+                    != DRW::NoHandle);
+    if (cData->sourceFormat == dx_source_format::DXF) {
+        const bool importing = cData->dxfReadOutcome.attempted
+            && !cData->dxfReadOutcome.operationSucceeded
+            && !cData->m_dxfLayerControlSourceSeen;
+        return importing || cData->m_dxfLayerControlCaptureFailed
+            || (cData->m_dxfLayerControlSourceSeen
+                && cData->m_dxfLayerControlXDictHandle != 0u);
+    }
+    return false;
+}
+
+bool dx_iface::getDxfLayerTableControl(std::uint32_t& handle,
+                                       std::uint32_t& xDictHandle) const {
+    handle = 0u;
+    xDictHandle = 0u;
+    if (cData == nullptr
+        || !cData->getLayerTableControlExtensionDictionary(handle,
+                                                            xDictHandle)
+        || xDictHandle == 0u
+        || std::find(m_extensionDictionaryHandles.begin(),
+                     m_extensionDictionaryHandles.end(), xDictHandle)
+            == m_extensionDictionaryHandles.end()
+        || !hasUnchangedExtensionDictionaryOwnerSources())
+        return false;
+    return true;
+}
+
 void dx_iface::retainTableResourceSource(const DRW_RawDxfObject& raw,const DRW_TableEntry* symbol) noexcept {
     const bool style=asciiIdentifierEquals(raw.name,"TABLESTYLE");
     const bool field=asciiIdentifierEquals(raw.name,"FIELD")||asciiIdentifierEquals(raw.name,"ACDBFIELD")||asciiIdentifierEquals(raw.name,"ACAD_FIELD");
@@ -39887,6 +40030,115 @@ bool dx_data::hasCompleteDwgBlockRecordControlMembership() const noexcept {
     }
 }
 
+bool dx_data::getLayerTableControlExtensionDictionary(
+        std::uint32_t& controlHandle,
+        std::uint32_t& dictionaryHandle) const noexcept {
+    controlHandle = 0u;
+    dictionaryHandle = 0u;
+    if (sourceFormat == dx_source_format::DWG) {
+        if (m_dwgLayerControlCaptureFailed)
+            return false;
+        if (!m_dwgLayerControlPublicationSeen)
+            return true;
+
+        const DRW_DwgFramePublication& control =
+            m_dwgLayerControlPublication;
+        if (importGeneration == 0u || !dwgReadOutcome.attempted
+            || sourceVersion == DRW::UNKNOWNV
+            || sourceVersion != dwgReadOutcome.sourceVersion
+            || m_dwgLayerControlGeneration != importGeneration
+            || basicTableCaptureFailed
+            || control.m_handle != DRW::DwgLayerControlHandle
+            || control.m_version != dwgReadOutcome.sourceVersion
+            || control.m_encodedType != DRW::DwgLayerControlObjectType
+            || control.m_resolvedType != DRW::DwgLayerControlObjectType
+            || control.m_recordName != "LAYER_CONTROL"
+            || control.m_carrier != DRW_DwgFramePublication::Carrier::Control
+            || control.m_isEntity || control.m_isCustomClass
+            || control.m_classStreamOrdinal.has_value()
+            || !control.m_className.empty()
+            || control.m_commonLinkEvidence
+                != DRW_DwgCommonLinkEvidence::NotApplicable
+            || !control.m_hasSourceLocation
+            || (control.m_sourceOffsetSpace
+                    != DRW_DwgFrameOffsetSpace::PhysicalFile
+                && control.m_sourceOffsetSpace
+                    != DRW_DwgFrameOffsetSpace::DecodedBuffer)
+            || control.m_xDictFlag > 1u
+            || control.m_controlHandles.size()
+                > kMaxAdapterBasicTableRecords
+            || layers.size() != control.m_controlHandles.size()
+            || layers.size() > kMaxAdapterBasicTableRecords)
+            return false;
+
+        try {
+            std::unordered_set<std::uint32_t> declaredHandles;
+            declaredHandles.reserve(control.m_controlHandles.size());
+            for (std::uint32_t handle : control.m_controlHandles) {
+                if (handle == 0u || handle == DRW::NoHandle
+                    || !declaredHandles.insert(handle).second)
+                    return false;
+            }
+            for (const DRW_Layer& layer : layers) {
+                if (layer.handle == 0u || layer.handle == DRW::NoHandle
+                    || layer.parentHandle != control.m_handle
+                    || declaredHandles.erase(layer.handle) != 1u)
+                    return false;
+            }
+            if (!declaredHandles.empty())
+                return false;
+        } catch (...) {
+            return false;
+        }
+        controlHandle = control.m_handle;
+        dictionaryHandle = control.m_xDictHandle == DRW::NoHandle
+            ? 0u : control.m_xDictHandle;
+        if (dictionaryHandle == controlHandle)
+            return false;
+        return true;
+    }
+
+    if (sourceFormat == dx_source_format::DXF) {
+        if (m_dxfLayerControlCaptureFailed)
+            return false;
+        if (!m_dxfLayerControlSourceSeen) {
+            // Hand-authored adapter data has no parser capture. A completed
+            // real DXF import must have delivered its LAYER TABLE header.
+            return !dxfReadOutcome.attempted;
+        }
+        if (importGeneration == 0u
+            || m_dxfLayerControlGeneration != importGeneration
+            || (dxfReadOutcome.attempted
+                && (!dxfReadOutcome.operationSucceeded
+                    || dxfReadOutcome.sourceVersion == DRW::UNKNOWNV)))
+            return false;
+        controlHandle = m_dxfLayerControlHandle;
+        dictionaryHandle = m_dxfLayerControlXDictHandle;
+        if (dictionaryHandle == DRW::NoHandle
+            || (dictionaryHandle != 0u && controlHandle == 0u)
+            || controlHandle == DRW::NoHandle)
+            return false;
+        if (dictionaryHandle == 0u)
+            return true;
+        if (layers.size() > kMaxAdapterBasicTableRecords)
+            return false;
+        try {
+            std::unordered_set<std::uint32_t> seen;
+            seen.reserve(layers.size());
+            for (const DRW_Layer& layer : layers) {
+                if (layer.handle == 0u || layer.handle == DRW::NoHandle
+                    || layer.parentHandle != controlHandle
+                    || !seen.insert(layer.handle).second)
+                    return false;
+            }
+        } catch (...) {
+            return false;
+        }
+        return true;
+    }
+    return true;
+}
+
 bool dx_data::hasUnchangedAcdsRawDxfSections() const noexcept {
     if (m_acdsRawDxfSectionCaptureFailed)
         return false;
@@ -43067,6 +43319,15 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
     fData->m_dwgBlockControlGeneration = 0u;
     fData->m_dwgBlockControlPublicationSeen = false;
     fData->m_dwgBlockControlCaptureFailed = false;
+    fData->m_dwgLayerControlPublication = {};
+    fData->m_dwgLayerControlGeneration = 0u;
+    fData->m_dwgLayerControlPublicationSeen = false;
+    fData->m_dwgLayerControlCaptureFailed = false;
+    fData->m_dxfLayerControlHandle = 0u;
+    fData->m_dxfLayerControlXDictHandle = 0u;
+    fData->m_dxfLayerControlGeneration = 0u;
+    fData->m_dxfLayerControlSourceSeen = false;
+    fData->m_dxfLayerControlCaptureFailed = false;
     fData->sourceFormat = dx_source_format::Unknown;
     fData->sourceVersion = DRW::UNKNOWNV;
     unsigned int found = fileI.find_last_of(".");
