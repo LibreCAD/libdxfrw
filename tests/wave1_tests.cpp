@@ -2988,6 +2988,7 @@ void testAssociativeVariableWriter(TestContext& t) {
         variable.m_maxDependencyIndex = 0;
         variable.m_associativeVariableFieldsParsed = true;
         variable.m_associativeVariableWireComplete = true;
+        variable.m_variableOwnedDependenciesParsed = true;
         variable.m_variableClassVersion = 2;
         variable.m_variableName = "BOLTHOLE";
         variable.m_variableExpression = "1";

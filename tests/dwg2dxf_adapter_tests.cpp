@@ -28282,6 +28282,7 @@ bool associativeSourceHandleReservation() {
             variable.m_owningNetworkHandle = network.handle;
             variable.m_associativeVariableFieldsParsed = true;
             variable.m_associativeVariableWireComplete = true;
+            variable.m_variableOwnedDependenciesParsed = true;
             variable.m_variableClassVersion = 2;
             variable.m_variableName = "RESERVED_SOURCE_ID";
             variable.m_variableExpression = "1";
@@ -28420,6 +28421,10 @@ bool associativeDwgRootNetworkValueDependencyExport() {
         variable.m_owningNetworkHandle = network.handle;
         variable.m_associativeVariableFieldsParsed = true;
         variable.m_associativeVariableWireComplete = true;
+        variable.m_variableOwnedDependenciesParsed = true;
+        variable.m_variableOwnedDependencies.push_back({true, 0x905u});
+        variable.m_variableSuffixMarkerPresent = true;
+        variable.m_variableSuffixMarker = 0;
         variable.m_variableClassVersion = 2;
         variable.m_variableName = "AUTHORED_VALUE";
         variable.m_variableExpression = "17";
@@ -28442,7 +28447,7 @@ bool associativeDwgRootNetworkValueDependencyExport() {
             DRW_AssociativePrefixStatus::Kind::AcDbAssocVariable,
             0u, 0u, 2u,
             DRW_AssociativePrefixStatus::ParseStatus::Complete,
-            0u, 10u, 0, "authored fully consumed variable profile"});
+            1u, 10u, 1, "authored variable with one owned child"});
 
         DRW_AssociativeObject targetVariable("ACDBASSOCVARIABLE");
         targetVariable.handle = 0x904u;
@@ -28452,6 +28457,7 @@ bool associativeDwgRootNetworkValueDependencyExport() {
         targetVariable.m_owningNetworkHandle = network.handle;
         targetVariable.m_associativeVariableFieldsParsed = true;
         targetVariable.m_associativeVariableWireComplete = true;
+        targetVariable.m_variableOwnedDependenciesParsed = true;
         targetVariable.m_variableClassVersion = 2;
         targetVariable.m_variableName = "TARGET_VALUE";
         targetVariable.m_variableExpression = "17";
@@ -28850,6 +28856,34 @@ bool associativeDwgRootNetworkValueDependencyExport() {
                 dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
                 dx_dwgReadCompletenessPolicy::RequireComplete))
             return fail("corrected associative graph could not retry after missing action target");
+
+        const std::uint32_t ownedDependencyHandle =
+            source.dwgAssociativeObjects[1]
+                .m_variableOwnedDependencies.front().m_handle;
+        source.dwgAssociativeObjects[1]
+            .m_variableOwnedDependencies.front().m_handle = 0xDEADu;
+        {
+            std::ofstream output(path, std::ios::binary | std::ios::trunc);
+            if (!output || !(output << sentinel))
+                return fail("could not reseed owned-dependency refusal sentinel");
+        }
+        if (exporter.fileExport(path.string(), DRW::AC1024, binary, &source,
+                false, true, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete)
+            || !retainedDestination(sentinel))
+            return fail("unresolved variable-owned dependency did not refuse atomically");
+        source.dwgAssociativeObjects[1]
+            .m_variableOwnedDependencies.front().m_handle =
+                ownedDependencyHandle;
+        if (!exporter.fileExport(path.string(), DRW::AC1024, binary, &source,
+                false, true, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete))
+            return fail("corrected variable-owned dependency could not retry");
+
         const std::uint32_t dependencyTarget =
             source.dwgAssociativeObjects[3].m_dependencyHandle;
         source.dwgAssociativeObjects[3].m_dependencyHandle = 0xDEADu;

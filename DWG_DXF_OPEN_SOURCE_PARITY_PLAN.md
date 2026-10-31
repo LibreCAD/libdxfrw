@@ -47,7 +47,7 @@ close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — associative profile admission and recursive closure | Close required associative owner/dependency and extension-dictionary/descendant edges; prove source identity and fields against emitted bytes and readback for the complete physical graph; then admit strict complete export. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — associative profile admission and recursive closure | Qualify a source-bound physical associative graph through emitted bytes and readback, close any required descendants not already admitted, then satisfy strict complete-export admission. The current mechanical witness stops before output: strict read admission sees 228 opaque callback views and zero adapter-retained opaque frames. Classify those source records and establish a qualified output-preservation route for required records before retrying. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Implement only source- or consumer-witnessed gaps; keep unsupported profiles refused until their schema and wire layout are established. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -82,13 +82,16 @@ engines.
    qualified providers. Keep version-2 nonzero-seed registry layouts raw until
    their framing is proven. Keep investigation DWGs out of committed fixtures;
    bind regressions to eligible repository inputs or locally authored fixtures.
-2. **Graph and output admission:** add only source-backed missing
-   owner/dependency edge providers. Close required extension-dictionary and
-   descendant edges before enabling the physical profile in document output;
-   compare planned identities and fields with emitted bytes and read them back.
-   Preserve unsupported tails and strict refusal until required bodies and
-   descendants are qualified. Never emit a partial graph or infer edges from
-   adjacent handle values.
+2. **Graph and output admission:** close any source-required body, owner edge,
+   extension-dictionary edge or descendant not already admitted. Bind source
+   identities and fields to planned records, emitted bytes and fresh readback.
+   The current mechanical source cannot reach this serializer checkpoint: its
+   global strict-read predicate rejects opaque callback views that are not
+   retained for output. Census those callbacks by source identity and role;
+   add only required typed serializers or proven end-to-end replay paths.
+   Correlation-only retention does not establish output preservation. Keep
+   unresolved records refused. Never weaken the completeness predicate, emit a
+   partial graph, or infer edges from adjacent handle values.
 3. **Recursive closure:** when output reaches a dependency without a qualified
    provider, resolve that source-required role and its descendants. Reuse existing
    dictionary, XRECORD, group, layout, picture-block, nested-INSERT, attribute,

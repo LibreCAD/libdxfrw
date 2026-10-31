@@ -8201,6 +8201,54 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                                 == candidate.m_valueDependencyValueCode;
                                     }) == 1;
                         };
+                        const auto variableOwnsDependency = [](
+                                const DRW_AssociativeObject& variable,
+                                std::uint32_t dependencyHandle) {
+                            return variable.m_variableOwnedDependenciesParsed
+                                && std::count_if(
+                                    variable.m_variableOwnedDependencies.begin(),
+                                    variable.m_variableOwnedDependencies.end(),
+                                    [dependencyHandle](
+                                            const DRW_AssociativeHandleRef& ref) {
+                                        return ref.m_isOwned
+                                            && ref.m_handle == dependencyHandle;
+                                    }) == 1;
+                        };
+                        const auto validVariableOwnedDependencies =
+                            [&](const DRW_AssociativeObject& variable) {
+                                const std::size_t count =
+                                    variable.m_variableOwnedDependencies.size();
+                                if (!variable.m_variableOwnedDependenciesParsed
+                                    || count > 1u
+                                    || variable.m_variableSuffixMarkerPresent
+                                        != (count == 1u)
+                                    || (variable.m_variableSuffixMarkerPresent
+                                        && variable.m_variableSuffixMarker != 0))
+                                    return false;
+                                for (const DRW_AssociativeHandleRef& ref :
+                                     variable.m_variableOwnedDependencies) {
+                                    if (!examineEdge() || !ref.m_isOwned
+                                        || ref.m_handle == 0u
+                                        || ref.m_handle == DRW::NoHandle
+                                        || ref.m_handle == variable.handle)
+                                        return false;
+                                    const auto child = associativeRecords.find(
+                                        ref.m_handle);
+                                    if (child == associativeRecords.end()
+                                        || layoutSymbolKey(
+                                            child->second->m_recordName)
+                                            != "ACDBASSOCVALUEDEPENDENCY"
+                                        || child->second->parentHandle
+                                            != variable.handle
+                                        || !child->second->m_dependencyFieldsParsed
+                                        || !child->second->m_dependencyWireComplete
+                                        || child->second->m_classVersion != 1u
+                                        || !completeValueDependency(
+                                            *child->second))
+                                        return false;
+                                }
+                                return true;
+                            };
                         if (data->sourceVersion != DRW::AC1024
                             || !object.appData.empty()
                             || object.xDictHandle != 0u
@@ -8315,13 +8363,20 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 || object.m_singleDependencyActionParamParsed
                                 || object.m_compoundActionParamParsed
                                 || !object.m_actions.empty()
+                                || !object.m_variableOwnedDependenciesParsed
+                                || object.m_variableOwnedDependencies.size() > 1u
                                 || object.m_prefixStatuses.size() != 2u
                                 || !completePrefix(
                                     DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
                                     1u, 2u, 0u, 0)
                                 || !completePrefix(
                                     DRW_AssociativePrefixStatus::Kind::AcDbAssocVariable,
-                                    2u, 0u, 10u, 0)
+                                    2u,
+                                    object.m_variableOwnedDependencies.size(),
+                                    10u,
+                                    static_cast<std::int32_t>(
+                                        object.m_variableOwnedDependencies.size()))
+                                || !validVariableOwnedDependencies(object)
                                 || !validValue)
                                 return reject(
                                     ExtensionGraphFailure::InvalidGraph,
@@ -8446,6 +8501,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 || !isVariable(ownerVariable)
                                 || !ownerVariable->m_associativeVariableFieldsParsed
                                 || !ownerVariable->m_associativeVariableWireComplete
+                                || !variableOwnsDependency(
+                                    *ownerVariable, object.handle)
                                 || ownerVariable->m_maxDependencyIndex <= 0
                                 || !isVariable(targetVariable)
                                 || !targetVariable->m_associativeVariableFieldsParsed
@@ -8757,6 +8814,22 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         if (visiting.count(actionHandle) == 0u
                             && visitedAssociatives.count(actionHandle) == 0u
                             && !queueTarget(actionHandle, false))
+                            return false;
+                        break;
+                    }
+                    if (layoutSymbolKey(frame.associative->m_recordName)
+                            == "ACDBASSOCVARIABLE"
+                        && frame.index
+                            < frame.associative
+                                   ->m_variableOwnedDependencies.size()) {
+                        const std::uint32_t dependencyHandle =
+                            frame.associative->m_variableOwnedDependencies[
+                                frame.index++].m_handle;
+                        if (!examineEdge())
+                            return false;
+                        if (visiting.count(dependencyHandle) == 0u
+                            && visitedAssociatives.count(dependencyHandle) == 0u
+                            && !queueTarget(dependencyHandle, false))
                             return false;
                         break;
                     }
@@ -14726,7 +14799,16 @@ void completeAssociativeDwgImportReceipt(dx_data& data,
                                     "ASSOCVARIABLE")) {
                     if (!hasCompletePrefix(
                             owner,
-                            DRW_AssociativePrefixStatus::Kind::AcDbAssocAction))
+                            DRW_AssociativePrefixStatus::Kind::AcDbAssocAction)
+                        || !owner.m_variableOwnedDependenciesParsed
+                        || std::count_if(
+                            owner.m_variableOwnedDependencies.begin(),
+                            owner.m_variableOwnedDependencies.end(),
+                            [&dependency](
+                                    const DRW_AssociativeHandleRef& ref) {
+                                return ref.m_isOwned
+                                    && ref.m_handle == dependency.handle;
+                            }) != 1)
                         return false;
                     networkHandle = owner.m_owningNetworkHandle;
                 } else {

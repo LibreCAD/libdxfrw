@@ -29262,6 +29262,12 @@ bool dxfRW::writeAssociativeVariable(DRW_AssociativeObject *ent) {
         || !dxfKeywordEquals(ent->m_recordName, "ACDBASSOCVARIABLE")
         || !ent->m_associativeVariableFieldsParsed
         || !ent->m_associativeVariableWireComplete
+        || !ent->m_variableOwnedDependenciesParsed
+        || ent->m_variableOwnedDependencies.size() > 1u
+        || ent->m_variableSuffixMarkerPresent
+            != !ent->m_variableOwnedDependencies.empty()
+        || (ent->m_variableSuffixMarkerPresent
+            && ent->m_variableSuffixMarker != 0)
         || !ent->m_variableValueParsed
         || ent->m_variableClassVersion != 2
         || ent->m_classVersion != 1u
@@ -29293,6 +29299,16 @@ bool dxfRW::writeAssociativeVariable(DRW_AssociativeObject *ent) {
         ent->m_prefixStatuses[0];
     const DRW_AssociativePrefixStatus& variableStatus =
         ent->m_prefixStatuses[1];
+    const std::size_t ownedDependencyCount =
+        ent->m_variableOwnedDependencies.size();
+    const bool ownedDependencyRefsValid = std::all_of(
+        ent->m_variableOwnedDependencies.begin(),
+        ent->m_variableOwnedDependencies.end(),
+        [ent](const DRW_AssociativeHandleRef& reference) {
+            return reference.m_isOwned && reference.m_handle != 0u
+                && reference.m_handle != DRW::NoHandle
+                && reference.m_handle != ent->handle;
+        });
     if (actionStatus.m_kind
             != DRW_AssociativePrefixStatus::Kind::AcDbAssocAction
         || actionStatus.m_status
@@ -29306,9 +29322,11 @@ bool dxfRW::writeAssociativeVariable(DRW_AssociativeObject *ent) {
         || variableStatus.m_status
             != DRW_AssociativePrefixStatus::ParseStatus::Complete
         || variableStatus.m_classVersion != 2u
-        || variableStatus.m_decodedHandleCount != 0u
+        || variableStatus.m_decodedHandleCount != ownedDependencyCount
         || variableStatus.m_decodedValueCount != 10u
-        || variableStatus.m_decodedCountValue != 0
+        || variableStatus.m_decodedCountValue
+            != static_cast<std::int32_t>(ownedDependencyCount)
+        || !ownedDependencyRefsValid
         || (ent->m_variableValueCode == 40
             && (ent->m_variableValueKind
                     != DRW_AssociativeObject::EvalVariantKind::Real
