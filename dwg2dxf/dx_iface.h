@@ -2347,7 +2347,7 @@ private:
         std::uint64_t generation{0};
         std::uint32_t emitted{0}, owner{0}, extensionDictionary{0};
         int objectType{0};
-        bool identityOnlyDictionary{false};
+        bool identityOnlyDictionary{false}, ownerIsBlockRecord{false};
         std::vector<std::uint32_t> references;
     };
     std::map<std::uint32_t, StandardDwgOutputProof> m_standardDwgOutputProofs;

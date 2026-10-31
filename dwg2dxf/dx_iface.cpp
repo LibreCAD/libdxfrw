@@ -34033,10 +34033,54 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
     try {
         const auto* context = dxfW->getWritingContext();
         if (!context) return false;
-        const auto map = [this, context](std::uint32_t source, std::uint32_t& output) {
+        enum class BlockRecordMapping { NotBlockRecord, Mapped, Invalid };
+        const auto mapBlockRecord = [this, context](std::uint32_t source,
+                                                     std::uint32_t& output)
+                -> BlockRecordMapping {
+            output = 0u;
+            if (source == 0u) return BlockRecordMapping::NotBlockRecord;
+            if (cData == nullptr
+                || context->ambiguousSourceHandles.count(source) != 0u)
+                return BlockRecordMapping::Invalid;
+            const DRW_Block_Record* selected = nullptr;
+            for (const DRW_Block_Record& candidate : cData->blockRecords) {
+                if (candidate.handle != source)
+                    continue;
+                if (selected != nullptr)
+                    return BlockRecordMapping::Invalid;
+                selected = &candidate;
+            }
+            if (selected == nullptr)
+                return BlockRecordMapping::NotBlockRecord;
+            if (selected->name.empty()) return BlockRecordMapping::Invalid;
+            if (asciiIdentifierEquals(selected->name, "*MODEL_SPACE"))
+                output = DRW::DxfModelSpaceBlockRecordHandle;
+            else if (asciiIdentifierEquals(selected->name, "*PAPER_SPACE"))
+                output = DRW::DxfPaperSpaceBlockRecordHandle;
+            else
+                output = dxfW->getBlockRecordHandleToWrite(selected->name);
+            if (output == 0u || output == DRW::NoHandle)
+                return BlockRecordMapping::Invalid;
+            for (const auto* aliases : {
+                    &context->sourceHandleToWrittenTableMap,
+                    &context->sourceHandleToWrittenObjectMap,
+                    &context->sourceHandleToMintedMap}) {
+                const auto alias = aliases->find(source);
+                if (alias != aliases->end() && alias->second != output)
+                    return BlockRecordMapping::Invalid;
+            }
+            return BlockRecordMapping::Mapped;
+        };
+        const auto map = [this, context, &mapBlockRecord](std::uint32_t source, std::uint32_t& output) {
             output = 0u;
             if (source == 0u) return true;
             if (context->ambiguousSourceHandles.count(source) != 0u) return false;
+            // BLOCK_RECORD table entries are mapped by their source names,
+            // not by the generic object/table handle aliases. In particular,
+            // model/paper space use canonical DXF handles.
+            const auto blockRecord = mapBlockRecord(source, output);
+            if (blockRecord == BlockRecordMapping::Mapped) return true;
+            if (blockRecord == BlockRecordMapping::Invalid) return false;
             output = dxfW->dxfWriteEmittedSourceTableHandle(source);
             if (output != 0u) return true;
             unsigned bindings = 0u;
@@ -34137,6 +34181,11 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
                 proof.extensionDictionary = actual.xDictHandle;
                 proof.identityOnlyDictionary = frame.raw.m_objectType == dwgObjType::DICTIONARY
                     && context->sourceHandleToWrittenObjectMap.count(frame.raw.m_handle) == 0u;
+                std::uint32_t emittedBlockRecord = 0u;
+                proof.ownerIsBlockRecord = source != nullptr
+                    && mapBlockRecord(source->parentHandle, emittedBlockRecord)
+                        == BlockRecordMapping::Mapped
+                    && emittedBlockRecord == actual.parentHandle;
                 return true; // A partial projection stays explicitly unqualified.
             };
             bool decoded = false;
@@ -34185,14 +34234,26 @@ bool dx_iface::finalizeStandardDwgOutputProofs() noexcept {
                     && dxfW->dxfWriteRecordHasOwner(proof.emitted, proof.owner)
                 : dxfW->dxfWriteSourceObjectHasIdentity(current->first,
                     proof.emitted, name, "OBJECTS", proof.owner);
-            bool closed = identityMatches
+            bool ownerRoleMatches = true;
+            if (proof.ownerIsBlockRecord) {
+                ownerRoleMatches = dxfW->dxfWriteRecordHandleCount(proof.owner) == 1u
+                    && dxfW->dxfWriteRecordHasIdentity(
+                        proof.owner, "BLOCK_RECORD", "TABLES");
+            }
+            bool closed = identityMatches && ownerRoleMatches
                 && hasQualifiedStandardDwgOutputNames(proof.generation, current->first, true);
             if (proof.extensionDictionary != 0u
                 && (!dxfW->dxfWriteRecordHasIdentity(proof.extensionDictionary, "DICTIONARY", "OBJECTS")
                     || !dxfW->dxfWriteRecordHasOwner(proof.extensionDictionary, proof.emitted)))
                 closed = false;
-            for (const auto reference : proof.references)
-                if (dxfW->dxfWriteRecordHandleCount(reference) != 1u) closed = false;
+            for (const auto reference : proof.references) {
+                const auto count = dxfW->dxfWriteRecordHandleCount(reference);
+                const bool blockRecordRole = proof.ownerIsBlockRecord
+                    && reference == proof.owner;
+                if (count != 1u || (blockRecordRole
+                    && !dxfW->dxfWriteRecordHasIdentity(
+                        reference, "BLOCK_RECORD", "TABLES"))) closed = false;
+            }
             if (!closed) current = m_standardDwgOutputProofs.erase(current);
             else ++current;
         }
