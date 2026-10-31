@@ -46,8 +46,8 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — strict complete-export closure (228/228 selected census profiles joined; strict gate still closed) | The current strict CLI refuses before publication because the DWG read disposition is incomplete. Bind every required opaque callback view to complete typed output or an exact, retained source replay path; then rerun the strict checkpoint. | Preserve unknown tails and strict complete-export refusal; profile receipts do not replace full-record or raw-replay evidence. Use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN — broader rendering/TABLE work; no physical census profiles remain | Close remaining rendering metadata/native rendering profiles, FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, TABLECONTENT style/format/payload profiles, typed nested R24 TABLESTYLE readback, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
+| P4 | OPEN — strict complete-export closure | Trace the opaque callback handoff and close the full-body gap with complete typed output or a bounded, exact source replay route; then rerun the strict checkpoint. | Keep read retention separate from output qualification: retained bytes alone do not prove emission. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P5 | OPEN — broader rendering/TABLE work | Close remaining rendering metadata/native rendering profiles, FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, TABLECONTENT style/format/payload profiles, typed nested R24 TABLESTYLE readback, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -57,21 +57,18 @@ P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
 **P4 next action — close the exact source/replay gap reported by the strict
-checkpoint.** The census delta now joins all 228 identities to selected-profile
-physical output/readback receipts. A current strict CLI run still refuses before
-publishing output with `strict-complete conversion requires successful, complete
-DWG read disposition`; the global reader view reports 228 opaque callback views
-and zero retained correlation frames. These profile receipts do not establish
+checkpoint.** A current strict CLI run still refuses before publishing output
+with `strict-complete conversion requires successful, complete DWG read
+disposition`; the global reader view reports 228 opaque callback views and zero
+retained correlation frames. Selected-profile receipts do not establish
 complete original bodies, unknown-tail preservation or whole-document closure.
-For the highest-incidence required profile still lacking that proof, bind its
-source span, owner/role and dependencies to complete typed output or an exact
-retained replay path. Keep unresolved records refused, rerun the strict gate
-after the slice, and do not weaken its completeness predicate. Add no
-investigation DWG/DXF fixture. The full identity join is recorded in
-[`p4-ac1024-opaque-callback-census-receipt-delta-2026-10-31.json`](docs/research/p4-ac1024-opaque-callback-census-receipt-delta-2026-10-31.json),
-and the original inventory is
-[`p4-ac1024-opaque-callback-census-2026-10-30.json`](docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json).
-The current strict refusal and no-output result are recorded in
+Trace a required opaque callback through `dx_iface::addUnsupportedObject` and
+the strict preflight. Retain exact source bytes only through the bounded source
+replay route; separately require proof that every required callback is emitted
+as complete typed output or replayed exactly. Keep unresolved records refused,
+rerun the strict gate after the slice, and do not weaken its completeness
+predicate. Add no investigation DWG/DXF fixture. The current strict refusal and
+no-output result are recorded in
 [`p5-ac1024-tablestyle-physical-output-readback-2026-10-31.json`](docs/research/p5-ac1024-tablestyle-physical-output-readback-2026-10-31.json).
 
 ## P4 — original bodies and complete document closure
@@ -91,21 +88,19 @@ engines.
    extension-dictionary edge or descendant not already admitted. Bind source
    identities and fields to planned records, emitted bytes and fresh readback.
    Strict complete-export of the physical mechanical source remains blocked:
-   the global strict-read predicate rejects 228 opaque callback views with zero
-   retained correlation frames. Use the callback census in
-   `docs/research/p4-ac1024-opaque-callback-census-2026-10-30.json` and the
-   latest profile receipts in `docs/research/` to map each required profile to
-   complete typed output or a proven end-to-end replay path; a typed callback
-   or correlation-only raw frame does not establish output preservation.
-   Implement only the highest-incidence required profile still lacking that
-   proof. Keep unresolved records refused. Never weaken the completeness
+   the current gate reports 228 opaque callback views and zero retained
+   correlation frames. Use the existing census and profile receipts as inputs;
+   trace the remaining callback through capture, owner/dependency planning and
+   writer admission. Keep reader completeness distinct from output qualification:
+   neither a typed callback nor retained raw bytes alone proves output
+   preservation. Admit only complete typed output or a proven end-to-end replay
+   path. Keep unresolved records refused. Never weaken the completeness
    predicate, emit a partial graph, or infer edges from adjacent handle values.
 3. **Recursive closure:** follow only source-required edges reached from the
    admitted graph. Reuse a qualified provider when it closes the exact target
    role; otherwise resolve that source-required body and its descendants, and
    add only the missing edge/profile. Distinguish legal reference cycles from
-   invalid ownership and enforce bounded work once. Previously completed
-   providers are not separate queue items.
+   invalid ownership and enforce bounded work once.
 4. **Failure behavior:** for each newly admitted graph profile, reject missing
    reachable bodies, wrong owners/types/roles, aliases and late mutation wherever
    they invalidate conversion. Verify whole-operation destination publication,
@@ -123,10 +118,8 @@ output gates are met.
 profiles; active/global/environment, background/live-section/sun relations; native
 dictionary collation and layer style overrides; and VIEWPORT shade modes 4/5 plus
 references 335/343/344/91. Verify coupled dictionary keys, names, body fields and
-consumers. All physical census LAYOUT, VIEWPORT and R24 TABLESTYLE selected
-profiles are closed by their receipts; do not reopen them as queue items. Change
-PLOTSETTINGS, LAYOUT or VIEWPORT transport only for a distinct reproduced missing
-provider, remap, collision or composed output failure.
+consumers. Investigate PLOTSETTINGS, LAYOUT or VIEWPORT transport only for a
+distinct reproduced missing provider, remap, collision or composed output failure.
 
 **TABLE:**
 
@@ -142,9 +135,8 @@ provider, remap, collision or composed output failure.
    preserving current block-reference and ATTDEF ownership validation.
 3. Complete only the remaining source- or consumer-backed CONTENTFORMAT string,
    data/unit/domain/property combinations, typed nested-style readback for the
-   R24 TABLESTYLE profile (its physical serializer/raw-readback profile is
-   closed), CELLSTYLEMAP body/property profiles, and uncovered border/override
-   masks. Cover the witnessed scope combinations and version gates; keep
+   R24 TABLESTYLE profile, CELLSTYLEMAP body/property profiles, and uncovered
+   border/override masks. Cover the witnessed scope combinations and version gates; keep
    unsupported styles refused until schema and wire order are known.
 4. Complete source-bound AC1018 TABLE body and merge/presence profiles beyond the
    selected field projections. Preserve explicit zero and absence separately; do
