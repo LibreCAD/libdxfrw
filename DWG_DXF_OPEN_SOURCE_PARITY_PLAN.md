@@ -46,7 +46,7 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — strict complete-export closure | Trace the opaque callback handoff and bind each required full body to complete typed output or a proven end-to-end conversion/replay path; then rerun the strict checkpoint. | Keep read retention separate from output qualification: retained bytes alone do not prove emission or form a DXF replay route. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — strict complete-export closure | Qualify the 157/228 AC1024 opaque callback identities still unproven, starting with 54 `ACDBASSOCGEOMDEPENDENCY` records; bind every required body to complete typed output or a proven end-to-end conversion/replay path, then rerun the strict checkpoint. | Keep read retention separate from output qualification: retained bytes alone do not prove emission or form a DXF replay route. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN — broader rendering/TABLE work | Close remaining rendering metadata/native rendering profiles, FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, TABLECONTENT style/format/payload profiles, typed nested R24 TABLESTYLE readback, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -57,16 +57,15 @@ P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
 **P4 next action — qualify emitted output for the retained opaque callbacks.**
-Use the existing callback census and source-retention receipt to choose the
-highest-incidence family still lacking an end-to-end output proof. Bind each
-required source identity, body, owner/dependency and tail to planned output,
-emitted bytes and fresh readback. Keep unresolved identities refused, rerun the
-strict checkpoint after each family, and do not weaken either gate. Add no
-investigation DWG/DXF fixture. The strict output check now runs after DXF bytes
-are staged and before atomic publication; it still refuses because no callback
-identity has an output qualification. The refusal, destination rollback and
-retry result are recorded in
-[`p4-strict-output-gate-finalization-2026-10-31.json`](docs/research/p4-strict-output-gate-finalization-2026-10-31.json).
+The current AC1024 witness still has 157/228 opaque callback identities without
+an end-to-end output proof. Investigate the highest-incidence unqualified family
+first: the 54 `ACDBASSOCGEOMDEPENDENCY` records. Bind its required source body,
+owner/dependency roles and tails to a complete typed-output or proven replay
+route, actual emitted bytes and fresh readback. Keep unresolved identities
+refused and add no investigation DWG/DXF fixture. The strict checkpoint now
+reports staged qualifications and refuses before publication; the identity
+census, existing proof routes and exact refusal are recorded in
+[`p4-ac1024-output-proof-census-2026-10-31.json`](docs/research/p4-ac1024-output-proof-census-2026-10-31.json).
 
 ## P4 — original bodies and complete document closure
 

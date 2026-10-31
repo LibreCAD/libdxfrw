@@ -91,6 +91,18 @@ public:
     static std::size_t opaqueSourceFrameCount(const dx_data& data) {
         return data.m_opaqueDwgSourceFrames.size();
     }
+    static bool stageOpaqueOutputQualification(dx_iface& iface,
+                                               std::uint32_t handle) {
+        return iface.recordOpaqueDwgOutputQualification(handle);
+    }
+    static std::size_t pendingOpaqueOutputQualificationCount(
+            const dx_iface& iface) {
+        return iface.m_pendingOpaqueDwgOutputQualificationFrameIdentities.size();
+    }
+    static bool pendingOpaqueOutputQualificationComplete(
+            const dx_iface& iface) {
+        return iface.hasCompletePendingOpaqueDwgOutputQualification();
+    }
     static std::size_t opaqueSourceFrameRetainedBytes(const dx_data& data) {
         return data.m_opaqueDwgSourceFrameRetainedBytes;
     }
@@ -10481,8 +10493,19 @@ bool opaqueDwgSourceCaptureAndStrictOutputGate() {
     exporter.addUnsupportedObject(strictSource);
     if (!strict.hasCompleteOpaqueDwgSourceCapture())
         return fail("complete source frame identity set was not recognized");
+    // Exercise the per-attempt registry in isolation. The staged value is not
+    // persisted to dx_data and fileExport must start a fresh writer attempt.
+    if (!DxIfaceStandardDwgCaptureTestAccess::stageOpaqueOutputQualification(
+            exporter, strictSource.m_handle)
+        || DxIfaceStandardDwgCaptureTestAccess::pendingOpaqueOutputQualificationCount(
+               exporter) != 1u
+        || !DxIfaceStandardDwgCaptureTestAccess::pendingOpaqueOutputQualificationComplete(
+               exporter)
+        || strict.dwgReadOutcome.opaqueFramesOutputQualified != 0u
+        || strict.hasCompleteOpaqueDwgOutputQualification())
+        return fail("opaque output identity escaped per-attempt staging");
     // A forged aggregate count is not enough: strict output admission checks
-    // that each qualified identity corresponds to a retained source frame.
+    // the identities qualified by the current write after serialization.
     strict.dwgReadOutcome.opaqueFramesOutputQualified = 1u;
     const auto nonce = std::chrono::steady_clock::now()
                            .time_since_epoch()
@@ -10528,7 +10551,9 @@ bool opaqueDwgSourceCaptureAndStrictOutputGate() {
         dx_dwgReadCompletenessPolicy::Legacy);
     std::error_code outputRemovalError;
     std::filesystem::remove(output, outputRemovalError);
-    if (!legacyRetry || outputRemovalError)
+    if (!legacyRetry || outputRemovalError
+        || strict.dwgReadOutcome.opaqueFramesOutputQualified != 0u
+        || strict.hasCompleteOpaqueDwgOutputQualification())
         return fail("non-strict output retry did not recover after strict rollback");
 
     dx_data rejected;

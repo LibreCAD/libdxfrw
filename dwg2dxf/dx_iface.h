@@ -2326,6 +2326,9 @@ private:
     std::size_t m_rasterOutputByteLimit{ImageDefinitionCaptureMaxRetainedBytes};
     bool m_rasterOutputInspected{false}, m_rasterOutputFinalized{false}, m_rasterOutputPublished{false};
     bool m_requireCompleteDwgOutputQualification{false};
+    using OpaqueDwgOutputKey = std::pair<std::uint64_t, std::uint32_t>;
+    std::set<OpaqueDwgOutputKey>
+        m_pendingOpaqueDwgOutputQualificationFrameIdentities;
     bool inspectRasterOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
     bool inspectRasterImageEdges(const dxfRW::DxfObjectsWriteView& view, std::string_view section) noexcept;
     bool finalizeRasterOutputProofs() noexcept;
@@ -2341,6 +2344,7 @@ private:
     // and fresh-readback proof; a callback or aggregate count is insufficient.
     bool recordOpaqueDwgOutputQualification(
         std::uint32_t sourceHandle) noexcept;
+    bool hasCompletePendingOpaqueDwgOutputQualification() const noexcept;
     bool retainOpaqueDwgSourceFrame(
         const DRW_UnsupportedObject& data) noexcept;
     bool estimateTypedEntityRetainedBytes(

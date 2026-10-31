@@ -1,0 +1,151 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-output-proof-census-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 opaque callback census and reusable output-proof routes",
+  "status": "PARTIAL_OUTPUT_IDENTITIES_QUALIFIED_STRICT_GATE_CLOSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "fixturePolicy": "Existing local sample only; no DWG/DXF fixture was added to Git."
+  },
+  "census": {
+    "opaqueCallbacks": 228,
+    "sourceIdentities": 228,
+    "genericUnsupportedFrames": 196,
+    "standardObjectFrames": 32,
+    "rasterFrames": 0,
+    "acdsHistoryFrames": 0,
+    "genericRecordFamilies": [
+      { "count": 54, "recordName": "ACDBASSOCGEOMDEPENDENCY", "className": "AcDbAssocGeomDependency" },
+      { "count": 30, "recordName": "ACDBASSOCVALUEDEPENDENCY", "className": "AcDbAssocValueDependency" },
+      { "count": 17, "recordName": "ACDBASSOCDEPENDENCY", "className": "AcDbAssocDependency" },
+      { "count": 17, "recordName": "ASSOCDIMDEPENDENCYBODY", "className": "AcDbAssocDimDependencyBody" },
+      { "count": 17, "recordName": "ACDBASSOCVARIABLE", "className": "AcDbAssocVariable" },
+      { "count": 8, "recordName": "DICTIONARYVAR", "className": "AcDbDictionaryVar" },
+      { "count": 19, "recordName": "VISUALSTYLE", "className": "AcDbVisualStyle" },
+      { "count": 17, "recordName": "SCALE", "className": "AcDbScale" },
+      { "count": 2, "recordName": "ACDBASSOCNETWORK", "className": "AcDbAssocNetwork" },
+      { "count": 2, "recordName": "MLEADERSTYLE", "className": "AcDbMLeaderStyle" },
+      { "count": 1, "recordName": "ACDBASSOC2DCONSTRAINTGROUP", "className": "AcDbAssoc2dConstraintGroup" },
+      { "count": 1, "recordName": "TABLESTYLE", "className": "AcDbTableStyle" },
+      { "count": 3, "recordName": "MATERIAL", "className": "AcDbMaterial" },
+      { "count": 1, "recordName": "ACDBDICTIONARYWDFLT", "className": "AcDbDictionaryWithDefault" },
+      { "count": 1, "recordName": "SORTENTSTABLE", "className": "AcDbSortentsTable" },
+      { "count": 6, "recordName": "<unnamed>" }
+    ],
+    "existingOutputProofsAfterScratchLegacyExport": {
+      "standardObjects": 17,
+      "associativeVariables": 17,
+      "associativeNetworksAndDictionaries": 4,
+      "dimensionDependencyGraphs": 17,
+      "proofHooks": [
+        "finalizeStandardDwgOutputProofs",
+        "finalizeDwgAssociativeVariables",
+        "finalizeDwgAssociativeDimensionDependencies"
+      ],
+      "uniqueOpaqueIdentitiesQualified": 71,
+      "interpretation": "The source-bound output/readback proof maps close on the AC1024 scratch export and are connected by exact source handle to the per-attempt qualification set. Graph members are deduplicated; the proof-row totals are not treated as unique identities."
+    }
+  },
+  "implementation": {
+    "sourceFiles": [
+      {
+        "path": "dwg2dxf/dx_iface.h",
+        "sha256": "d94be6d95296c034be8cd374be041f76d673ea614e608812d2dfe8ba7291bfa0"
+      },
+      {
+        "path": "dwg2dxf/dx_iface.cpp",
+        "sha256": "6a2da138f59d8a709d8f797dc7eee998a06db45ba1ebc4f97baf0d232af5fbfa"
+      },
+      {
+        "path": "tests/dwg2dxf_adapter_tests.cpp",
+        "sha256": "52ab49ca3c3668bbf3155f89bca16a69dafb3365b98334dc2eae5a7ed8bbb739"
+      }
+    ],
+    "behavior": [
+      "Per-write opaque output qualifications are held in an adapter staging set; the strict finalizer requires exact current-generation identity coverage.",
+      "Qualification identities move into dx_data only after the DXF output transaction commits. A refused strict attempt leaves the published qualification set/count unchanged.",
+      "Connected only existing complete output/readback proofs for standard objects, associative variables, associative network/dictionary graphs, and dimension-dependency/body/constraint-group graphs.",
+      "A successful scratch legacy export publishes 71 unique callback identity qualifications. The strict attempt stages the same 71, refuses at 71/228, and publishes none."
+    ],
+    "limitations": [
+      "The 71/228 count is a source-bound conversion proof count, not a format support or semantic acceptance claim.",
+      "The remaining 157 identities have no complete output qualification. The largest unqualified witnessed family is 54 ACDBASSOCGEOMDEPENDENCY records.",
+      "No ACDBASSOCGEOMDEPENDENCY output proof was inferred from the separate dimension-dependency graph proof."
+    ]
+  },
+  "nextPacket": {
+    "operation": "AC1024 ASCII DWG-to-DXF complete export, followed by the existing strict opaque-output gate",
+    "fieldsAndRoles": "For the 54 ACDBASSOCGEOMDEPENDENCY callbacks: exact source body/profile fields, owner, target, read/write dependency, node/body references and tail; unique emitted record identity and bounded referenced targets.",
+    "reusedProviders": [
+      "existing transactional DXF writer and finalization callback",
+      "standard object field/output decoder and owner/name/reference closure",
+      "associative variable, network and dictionary output observers",
+      "dimension-dependency/body/constraint-group output observer as a contrast control, not as proof for geometry dependencies"
+    ],
+    "implementation": "Research the exact AC1024 ACDBASSOCGEOMDEPENDENCY input schema and existing parser/writer route. Add only a source-backed complete body/profile/output proof, then record the exact source identities after readback. Preserve per-attempt transactional qualification and keep all unrelated identities refused.",
+    "focusedSelector": "dwg2dxf_opaque_source_capture_and_strict_output_gate plus the owning existing associative geometry selector identified by the source route",
+    "conditionalEscalation": "If the source parser omits any required field or the output route is lossy, keep these identities unqualified and trace the smallest missing source/output boundary as a separate P4 item. Do not run a full suite for this adapter-local change.",
+    "scratchOperation": "fileImport(existing sample), strict fileExport(AC1024, ASCII, RequireComplete) then legacy fileExport(AC1024, ASCII, Legacy) to /tmp; inspect staged/published qualification counts and destination publication; remove scratch outputs",
+    "sourceBinding": {
+      "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858"
+    }
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS with configured warning-as-error flags.",
+      "dwg2dxfSha256": "ab201bac17fade7278b6d52ce1512201d1c264605b14d2ca976c2f8575b2e36e",
+      "adapterTestSha256": "3cd11c50f935b1e21accacd39c6130818d5af0b3fe774aae29bd296e119e401c"
+    },
+    "focusedTests": {
+      "commands": [
+        "ctest --test-dir build-gcc -R '^dwg2dxf_opaque_source_capture_and_strict_output_gate$' --output-on-failure",
+        "ctest --test-dir build-gcc -R '^dwg2dxf_standard_dwg_object_source_capture$' --output-on-failure"
+      ],
+      "result": "PASS, 2/2.",
+      "coverage": [
+        "Per-attempt staged identity state is not persisted by a failed strict write.",
+        "The strict writer gate remains closed on retained-only callbacks and preserves a pre-existing destination.",
+        "A subsequent legacy retry succeeds and commits only the proof identities from its own write attempt.",
+        "Standard-object capture and output proof behavior remains passing."
+      ]
+    },
+    "scratchProbe": {
+      "source": "/tmp/libdxfrw-p4-callback-census.cpp",
+      "sourceSha256": "9d85e5644ba894baa33e219e120aa162c0bd00f118bed645b8fff42f373f26c2",
+      "binary": "/tmp/libdxfrw-p4-callback-census",
+      "binarySha256": "6c94c1f552588c4ee85110c03bfa111fb26a43a00811ff56058bd6e7555a6421",
+      "buildInputs": [
+        {
+          "path": "build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o",
+          "sha256": "715e9fa368e252a0017f610f126d175cad740fabe7767efa2d4f8eb4a4927540"
+        },
+        {
+          "path": "build-gcc/libdxfrw.a",
+          "sha256": "a01099277385a2cb8c899f716b077b63b71c01896d919266d39bed25a722fc77"
+        }
+      ],
+      "command": "g++ -std=c++17 -Wall -Wextra -pedantic -Werror -I dwg2dxf -I src /tmp/libdxfrw-p4-callback-census.cpp build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build-gcc/libdxfrw.a -o /tmp/libdxfrw-p4-callback-census",
+      "strictResult": "REFUSED after staging 71/228 proof identities; published dx_data qualification count/set remained zero.",
+      "legacyRetryResult": "PASS; atomic publication committed 71 unique output-qualified identities to dx_data.",
+      "artifacts": "Scratch source, executable, DXF outputs and logs are outside Git."
+    },
+    "strictCliCheckpoint": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/mechanical_example-imperial.dwg -y -d -v2010 /tmp/libdxfrw-p4-staged-proof-check-20261031.dxf",
+      "result": "REFUSED before publication.",
+      "diagnostic": "strict-complete conversion requires output qualification for every opaque DWG callback (qualified=71/228)",
+      "destinationAfterRefusal": "absent"
+    },
+    "fullSuites": "NOT RUN; two focused adapter selectors and source-bound scratch/CLI checkpoints used."
+  },
+  "planImpact": {
+    "completedActionRemoved": "Transactional per-attempt proof staging and publication for the existing standard-object and associative variable/network/dimension output proofs.",
+    "open": "Implement a separate source-backed output proof for ACDBASSOCGEOMDEPENDENCY, starting with the 54 witnessed AC1024 records; keep the other 103 unqualified identities open as well.",
+    "externalItemsPromoted": 0
+  }
+}

@@ -3353,10 +3353,6 @@ bool strictDwgReadOutcomeIsComplete(const dx_data& data) noexcept {
     return true;
 }
 
-bool strictDwgOutputDispositionIsComplete(const dx_data& data) noexcept {
-    return data.hasCompleteOpaqueDwgOutputQualification();
-}
-
 bool dwgReadOutcomeAllowsBoundedPartialExport(const dx_data& data) noexcept {
     const dx_dwgReadOutcome& outcome = data.dwgReadOutcome;
     if (!outcome.attempted)
@@ -19229,21 +19225,55 @@ bool dx_iface::recordOpaqueDwgOutputQualification(
     const dx_data::StandardDwgFrameKey key{
         cData->importGeneration, sourceHandle};
     if (outcome.opaqueSourceCaptureFailed
-        || cData->m_opaqueDwgSourceFrameIdentities.count(key) != 1u
-        || cData->m_opaqueDwgOutputQualifiedFrameIdentities.count(key) != 0u
-        || cData->m_opaqueDwgOutputQualifiedFrameIdentities.size()
-               >= OpaqueDwgSourceFrameCaptureMaxRecords)
+        || cData->m_opaqueDwgSourceFrameIdentities.count(key) != 1u)
+        return false;
+    if (m_pendingOpaqueDwgOutputQualificationFrameIdentities.count(key) == 1u)
+        return true;
+    if (m_pendingOpaqueDwgOutputQualificationFrameIdentities.size()
+        >= OpaqueDwgSourceFrameCaptureMaxRecords)
         return false;
     try {
-        const auto inserted =
-            cData->m_opaqueDwgOutputQualifiedFrameIdentities.insert(key);
-        if (!inserted.second)
-            return false;
-        countDwgReadCallback(outcome.opaqueFramesOutputQualified);
-        return !outcome.callbackCountsSaturated;
+        // Several independently checked graph proofs can converge on one
+        // opaque callback identity. The per-attempt set is idempotent; its
+        // membership is committed to dx_data only after the DXF transaction
+        // publishes successfully.
+        m_pendingOpaqueDwgOutputQualificationFrameIdentities.insert(key);
+        return true;
     } catch (...) {
         return false;
     }
+}
+
+bool dx_iface::hasCompletePendingOpaqueDwgOutputQualification() const noexcept {
+    if (cData == nullptr || !cData->dwgReadOutcome.attempted
+        || cData->sourceFormat != dx_source_format::DWG
+        || !cData->hasCompleteOpaqueDwgSourceCapture())
+        return false;
+
+    const dx_dwgReadOutcome& outcome = cData->dwgReadOutcome;
+    if (m_pendingOpaqueDwgOutputQualificationFrameIdentities.size()
+        != outcome.opaqueViewCallbacks)
+        return false;
+
+    const dx_data::StandardDwgFrameKey first{cData->importGeneration, 0u};
+    const auto begin = cData->m_opaqueDwgSourceFrameIdentities.lower_bound(first);
+    std::size_t sourceFrames = 0u;
+    for (auto current = begin;
+         current != cData->m_opaqueDwgSourceFrameIdentities.end()
+             && current->first == cData->importGeneration;
+         ++current) {
+        if (m_pendingOpaqueDwgOutputQualificationFrameIdentities.count(
+                *current) != 1u
+            || ++sourceFrames > outcome.opaqueViewCallbacks)
+            return false;
+    }
+    for (const OpaqueDwgOutputKey& key :
+         m_pendingOpaqueDwgOutputQualificationFrameIdentities) {
+        if (key.first != cData->importGeneration
+            || cData->m_opaqueDwgSourceFrameIdentities.count(key) != 1u)
+            return false;
+    }
+    return sourceFrames == outcome.opaqueViewCallbacks;
 }
 
 bool dx_iface::retainOpaqueDwgSourceFrame(
@@ -49033,14 +49063,49 @@ bool dx_iface::finalizeDxfWrite() {
             return false;
         }
     }
+    if (cData != nullptr && cData->dwgReadOutcome.attempted
+        && cData->sourceFormat == dx_source_format::DWG) {
+        const auto qualifyCapturedIdentity = [this](std::uint32_t handle) {
+            const OpaqueDwgOutputKey key{cData->importGeneration, handle};
+            if (cData->m_opaqueDwgSourceFrameIdentities.count(key) == 0u)
+                return true; // This proof row is not an opaque callback identity.
+            return recordOpaqueDwgOutputQualification(handle);
+        };
+        for (const auto& proof : m_standardDwgOutputProofs) {
+            if (proof.second.generation != cData->importGeneration
+                || !qualifyCapturedIdentity(proof.first))
+                return false;
+        }
+        for (const auto& proof : m_dwgAssociativeVariableOutputProofs)
+            if (!qualifyCapturedIdentity(proof.sourceHandle))
+                return false;
+        for (const auto& proof : m_dwgAssociativeVariableGraphOutputProofs)
+            if (!qualifyCapturedIdentity(proof.sourceHandle))
+                return false;
+        for (const auto& proof : m_dwgAssociativeDimensionDependencyOutputProofs) {
+            if (!qualifyCapturedIdentity(proof.sourceDependency)
+                || !qualifyCapturedIdentity(proof.sourceBody)
+                || !qualifyCapturedIdentity(proof.sourceGroup))
+                return false;
+        }
+        for (const auto& proof : m_rasterOutputProofs) {
+            if (proof.definition.first != cData->importGeneration
+                || !qualifyCapturedIdentity(
+                    proof.reactor ? proof.sourceReactor
+                                  : proof.definition.second))
+                return false;
+        }
+    }
     if (m_requireCompleteDwgOutputQualification && cData != nullptr
         && cData->sourceFormat == dx_source_format::DWG
-        && !strictDwgOutputDispositionIsComplete(*cData)) {
+        && !hasCompletePendingOpaqueDwgOutputQualification()) {
         try {
             std::cerr
                 << "DXF export finalization failed: "
                    "strict-complete conversion requires output qualification "
-                   "for every opaque DWG callback\n";
+                   "for every opaque DWG callback (qualified="
+                << m_pendingOpaqueDwgOutputQualificationFrameIdentities.size()
+                << "/" << cData->dwgReadOutcome.opaqueViewCallbacks << ")\n";
         } catch (...) {
             // Diagnostics cannot authorize publication of incomplete output.
         }
@@ -49915,6 +49980,12 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     } completeOutputRequirementScope{
         m_requireCompleteDwgOutputQualification,
         previousCompleteOutputRequirement};
+    m_pendingOpaqueDwgOutputQualificationFrameIdentities.clear();
+    struct PendingOutputQualificationScope {
+        std::set<OpaqueDwgOutputKey>& identities;
+        ~PendingOutputQualificationScope() { identities.clear(); }
+    } pendingOutputQualificationScope{
+        m_pendingOpaqueDwgOutputQualificationFrameIdentities};
     m_dxfMLineDependencySourceLivePreflightPassed=false;
     m_dxfHeaderMaterialState={};
     m_dxfLayerMaterialState.clear();
@@ -53959,6 +54030,13 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             std::cerr << "DXF export omission detail: " << omission.first
                       << " count=" << omission.second << '\n';
         }
+    }
+    if (success && cData->sourceFormat == dx_source_format::DWG
+        && cData->dwgReadOutcome.attempted) {
+        cData->m_opaqueDwgOutputQualifiedFrameIdentities.swap(
+            m_pendingOpaqueDwgOutputQualificationFrameIdentities);
+        cData->dwgReadOutcome.opaqueFramesOutputQualified =
+            cData->m_opaqueDwgOutputQualifiedFrameIdentities.size();
     }
     if (success && m_standardDwgOutputInspected && m_standardDwgOutputFinalized)
         m_standardDwgOutputPublished = true;
