@@ -29674,6 +29674,105 @@ bool physicalDictionaryDefaultOutputReadback(
     return true;
 }
 
+bool physicalMLineStyleOutputReadback(
+        const std::filesystem::path& sourcePath) {
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024
+        || source.mLineStyleCaptureFailed
+        || source.mLineStyles.size() != 1u
+        || source.mLineStyles.front().handle != 0x18u
+        || source.mLineStyles.front().name != "STANDARD"
+        || source.mLineStyles.front().elements.size() != 2u)
+        return fail("physical AC1024 MLINESTYLE source is not the admitted STANDARD sentinel profile");
+    const DRW_MLineStyle& sourceStyle = source.mLineStyles.front();
+    if (sourceStyle.elements[0].linetypeIndex != 32767
+        || sourceStyle.elements[1].linetypeIndex != 32767
+        || sourceStyle.elements[0].linetypeHandle != 0u
+        || sourceStyle.elements[1].linetypeHandle != 0u)
+        return fail("physical STANDARD MLINESTYLE linetype sentinels or reference roles changed");
+
+    for (const bool binary : {false, true}) {
+        const auto nonce = std::chrono::steady_clock::now()
+                               .time_since_epoch().count();
+        const std::filesystem::path outputPath =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-mline-style-physical-"
+               + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{outputPath};
+        const std::string sentinel = "preserve physical MLINESTYLE destination\n";
+        {
+            std::ofstream existing(outputPath, std::ios::binary | std::ios::trunc);
+            if (!existing || !(existing << sentinel))
+                return fail("could not seed physical MLINESTYLE destination sentinel");
+        }
+        dx_iface writer;
+        const auto exportPartial = [&]() {
+            return writer.fileExport(
+                outputPath.string(), DRW::AC1024, binary, &source, false, true,
+                dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::AllowPartial);
+        };
+        DRW_MLineStyle& mutableStyle = source.mLineStyles.front();
+        const int originalIndex = mutableStyle.elements.front().linetypeIndex;
+        mutableStyle.elements.front().linetypeIndex = 7;
+        const bool unsupportedIndexRejected = !exportPartial();
+        std::ifstream refusedOutput(outputPath, std::ios::binary);
+        const std::string refusedContents{
+            std::istreambuf_iterator<char>{refusedOutput}, {}};
+        mutableStyle.elements.front().linetypeIndex = originalIndex;
+        if (!unsupportedIndexRejected || refusedContents != sentinel)
+            return fail("unresolved physical MLINESTYLE linetype index was not refused atomically");
+        if (!exportPartial())
+            return fail("corrected physical MLINESTYLE could not retry on the same adapter");
+
+        dx_iface outputReader;
+        dx_data output;
+        if (!outputReader.fileImport(outputPath.string(), &output, false)
+            || output.sourceFormat != dx_source_format::DXF
+            || output.sourceVersion != DRW::AC1024
+            || output.mLineStyleCaptureFailed
+            || output.mLineStyles.size() != 1u)
+            return fail("physical MLINESTYLE output did not freshly reimport as one typed style");
+        const DRW_MLineStyle& outputStyle = output.mLineStyles.front();
+        if (outputStyle.handle != sourceStyle.handle
+            || outputStyle.name != sourceStyle.name
+            || outputStyle.parentHandle != sourceStyle.parentHandle
+            || outputStyle.flags != sourceStyle.flags
+            || outputStyle.description != sourceStyle.description
+            || outputStyle.fillColor != sourceStyle.fillColor
+            || outputStyle.startAngle != sourceStyle.startAngle
+            || outputStyle.endAngle != sourceStyle.endAngle
+            || outputStyle.elements.size() != sourceStyle.elements.size())
+            return fail("physical MLINESTYLE identity or admitted common fields changed on readback");
+        for (std::size_t index = 0; index < sourceStyle.elements.size(); ++index) {
+            const DRW_MLineElement& expected = sourceStyle.elements[index];
+            const DRW_MLineElement& actual = outputStyle.elements[index];
+            if (actual.offset != expected.offset
+                || actual.color != expected.color
+                || actual.linetype != "BYLAYER"
+                || actual.linetypeHandle != 0u)
+                return fail("physical MLINESTYLE element order, scalar fields or BYLAYER sentinel changed on readback");
+        }
+        std::cerr << "Physical MLINESTYLE "
+                  << (binary ? "binary" : "ASCII")
+                  << " readback passed: STANDARD identity, two BYLAYER sentinel "
+                     "elements, atomic refusal and same-adapter retry.\n";
+    }
+    return true;
+}
+
 bool physicalDictionaryVarOutputReadback(
         const std::filesystem::path& sourcePath) {
     dx_iface sourceReader;
@@ -46903,6 +47002,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--dictionaryvar-physical-output-readback")
         return physicalDictionaryVarOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--mline-style-physical-output-readback")
+        return physicalMLineStyleOutputReadback(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--material-physical-output-readback")
         return physicalMaterialOutputReadback(argv[2]) ? 0 : 1;
