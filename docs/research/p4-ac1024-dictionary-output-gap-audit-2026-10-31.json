@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-dictionary-output-gap-audit-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 physical DICTIONARY source-to-output gap audit",
+  "status": "PHYSICAL_DICTIONARY_IDENTITIES_AUDITED_SEVEN_SOURCE_RECORDS_MISSING",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "version": "AC1024",
+    "sourceDictionaryCallbacks": 23,
+    "sourceNodPlusDictionaryIdentities": 24
+  },
+  "operation": {
+    "path": "/private/tmp/mechanical-p4-dictionary-audit.dxf",
+    "sha256": "dda770ca833f7a6abb945e920e6d99483b1a29e7364b21b6e9067b607032c0d0",
+    "bytes": 161368,
+    "debugLog": "/private/tmp/mechanical-p4-dictionary-audit.log",
+    "debugLogSha256": "288a217c15d25c84a81da956988dcee2bf71c9fd046837cedbacd8de719ee687",
+    "route": "Explicit-partial AC1024 DWG to ASCII DXF using current build-gcc/dwg2dxf/dwg2dxf."
+  },
+  "identityComparison": {
+    "matched": 17,
+    "expected": 24,
+    "matchRule": "Unique source handle, owner, cloning/hard-owner metadata, and ordered entry name/handle pairs; 17 emitted records matched exactly.",
+    "missingSourceHandles": ["E6", "28C", "291", "2A2", "2A3", "2A7", "351"],
+    "sourceDetails": [
+      {
+        "handle": "E6",
+        "owner": "10",
+        "ownerRole": "LAYER record name 0",
+        "entries": []
+      },
+      {
+        "handle": "28C",
+        "owner": "28B",
+        "ownerRole": "CIRCLE",
+        "entries": [{"name": "ASDK_XREC_ANNOTATION_SCALE_INFO", "handle": "28D", "targetType": "XRECORD"}]
+      },
+      {
+        "handle": "291",
+        "owner": "290",
+        "ownerRole": "CIRCLE",
+        "entries": [{"name": "ASDK_XREC_ANNOTATION_SCALE_INFO", "handle": "292", "targetType": "XRECORD"}]
+      },
+      {
+        "handle": "2A2",
+        "owner": "2",
+        "ownerRole": "Layer Table Control",
+        "entries": [{"name": "ACAD_LAYERSTATES", "handle": "2A3", "targetType": "DICTIONARY"}]
+      },
+      {
+        "handle": "2A3",
+        "owner": "2A2",
+        "ownerRole": "DICTIONARY",
+        "entries": []
+      },
+      {
+        "handle": "2A7",
+        "owner": "59",
+        "ownerRole": "LAYOUT Layout1",
+        "entries": [{"name": "ADSK_XREC_LAYOUTTHUMBNAIL", "handle": "2A8", "targetType": "XRECORD"}]
+      },
+      {
+        "handle": "351",
+        "owner": "22",
+        "ownerRole": "LAYOUT Model",
+        "entries": [{"name": "ADSK_XREC_LAYOUTTHUMBNAIL", "handle": "352", "targetType": "XRECORD"}]
+      }
+    ],
+    "descendantObservations": {
+      "handles": ["28D", "292", "2A8", "352"],
+      "typed": true,
+      "rawDataValid": false,
+      "valueProfiles": "28D/292 each have one group-90 value and one group-340 handle; 2A8/352 each have 408 group-310 values representing thumbnail chunks.",
+      "readback": "LAYOUT 59 and 22 retain nonzero extension-dictionary handles while the corresponding dictionary records are absent from output."
+    }
+  },
+  "probe": {
+    "source": "/private/tmp/dictionary_profile.cpp",
+    "sourceSha256": "109c23629beb34a4270fe095c4bd7954e8579c2e2a24fe88062ba3e0b1708adb",
+    "binary": "/private/tmp/dictionary_profile",
+    "binarySha256": "c025c69d3c14fbd10c1567f3dbdf8e98a7e071b4e3ad7b3df4cba54c413184ec",
+    "result": "source_root=1 source_dictionary_callbacks=23 source_total=24; output_root=1 output_dictionary_callbacks=16 output_total=17."
+  },
+  "implementationReadiness": {
+    "readyProfiles": ["entity-owned extension dictionaries and typed XRECORD children", "LAYER-record extension dictionary", "LAYOUT-owned extension dictionaries and bounded thumbnail XRECORD chunks"],
+    "separateResearchGate": "Prove the exact DXF TABLE-header/control-object handle and extension-dictionary encoding for Layer Table Control owner 2 before emitting handles 2A2/2A3; preserve the source owner role and do not substitute NOD ownership.",
+    "requiredValidation": ["exact identity/owner/entry output inventory", "fresh DXF readback", "bounded typed XRECORD payload comparison", "ASCII and Binary focused output", "destination rollback and corrected retry"]
+  },
+  "externalReferences": [
+    "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_LayerStateManager.html",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-DevGuide-Managed/files/GUID-80B3DAD6-B1F6-4BCC-86C7-7FA2444EEDFB.htm",
+    "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+    "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-0B9BDDE0-CDB7-4235-A2B7-8BD1FA82503F.htm"
+  ],
+  "limitations": [
+    "This is an output-gap audit, not an implementation or support qualification.",
+    "The audit covers 24 source DICTIONARY/NOD identities in one AC1024 physical witness; it does not close the other opaque callback profiles.",
+    "Strict-complete admission remains blocked by 228 opaque callbacks and zero retained correlation frames."
+  ]
+}

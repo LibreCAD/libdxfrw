@@ -46,7 +46,7 @@ external-only and cannot close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — physical associative profile closure | Map the physical mechanical source's 228 typed-and-opaque callback identities across 21 record/type profiles to required output coverage. Close remaining required descendants and pass strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — physical profile output-coverage closure | Close only source-to-output gaps among the physical mechanical source's 228 callback identities across 21 record/type profiles; skip identities whose exact physical output proof already exists. The next known gap is seven missing DICTIONARY records and their reachable XRECORD children; then continue the remaining callback profiles and strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN | Close remaining rendering metadata and native rendering profiles, rich R24 TABLESTYLE typed-DXF readback, FIELDLIST/child graphs and other unclosed FIELD profiles, independently evidenced block-cell geometry, remaining TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -56,22 +56,33 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next packet:** reconcile the 30 physical `ACDBASSOCVALUEDEPENDENCY` source
-records with their staged output in the existing mechanical witness
-(`/Users/dli/doc/dwg/mechanical_example-imperial.dwg`, SHA-256
-`854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858`). The
-current explicit-partial output has 31 records of that type. Prove a unique
-source-to-output identity and exact owner/dependency reference roles for every
-source record, and account for the extra staged record before accepting the
-family. Reuse the physical span, graph-closure and generated document-output
-evidence in `docs/research/p4-ac1024-value-dependency-span-profile-2026-10-30.json`,
-`docs/research/p4-ac1024-assoc-value-dependency-closure-2026-10-30.json`, and
-`docs/research/p4-ac1024-associative-value-dependency-document-output-2026-10-30.json`.
-Add exact typed output inspection, fresh readback, atomic refusal and corrected
-retry for the physical source profile. Strict complete-export admission remains
-blocked by 228 opaque callbacks and zero retained correlation frames. Do not
-infer identities from adjacent handles, weaken graph closure, or commit
-investigation DWGs.
+**Next implementation packet — physical DICTIONARY closure:** the source-to-
+output audit receipt
+(`docs/research/p4-ac1024-dictionary-output-gap-audit-2026-10-31.json`)
+records 17/24 dictionary/NOD identities matched exactly. These seven source
+DICTIONARY records and their XRECORD descendants are absent from the partial
+DXF:
+
+| Source handle | Source owner / role | Required contents | Implementation slice |
+| --- | --- | --- | --- |
+| `E6` | LAYER record `10` | Empty extension dictionary | Entity-independent table-record extension-dictionary route |
+| `28C` | CIRCLE `28B` | `ASDK_XREC_ANNOTATION_SCALE_INFO` → XRECORD `28D` | Entity extension-dictionary route and typed XRECORD output |
+| `291` | CIRCLE `290` | `ASDK_XREC_ANNOTATION_SCALE_INFO` → XRECORD `292` | Same route; retain separate source identity and owner proof |
+| `2A7` | LAYOUT `59` (`Layout1`) | `ADSK_XREC_LAYOUTTHUMBNAIL` → XRECORD `2A8` | LAYOUT extension-dictionary route and bounded binary chunks |
+| `351` | LAYOUT `22` (`Model`) | `ADSK_XREC_LAYOUTTHUMBNAIL` → XRECORD `352` | Same route; retain separate source identity and owner proof |
+| `2A2` | Layer Table Control `2` | `ACAD_LAYERSTATES` → dictionary `2A3` | First prove the TABLE-header/control-object DXF handle and extension-dictionary encoding; do not substitute NOD ownership |
+| `2A3` | DICTIONARY `2A2` | Empty child dictionary | Emit only with the proven Layer Table Control route above |
+
+Implement the entity-, LAYER-record-, and LAYOUT-owned groups first, with
+source-bound owner/target identities, bounded XRECORD values, staged output,
+final inventory checks, fresh readback, rollback and corrected-retry coverage.
+Treat the Layer Table Control pair as a separate short research gate: inspect
+the writer's TABLE header representation and authoritative DXF mapping, then
+add the pair only when its owner route is exact. The audit found all 17 emitted
+dictionary identities exact; do not rewrite or retest those identities without
+a changed dependency. The strict complete-export gate remains blocked by 228
+opaque callbacks and zero retained correlation frames. Do not infer identities
+from adjacent handles, weaken graph closure, or commit investigation DWGs.
 
 ## P4 — original bodies and complete document closure
 

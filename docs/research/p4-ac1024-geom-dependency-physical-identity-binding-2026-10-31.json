@@ -28,7 +28,15 @@
       "sha256": "dda770ca833f7a6abb945e920e6d99483b1a29e7364b21b6e9067b607032c0d0",
       "bytes": 161368,
       "debugLog": "/private/tmp/mechanical-after-geodep-binding.log",
-      "debugLogSha256": "79f1b97f235fdd7ba437cca262abc6b1cefc46410b739ddae87204f93d4a57e0"
+      "debugLogSha256": "79f1b97f235fdd7ba437cca262abc6b1cefc46410b739ddae87204f93d4a57e0",
+      "valueDependencyRecordBoundaryCensus": {
+        "record": "ACDBASSOCVALUEDEPENDENCY",
+        "sourceCountFromCallbackCensus": 30,
+        "stagedCount": 30,
+        "countMethod": "Parse ASCII DXF group-code/value pairs and count only code 0 records with this record name.",
+        "temporaryCounterpartTextLineMatchCount": 31,
+        "interpretation": "The additional exact-text line is a group value, not an extra record."
+      }
     }
   },
   "identityAndReferenceProof": {
@@ -83,7 +91,7 @@
     "dwg2dxf/dx_standard_output.h": "1b4d0bedd0c9b91422e63c8372faa2f8b4d2fadde7c6f1d00ae4683e937f35c8",
     "tests/dwg2dxf_adapter_tests.cpp": "9eecb5e9f5bd1989855c2bb9ccb92bf8e344881f1c26c16f370a5f72d69075df"
   },
-  "remaining": "The geometry-dependency identity/reference-role packet is complete. The physical source strict-complete gate remains blocked by 228 opaque callbacks and zero retained correlation frames. Continue with the 30 ACDBASSOCVALUEDEPENDENCY source records; current explicit-partial output contains 31 records of that type and needs one-to-one identity/role reconciliation.",
+  "remaining": "The geometry-dependency identity/reference-role packet is complete. The value-dependency identity/field packet is recorded in p4-ac1024-value-dependency-physical-identity-binding-2026-10-31.json. The physical source strict-complete gate remains blocked by 228 opaque callbacks and zero retained correlation frames; the next audited output gap is the seven missing DICTIONARY records and reachable XRECORD children recorded in p4-ac1024-dictionary-output-gap-audit-2026-10-31.json.",
   "limitations": [
     "This proves one AC1024 physical partial-output profile; it does not establish strict complete document conversion.",
     "The reader census still reports 228 opaque callbacks and zero retained correlation frames; the strict-complete predicate remains unchanged.",
