@@ -8170,6 +8170,37 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                         && status.m_decodedCountValue == count;
                                 }) == 1;
                         };
+                        const auto completeValueDependency = [](
+                                const DRW_AssociativeObject& candidate) {
+                            const bool valueKindMatches =
+                                candidate.m_valueDependencyValueCode == 40
+                                    ? candidate.m_valueDependencyValueKind
+                                        == DRW_AssociativeObject::EvalVariantKind::Real
+                                        && std::isfinite(
+                                            candidate.m_valueDependencyValueReal)
+                                    : candidate.m_valueDependencyValueCode == 90
+                                        && candidate.m_valueDependencyValueKind
+                                            == DRW_AssociativeObject::EvalVariantKind::Int32;
+                            return candidate.m_valueDependencyFieldsParsed
+                                && candidate.m_valueDependencyClassVersion == 0
+                                && valueKindMatches
+                                && candidate.m_prefixStatuses.size() == 2u
+                                && std::count_if(
+                                    candidate.m_prefixStatuses.begin(),
+                                    candidate.m_prefixStatuses.end(),
+                                    [&candidate](
+                                            const DRW_AssociativePrefixStatus& status) {
+                                        return status.m_kind
+                                                == DRW_AssociativePrefixStatus::Kind::AcDbAssocValueDependency
+                                            && status.m_status
+                                                == DRW_AssociativePrefixStatus::ParseStatus::Complete
+                                            && status.m_classVersion == 0u
+                                            && status.m_decodedHandleCount == 0u
+                                            && status.m_decodedValueCount == 3u
+                                            && status.m_decodedCountValue
+                                                == candidate.m_valueDependencyValueCode;
+                                    }) == 1;
+                        };
                         if (data->sourceVersion != DRW::AC1024
                             || !object.appData.empty()
                             || object.xDictHandle != 0u
@@ -8358,6 +8389,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                         != "ACDBASSOCVALUEDEPENDENCY"
                                     || !peer.m_dependencyFieldsParsed
                                     || !peer.m_dependencyWireComplete
+                                    || !completeValueDependency(peer)
                                     || peer.m_classVersion != 1u
                                     || peer.m_dependencyHandle
                                         != object.m_dependencyHandle
@@ -8407,7 +8439,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 || object.m_dependencyBodyHandle != 0u
                                 || object.m_dependencyNamePresent
                                 || !object.m_dependencyName.empty()
-                                || object.m_prefixStatuses.size() != 1u
+                                || !completeValueDependency(object)
                                 || !completePrefix(
                                     DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency,
                                     1u, 4u, 0u, 0)

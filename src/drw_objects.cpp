@@ -1407,6 +1407,28 @@ bool consumeZeroPaddingWithinBounds(dwgBuffer *buf, std::uint32_t endBit,
     return true;
 }
 
+bool consumeObjectHandleAlignmentPaddingWithinBounds(
+        dwgBuffer *buf, std::uint64_t endBit) {
+    if (buf == nullptr || !buf->isGood())
+        return false;
+    const std::uint64_t currentBit = currentObjectDwgBit(buf);
+    if (currentBit > endBit || (endBit & 7u) != 0u)
+        return false;
+    const std::uint64_t paddingBits = (8u - (currentBit & 7u)) & 7u;
+    if (endBit - currentBit != paddingBits)
+        return false;
+    dwgBuffer probe = buf->forkIndependent();
+    for (std::uint64_t index = 0; index < paddingBits; ++index) {
+        probe.getBit();
+        if (!probe.isGood())
+            return false;
+    }
+    if (currentObjectDwgBit(&probe) != endBit)
+        return false;
+    *buf = probe;
+    return true;
+}
+
 std::uint64_t remainingDwgBits(const dwgBuffer *buf) {
     if (buf == nullptr || !buf->isGood())
         return 0;
@@ -25507,6 +25529,7 @@ void DRW_AssociativeObject::reset() {
     m_dxfVariableDescriptionBytes = 0u;
     m_dxfVariableT78Bytes = 0u;
     m_dxfDependencyNameBytes = 0u;
+    m_dxfValueDependencyNameBytes = 0u;
     m_persistentSubentityCount = 0;
     m_persistentSubentityHandles.clear();
     m_persistentUnknown0 = 0;
@@ -25526,6 +25549,13 @@ void DRW_AssociativeObject::reset() {
     m_writeDependencyHandle = 0;
     m_dependencyFieldsParsed = false;
     m_dependencyWireComplete = false;
+    m_valueDependencyFieldsParsed = false;
+    m_valueDependencyClassVersion = 0;
+    m_valueDependencyName.clear();
+    m_valueDependencyValueCode = 0;
+    m_valueDependencyValueKind = EvalVariantKind::Missing;
+    m_valueDependencyValueReal = 0.0;
+    m_valueDependencyValueInt32 = 0;
     m_dependencyIsRead = false;
     m_dependencyIsWrite = false;
     m_dependencyIsAttachedToObject = false;
@@ -25570,6 +25600,11 @@ void DRW_AssociativeObject::reset() {
     m_dxfAssociativeDependencyNameSeen = false;
     m_dxfAssociativeDependencyBodyHandleSeen = false;
     m_dxfAssociativeDependencyUnexpectedField = false;
+    m_dxfAssociativeValueDependencySubclass = false;
+    m_dxfAssociativeValueDependencyIntIndex = 0u;
+    m_dxfAssociativeValueDependencyNameSeen = false;
+    m_dxfAssociativeValueDependencyValueSeen = false;
+    m_dxfAssociativeValueDependencyUnexpectedField = false;
     m_dxfGeomClassVersionPresent = false;
     m_dxfGeomEnabledPresent = false;
     m_dxfGeomSubentityClassNamePresent = false;
@@ -25617,12 +25652,30 @@ bool DRW_AssociativeObject::parseCode(
             && m_dxfAssociativeDependencyBodyHandleSeen
             && nameStateComplete;
     };
+    const auto updateAssociativeValueDependencyStatus = [this]() {
+        const bool valueValid =
+            m_valueDependencyValueCode == 40
+                ? m_valueDependencyValueKind == EvalVariantKind::Real
+                    && std::isfinite(m_valueDependencyValueReal)
+                : m_valueDependencyValueCode == 90
+                    && m_valueDependencyValueKind == EvalVariantKind::Int32;
+        m_valueDependencyFieldsParsed =
+            !m_dxfAssociativeValueDependencyUnexpectedField
+            && m_dxfAssociativeValueDependencyIntIndex >= 1u
+            && m_dxfAssociativeValueDependencyNameSeen
+            && m_dxfAssociativeValueDependencyValueSeen
+            && m_valueDependencyClassVersion == 0
+            && valueValid;
+        m_dependencyWireComplete = m_dependencyFieldsParsed
+            && m_valueDependencyFieldsParsed;
+    };
     if (code == 100) {
         const std::string_view subclass = reader->getStringView();
         m_dxfAssociativeActionSubclass = false;
         m_dxfAssociativeNetworkSubclass = false;
         m_dxfAssociativeVariableSubclass = false;
         m_dxfAssociativeDependencySubclass = false;
+        m_dxfAssociativeValueDependencySubclass = false;
         m_dxfAssociativeGeomSubclass = 0;
         m_dxfPersistentSubentityBody = false;
         if (subclass == "AcDbAssocAction") {
@@ -25671,6 +25724,22 @@ bool DRW_AssociativeObject::parseCode(
             m_dependencyWireComplete = false;
             m_dependencyName.clear();
             m_dependencyNamePresent = false;
+            return true;
+        }
+        if (subclass == "AcDbAssocValueDependency") {
+            m_dxfAssociativeValueDependencySubclass = true;
+            m_dxfAssociativeValueDependencyIntIndex = 0u;
+            m_dxfAssociativeValueDependencyNameSeen = false;
+            m_dxfAssociativeValueDependencyValueSeen = false;
+            m_dxfAssociativeValueDependencyUnexpectedField = false;
+            m_valueDependencyFieldsParsed = false;
+            m_dependencyWireComplete = false;
+            m_valueDependencyClassVersion = 0;
+            m_valueDependencyName.clear();
+            m_valueDependencyValueCode = 0;
+            m_valueDependencyValueKind = EvalVariantKind::Missing;
+            m_valueDependencyValueReal = 0.0;
+            m_valueDependencyValueInt32 = 0;
             return true;
         }
         if (subclass == "AcDbAssocGeomDependency") {
@@ -25887,6 +25956,64 @@ bool DRW_AssociativeObject::parseCode(
             && m_dxfAssociativeVariableDiscriminatorSeen
             && m_variableValueParsed
             && m_dxfAssociativeVariableBoolIndex == 2u;
+        return true;
+    }
+    if (m_dxfAssociativeValueDependencySubclass) {
+        if (code == 90) {
+            const std::int32_t value = reader->getInt32();
+            if (m_dxfAssociativeValueDependencyIntIndex == 0u
+                && !m_dxfAssociativeValueDependencyNameSeen) {
+                m_valueDependencyClassVersion = value;
+            } else if (m_dxfAssociativeValueDependencyNameSeen
+                && !m_dxfAssociativeValueDependencyValueSeen) {
+                m_valueDependencyValueCode = 90;
+                m_valueDependencyValueKind = EvalVariantKind::Int32;
+                m_valueDependencyValueInt32 = value;
+                m_dxfAssociativeValueDependencyValueSeen = true;
+            } else {
+                m_dxfAssociativeValueDependencyUnexpectedField = true;
+            }
+            if (m_dxfAssociativeValueDependencyIntIndex
+                < std::numeric_limits<std::uint8_t>::max())
+                ++m_dxfAssociativeValueDependencyIntIndex;
+            else
+                m_dxfAssociativeValueDependencyUnexpectedField = true;
+            updateAssociativeValueDependencyStatus();
+            return true;
+        }
+        if (code == 40) {
+            const double value = reader->getDouble();
+            if (m_dxfAssociativeValueDependencyNameSeen
+                && !m_dxfAssociativeValueDependencyValueSeen) {
+                m_valueDependencyValueCode = 40;
+                m_valueDependencyValueKind = EvalVariantKind::Real;
+                m_valueDependencyValueReal = value;
+                m_dxfAssociativeValueDependencyValueSeen = true;
+            } else {
+                m_dxfAssociativeValueDependencyUnexpectedField = true;
+            }
+            updateAssociativeValueDependencyStatus();
+            return true;
+        }
+        if (code == 1) {
+            if (m_dxfAssociativeValueDependencyIntIndex != 1u
+                || m_dxfAssociativeValueDependencyNameSeen
+                || m_dxfAssociativeValueDependencyValueSeen) {
+                m_dxfAssociativeValueDependencyUnexpectedField = true;
+            } else {
+                std::string value = reader->getUtf8String();
+                if (!replaceDxfRetainedStringField(
+                        reader, m_dxfValueDependencyNameBytes,
+                        m_valueDependencyName, std::move(value)))
+                    return false;
+                m_dxfAssociativeValueDependencyNameSeen = true;
+            }
+            updateAssociativeValueDependencyStatus();
+            return true;
+        }
+        m_dxfAssociativeValueDependencyUnexpectedField = true;
+        m_valueDependencyFieldsParsed = false;
+        m_dependencyWireComplete = false;
         return true;
     }
     if (m_dxfAssociativeDependencySubclass) {
@@ -28319,6 +28446,69 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
         // AcDbAssocDependency body (dwgTs cases 1228 / 1256).
         if (!readDependencyFields())
             return fail();
+        if (version == DRW::AC1024
+            && rn == "ACDBASSOCVALUEDEPENDENCY"
+            && objectDataEndKnown) {
+            const std::uint64_t valueStartBit = currentObjectDwgBit(buf);
+            const bool separateStringBuffer = sBuf != buf;
+            dwgBuffer bodyProbe = *buf;
+            dwgBuffer stringProbe = *sBuf;
+            dwgBuffer *textProbe = separateStringBuffer
+                ? &stringProbe : &bodyProbe;
+            std::int32_t valueClassVersion = 0;
+            UTF8STRING valueName;
+            std::int32_t valueCode = 0;
+            EvalVariantKind valueKind = EvalVariantKind::Unsupported;
+            double valueReal = 0.0;
+            std::int32_t valueInt32 = 0;
+            bool valueComplete = false;
+            bool fieldsComplete =
+                readBitShortWithinBody(&bodyProbe, version, objectDataEnd,
+                                       valueClassVersion)
+                && valueClassVersion == 0
+                && readVariableTextWithinBounds(
+                    &bodyProbe, textProbe, version, boundedBodyEnd,
+                    stringDataEnd, valueName)
+                && valueName.size() <= kMaxCadValueBytes
+                && readBitShortWithinBody(&bodyProbe, version,
+                                           objectDataEnd, valueCode);
+            if (fieldsComplete && valueCode == 40) {
+                valueComplete = readBitDoubleWithinBody(
+                    &bodyProbe, version, objectDataEnd, valueReal)
+                    && std::isfinite(valueReal);
+                valueKind = EvalVariantKind::Real;
+            } else if (fieldsComplete && valueCode == 90) {
+                valueComplete = readBitLongWithinBody(
+                    &bodyProbe, version, objectDataEnd, valueInt32);
+                valueKind = EvalVariantKind::Int32;
+            }
+            fieldsComplete = fieldsComplete && valueComplete
+                && bodyProbe.isGood() && textProbe->isGood()
+                && objectBodyFitsSize(currentObjectDwgBit(&bodyProbe),
+                                      objectDataEnd)
+                && objectBodyFitsSize(currentObjectDwgBit(textProbe),
+                                      stringDataEnd);
+            if (fieldsComplete) {
+                *buf = bodyProbe;
+                if (separateStringBuffer)
+                    *sBuf = stringProbe;
+                m_valueDependencyFieldsParsed = true;
+                m_valueDependencyClassVersion = valueClassVersion;
+                m_valueDependencyName = std::move(valueName);
+                m_valueDependencyValueCode = valueCode;
+                m_valueDependencyValueKind = valueKind;
+                m_valueDependencyValueReal = valueReal;
+                m_valueDependencyValueInt32 = valueInt32;
+            }
+            appendPrefixStatus(
+                DRW_AssociativePrefixStatus::Kind::AcDbAssocValueDependency,
+                valueStartBit,
+                fieldsComplete
+                    ? DRW_AssociativePrefixStatus::ParseStatus::Complete
+                    : DRW_AssociativePrefixStatus::ParseStatus::Missing,
+                static_cast<std::uint16_t>(valueClassVersion), 0, 3u,
+                fieldsComplete ? valueCode : 0);
+        }
     } else if (rn == "ACDBASSOCVARIABLE") {
         if (!readActionFields())
             return fail();
@@ -28462,12 +28652,20 @@ bool DRW_AssociativeObject::parseDwg(DRW::Version version, dwgBuffer *buf, std::
 
     if (version == DRW::AC1024 && m_dependencyFieldsParsed
         && objectDataEndKnown) {
-        const bool bodyWireComplete =
-            consumeZeroPaddingWithinBounds(buf, objectDataEnd, 7u);
-        const bool stringWireComplete =
-            consumeZeroPaddingWithinBounds(sBuf, stringDataEnd, 7u);
-        const bool handleWireComplete =
-            consumeZeroPaddingWithinBounds(&hBuff, handleEndBit, 7u);
+        const bool valueDependency =
+            m_recordName == "ACDBASSOCVALUEDEPENDENCY";
+        const bool bodyWireComplete = valueDependency
+            ? m_valueDependencyFieldsParsed
+                && consumeZeroPaddingWithinBounds(buf, objectDataEnd, 7u)
+            : consumeZeroPaddingWithinBounds(buf, objectDataEnd, 7u);
+        const bool stringWireComplete = valueDependency
+            ? m_valueDependencyFieldsParsed
+                && consumeZeroPaddingWithinBounds(sBuf, stringDataEnd, 7u)
+            : consumeZeroPaddingWithinBounds(sBuf, stringDataEnd, 7u);
+        const bool handleWireComplete = valueDependency
+            ? consumeObjectHandleAlignmentPaddingWithinBounds(
+                &hBuff, handleEndBit)
+            : consumeZeroPaddingWithinBounds(&hBuff, handleEndBit, 7u);
         m_dependencyWireComplete = m_dependencyWireComplete
             && bodyWireComplete && stringWireComplete && handleWireComplete;
     }

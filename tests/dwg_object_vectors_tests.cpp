@@ -905,6 +905,9 @@ struct AssociativeDependencyFrame {
     std::vector<std::uint8_t> bytes;
     std::uint32_t handleBits {0};
     std::uint64_t bodyStartBit {0};
+    std::uint64_t valueDependencyStartBit {0};
+    std::uint64_t valueCodeStartBit {0};
+    std::uint64_t valueEndBit {0};
 };
 
 bool makeAssociativeDependencyFrame(
@@ -915,11 +918,20 @@ bool makeAssociativeDependencyFrame(
         bool includeSentinels = true,
         std::array<std::uint8_t, 4> dependencyHandleCodes = {{
             DRW::DwgSoftPointer, DRW::DwgSoftPointer,
-            DRW::DwgSoftPointer, DRW::DwgHardOwnership}}) {
+            DRW::DwgSoftPointer, DRW::DwgHardOwnership}},
+        bool includeValueDependencyFields = false,
+        std::int32_t valueDependencyClassVersion = 0,
+        const UTF8STRING& valueDependencyName = UTF8STRING(),
+        std::int16_t valueCode = 90,
+        std::int32_t valueInt32 = 42,
+        double valueReal = 42.0) {
     const DRW::Version version = DRW::AC1024;
     DRW_TextCodec codec;
     codec.setVersion(version, false);
     dwgBufferW object(&codec), body(&codec), strings(&codec), handles(&codec);
+    std::uint64_t valueDependencyStartOffset = 0u;
+    std::uint64_t valueCodeStartOffset = 0u;
+    std::uint64_t valueEndOffset = 0u;
 
     body.putBitShort(2u); // dependency class version
     body.putBitLong(0x123456); // status
@@ -936,7 +948,22 @@ bool makeAssociativeDependencyFrame(
             strings.putVariableText(version, name);
     }
     body.putBitLong(bodyId);
-    if (includeSentinels)
+    if (includeValueDependencyFields) {
+        valueDependencyStartOffset = body.bitCount();
+        body.putBitShort(static_cast<std::int16_t>(
+            valueDependencyClassVersion));
+        strings.putVariableText(version, valueDependencyName);
+        valueCodeStartOffset = body.bitCount();
+        body.putBitShort(valueCode);
+        if (valueCode == 40)
+            body.putBitDouble(valueReal);
+        else if (valueCode == 90)
+            body.putBitLong(valueInt32);
+        else
+            return false;
+        valueEndOffset = body.bitCount();
+    }
+    if (includeSentinels && !includeValueDependencyFields)
         body.put3Bits(0b101u);
 
     object.putObjType(version, 518u);
@@ -947,14 +974,26 @@ bool makeAssociativeDependencyFrame(
     object.putBitLong(0); // no reactors
     object.putBit(1u); // no extension dictionary
     frame.bodyStartBit = object.bitCount();
+    if (includeValueDependencyFields) {
+        frame.valueDependencyStartBit =
+            frame.bodyStartBit + valueDependencyStartOffset;
+        frame.valueCodeStartBit = frame.bodyStartBit + valueCodeStartOffset;
+        frame.valueEndBit = frame.bodyStartBit + valueEndOffset;
+    }
     appendBits(object, body);
     object.alignToByte();
 
-    strings.alignToByte();
-    object.putBytes(strings.data().data(), strings.size());
-    for (int bit = 0; bit < 7; ++bit)
-        object.putBit(0u);
-    const std::uint64_t stringBitSize = strings.size() * 8u + 7u;
+    std::uint64_t stringBitSize = 0u;
+    if (includeValueDependencyFields) {
+        stringBitSize = strings.bitCount();
+        appendBits(object, strings);
+    } else {
+        strings.alignToByte();
+        object.putBytes(strings.data().data(), strings.size());
+        for (int bit = 0; bit < 7; ++bit)
+            object.putBit(0u);
+        stringBitSize = strings.size() * 8u + 7u;
+    }
     if (stringBitSize > std::numeric_limits<std::uint16_t>::max())
         return false;
     object.putRawShort16(static_cast<std::uint16_t>(stringBitSize));
@@ -974,9 +1013,14 @@ bool makeAssociativeDependencyFrame(
     putHandle(dependencyHandleCodes[1], 0xA211u); // read_dependency
     putHandle(dependencyHandleCodes[2], 0xA212u); // node
     putHandle(dependencyHandleCodes[3], 0xA213u); // dependency_body
-    if (includeSentinels)
+    if (includeSentinels && !includeValueDependencyFields)
         putHandle(DRW::DwgSoftPointer, 0xA214u); // following-handle sentinel
-    handles.alignToByte();
+    if (includeValueDependencyFields) {
+        while (((object.bitCount() + handles.bitCount()) & 7u) != 0u)
+            handles.putBit(1u); // ODA B* alignment padding need not be zero.
+    } else {
+        handles.alignToByte();
+    }
     if (!object.isGood() || !handles.isGood()
         || handles.bitCount() > std::numeric_limits<std::uint32_t>::max())
         return false;
@@ -1799,14 +1843,16 @@ void testAssociativeDependencyFields(TestContext& t) {
         bool goodAfterSentinel;
     };
     const auto parse = [](const AssociativeDependencyFrame& frame,
-                          AssociativeCodecProbe& object) {
+                          AssociativeCodecProbe& object,
+                          bool consumeSentinel = true) {
         DRW_TextCodec codec;
         codec.setVersion(DRW::AC1024, false);
         dwgBuffer input(frame.bytes.data(), frame.bytes.size(), &codec);
         const bool read = object.parseDwg(
             DRW::AC1024, &input, frame.handleBits);
         const bool good = input.isGood();
-        const int sentinel = good ? input.get3Bits() : -1;
+        const int sentinel = good && consumeSentinel
+            ? input.get3Bits() : -1;
         return ParseResult{read, good, sentinel, input.isGood()};
     };
 
@@ -1910,21 +1956,106 @@ void testAssociativeDependencyFields(TestContext& t) {
     AssociativeDependencyFrame valueDependencyFrame;
     const bool valueDependencyFrameBuilt = makeAssociativeDependencyFrame(
         true, false, true, true, false, "", 42, valueDependencyFrame,
-        false, false, observedAc1024ValueDependencyCodes);
+            false, false, observedAc1024ValueDependencyCodes, true,
+            0, "", 90, 42);
     t.expect(valueDependencyFrameBuilt,
              "AC1024 observed-code value-dependency frame builds without sentinels");
     if (valueDependencyFrameBuilt) {
         AssociativeCodecProbe valueDependency("ACDBASSOCVALUEDEPENDENCY");
         const ParseResult valueResult = parse(valueDependencyFrame,
-                                              valueDependency);
+                                              valueDependency, false);
+        const std::string valueDependencyState =
+            " read/good/wire/fields="
+            + std::to_string(valueResult.read) + "/"
+            + std::to_string(valueResult.good) + "/"
+            + std::to_string(valueDependency.m_dependencyWireComplete) + "/"
+            + std::to_string(valueDependency.m_valueDependencyFieldsParsed)
+            + " class/code/kind/int/name/prefixes="
+            + std::to_string(valueDependency.m_valueDependencyClassVersion)
+            + "/" + std::to_string(valueDependency.m_valueDependencyValueCode)
+            + "/" + std::to_string(static_cast<int>(
+                valueDependency.m_valueDependencyValueKind))
+            + "/" + std::to_string(
+                valueDependency.m_valueDependencyValueInt32)
+            + "/" + std::to_string(
+                valueDependency.m_valueDependencyName.size())
+            + "/" + std::to_string(
+                valueDependency.m_prefixStatuses.size());
         t.expect(valueResult.read && valueResult.good
                      && valueDependency.m_dependencyFieldsParsed
                      && valueDependency.m_dependencyWireComplete
+                     && valueDependency.m_valueDependencyFieldsParsed
+                     && valueDependency.m_valueDependencyClassVersion == 0
+                     && valueDependency.m_valueDependencyName.empty()
+                     && valueDependency.m_valueDependencyValueCode == 90
+                     && valueDependency.m_valueDependencyValueKind
+                        == DRW_AssociativeObject::EvalVariantKind::Int32
+                     && valueDependency.m_valueDependencyValueInt32 == 42
                      && valueDependency.m_dependencyHandle == 0xA210u
                      && valueDependency.m_readDependencyHandle == 0xA211u
                      && valueDependency.m_dependencyNodeHandle == 0xA212u
-                     && valueDependency.m_dependencyBodyHandle == 0xA213u,
-                 "AC1024 value dependency accepts the peer-decoded 4/4/4/3 handle-code tuple without a trailing sentinel");
+                     && valueDependency.m_dependencyBodyHandle == 0xA213u
+                     && valueDependency.m_prefixStatuses.size() == 2u
+                     && valueDependency.m_prefixStatuses.back().m_kind
+                        == DRW_AssociativePrefixStatus::Kind::AcDbAssocValueDependency,
+                 "AC1024 value dependency decodes its exact cached integer and accepts 4/4/4/3 handles"
+                     + valueDependencyState);
+
+        DRW_TextCodec oracleCodec;
+        oracleCodec.setVersion(DRW::AC1024, false);
+        dwgBuffer bodyOracle(valueDependencyFrame.bytes.data(),
+                             valueDependencyFrame.bytes.size(), &oracleCodec);
+        const bool positioned = setBitPosition(
+            bodyOracle, valueDependencyFrame.valueDependencyStartBit);
+        const std::int16_t rawClassVersion = bodyOracle.getBitShort();
+        const bool codePositioned = setBitPosition(
+            bodyOracle, valueDependencyFrame.valueCodeStartBit);
+        const std::int16_t rawValueCode = bodyOracle.getBitShort();
+        const std::int32_t rawValue = bodyOracle.getBitLong();
+        t.expect(positioned && codePositioned && bodyOracle.isGood()
+                     && rawClassVersion == 0
+                     && rawValueCode == 90 && rawValue == 42
+                     && bodyOracle.getPosition() * 8u
+                            + bodyOracle.getBitPos()
+                        == valueDependencyFrame.valueEndBit,
+                 "AC1024 value-dependency vector independently proves class, discriminator, and cached integer bit spans");
+
+        AssociativeDependencyFrame realValueDependencyFrame;
+        const bool realValueDependencyFrameBuilt =
+            makeAssociativeDependencyFrame(
+                true, false, true, true, false, "", 42,
+                realValueDependencyFrame, false, false,
+                observedAc1024ValueDependencyCodes, true, 0, "", 40, 0,
+                1.5);
+        t.expect(realValueDependencyFrameBuilt,
+                 "AC1024 real value-dependency frame builds");
+        if (realValueDependencyFrameBuilt) {
+            AssociativeCodecProbe realDependency(
+                "ACDBASSOCVALUEDEPENDENCY");
+            const ParseResult realResult = parse(
+                realValueDependencyFrame, realDependency, false);
+            t.expect(realResult.read && realResult.good
+                         && realDependency.m_dependencyWireComplete
+                         && realDependency.m_valueDependencyFieldsParsed
+                         && realDependency.m_valueDependencyValueCode == 40
+                         && realDependency.m_valueDependencyValueKind
+                            == DRW_AssociativeObject::EvalVariantKind::Real
+                         && realDependency.m_valueDependencyValueReal == 1.5,
+                     "AC1024 value dependency decodes the cached real variant"
+                         " read/good/wire/fields/class/code/kind="
+                         + std::to_string(realResult.read) + "/"
+                         + std::to_string(realResult.good) + "/"
+                         + std::to_string(
+                             realDependency.m_dependencyWireComplete) + "/"
+                         + std::to_string(
+                             realDependency.m_valueDependencyFieldsParsed) + "/"
+                         + std::to_string(
+                             realDependency.m_valueDependencyClassVersion) + "/"
+                         + std::to_string(
+                             realDependency.m_valueDependencyValueCode) + "/"
+                         + std::to_string(static_cast<int>(
+                             realDependency.m_valueDependencyValueKind)));
+        }
 
         auto mismatchedCodes = observedAc1024ValueDependencyCodes;
         mismatchedCodes[0] = DRW::DwgHardOwnership;

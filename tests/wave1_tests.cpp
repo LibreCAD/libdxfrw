@@ -2539,6 +2539,21 @@ void testAssociativeDependencyWriter(TestContext& t) {
                         dependency.m_geomDependentOnCompoundObject =
                             (flags & 2u) != 0u;
                     }
+                    const bool valueDependency = std::string(name)
+                        == "ACDBASSOCVALUEDEPENDENCY";
+                    const bool realValueDependency = valueDependency
+                        && nameState == 1u;
+                    if (valueDependency) {
+                        dependency.m_valueDependencyFieldsParsed = true;
+                        dependency.m_valueDependencyClassVersion = 0;
+                        dependency.m_valueDependencyValueCode =
+                            realValueDependency ? 40 : 90;
+                        dependency.m_valueDependencyValueKind = realValueDependency
+                            ? DRW_AssociativeObject::EvalVariantKind::Real
+                            : DRW_AssociativeObject::EvalVariantKind::Int32;
+                        dependency.m_valueDependencyValueReal = 1.5;
+                        dependency.m_valueDependencyValueInt32 = 42;
+                    }
 
                     const bool wrote =
                         owner.writeAssociativeDependency(&dependency)
@@ -2564,6 +2579,13 @@ void testAssociativeDependencyWriter(TestContext& t) {
                         "330:" + handleText(0x3EBu),
                         "330:" + handleText(0x3ECu),
                         "360:" + handleText(0x3EDu), "90:-9"});
+                    if (valueDependency) {
+                        expected.insert(expected.end(), {
+                            "100:AcDbAssocValueDependency", "90:0",
+                            "1:"});
+                        expected.push_back(realValueDependency
+                            ? "40:0x1.8p+0" : "90:42");
+                    }
                     if (geomDependency) {
                         expected.insert(expected.end(), {
                             "100:AcDbAssocGeomDependency", "90:0",
@@ -2688,11 +2710,17 @@ void testAssociativeDependencyWriter(TestContext& t) {
                  && unresolvedReference.handle == 0x200u,
              "unresolved dependency reference rolls back record and source identity");
 
-    DRW_AssociativeObject rollbackRetry("ACDBASSOCDEPENDENCY");
+    DRW_AssociativeObject rollbackRetry("ACDBASSOCVALUEDEPENDENCY");
     rollbackRetry.handle = 0x210u;
     rollbackRetry.parentHandle = 0u;
     rollbackRetry.m_dependencyFieldsParsed = true;
     rollbackRetry.m_dependencyWireComplete = true;
+    rollbackRetry.m_valueDependencyFieldsParsed = true;
+    rollbackRetry.m_valueDependencyClassVersion = 0;
+    rollbackRetry.m_valueDependencyValueCode = 90;
+    rollbackRetry.m_valueDependencyValueKind =
+        DRW_AssociativeObject::EvalVariantKind::Int32;
+    rollbackRetry.m_valueDependencyValueInt32 = 42;
     rollbackRetry.m_dependencyNamePresent = true;
     rollbackRetry.m_dependencyName = "retry-name";
     const bool badExtDataAdded = rollbackRetry.addExtData(

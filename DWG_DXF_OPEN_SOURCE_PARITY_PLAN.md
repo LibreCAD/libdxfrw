@@ -47,7 +47,7 @@ close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — physical associative profile admission and recursive closure | Physical value-dependency records remain ineligible until body/text/handle spans are decoded and bounded. The mechanical `ACDBASSOCVARIABLE` suffix is also unresolved. Admit only a source-backed profile whose required spans, roles, owners, and descendants are proven. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — associative profile admission and recursive closure | The AC1024 value-dependency body/text/handle suffix is decoded and bounded for 77 records across three local witnesses; this does not qualify complete graph output. Remaining: required owner/descendant edges, the mechanical `ACDBASSOCVARIABLE` suffix, emitted-field/readback proof, and strict complete-export admission. | Preserve unknown tails and strict complete-export refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Implement only source- or consumer-witnessed gaps; keep unsupported profiles refused until their schema and wire layout are established. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -82,10 +82,12 @@ engines.
    qualified providers. Keep version-2 nonzero-seed registry layouts raw until
    their framing is proven. Keep investigation DWGs out of committed fixtures;
    bind regressions to eligible repository inputs or locally authored fixtures.
-2. **Next physical profile and edge admission:** decode and bound the remaining
-   physical body/text/handle spans in the AC1024 value-dependency records. Prove
-   class/version and source offsets, then add only a source-backed missing decoder
-   or edge provider.
+2. **Next profile and edge admission:** keep the AC1024 value-dependency
+   body/text/handle decoder closed as complete for its 77-record, three-witness
+   profile (receipt: `docs/research/p4-ac1024-value-dependency-span-profile-2026-10-30.json`).
+   Do not broaden that profile to other producers or versions. Add only a
+   source-backed missing owner/dependency edge provider, and resolve the
+   mechanical `ACDBASSOCVARIABLE` suffix separately.
    Close required extension-dictionary and descendant edges before enabling
    that physical profile in document output; inspect emitted fields and read
    them back. Preserve unsupported tails and strict refusal until required

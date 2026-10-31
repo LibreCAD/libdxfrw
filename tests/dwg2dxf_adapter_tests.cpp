@@ -28486,11 +28486,22 @@ bool associativeDwgRootNetworkValueDependencyExport() {
         valueDependency.m_dependencyIsDelegatingToOwningAction = true;
         valueDependency.m_dependencyHandle = targetVariable.handle;
         valueDependency.m_dependencyBodyId = 2;
+        valueDependency.m_valueDependencyFieldsParsed = true;
+        valueDependency.m_valueDependencyClassVersion = 0;
+        valueDependency.m_valueDependencyValueCode = 90;
+        valueDependency.m_valueDependencyValueKind =
+            DRW_AssociativeObject::EvalVariantKind::Int32;
+        valueDependency.m_valueDependencyValueInt32 = 17;
         valueDependency.m_prefixStatuses.push_back({
             DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency,
             0u, 0u, 1u,
             DRW_AssociativePrefixStatus::ParseStatus::Complete,
             4u, 0u, 0, "authored fully consumed value-dependency profile"});
+        valueDependency.m_prefixStatuses.push_back({
+            DRW_AssociativePrefixStatus::Kind::AcDbAssocValueDependency,
+            0u, 0u, 0u,
+            DRW_AssociativePrefixStatus::ParseStatus::Complete,
+            0u, 3u, 90, "authored cached integer value profile"});
 
         source.dwgAssociativeObjects.push_back(network);
         source.dwgAssociativeObjects.push_back(variable);
@@ -28638,7 +28649,7 @@ bool associativeDwgRootNetworkValueDependencyExport() {
                                dependencyWire)
             || networkWire.size() != 21u || variableWire.size() != 22u
             || targetVariableWire.size() != 25u
-            || dependencyWire.size() != 17u)
+            || dependencyWire.size() != 21u)
             return fail("could not inspect exact associative output group pairs");
         const std::string networkHandle = networkWire[1].second;
         const std::string associationDictionaryHandle = networkWire[3].second;
@@ -28681,7 +28692,9 @@ bool associativeDwgRootNetworkValueDependencyExport() {
             {90, "1"}, {90, "0"}, {290, "1"}, {290, "0"},
             {290, "1"}, {290, "1"}, {90, "0"},
             {330, targetVariableHandle}, {290, "0"}, {330, "0"},
-            {330, "0"}, {360, "0"}, {90, "2"}};
+            {330, "0"}, {360, "0"}, {90, "2"},
+            {100, "AcDbAssocValueDependency"}, {90, "0"},
+            {1, ""}, {90, "17"}};
         if (networkWire != expectedNetworkWire
             || variableWire != expectedVariableWire
             || targetVariableWire != expectedTargetVariableWire
@@ -28780,6 +28793,14 @@ bool associativeDwgRootNetworkValueDependencyExport() {
             || readTargetVariable->reactorHandles
                 != std::vector<std::uint32_t>{readValueDependency->handle}
             || !readValueDependency->m_dependencyFieldsParsed
+            || !readValueDependency->m_dependencyWireComplete
+            || !readValueDependency->m_valueDependencyFieldsParsed
+            || readValueDependency->m_valueDependencyClassVersion != 0
+            || !readValueDependency->m_valueDependencyName.empty()
+            || readValueDependency->m_valueDependencyValueCode != 90
+            || readValueDependency->m_valueDependencyValueKind
+                != DRW_AssociativeObject::EvalVariantKind::Int32
+            || readValueDependency->m_valueDependencyValueInt32 != 17
             || readValueDependency->parentHandle != readVariable->handle
             || readValueDependency->m_dependencyHandle
                 != readTargetVariable->handle

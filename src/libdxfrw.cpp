@@ -28890,6 +28890,8 @@ bool dxfRW::writeAssociativeDependency(DRW_AssociativeObject *ent) {
     const char* recordName = nullptr;
     const bool geomDependency = dxfKeywordEquals(
         ent->m_recordName, "ACDBASSOCGEOMDEPENDENCY");
+    const bool valueDependency = dxfKeywordEquals(
+        ent->m_recordName, "ACDBASSOCVALUEDEPENDENCY");
     if (dxfKeywordEquals(ent->m_recordName, "ACDBASSOCDEPENDENCY"))
         recordName = "ACDBASSOCDEPENDENCY";
     else if (dxfKeywordEquals(ent->m_recordName,
@@ -28902,6 +28904,20 @@ bool dxfRW::writeAssociativeDependency(DRW_AssociativeObject *ent) {
                     == "AcDbAssocSingleEdgePersSubentId")
         recordName = "ACDBASSOCGEOMDEPENDENCY";
     else
+        return failDxfWrite();
+
+    if (valueDependency
+        && (!ent->m_valueDependencyFieldsParsed
+            || ent->m_valueDependencyClassVersion != 0
+            || (ent->m_valueDependencyValueCode == 40
+                ? ent->m_valueDependencyValueKind
+                    != DRW_AssociativeObject::EvalVariantKind::Real
+                    || !std::isfinite(
+                        ent->m_valueDependencyValueReal)
+                : ent->m_valueDependencyValueCode == 90
+                    ? ent->m_valueDependencyValueKind
+                        != DRW_AssociativeObject::EvalVariantKind::Int32
+                    : true)))
         return failDxfWrite();
 
     const std::uint32_t sourceHandle = ent->handle;
@@ -28977,6 +28993,17 @@ bool dxfRW::writeAssociativeDependency(DRW_AssociativeObject *ent) {
         || !writer->writeString(360,
                                 toHexStr(emittedDependencyBodyHandle))
         || !writer->writeInt32(90, ent->m_dependencyBodyId))
+        return failDxfWrite();
+    if (valueDependency
+        && (!writer->writeString(100, "AcDbAssocValueDependency")
+            || !writer->writeInt32(
+                90, ent->m_valueDependencyClassVersion)
+            || !writer->writeUtf8String(1, ent->m_valueDependencyName)
+            || (ent->m_valueDependencyValueCode == 40
+                ? !writer->writeDouble(
+                    40, ent->m_valueDependencyValueReal)
+                : !writer->writeInt32(
+                    90, ent->m_valueDependencyValueInt32))))
         return failDxfWrite();
     if (geomDependency
         && (!writer->writeString(100, "AcDbAssocGeomDependency")

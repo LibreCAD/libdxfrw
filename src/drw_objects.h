@@ -7082,6 +7082,7 @@ struct DRW_AssociativePrefixStatus {
     AcDbAssocAction,
     AcDbAssocActionParam,
     AcDbAssocDependency,
+    AcDbAssocValueDependency,
     AcDbAssocGeomDependency,
     AcDbAssocNetwork,
     AcDbAssocActionBody,
@@ -7224,6 +7225,11 @@ public:
       m_dxfAssociativeVariableDiscriminatorSeen = false;
       m_dxfAssociativeVariableBoolIndex = 0;
       m_dxfAssociativeVariableUnexpectedField = false;
+      m_dxfAssociativeValueDependencySubclass = false;
+      m_dxfAssociativeValueDependencyIntIndex = 0u;
+      m_dxfAssociativeValueDependencyNameSeen = false;
+      m_dxfAssociativeValueDependencyValueSeen = false;
+      m_dxfAssociativeValueDependencyUnexpectedField = false;
       m_dxfGeomClassVersionPresent = false;
       m_dxfGeomEnabledPresent = false;
       m_dxfGeomSubentityClassNamePresent = false;
@@ -7297,8 +7303,19 @@ public:
   // its string value so absent and explicitly empty names remain distinct.
   bool m_dependencyFieldsParsed = false;
   // True only when the AC1024 dependency body, detached text stream, and
-  // object-specific handle stream are fully consumed (apart from zero padding).
+  // object-specific handle stream are fully consumed (apart from bounded
+  // object-body padding and byte-alignment padding in the handle stream).
   bool m_dependencyWireComplete = false;
+  // AC1024 AcDbAssocValueDependency subclass. The cached value is an
+  // EvalVariant encoded by its DXF group code; only the witnessed 40/90
+  // numeric variants are typed here.
+  bool m_valueDependencyFieldsParsed = false;
+  std::int32_t m_valueDependencyClassVersion = 0;
+  UTF8STRING m_valueDependencyName;
+  std::int32_t m_valueDependencyValueCode = 0;
+  EvalVariantKind m_valueDependencyValueKind = EvalVariantKind::Missing;
+  double m_valueDependencyValueReal = 0.0;
+  std::int32_t m_valueDependencyValueInt32 = 0;
   // Exact AC1024 AcDbAssocGeomDependency subclass fields retained from the
   // bounded DWG body or its DXF subclass sequence.
   bool m_geomDependencyFieldsParsed = false;
@@ -7394,6 +7411,13 @@ private:
     m_writeDependencyHandle = o.m_writeDependencyHandle;
     m_dependencyFieldsParsed = o.m_dependencyFieldsParsed;
     m_dependencyWireComplete = o.m_dependencyWireComplete;
+    m_valueDependencyFieldsParsed = o.m_valueDependencyFieldsParsed;
+    m_valueDependencyClassVersion = o.m_valueDependencyClassVersion;
+    m_valueDependencyName = o.m_valueDependencyName;
+    m_valueDependencyValueCode = o.m_valueDependencyValueCode;
+    m_valueDependencyValueKind = o.m_valueDependencyValueKind;
+    m_valueDependencyValueReal = o.m_valueDependencyValueReal;
+    m_valueDependencyValueInt32 = o.m_valueDependencyValueInt32;
     m_geomDependencyFieldsParsed = o.m_geomDependencyFieldsParsed;
     m_geomClassVersion = o.m_geomClassVersion;
     m_geomEnabled = o.m_geomEnabled;
@@ -7422,6 +7446,7 @@ private:
     m_dxfVariableDescriptionBytes = o.m_dxfVariableDescriptionBytes;
     m_dxfVariableT78Bytes = o.m_dxfVariableT78Bytes;
     m_dxfDependencyNameBytes = o.m_dxfDependencyNameBytes;
+    m_dxfValueDependencyNameBytes = o.m_dxfValueDependencyNameBytes;
     m_dependencyIsRead = o.m_dependencyIsRead;
     m_dependencyIsWrite = o.m_dependencyIsWrite;
     m_dependencyIsAttachedToObject = o.m_dependencyIsAttachedToObject;
@@ -7448,6 +7473,7 @@ private:
   bool m_dxfAssociativeNetworkSubclass = false;
   bool m_dxfAssociativeVariableSubclass = false;
   bool m_dxfAssociativeDependencySubclass = false;
+  bool m_dxfAssociativeValueDependencySubclass = false;
   std::uint8_t m_dxfAssociativeActionIntIndex = 0;
   bool m_dxfAssociativeActionOwnerSeen = false;
   bool m_dxfAssociativeActionBodySeen = false;
@@ -7468,12 +7494,17 @@ private:
   bool m_dxfAssociativeDependencyNameSeen = false;
   bool m_dxfAssociativeDependencyBodyHandleSeen = false;
   bool m_dxfAssociativeDependencyUnexpectedField = false;
+  std::uint8_t m_dxfAssociativeValueDependencyIntIndex = 0;
+  bool m_dxfAssociativeValueDependencyNameSeen = false;
+  bool m_dxfAssociativeValueDependencyValueSeen = false;
+  bool m_dxfAssociativeValueDependencyUnexpectedField = false;
   std::size_t m_dxfVariableNameBytes = 0u;
   std::size_t m_dxfVariableExpressionBytes = 0u;
   std::size_t m_dxfVariableEvaluatorBytes = 0u;
   std::size_t m_dxfVariableDescriptionBytes = 0u;
   std::size_t m_dxfVariableT78Bytes = 0u;
   std::size_t m_dxfDependencyNameBytes = 0u;
+  std::size_t m_dxfValueDependencyNameBytes = 0u;
   bool m_dxfGeomClassVersionPresent = false;
   bool m_dxfGeomEnabledPresent = false;
   bool m_dxfGeomSubentityClassNamePresent = false;
