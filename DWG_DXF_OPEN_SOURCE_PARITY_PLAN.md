@@ -58,12 +58,18 @@ Implementation history and evidence stay in Git and `docs/research/`.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next implementation packet — close the remaining dynamic-block output gate
-on the AC1024 architectural sample.** Strict conversion currently stops at
-`dynamic-block objects are outside the closed output profiles`; the output
+**Next implementation packet — extend dynamic-block output beyond the exact
+Title_Block-ARCH profile.** The AC1024 `title_block-arch.dwg` source now passes
+ASCII and Binary output/readback for its physical owner graph and all 109/109
+source callback identities, including VIEWPORT `0x52`; see [the refreshed P5
+receipt](docs/research/p5-ac1024-title-block-dynamic-graph-output-readback-2026-10-31.json).
+This is a source-profile result, not native dynamic-block semantics or a
+format-wide support claim. The distinct
+`architectural_example-imperial.dwg` source still stops at
+`dynamic-block objects are outside the closed output profiles`; its output
 remains atomically unpublished. The source's `SORTENTSTABLE`, extension-owner,
 and nested associative-network checks already pass. Reuse those qualified
-routes and the existing exact record serializers where their source profiles
+routes and existing exact record serializers where the source fields and roles
 match. Use [the P5 inventory
 receipt](docs/research/p5-ac1024-architectural-dynamic-block-source-inventory-2026-10-31.json)
 and its exact source hash, both EvaluationGraph roots, object classes, owner

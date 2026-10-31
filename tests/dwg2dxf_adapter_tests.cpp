@@ -35170,10 +35170,10 @@ bool physicalLayoutOutputReadback(
                     return fail("physical Title_Block-ARCH retry did not qualify a required LAYOUT/dynamic graph callback identity");
             if (source.dwgReadOutcome.opaqueViewCallbacks != 109u
                 || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
-                    source) != 108u
-                || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                    source) != 109u
+                || !DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
                     source, source.importGeneration, 0x52u))
-                return fail("physical Title_Block-ARCH retry changed the 108/109 qualification boundary or unexpectedly cleared VIEWPORT 0x52");
+                return fail("physical Title_Block-ARCH retry did not qualify all 109 source callbacks, including the exact VIEWPORT 0x52 profile");
         }
         for (const auto& identity : expected)
             if (!DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
