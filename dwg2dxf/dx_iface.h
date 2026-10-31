@@ -2522,12 +2522,20 @@ private:
         std::shared_ptr<const dx_data::NamedResourceBodyBaseline> baseline;
         std::vector<int> editedFieldCodes;
     };
+    struct DwgMLeaderStyleOutputSource {
+        DRW_MLeaderStyle model;
+    };
     std::unordered_map<std::uint32_t,DxfMLeaderStyleSource> m_dxfMLeaderStyles;
+    std::unordered_map<std::uint32_t,DwgMLeaderStyleOutputSource>
+        m_dwgMLeaderStyleOutputSources;
+    const dx_data* m_dwgMLeaderStyleOutputOwner{nullptr};
+    std::uint64_t m_dwgMLeaderStyleOutputGeneration{0u};
     DxfNamedResourceState m_dxfMLeaderStyleState;
     bool m_dxfMLeaderStylesInspected{false};
     bool prepareDxfMLeaderStyles(DRW::Version version, bool binary,
         DRW::DxfTextWritePolicy policy=DRW::DxfTextWritePolicy::Compatible) noexcept;
     bool hasUnchangedDxfMLeaderStyles() const noexcept;
+    bool hasUnchangedDwgMLeaderStyleOutputSources() const noexcept;
     bool inspectDxfMLeaderStyles(const dxfRW::DxfObjectsWriteView&) noexcept;
     struct DxfMLineStyleSource {
         DRW_MLineStyle model, projection;

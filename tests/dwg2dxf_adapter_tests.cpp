@@ -29474,7 +29474,26 @@ bool physicalMaterialOutputReadback(
                     const auto capture = [this](std::uint32_t handle) {
                         if (handle == 0u || handle == DRW::NoHandle)
                             return;
-                        const std::uint32_t mapped = dxfW->remapHandle(handle);
+                        std::uint32_t mapped = dxfW->remapHandle(handle);
+                        const DRW_WritingContext* context =
+                            dxfW->getWritingContext();
+                        if (context != nullptr) {
+                            for (const auto* aliases : {
+                                    &context->sourceHandleToWrittenTableMap,
+                                    &context->sourceHandleToWrittenObjectMap,
+                                    &context->sourceHandleToMintedMap}) {
+                                const auto found = aliases->find(handle);
+                                if (found == aliases->end())
+                                    continue;
+                                if (mapped != handle && mapped != found->second)
+                                    ambiguousHandles.insert(handle);
+                                mapped = found->second;
+                            }
+                        }
+                        const std::uint32_t emittedTable =
+                            dxfW->dxfWriteEmittedSourceTableHandle(handle);
+                        if (emittedTable != 0u && emittedTable != DRW::NoHandle)
+                            mapped = emittedTable;
                         if (mapped != 0u && mapped != DRW::NoHandle)
                             remappedHandles[handle] = mapped;
                     };
@@ -29759,6 +29778,656 @@ bool physicalMaterialOutputReadback(
                   << (binary ? "binary" : "ASCII")
                   << " readback passed: 3 identities, ACAD_MATERIAL keys, "
                      "typed body/common links, extension-dictionary roles, "
+                     "atomic refusal and same-adapter retry.\n";
+        return true;
+    };
+    return outputEncoding(false) && outputEncoding(true);
+}
+
+bool physicalMLeaderStyleOutputReadback(
+        const std::filesystem::path& sourcePath) {
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024
+        || !source.hasSingleSuccessfulNamedResourceImport()
+        || !source.hasNamedObjectDictionary
+        || source.mLeaderStyles.size() != 2u)
+        return fail("physical MLEADERSTYLE source is not the two-record AC1024 profile");
+
+    using StylesByHandle = std::map<std::uint32_t, const DRW_MLeaderStyle*>;
+    using DictionariesByHandle =
+        std::map<std::uint32_t, const DRW_Dictionary*>;
+    const auto indexStyles = [](const dx_data& data, StylesByHandle& indexed) {
+        for (const DRW_MLeaderStyle& value : data.mLeaderStyles)
+            if (value.handle == 0u || value.handle == DRW::NoHandle
+                || !indexed.emplace(value.handle, &value).second)
+                return false;
+        return true;
+    };
+    const auto indexDictionaries = [](const dx_data& data,
+                                     DictionariesByHandle& indexed) {
+        if (data.hasNamedObjectDictionary
+            && (data.namedObjectDictionary.handle == 0u
+                || data.namedObjectDictionary.handle == DRW::NoHandle
+                || !indexed.emplace(data.namedObjectDictionary.handle,
+                    &data.namedObjectDictionary).second))
+            return false;
+        for (const DRW_Dictionary& dictionary : data.dictionaries)
+            if (dictionary.handle == 0u || dictionary.handle == DRW::NoHandle
+                || !indexed.emplace(dictionary.handle, &dictionary).second)
+                return false;
+        return true;
+    };
+    StylesByHandle sourceByHandle;
+    DictionariesByHandle sourceDictionaries;
+    if (!indexStyles(source, sourceByHandle)
+        || !indexDictionaries(source, sourceDictionaries))
+        return fail("physical MLEADERSTYLE or dictionary identities are ambiguous");
+
+    const auto sourceRoot = std::find_if(
+        source.namedObjectDictionary.m_entries.begin(),
+        source.namedObjectDictionary.m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == "ACAD_MLEADERSTYLE";
+        });
+    if (sourceRoot == source.namedObjectDictionary.m_entries.end()
+        || std::count_if(source.namedObjectDictionary.m_entries.begin(),
+            source.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_MLEADERSTYLE";
+            }) != 1)
+        return fail("physical MLEADERSTYLE NOD owner route is missing or ambiguous");
+    const auto sourceOwnerFound = sourceDictionaries.find(sourceRoot->m_handle);
+    if (sourceOwnerFound == sourceDictionaries.end()
+        || sourceOwnerFound->second == &source.namedObjectDictionary
+        || sourceOwnerFound->second->parentHandle
+            != source.namedObjectDictionary.handle
+        || !sourceOwnerFound->second->hasCompleteDwgEntries()
+        || sourceOwnerFound->second->m_entries.size()
+            != source.mLeaderStyles.size())
+        return fail("physical ACAD_MLEADERSTYLE owner dictionary is incomplete");
+    const DRW_Dictionary& sourceOwner = *sourceOwnerFound->second;
+
+    struct StyleOwner {
+        const DRW_MLeaderStyle* style{nullptr};
+        std::string key;
+    };
+    std::map<std::uint32_t, StyleOwner> sourceOwners;
+    std::set<std::string> sourceKeys;
+    const auto containsLType = [](const dx_data& data, std::uint32_t handle) {
+        return std::any_of(data.lineTypes.begin(), data.lineTypes.end(),
+            [handle](const DRW_LType& value) { return value.handle == handle; });
+    };
+    const auto containsBlockRecord = [](const dx_data& data,
+                                        std::uint32_t handle) {
+        return std::any_of(data.blockRecords.begin(), data.blockRecords.end(),
+            [handle](const DRW_Block_Record& value) {
+                return value.handle == handle;
+            });
+    };
+    const auto containsTextStyle = [](const dx_data& data,
+                                      std::uint32_t handle) {
+        return std::any_of(data.textStyles.begin(), data.textStyles.end(),
+            [handle](const DRW_Textstyle& value) {
+                return value.handle == handle;
+            });
+    };
+    for (const DRW_MLeaderStyle& style : source.mLeaderStyles) {
+        if (style.tType != DRW::MLEADERSTYLE
+            || style.parentHandle != sourceOwner.handle
+            || !style.appData.empty() || !style.extData.empty()
+            || style.hasDataStorageBinaryData()
+            || style.hasDwgCommonLinkTail()
+            || !style.pendingAppIdResolutions.empty()
+            || !style.pendingLayerRefResolutions.empty())
+            return fail("physical MLEADERSTYLE has an unexpected owner or type");
+        const auto key = std::find_if(sourceOwner.m_entries.begin(),
+            sourceOwner.m_entries.end(), [&style](
+                const DRW_Dictionary::Entry& entry) {
+                return entry.m_handle == style.handle;
+            });
+        if (key == sourceOwner.m_entries.end() || key->m_name.empty()
+            || !sourceKeys.insert(key->m_name).second
+            || !sourceOwners.emplace(style.handle,
+                StyleOwner{&style, key->m_name}).second)
+            return fail("physical MLEADERSTYLE identity has no unique owner key");
+        for (const auto& dictionary : sourceDictionaries) {
+            const std::size_t aliases = static_cast<std::size_t>(
+                std::count_if(dictionary.second->m_entries.begin(),
+                    dictionary.second->m_entries.end(), [&style](
+                        const DRW_Dictionary::Entry& entry) {
+                        return entry.m_handle == style.handle;
+                    }));
+            if ((dictionary.first == sourceOwner.handle && aliases != 1u)
+                || (dictionary.first != sourceOwner.handle && aliases != 0u))
+                return fail("physical MLEADERSTYLE is aliased or not uniquely owned");
+        }
+        if ((style.leaderLineTypeHandle.ref != 0u
+                && !containsLType(source, style.leaderLineTypeHandle.ref))
+            || (style.arrowHeadBlockHandle.ref != 0u
+                && !containsBlockRecord(source,
+                    style.arrowHeadBlockHandle.ref))
+            || (style.textStyleHandle.ref != 0u
+                && !containsTextStyle(source, style.textStyleHandle.ref))
+            || (style.blockHandle.ref != 0u
+                && !containsBlockRecord(source, style.blockHandle.ref)))
+            return fail("physical MLEADERSTYLE reference does not resolve to its declared target role");
+    }
+    if (sourceOwners.size() != 2u || sourceKeys.size() != 2u)
+        return fail("physical MLEADERSTYLE owner/key census differs from two records");
+
+    const auto outputEncoding = [&](bool binary) {
+        const auto nonce = std::chrono::steady_clock::now()
+                               .time_since_epoch()
+                               .count();
+        const std::filesystem::path outputPath =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-physical-mleaderstyles-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{outputPath};
+        const std::string sentinel =
+            "physical MLEADERSTYLE destination sentinel\n";
+        const auto seedDestination = [&]() {
+            std::ofstream existing(outputPath,
+                std::ios::binary | std::ios::trunc);
+            return existing && static_cast<bool>(existing << sentinel);
+        };
+        const auto destinationEquals = [&outputPath](
+                const std::string& expected) {
+            std::ifstream input(outputPath, std::ios::binary);
+            return input && std::string{
+                std::istreambuf_iterator<char>(input), {}} == expected;
+        };
+        if (!seedDestination())
+            return fail("could not seed physical MLEADERSTYLE destination sentinel");
+
+        class LateMLeaderStyleMutation final : public dx_iface {
+        public:
+            bool mutateAfterObjects{false};
+            std::uint32_t targetHandle{0u};
+            std::map<std::uint32_t, std::uint32_t> remappedHandles;
+            std::set<std::uint32_t> ambiguousHandles;
+
+            void writeObjects() override {
+                dx_iface::writeObjects();
+                if (dxfW != nullptr && cData != nullptr) {
+                    const DRW_WritingContext* context =
+                        dxfW->getWritingContext();
+                    if (context != nullptr)
+                        ambiguousHandles = context->ambiguousSourceHandles;
+                    const auto capture = [this](std::uint32_t handle) {
+                        if (handle == 0u || handle == DRW::NoHandle)
+                            return;
+                        const std::uint32_t mapped = dxfW->remapHandle(handle);
+                        if (mapped != 0u && mapped != DRW::NoHandle)
+                            remappedHandles[handle] = mapped;
+                    };
+                    capture(cData->namedObjectDictionary.handle);
+                    for (const DRW_Dictionary& dictionary : cData->dictionaries) {
+                        capture(dictionary.handle);
+                        capture(static_cast<std::uint32_t>(
+                            dictionary.parentHandle));
+                        for (const DRW_Dictionary::Entry& entry :
+                             dictionary.m_entries)
+                            capture(entry.m_handle);
+                    }
+                    for (const DRW_MLeaderStyle& style : cData->mLeaderStyles) {
+                        capture(style.handle);
+                        capture(static_cast<std::uint32_t>(style.parentHandle));
+                        capture(style.xDictHandle);
+                        for (const std::uint32_t reactor : style.reactorHandles)
+                            capture(reactor);
+                        capture(style.leaderLineTypeHandle.ref);
+                        capture(style.arrowHeadBlockHandle.ref);
+                        capture(style.textStyleHandle.ref);
+                        capture(style.blockHandle.ref);
+                    }
+                }
+                if (!mutateAfterObjects || cData == nullptr)
+                    return;
+                for (DRW_MLeaderStyle& style : cData->mLeaderStyles) {
+                    if (style.handle != targetHandle)
+                        continue;
+                    style.firstSegmentAngle += 0.125;
+                    return;
+                }
+            }
+        } writer;
+        const DRW_MLeaderStyle& first = *sourceOwners.begin()->second.style;
+        const double originalAngle = first.firstSegmentAngle;
+        writer.targetHandle = first.handle;
+        writer.mutateAfterObjects = true;
+        const auto exportPartial = [&]() {
+            return writer.fileExport(
+                outputPath.string(), DRW::AC1024, binary, &source,
+                false, true, dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::AllowPartial);
+        };
+        if (exportPartial() || !destinationEquals(sentinel))
+            return fail("late physical MLEADERSTYLE mutation did not refuse atomically");
+        auto mutableFirst = std::find_if(source.mLeaderStyles.begin(),
+            source.mLeaderStyles.end(), [&first](const DRW_MLeaderStyle& value) {
+                return value.handle == first.handle;
+            });
+        if (mutableFirst == source.mLeaderStyles.end())
+            return fail("physical MLEADERSTYLE mutation target disappeared");
+        mutableFirst->firstSegmentAngle = originalAngle;
+        writer.mutateAfterObjects = false;
+
+        auto mutableOwner = std::find_if(source.dictionaries.begin(),
+            source.dictionaries.end(), [&sourceOwner](
+                const DRW_Dictionary& value) {
+                return value.handle == sourceOwner.handle;
+            });
+        if (mutableOwner == source.dictionaries.end())
+            return fail("physical ACAD_MLEADERSTYLE owner dictionary disappeared");
+        const auto rejectChangedOwner = [&](const char* label) {
+            if (!seedDestination())
+                return fail("could not reseed physical MLEADERSTYLE destination sentinel");
+            if (writer.fileExport(
+                    outputPath.string(), DRW::AC1024, binary, &source,
+                    false, true, dx_dxfSourceTextPolicy::RequireValidSource,
+                    DRW::DxfTextWritePolicy::RequireLossless,
+                    dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                    dx_dwgReadCompletenessPolicy::AllowPartial)
+                || !destinationEquals(sentinel))
+                return fail(std::string("physical MLEADERSTYLE ") + label
+                    + " was accepted or replaced the destination");
+            return true;
+        };
+        auto firstKey = std::find_if(mutableOwner->m_entries.begin(),
+            mutableOwner->m_entries.end(), [&first](
+                const DRW_Dictionary::Entry& entry) {
+                return entry.m_handle == first.handle;
+            });
+        const auto secondKey = std::find_if(mutableOwner->m_entries.begin(),
+            mutableOwner->m_entries.end(), [&first](
+                const DRW_Dictionary::Entry& entry) {
+                return entry.m_handle != first.handle;
+            });
+        if (firstKey == mutableOwner->m_entries.end()
+            || secondKey == mutableOwner->m_entries.end())
+            return fail("physical MLEADERSTYLE alias control lacks two owner entries");
+        const std::size_t firstKeyIndex = static_cast<std::size_t>(
+            firstKey - mutableOwner->m_entries.begin());
+        const DRW_Dictionary::Entry originalKey = *firstKey;
+        firstKey->m_handle = secondKey->m_handle;
+        if (!rejectChangedOwner("owner-key alias"))
+            return false;
+        firstKey->m_handle = originalKey.m_handle;
+        mutableOwner->m_entries.erase(mutableOwner->m_entries.begin()
+            + static_cast<std::ptrdiff_t>(firstKeyIndex));
+        if (!rejectChangedOwner("missing owner key"))
+            return false;
+        mutableOwner->m_entries.insert(mutableOwner->m_entries.begin()
+            + static_cast<std::ptrdiff_t>(firstKeyIndex), originalKey);
+
+        if (!exportPartial())
+            return fail("corrected physical MLEADERSTYLE graph could not retry on the same adapter");
+
+        const auto mapHandle = [&writer](std::uint32_t sourceHandle,
+                                         std::uint32_t& outputHandle) {
+            outputHandle = 0u;
+            if (sourceHandle == 0u)
+                return true;
+            if (sourceHandle == DRW::NoHandle
+                || writer.ambiguousHandles.count(sourceHandle) != 0u)
+                return false;
+            const auto found = writer.remappedHandles.find(sourceHandle);
+            if (found == writer.remappedHandles.end()
+                || found->second == 0u || found->second == DRW::NoHandle)
+                return false;
+            outputHandle = found->second;
+            return true;
+        };
+        std::uint32_t outputNodHandle = 0u;
+        std::uint32_t outputOwnerHandle = 0u;
+        if (!mapHandle(source.namedObjectDictionary.handle, outputNodHandle)
+            || !mapHandle(sourceOwner.handle, outputOwnerHandle))
+            return fail("physical MLEADERSTYLE NOD/owner identities lack staged bindings");
+
+        dx_iface outputReader;
+        dx_data output;
+        StylesByHandle outputByHandle;
+        DictionariesByHandle outputDictionaries;
+        if (!outputReader.fileImport(outputPath.string(), &output, false)
+            || output.sourceFormat != dx_source_format::DXF
+            || output.sourceVersion != DRW::AC1024
+            || output.mLeaderStyles.size() != sourceOwners.size()
+            || !indexStyles(output, outputByHandle)
+            || !indexDictionaries(output, outputDictionaries)
+            || !output.hasNamedObjectDictionary
+            || output.namedObjectDictionary.handle != outputNodHandle)
+            return fail("physical MLEADERSTYLE output did not reopen with expected identities");
+        const auto outputOwnerFound = outputDictionaries.find(outputOwnerHandle);
+        if (outputOwnerFound == outputDictionaries.end()
+            || outputOwnerFound->second == &output.namedObjectDictionary
+            || outputOwnerFound->second->parentHandle != outputNodHandle
+            || outputOwnerFound->second->m_entries.size()
+                != sourceOwner.m_entries.size())
+            return fail("physical ACAD_MLEADERSTYLE owner dictionary is incomplete on readback");
+        const DRW_Dictionary& outputOwner = *outputOwnerFound->second;
+        const auto outputRoot = std::find_if(
+            output.namedObjectDictionary.m_entries.begin(),
+            output.namedObjectDictionary.m_entries.end(),
+            [outputOwnerHandle](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_MLEADERSTYLE"
+                    && entry.m_handle == outputOwnerHandle;
+            });
+        if (outputRoot == output.namedObjectDictionary.m_entries.end()
+            || std::count_if(output.namedObjectDictionary.m_entries.begin(),
+                output.namedObjectDictionary.m_entries.end(),
+                [outputOwnerHandle](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "ACAD_MLEADERSTYLE"
+                        && entry.m_handle == outputOwnerHandle;
+                }) != 1)
+            return fail("physical MLEADERSTYLE NOD key does not uniquely bind its owner");
+
+        const auto payloadParts = [](const DRW_MLeaderStyle& expected,
+                                     const DRW_MLeaderStyle& actual) {
+            dwgBufferW expectedBody, expectedStrings, expectedHandles;
+            dwgBufferW actualBody, actualStrings, actualHandles;
+            if (!(expected.encodeDwg(DRW::AC1024, &expectedBody,
+                    &expectedStrings, &expectedHandles)
+                && actual.encodeDwg(DRW::AC1024, &actualBody,
+                    &actualStrings, &actualHandles)))
+                return std::array<bool, 3>{{false, false, false}};
+            return std::array<bool, 3>{{
+                expectedBody.data() == actualBody.data()
+                    && expectedBody.bitPos() == actualBody.bitPos(),
+                expectedStrings.data() == actualStrings.data()
+                    && expectedStrings.bitPos() == actualStrings.bitPos(),
+                expectedHandles.data() == actualHandles.data()
+                    && expectedHandles.bitPos() == actualHandles.bitPos()}};
+        };
+        const auto samePayload = [&payloadParts](
+                const DRW_MLeaderStyle& expected,
+                const DRW_MLeaderStyle& actual) {
+            const auto parts = payloadParts(expected, actual);
+            // Handle stream roles are compared below against fresh readback
+            // targets. Source and DXF-origin object common streams can use
+            // different legal reference encodings despite identical roles.
+            return parts[0] && parts[1];
+        };
+        const auto reactorAppDataMatches = [](
+                const DRW_TableEntry& value,
+                const std::vector<std::uint32_t>& expectedReactors) {
+            if (expectedReactors.empty())
+                return value.appData.empty();
+            if (value.appData.size() != 1u)
+                return false;
+            const auto& group = value.appData.front();
+            if (group.size() != expectedReactors.size() + 2u)
+                return false;
+            auto field = group.begin();
+            if (field->code() != 102 || field->type() != DRW_Variant::STRING
+                || !field->content.s || *field->content.s != "ACAD_REACTORS")
+                return false;
+            ++field;
+            for (const std::uint32_t expected : expectedReactors) {
+                if (field == group.end() || field->code() != 330
+                    || field->type() != DRW_Variant::STRING
+                    || !field->content.s)
+                    return false;
+                const std::string& text = *field->content.s;
+                std::uint32_t handle = 0u;
+                const auto parsed = std::from_chars(text.data(),
+                    text.data() + text.size(), handle, 16);
+                if (text.empty() || parsed.ec != std::errc{}
+                    || parsed.ptr != text.data() + text.size()
+                    || handle != expected)
+                    return false;
+                ++field;
+            }
+            return field != group.end() && field->code() == 102
+                && field->type() == DRW_Variant::STRING
+                && field->content.s && *field->content.s == "}";
+        };
+        const auto sourceLType = [&source](std::uint32_t handle)
+                -> const DRW_LType* {
+            const DRW_LType* result = nullptr;
+            for (const DRW_LType& value : source.lineTypes)
+                if (value.handle == handle) {
+                    if (result != nullptr)
+                        return nullptr;
+                    result = &value;
+                }
+            return result;
+        };
+        const auto sourceBlockRecord = [&source](std::uint32_t handle)
+                -> const DRW_Block_Record* {
+            const DRW_Block_Record* result = nullptr;
+            for (const DRW_Block_Record& value : source.blockRecords)
+                if (value.handle == handle) {
+                    if (result != nullptr)
+                        return nullptr;
+                    result = &value;
+                }
+            return result;
+        };
+        const auto sourceTextStyle = [&source](std::uint32_t handle)
+                -> const DRW_Textstyle* {
+            const DRW_Textstyle* result = nullptr;
+            for (const DRW_Textstyle& value : source.textStyles)
+                if (value.handle == handle) {
+                    if (result != nullptr)
+                        return nullptr;
+                    result = &value;
+                }
+            return result;
+        };
+        const auto outputLTypeByName = [&output](const std::string& name)
+                -> const DRW_LType* {
+            const DRW_LType* result = nullptr;
+            for (const DRW_LType& value : output.lineTypes)
+                if (value.name == name) {
+                    if (result != nullptr)
+                        return nullptr;
+                    result = &value;
+                }
+            return result;
+        };
+        const auto outputBlockRecordByName = [&output](
+                const std::string& name) -> const DRW_Block_Record* {
+            const DRW_Block_Record* result = nullptr;
+            for (const DRW_Block_Record& value : output.blockRecords)
+                if (value.name == name) {
+                    if (result != nullptr)
+                        return nullptr;
+                    result = &value;
+                }
+            return result;
+        };
+        const auto outputTextStyleByName = [&output](const std::string& name)
+                -> const DRW_Textstyle* {
+            const DRW_Textstyle* result = nullptr;
+            for (const DRW_Textstyle& value : output.textStyles)
+                if (value.name == name) {
+                    if (result != nullptr)
+                        return nullptr;
+                    result = &value;
+                }
+            return result;
+        };
+        std::set<std::uint32_t> outputIdentities;
+        for (const auto& item : sourceOwners) {
+            const std::uint32_t sourceHandle = item.first;
+            const StyleOwner& expectedOwner = item.second;
+            std::uint32_t mappedHandle = 0u, mappedParent = 0u,
+                mappedXdict = 0u;
+            if (!mapHandle(sourceHandle, mappedHandle)
+                || !outputIdentities.insert(mappedHandle).second
+                || !mapHandle(static_cast<std::uint32_t>(
+                    expectedOwner.style->parentHandle), mappedParent)
+                || !mapHandle(expectedOwner.style->xDictHandle, mappedXdict))
+                return fail("physical MLEADERSTYLE source identity mapping is ambiguous");
+            const auto actualFound = outputByHandle.find(mappedHandle);
+            if (actualFound == outputByHandle.end())
+                return fail("physical MLEADERSTYLE source identity is absent from readback");
+            const DRW_MLeaderStyle& actual = *actualFound->second;
+            DRW_MLeaderStyle expected = *expectedOwner.style;
+            expected.parentHandle = mappedParent;
+            expected.xDictHandle = mappedXdict;
+            std::string unresolvedReferenceRole;
+            const auto matchesReference = [&](std::uint32_t sourceReference,
+                                              std::uint32_t outputReference,
+                                              const char* role) {
+                if (sourceReference == 0u)
+                    return outputReference == 0u;
+                const std::string roleName(role);
+                if (roleName == "LTYPE") {
+                    const DRW_LType* from = sourceLType(sourceReference);
+                    const DRW_LType* to = from == nullptr ? nullptr
+                        : outputLTypeByName(from->name);
+                    if (from == nullptr || to == nullptr
+                        || outputReference != to->handle)
+                        unresolvedReferenceRole = roleName + " source="
+                            + std::to_string(sourceReference) + " output="
+                            + std::to_string(outputReference);
+                    return from != nullptr && to != nullptr
+                        && outputReference == to->handle;
+                }
+                if (roleName == "STYLE") {
+                    const DRW_Textstyle* from =
+                        sourceTextStyle(sourceReference);
+                    const DRW_Textstyle* to = from == nullptr ? nullptr
+                        : outputTextStyleByName(from->name);
+                    if (from == nullptr || to == nullptr
+                        || outputReference != to->handle)
+                        unresolvedReferenceRole = roleName + " source="
+                            + std::to_string(sourceReference) + " output="
+                            + std::to_string(outputReference);
+                    return from != nullptr && to != nullptr
+                        && outputReference == to->handle;
+                }
+                const DRW_Block_Record* from =
+                    sourceBlockRecord(sourceReference);
+                const DRW_Block_Record* to = from == nullptr ? nullptr
+                    : outputBlockRecordByName(from->name);
+                if (from == nullptr || to == nullptr
+                    || outputReference != to->handle)
+                    unresolvedReferenceRole = roleName + " source="
+                        + std::to_string(sourceReference) + " output="
+                        + std::to_string(outputReference);
+                return from != nullptr && to != nullptr
+                    && outputReference == to->handle;
+            };
+            if (!matchesReference(
+                    expectedOwner.style->leaderLineTypeHandle.ref,
+                    actual.leaderLineTypeHandle.ref, "LTYPE")
+                || !matchesReference(
+                    expectedOwner.style->arrowHeadBlockHandle.ref,
+                    actual.arrowHeadBlockHandle.ref, "BLOCK_RECORD")
+                || !matchesReference(expectedOwner.style->textStyleHandle.ref,
+                    actual.textStyleHandle.ref, "STYLE")
+                || !matchesReference(expectedOwner.style->blockHandle.ref,
+                    actual.blockHandle.ref, "BLOCK_RECORD")) {
+                return fail("physical MLEADERSTYLE output reference role is unresolved: "
+                    + unresolvedReferenceRole);
+            }
+            expected.leaderLineTypeHandle.ref =
+                actual.leaderLineTypeHandle.ref;
+            expected.arrowHeadBlockHandle.ref =
+                actual.arrowHeadBlockHandle.ref;
+            expected.textStyleHandle.ref = actual.textStyleHandle.ref;
+            expected.blockHandle.ref = actual.blockHandle.ref;
+            expected.reactorHandles.clear();
+            for (const std::uint32_t reactor : expectedOwner.style->reactorHandles) {
+                std::uint32_t mappedReactor = 0u;
+                if (!mapHandle(reactor, mappedReactor))
+                    return fail("physical MLEADERSTYLE reactor role is unmapped");
+                expected.reactorHandles.push_back(mappedReactor);
+            }
+            if (actual.handle != mappedHandle
+                || actual.tType != expectedOwner.style->tType
+                || actual.name != expectedOwner.style->name
+                || actual.flags != expectedOwner.style->flags
+                || actual.parentHandle != outputOwnerHandle
+                || actual.parentHandle != mappedParent
+                || actual.xDictHandle != mappedXdict
+                || actual.reactorHandles != expected.reactorHandles
+                || !reactorAppDataMatches(actual,
+                    expected.reactorHandles)
+                || !actual.extData.empty()
+                || actual.hasDataStorageBinaryData()
+                || actual.hasDwgCommonLinkTail()
+                || !actual.pendingAppIdResolutions.empty()
+                || !actual.pendingLayerRefResolutions.empty()
+                || !samePayload(expected, actual)) {
+                return fail("physical MLEADERSTYLE admitted fields/common links changed on readback handle="
+                    + std::to_string(sourceHandle) + " payload="
+                    + (samePayload(expected, actual) ? "same" : "different")
+                    + " parts="
+                    + (payloadParts(expected, actual)[0] ? "b" : "-")
+                    + (payloadParts(expected, actual)[1] ? "s" : "-")
+                    + (payloadParts(expected, actual)[2] ? "h" : "-")
+                    + " parent=" + std::to_string(actual.parentHandle) + "/"
+                    + std::to_string(mappedParent) + " xdict="
+                    + std::to_string(actual.xDictHandle) + "/"
+                    + std::to_string(mappedXdict) + " reactors="
+                    + std::to_string(actual.reactorHandles.size()) + "/"
+                    + std::to_string(expected.reactorHandles.size()) + " extras="
+                    + std::to_string(actual.appData.size()) + "/"
+                    + std::to_string(actual.extData.size()) + "/"
+                    + std::to_string(actual.hasDataStorageBinaryData()) + "/"
+                    + std::to_string(actual.hasDwgCommonLinkTail()) + "/"
+                    + std::to_string(actual.pendingAppIdResolutions.size()) + "/"
+                    + std::to_string(actual.pendingLayerRefResolutions.size()));
+            }
+
+            const auto sourceKey = std::find_if(sourceOwner.m_entries.begin(),
+                sourceOwner.m_entries.end(), [&expectedOwner](
+                    const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == expectedOwner.key;
+                });
+            const auto outputKey = std::find_if(outputOwner.m_entries.begin(),
+                outputOwner.m_entries.end(), [&expectedOwner](
+                    const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == expectedOwner.key;
+                });
+            if (sourceKey == sourceOwner.m_entries.end()
+                || sourceKey->m_handle != sourceHandle
+                || outputKey == outputOwner.m_entries.end()
+                || std::count_if(outputOwner.m_entries.begin(),
+                    outputOwner.m_entries.end(), [&expectedOwner](
+                        const DRW_Dictionary::Entry& entry) {
+                        return entry.m_name == expectedOwner.key;
+                    }) != 1
+                || outputKey->m_handle != mappedHandle)
+                return fail("physical MLEADERSTYLE dictionary key does not bind its staged identity");
+        }
+        const auto mleaderClass = std::find_if(output.dxfClasses.begin(),
+            output.dxfClasses.end(), [](const DRW_Class& value) {
+                return value.recName == "MLEADERSTYLE"
+                    && value.className == "AcDbMLeaderStyle";
+            });
+        const std::size_t mleaderClassCount = static_cast<std::size_t>(
+            std::count_if(output.dxfClasses.begin(), output.dxfClasses.end(),
+                [](const DRW_Class& value) {
+                    return value.recName == "MLEADERSTYLE"
+                        && value.className == "AcDbMLeaderStyle";
+                }));
+        if (outputIdentities.size() != 2u
+            || outputIdentities.size() != outputByHandle.size()
+            || mleaderClassCount != 1u
+            || mleaderClass == output.dxfClasses.end()
+            || mleaderClass->instanceCount != 2)
+            return fail("physical MLEADERSTYLE identity or CLASS instance census changed");
+
+        std::cerr << "Physical MLEADERSTYLE "
+                  << (binary ? "binary" : "ASCII")
+                  << " readback passed: 2 identities, ACAD_MLEADERSTYLE keys, "
+                     "typed fields, LTYPE/BLOCK_RECORD/STYLE roles, CLASS count, "
                      "atomic refusal and same-adapter retry.\n";
         return true;
     };
@@ -45272,6 +45941,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--material-physical-output-readback")
         return physicalMaterialOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--mleaderstyle-physical-output-readback")
+        return physicalMLeaderStyleOutputReadback(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--assocvariable-physical-output-readback")
         return physicalAssociativeVariableOutputReadback(argv[2]) ? 0 : 1;

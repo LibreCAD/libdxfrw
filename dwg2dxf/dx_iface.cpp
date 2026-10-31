@@ -22291,10 +22291,42 @@ bool dx_iface::prepareDxfMLeaderStyles(DRW::Version version, bool binary,
         DRW::DxfTextWritePolicy policy) noexcept {
     (void)policy; // Selected scalar fields are codec-independent.
     m_dxfMLeaderStyles.clear();
+    m_dwgMLeaderStyleOutputSources.clear();
+    m_dwgMLeaderStyleOutputOwner = nullptr;
+    m_dwgMLeaderStyleOutputGeneration = 0u;
     m_dxfMLeaderStyleState = {};
     m_dxfMLeaderStylesInspected = false;
     if (!cData)
         return false;
+    if (cData->sourceFormat == dx_source_format::DWG
+        && !m_extensionMLeaderStyleHandles.empty()) {
+        try {
+            const std::unordered_set<std::uint32_t> handles(
+                m_extensionMLeaderStyleHandles.begin(),
+                m_extensionMLeaderStyleHandles.end());
+            if (handles.size() != m_extensionMLeaderStyleHandles.size()
+                || handles.size() != cData->mLeaderStyles.size())
+                return false;
+            for (const DRW_MLeaderStyle& style : cData->mLeaderStyles) {
+                if (handles.count(style.handle) != 1u
+                    || !m_dwgMLeaderStyleOutputSources.emplace(
+                        style.handle,
+                        DwgMLeaderStyleOutputSource{style}).second)
+                    return false;
+            }
+            if (m_dwgMLeaderStyleOutputSources.size() != handles.size())
+                return false;
+            m_dwgMLeaderStyleOutputOwner = cData;
+            m_dwgMLeaderStyleOutputGeneration = cData->importGeneration;
+            if (!hasUnchangedDwgMLeaderStyleOutputSources())
+                return false;
+        } catch (...) {
+            m_dwgMLeaderStyleOutputSources.clear();
+            m_dwgMLeaderStyleOutputOwner = nullptr;
+            m_dwgMLeaderStyleOutputGeneration = 0u;
+            return false;
+        }
+    }
     if (cData->sourceFormat != dx_source_format::DXF
         || m_extensionMLeaderStyleHandles.empty())
         return true;
@@ -22629,6 +22661,46 @@ bool dx_iface::hasUnchangedDxfMLeaderStyles() const noexcept {
         }
         return typed.size() == m_dxfMLeaderStyles.size()
             && raws.size() == typed.size();
+    } catch (...) {
+        return false;
+    }
+}
+
+bool dx_iface::hasUnchangedDwgMLeaderStyleOutputSources() const noexcept {
+    if (m_dwgMLeaderStyleOutputSources.empty())
+        return m_dwgMLeaderStyleOutputOwner == nullptr
+            && m_dwgMLeaderStyleOutputGeneration == 0u;
+    if (cData == nullptr || m_dwgMLeaderStyleOutputOwner != cData
+        || m_dwgMLeaderStyleOutputGeneration != cData->importGeneration
+        || cData->sourceFormat != dx_source_format::DWG
+        || !cData->hasSingleSuccessfulNamedResourceImport()
+        || cData->mLeaderStyles.size()
+            != m_dwgMLeaderStyleOutputSources.size()
+        || m_extensionMLeaderStyleHandles.size()
+            != m_dwgMLeaderStyleOutputSources.size())
+        return false;
+    try {
+        std::unordered_set<std::uint32_t> selected;
+        selected.reserve(m_extensionMLeaderStyleHandles.size());
+        for (const std::uint32_t handle : m_extensionMLeaderStyleHandles)
+            if (!selected.insert(handle).second
+                || m_dwgMLeaderStyleOutputSources.count(handle) != 1u)
+                return false;
+        std::unordered_set<std::uint32_t> currentHandles;
+        currentHandles.reserve(cData->mLeaderStyles.size());
+        for (const DRW_MLeaderStyle& current : cData->mLeaderStyles) {
+            const auto source =
+                m_dwgMLeaderStyleOutputSources.find(current.handle);
+            if (source == m_dwgMLeaderStyleOutputSources.end()
+                || !currentHandles.insert(current.handle).second
+                || !standardDwgCommonEqual(source->second.model, current,
+                    cData->sourceVersion)
+                || !mleaderPayloadEqual(source->second.model, current,
+                    cData->sourceVersion))
+                return false;
+        }
+        return currentHandles.size()
+            == m_dwgMLeaderStyleOutputSources.size();
     } catch (...) {
         return false;
     }
@@ -48071,6 +48143,7 @@ bool dx_iface::finalizeDxfWrite() {
                 || !mlineStyleBodiesSourceLiveProof(*cData,
                     kMaxAdapterMLineDependencyProofWork,nullptr)))
         || !hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()
+        || !hasUnchangedDwgMLeaderStyleOutputSources()
         || (!m_dxfMLineLinetypes.empty() && !m_dxfMLineLinetypesInspected)
         || (!m_dxfMLineStyles.empty() && !m_dxfMLineStylesInspected)
         || (needsDxfMLineConsumerInspection() && m_dxfMLineConsumerInspected!=3u)) return false;
@@ -49460,7 +49533,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     m_customDxfDictionaryVarHandles.clear();m_dxfDictionaryVars.clear();m_dxfDictionaryVarOwner=nullptr;m_dxfDictionaryVarsInspected=false;
     m_dxfScales.clear(); m_dxfScaleState.dictionaries.clear(); m_dxfScaleState.owner=nullptr; m_dxfScalesInspected=false;
     m_dxfMLineStyles.clear(); m_dxfMLineStyleState={}; m_dxfMLineStylesInspected=false;
-    m_dxfMLeaderStyles.clear(); m_dxfMLeaderStyleState={}; m_dxfMLeaderStylesInspected=false;
+    m_dxfMLeaderStyles.clear(); m_dwgMLeaderStyleOutputSources.clear();
+    m_dwgMLeaderStyleOutputOwner=nullptr;
+    m_dwgMLeaderStyleOutputGeneration=0u;
+    m_dxfMLeaderStyleState={}; m_dxfMLeaderStylesInspected=false;
     m_dxfMLineLinetypes.clear();m_dxfMLineAppIds.clear();m_dxfMLineLinetypesInspected=false;m_dxfMLineLinetypeCount=0u;
     m_dxfMaterialWriteDictionaries.clear();
     m_dxfMaterialWriteReceipt = {};
