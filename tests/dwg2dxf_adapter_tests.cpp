@@ -10646,6 +10646,298 @@ bool dynamicBlockBasePointParameterDxfWriter(
     return true;
 }
 
+class DynamicBlockAlignmentParameterWriterProbe final : public dx_iface {
+public:
+    DRW_DynamicBlockObject object;
+    bool objectWritten{false};
+
+    void writeObjects() override {
+        objectWritten = dxfW != nullptr
+            && dxfW->writeDynamicBlockObject(&object);
+        if (!objectWritten && dxfW != nullptr)
+            dxfW->writeRawDxfObject(nullptr);
+    }
+};
+
+bool dynamicBlockAlignmentParameterDxfWriter(
+        const std::filesystem::path& physicalSource = {}) {
+    struct RemoveTemporaryFile {
+        std::filesystem::path path;
+        ~RemoveTemporaryFile() {
+            std::error_code ignored;
+            std::filesystem::remove(path, ignored);
+        }
+    };
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    const auto makeObject = [](bool dxfSource) {
+        DRW_DynamicBlockObject object("BLOCKALIGNMENTPARAMETER");
+        object.handle = 0x1126u;
+        object.parentHandle = 0x110Fu;
+        object.m_evalExprParsed = true;
+        object.m_parentId = std::numeric_limits<std::uint32_t>::max();
+        object.m_major = dxfSource ? 33u : 29u;
+        object.m_minor = dxfSource ? 29u : 2u;
+        object.m_valueCode = -9999;
+        object.m_nodeId = 54u;
+        object.m_elementParsed = true;
+        object.m_elementName = "Alignment";
+        object.m_elementMajor = dxfSource ? 33u : 29u;
+        object.m_elementMinor = dxfSource ? 29u : 2u;
+        object.m_eed1071 = 0;
+        object.m_showProperties = true;
+        object.m_chainActions = false;
+        object.m_firstPoint = DRW_Coord(1.25, -2.5, 3.75);
+        object.m_secondPoint = DRW_Coord(15.0, 4.5, -6.75);
+        object.m_twoPointPropertyCodes[0] = {55, -4};
+        object.m_twoPointPropertyNames[0] = {"Distance", "Width"};
+        object.m_twoPointPropertyCodes[1] = {92};
+        object.m_twoPointPropertyNames[1] = {"Angle"};
+        object.m_twoPointPropertyCodes[3] = {301, 0};
+        object.m_twoPointPropertyNames[3] = {"Position", "Enabled"};
+        object.m_propertyStates = {{55, 0, 7, -1}};
+        object.m_parameterBaseLocation = 2;
+        object.m_alignPerpendicular = true;
+        object.m_bodyFullyDecoded = true;
+        return object;
+    };
+    const auto expectedCodes = [](const DRW_DynamicBlockObject& object) {
+        std::vector<int> codes{
+            5, 330, 100, 90, 98, 99, 100, 300, 98, 99, 1071, 100, 280,
+            281, 100, 1010, 1020, 1030, 1011, 1021, 1031, 170, 91, 91,
+            91, 91};
+        for (std::size_t property = 0u;
+             property < object.m_twoPointPropertyCodes.size(); ++property) {
+            codes.push_back(171 + static_cast<int>(property));
+            for (std::size_t index = 0u;
+                 index < object.m_twoPointPropertyCodes[property].size();
+                 ++index) {
+                codes.push_back(92 + static_cast<int>(property));
+                codes.push_back(301 + static_cast<int>(property));
+            }
+        }
+        codes.insert(codes.end(), {177, 100, 280});
+        return codes;
+    };
+    const auto sameCoord = [](const DRW_Coord& lhs, const DRW_Coord& rhs) {
+        return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
+    };
+    const auto matches = [&](const DRW_DynamicBlockObject& source,
+                             const DRW_DynamicBlockObject& output) {
+        return output.m_recordName == "BLOCKALIGNMENTPARAMETER"
+            && output.m_kind
+                == DRW_DynamicBlockObject::Kind::AlignmentParameter
+            && output.handle == source.handle
+            && output.parentHandle == source.parentHandle
+            && output.m_bodyFullyDecoded && output.m_evalExprParsed
+            && output.m_elementParsed
+            && output.m_parentId
+                == std::numeric_limits<std::uint32_t>::max()
+            && output.m_major == 33u && output.m_minor == 29u
+            && output.m_elementMajor == 33u
+            && output.m_elementMinor == 29u
+            && output.m_nodeId == source.m_nodeId
+            && output.m_valueCode == -9999
+            && output.m_elementName == source.m_elementName
+            && output.m_eed1071 == source.m_eed1071
+            && output.m_showProperties == source.m_showProperties
+            && output.m_chainActions == source.m_chainActions
+            && sameCoord(output.m_firstPoint, source.m_firstPoint)
+            && sameCoord(output.m_secondPoint, source.m_secondPoint)
+            && output.m_twoPointPropertyCodes
+                == source.m_twoPointPropertyCodes
+            && output.m_twoPointPropertyNames
+                == source.m_twoPointPropertyNames
+            && output.m_propertyStates == source.m_propertyStates
+            && output.m_parameterBaseLocation
+                == source.m_parameterBaseLocation
+            && output.m_alignPerpendicular == source.m_alignPerpendicular;
+    };
+    const auto writeAndRead = [&](DynamicBlockAlignmentParameterWriterProbe& iface,
+                                  bool dxfSource, bool binary,
+                                  bool testUnknownTail) {
+        const std::filesystem::path output =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-dynamic-alignment-parameter-"
+               + std::to_string(nonce)
+               + (dxfSource ? "-dxf" : "-dwg")
+               + (binary ? "-bin.dxf" : "-asc.dxf"));
+        const RemoveTemporaryFile outputCleanup{output};
+        dx_data writeData;
+        writeData.sourceFormat = dxfSource ? dx_source_format::DXF
+                                           : dx_source_format::DWG;
+        writeData.sourceVersion = DRW::AC1024;
+        iface.cData = &writeData;
+        dxfRW writer(output.string().c_str());
+        iface.dxfW = &writer;
+
+        const std::string sentinel =
+            "invalid alignment parameter must preserve this\n";
+        {
+            std::ofstream existing(output, std::ios::binary | std::ios::trunc);
+            existing << sentinel;
+            if (!existing)
+                return fail("could not create alignment-parameter sentinel");
+        }
+        auto& firstPropertyNames = iface.object.m_twoPointPropertyNames[0];
+        const std::vector<std::string> originalFirstPropertyNames =
+            firstPropertyNames;
+        if (firstPropertyNames.empty())
+            firstPropertyNames.push_back("unmatched");
+        else
+            firstPropertyNames.pop_back();
+        if (writer.write(&iface, DRW::AC1024, binary)
+            || iface.objectWritten)
+            return fail("mismatched alignment connection arrays were emitted");
+        {
+            std::ifstream existing(output, std::ios::binary);
+            const std::string preserved{
+                std::istreambuf_iterator<char>(existing),
+                std::istreambuf_iterator<char>()};
+            if (existing.bad() || preserved != sentinel)
+                return fail("failed alignment-parameter write replaced destination");
+        }
+        firstPropertyNames = originalFirstPropertyNames;
+        if (!writer.write(&iface, DRW::AC1024, binary)
+            || !iface.objectWritten)
+            return fail("corrected alignment-parameter body failed same-writer retry");
+
+        dx_data readback;
+        readback.sourceFormat = dx_source_format::DXF;
+        readback.sourceVersion = DRW::AC1024;
+        dx_iface readIface;
+        readIface.cData = &readback;
+        dxfRW reader(output.string().c_str());
+        if (!reader.read(&readIface, false)
+            || readback.dynamicBlockObjects.size() != 1u
+            || readback.rawDynamicBlockObjects.size() != 1u
+            || !matches(iface.object,
+                        readback.dynamicBlockObjects.front()))
+            return fail("alignment-parameter failed fresh typed readback");
+        const std::vector<int> expected = expectedCodes(iface.object);
+        const DRW_RawDxfObject& raw = readback.rawDynamicBlockObjects.front();
+        if (raw.groups.size() != expected.size())
+            return fail("alignment-parameter group count changed on output");
+        for (std::size_t index = 0u; index < expected.size(); ++index) {
+            if (raw.groups[index].code() != expected[index])
+                return fail("alignment-parameter DXF group order changed");
+        }
+        if (raw.groups[21].i_val() != 4
+            || raw.groups[22].i_val() != iface.object.m_propertyStates[0]
+            || raw.groups[25].i_val() != iface.object.m_propertyStates[3])
+            return fail("alignment property-state vector changed on output");
+
+        if (testUnknownTail && !binary) {
+            std::ifstream input(output, std::ios::binary);
+            std::vector<std::string> lines;
+            std::string line;
+            while (std::getline(input, line))
+                lines.push_back(line);
+            bool inAlignment = false;
+            bool inserted = false;
+            for (std::size_t index = 0u; index + 1u < lines.size();
+                 index += 2u) {
+                int code = -1;
+                try {
+                    code = std::stoi(lines[index]);
+                } catch (...) {
+                    break;
+                }
+                if (code == 0) {
+                    inAlignment = lines[index + 1u]
+                        == "BLOCKALIGNMENTPARAMETER";
+                    continue;
+                }
+                if (inAlignment && code == 100
+                    && lines[index + 1u]
+                        == "AcDbBlockAlignmentParameter") {
+                    lines.insert(lines.begin()
+                            + static_cast<std::ptrdiff_t>(index + 4u),
+                        {"70", "1"});
+                    inserted = true;
+                    break;
+                }
+            }
+            if (input.bad() || !inserted)
+                return fail("could not add alignment parser tail control");
+            const std::filesystem::path tailedOutput =
+                output.string() + ".tail.dxf";
+            const RemoveTemporaryFile tailedCleanup{tailedOutput};
+            {
+                std::ofstream tailed(tailedOutput,
+                    std::ios::binary | std::ios::trunc);
+                for (const std::string& value : lines)
+                    tailed << value << '\n';
+                if (!tailed)
+                    return fail("could not write alignment parser tail control");
+            }
+            dx_data tailedReadback;
+            tailedReadback.sourceFormat = dx_source_format::DXF;
+            tailedReadback.sourceVersion = DRW::AC1024;
+            dx_iface tailedIface;
+            tailedIface.cData = &tailedReadback;
+            dxfRW tailedReader(tailedOutput.string().c_str());
+            if (!tailedReader.read(&tailedIface, false)
+                || tailedReadback.dynamicBlockObjects.size() != 1u
+                || tailedReadback.rawDynamicBlockObjects.size() != 1u
+                || tailedReadback.dynamicBlockObjects.front().m_bodyFullyDecoded
+                || tailedReadback.dynamicBlockObjects.front().m_evalExprParsed
+                || tailedReadback.rawDynamicBlockObjects.front().groups.size()
+                    != expected.size() + 1u)
+                return fail("unknown alignment tail did not remain raw-only");
+        }
+        return true;
+    };
+
+    for (const auto& profile : std::array<std::pair<bool, bool>, 4>{{
+             {false, false}, {false, true}, {true, false}, {true, true}}}) {
+        DynamicBlockAlignmentParameterWriterProbe iface;
+        iface.object = makeObject(profile.first);
+        if (!writeAndRead(iface, profile.first, profile.second,
+                          profile.first && !profile.second))
+            return false;
+    }
+
+    if (!physicalSource.empty()) {
+        dx_iface sourceReader;
+        dx_data source;
+        if (!sourceReader.fileImport(physicalSource.string(), &source, false)
+            || source.sourceFormat != dx_source_format::DWG
+            || source.sourceVersion != DRW::AC1024)
+            return fail("alignment-parameter witness is not an AC1024 DWG");
+        std::vector<DRW_DynamicBlockObject> physicalObjects;
+        for (const DRW_DynamicBlockObject& object : source.dynamicBlockObjects) {
+            if (object.m_recordName != "BLOCKALIGNMENTPARAMETER")
+                continue;
+            if (object.m_kind
+                    != DRW_DynamicBlockObject::Kind::AlignmentParameter
+                || !object.m_bodyFullyDecoded || !object.m_evalExprParsed
+                || !object.m_elementParsed || object.m_nodeId == 0u)
+                return fail("physical alignment parameter is not fully typed");
+            physicalObjects.push_back(object);
+        }
+        if (physicalObjects.size() != 2u)
+            return fail("physical source alignment-parameter count changed");
+        for (const DRW_DynamicBlockObject& object : physicalObjects) {
+            for (const bool binary : {false, true}) {
+                DynamicBlockAlignmentParameterWriterProbe iface;
+                iface.object = object;
+                if (!writeAndRead(iface, false, binary, false))
+                    return false;
+            }
+        }
+        std::cerr << "Physical AC1024 alignment parameters passed: 2 source "
+                     "objects, exact fields/group order, ASCII/Binary, and "
+                     "fresh typed readback.\n";
+    }
+    std::cerr << "AC1024 alignment-parameter writer passed for DWG/DXF "
+                 "source versions in ASCII/Binary: property code/name lists, "
+                 "unknown-tail refusal, transactional rollback/retry, and "
+                 "fresh typed/raw readback.\n";
+    return true;
+}
+
 class DynamicBlockParameterDependencyBodyWriterProbe final : public dx_iface {
 public:
     std::vector<DRW_DynamicBlockObject> objects;
@@ -53199,6 +53491,12 @@ int main(int argc, char** argv) {
         && std::string(argv[1])
             == "--dynamic-block-basepoint-parameter-dxf-writer")
         return dynamicBlockBasePointParameterDxfWriter(
+            argc == 3 ? std::filesystem::path(argv[2])
+                      : std::filesystem::path{}) ? 0 : 1;
+    if ((argc == 2 || argc == 3)
+        && std::string(argv[1])
+            == "--dynamic-block-alignment-parameter-dxf-writer")
+        return dynamicBlockAlignmentParameterDxfWriter(
             argc == 3 ? std::filesystem::path(argv[2])
                       : std::filesystem::path{}) ? 0 : 1;
     if (argc == 2

@@ -35354,6 +35354,101 @@ bool makeDwgDynamicOutputGroups(
         return true;
     }
     if (source.m_kind
+            == DRW_DynamicBlockObject::Kind::AlignmentParameter) {
+        const bool versions =
+            (source.m_major == 29u && source.m_minor == 2u
+                && source.m_elementMajor == 29u
+                && source.m_elementMinor == 2u)
+            || (source.m_major == 33u && source.m_minor == 29u
+                && source.m_elementMajor == 33u
+                && source.m_elementMinor == 29u);
+        std::size_t groupCount = 33u;
+        std::size_t stringBytes = source.m_elementName.size();
+        if (!source.m_bodyFullyDecoded || !source.m_evalExprParsed
+            || !source.m_elementParsed || !versions
+            || source.m_nodeId > static_cast<std::uint32_t>(
+                   std::numeric_limits<std::int32_t>::max())
+            || source.m_valueCode != -9999 || source.m_hasValueDouble
+            || source.m_valueHandle != 0u
+            || (source.m_parentId != DRW::NoHandle
+                && source.m_parentId
+                    != std::numeric_limits<std::uint32_t>::max())
+            || !std::isfinite(source.m_firstPoint.x)
+            || !std::isfinite(source.m_firstPoint.y)
+            || !std::isfinite(source.m_firstPoint.z)
+            || !std::isfinite(source.m_secondPoint.x)
+            || !std::isfinite(source.m_secondPoint.y)
+            || !std::isfinite(source.m_secondPoint.z)
+            || stringBytes > DRW::kMaxDxfBinaryPayloadBytes)
+            return false;
+        for (std::size_t property = 0u;
+             property < source.m_twoPointPropertyCodes.size();
+             ++property) {
+            const auto& codes = source.m_twoPointPropertyCodes[property];
+            const auto& names = source.m_twoPointPropertyNames[property];
+            if (codes.size() != names.size()
+                || codes.size() > static_cast<std::size_t>(
+                       std::numeric_limits<std::int16_t>::max())
+                || codes.size()
+                    > (DRW::kMaxDxfRawRecordGroups - groupCount) / 2u)
+                return false;
+            groupCount += codes.size() * 2u;
+            for (const UTF8STRING& name : names) {
+                if (name.size() > DRW::kMaxDxfBinaryPayloadBytes
+                        - stringBytes)
+                    return false;
+                stringBytes += name.size();
+            }
+        }
+        appendDwgDynamicString(groups, 100, "AcDbEvalExpr");
+        appendDwgDynamicInt(groups, 90,
+                            static_cast<std::int32_t>(source.m_nodeId));
+        appendDwgDynamicInt(groups, 98, 33);
+        appendDwgDynamicInt(groups, 99, 29);
+        appendDwgDynamicString(groups, 100, "AcDbBlockElement");
+        appendDwgDynamicString(groups, 300, source.m_elementName);
+        appendDwgDynamicInt(groups, 98, 33);
+        appendDwgDynamicInt(groups, 99, 29);
+        appendDwgDynamicInt(groups, 1071, source.m_eed1071);
+        appendDwgDynamicString(groups, 100, "AcDbBlockParameter");
+        appendDwgDynamicInt(groups, 280,
+                            source.m_showProperties ? 1 : 0);
+        appendDwgDynamicInt(groups, 281,
+                            source.m_chainActions ? 1 : 0);
+        appendDwgDynamicString(groups, 100, "AcDbBlock2PtParameter");
+        groups.emplace_back(1010, source.m_firstPoint.x);
+        groups.emplace_back(1020, source.m_firstPoint.y);
+        groups.emplace_back(1030, source.m_firstPoint.z);
+        groups.emplace_back(1011, source.m_secondPoint.x);
+        groups.emplace_back(1021, source.m_secondPoint.y);
+        groups.emplace_back(1031, source.m_secondPoint.z);
+        appendDwgDynamicInt(groups, 170, 4);
+        for (const std::int32_t state : source.m_propertyStates)
+            appendDwgDynamicInt(groups, 91, state);
+        for (std::size_t property = 0u;
+             property < source.m_twoPointPropertyCodes.size(); ++property) {
+            const auto& codes = source.m_twoPointPropertyCodes[property];
+            const auto& names = source.m_twoPointPropertyNames[property];
+            const int countCode = 171 + static_cast<int>(property);
+            const int connectionCode = 92 + static_cast<int>(property);
+            const int connectionNameCode = 301 + static_cast<int>(property);
+            appendDwgDynamicInt(groups, countCode,
+                static_cast<std::int32_t>(codes.size()));
+            for (std::size_t index = 0u; index < codes.size(); ++index) {
+                appendDwgDynamicInt(groups, connectionCode, codes[index]);
+                appendDwgDynamicString(
+                    groups, connectionNameCode, names[index]);
+            }
+        }
+        appendDwgDynamicInt(
+            groups, 177, source.m_parameterBaseLocation);
+        appendDwgDynamicString(
+            groups, 100, "AcDbBlockAlignmentParameter");
+        appendDwgDynamicInt(
+            groups, 280, source.m_alignPerpendicular ? 1 : 0);
+        return true;
+    }
+    if (source.m_kind
             != DRW_DynamicBlockObject::Kind::VisibilityParameter)
         return false;
     appendDwgDynamicString(groups, 100, "AcDbEvalExpr");
@@ -59853,7 +59948,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                     || sameAsciiName(
                         cls.recName, "BLOCKBASEPOINTPARAMETER")
                     || sameAsciiName(
-                        cls.className, "AcDbBlockBasepointParameter");
+                        cls.className, "AcDbBlockBasepointParameter")
+                    || sameAsciiName(
+                        cls.recName, "BLOCKALIGNMENTPARAMETER")
+                    || sameAsciiName(
+                        cls.className, "AcDbBlockAlignmentParameter");
             };
             std::map<std::string, std::size_t> instanceCounts;
             for (const DRW_DynamicBlockObject& object :
@@ -59898,6 +59997,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                            && sameAsciiName(object.m_recordName,
                                "BLOCKBASEPOINTPARAMETER")) {
                     ++instanceCounts["BLOCKBASEPOINTPARAMETER"];
+                } else if (object.m_kind
+                               == DRW_DynamicBlockObject::Kind::AlignmentParameter
+                           && sameAsciiName(object.m_recordName,
+                               "BLOCKALIGNMENTPARAMETER")) {
+                    ++instanceCounts["BLOCKALIGNMENTPARAMETER"];
                 } else {
                     delete dxfW;
                     dxfW = nullptr;

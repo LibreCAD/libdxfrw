@@ -21164,6 +21164,236 @@ bool dxfRW::processDynamicBlockObject() {
                 }
                 data.m_bodyFullyDecoded = completeBody;
             } else if (data.m_kind
+                           == DRW_DynamicBlockObject::Kind::AlignmentParameter
+                       && data.m_recordName == "BLOCKALIGNMENTPARAMETER"
+                       && reader->getSourceVersion() == DRW::AC1024) {
+                // The AC1024 DXF layout comes from AcDbBlock2PtParameter:
+                // four property-state values, then four independently
+                // counted code/name connection lists, followed by the
+                // alignment-specific flag. Unknown tails stay raw-only.
+                const auto integerGroup = [](const DRW_Variant* group,
+                                             int code,
+                                             std::int32_t& value) {
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::INTEGER
+                        || group->i_val()
+                            < std::numeric_limits<std::int32_t>::min()
+                        || group->i_val()
+                            > std::numeric_limits<std::int32_t>::max())
+                        return false;
+                    value = static_cast<std::int32_t>(group->i_val());
+                    return true;
+                };
+                const auto doubleGroup = [](const DRW_Variant* group,
+                                            int code, double& value) {
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::DOUBLE
+                        || !std::isfinite(group->d_val()))
+                        return false;
+                    value = group->d_val();
+                    return true;
+                };
+                const auto stringGroup = [](const DRW_Variant* group,
+                                            int code) {
+                    return group != nullptr && group->code() == code
+                        && group->type() == DRW_Variant::STRING
+                        && group->c_str() != nullptr;
+                };
+                const auto markerGroup = [&stringGroup](
+                        const DRW_Variant* group, std::string_view marker) {
+                    return stringGroup(group, 100)
+                        && std::string_view(group->c_str()) == marker;
+                };
+                std::size_t cursor = 2u;
+                const auto takeGroup = [&raw, &cursor](int code)
+                        -> const DRW_Variant* {
+                    if (cursor >= raw.groups.size())
+                        return nullptr;
+                    const DRW_Variant* group = &raw.groups[cursor++];
+                    return group->code() == code ? group : nullptr;
+                };
+                const auto takeInteger = [&](int code,
+                                             std::int32_t& value) {
+                    return integerGroup(takeGroup(code), code, value);
+                };
+                const auto takeDouble = [&](int code, double& value) {
+                    return doubleGroup(takeGroup(code), code, value);
+                };
+                const auto takeMarker = [&](std::string_view marker) {
+                    return markerGroup(takeGroup(100), marker);
+                };
+                std::int32_t nodeId = 0;
+                std::int32_t evalMajor = 0;
+                std::int32_t evalMinor = 0;
+                std::int32_t elementMajor = 0;
+                std::int32_t elementMinor = 0;
+                std::int32_t eed1071 = 0;
+                std::int32_t showProperties = 0;
+                std::int32_t chainActions = 0;
+                std::int32_t propertyStateCount = 0;
+                std::int32_t baseLocation = 0;
+                std::int32_t alignPerpendicular = 0;
+                std::array<double, 6> coordinates{};
+                std::array<std::int32_t, 4> propertyStates{};
+                std::array<std::vector<std::int32_t>, 4> propertyCodes;
+                std::array<std::vector<std::string_view>, 4> propertyNames;
+                const DRW_Variant* elementName = nullptr;
+                bool completeBody = raw.groups.size() >= 33u
+                    && raw.groups[0].code() == 5
+                    && raw.groups[1].code() == 330
+                    && raw.groups[0].type() == DRW_Variant::STRING
+                    && raw.groups[1].type() == DRW_Variant::STRING
+                    && takeMarker("AcDbEvalExpr")
+                    && takeInteger(90, nodeId)
+                    && takeInteger(98, evalMajor)
+                    && takeInteger(99, evalMinor)
+                    && takeMarker("AcDbBlockElement");
+                elementName = completeBody ? takeGroup(300) : nullptr;
+                completeBody = completeBody
+                    && stringGroup(elementName, 300)
+                    && takeInteger(98, elementMajor)
+                    && takeInteger(99, elementMinor)
+                    && takeInteger(1071, eed1071)
+                    && takeMarker("AcDbBlockParameter")
+                    && takeInteger(280, showProperties)
+                    && takeInteger(281, chainActions)
+                    && takeMarker("AcDbBlock2PtParameter")
+                    && takeDouble(1010, coordinates[0])
+                    && takeDouble(1020, coordinates[1])
+                    && takeDouble(1030, coordinates[2])
+                    && takeDouble(1011, coordinates[3])
+                    && takeDouble(1021, coordinates[4])
+                    && takeDouble(1031, coordinates[5])
+                    && takeInteger(170, propertyStateCount)
+                    && propertyStateCount == 4;
+                for (std::size_t index = 0u;
+                     index < propertyStates.size() && completeBody; ++index) {
+                    completeBody = takeInteger(91, propertyStates[index]);
+                }
+                for (std::size_t property = 0u;
+                     property < propertyCodes.size() && completeBody;
+                     ++property) {
+                    std::int32_t connectionCount = 0;
+                    const int countCode = 171 + static_cast<int>(property);
+                    completeBody = takeInteger(countCode, connectionCount)
+                        && connectionCount >= 0
+                        && connectionCount
+                            <= std::numeric_limits<std::int16_t>::max();
+                    if (!completeBody)
+                        break;
+                    const std::size_t reservedGroups =
+                        propertyCodes.size() - property - 1u + 3u;
+                    if (cursor > raw.groups.size()
+                        || raw.groups.size() - cursor < reservedGroups
+                        || static_cast<std::size_t>(connectionCount)
+                            > (raw.groups.size() - cursor - reservedGroups)
+                                / 2u) {
+                        completeBody = false;
+                        break;
+                    }
+                    try {
+                        propertyCodes[property].reserve(
+                            static_cast<std::size_t>(connectionCount));
+                        propertyNames[property].reserve(
+                            static_cast<std::size_t>(connectionCount));
+                    } catch (...) {
+                        return setError(DRW::BAD_CODE_PARSED);
+                    }
+                    const int connectionCode =
+                        92 + static_cast<int>(property);
+                    const int connectionNameCode =
+                        301 + static_cast<int>(property);
+                    for (std::int32_t connection = 0;
+                         connection < connectionCount && completeBody;
+                         ++connection) {
+                        std::int32_t codeValue = 0;
+                        const DRW_Variant* nameValue = nullptr;
+                        completeBody = takeInteger(connectionCode, codeValue);
+                        nameValue = completeBody
+                            ? takeGroup(connectionNameCode) : nullptr;
+                        completeBody = completeBody
+                            && stringGroup(nameValue, connectionNameCode);
+                        if (completeBody) {
+                            propertyCodes[property].push_back(codeValue);
+                            propertyNames[property].emplace_back(
+                                nameValue->c_str());
+                        }
+                    }
+                }
+                completeBody = completeBody
+                    && takeInteger(177, baseLocation)
+                    && baseLocation
+                        >= std::numeric_limits<std::int16_t>::min()
+                    && baseLocation
+                        <= std::numeric_limits<std::int16_t>::max()
+                    && takeMarker("AcDbBlockAlignmentParameter")
+                    && takeInteger(280, alignPerpendicular)
+                    && (alignPerpendicular == 0 || alignPerpendicular == 1)
+                    && cursor == raw.groups.size()
+                    && nodeId >= 0
+                    && nodeId <= std::numeric_limits<std::int32_t>::max()
+                    && evalMajor == 33 && evalMinor == 29
+                    && elementMajor == 33 && elementMinor == 29
+                    && (showProperties == 0 || showProperties == 1)
+                    && (chainActions == 0 || chainActions == 1);
+                if (completeBody) {
+                    const char* name = elementName->c_str();
+                    DxfReadRetainedLeaseCheckpoint fieldCheckpoint(
+                        data.m_dxfRetainedStringLease);
+                    if (!retainDxfReadBytes(data.m_dxfRetainedStringLease,
+                            reader->retainedByteBudget(), std::strlen(name)))
+                        return setError(DRW::BAD_CODE_PARSED);
+                    for (const auto& property : propertyNames) {
+                        for (const std::string_view value : property) {
+                            if (!retainDxfReadBytes(
+                                    data.m_dxfRetainedStringLease,
+                                    reader->retainedByteBudget(),
+                                    value.size()))
+                                return setError(DRW::BAD_CODE_PARSED);
+                        }
+                    }
+                    try {
+                        data.m_nodeId = static_cast<std::uint32_t>(nodeId);
+                        data.m_major = static_cast<std::uint32_t>(evalMajor);
+                        data.m_minor = static_cast<std::uint32_t>(evalMinor);
+                        data.m_parentId =
+                            std::numeric_limits<std::uint32_t>::max();
+                        data.m_valueCode = -9999;
+                        data.m_evalExprParsed = true;
+                        data.m_elementParsed = true;
+                        data.m_elementName = name;
+                        data.m_elementMajor =
+                            static_cast<std::uint32_t>(elementMajor);
+                        data.m_elementMinor =
+                            static_cast<std::uint32_t>(elementMinor);
+                        data.m_eed1071 = eed1071;
+                        data.m_showProperties = showProperties != 0;
+                        data.m_chainActions = chainActions != 0;
+                        data.m_firstPoint = DRW_Coord(
+                            coordinates[0], coordinates[1], coordinates[2]);
+                        data.m_secondPoint = DRW_Coord(
+                            coordinates[3], coordinates[4], coordinates[5]);
+                        data.m_twoPointPropertyCodes =
+                            std::move(propertyCodes);
+                        for (std::size_t property = 0u;
+                             property < propertyNames.size(); ++property) {
+                            auto& names = data.m_twoPointPropertyNames[property];
+                            names.reserve(propertyNames[property].size());
+                            for (const std::string_view value :
+                                 propertyNames[property])
+                                names.emplace_back(value.data(), value.size());
+                        }
+                        data.m_propertyStates = propertyStates;
+                        data.m_parameterBaseLocation =
+                            static_cast<std::int16_t>(baseLocation);
+                        data.m_alignPerpendicular = alignPerpendicular != 0;
+                    } catch (...) {
+                        return setError(DRW::BAD_CODE_PARSED);
+                    }
+                    fieldCheckpoint.commit();
+                }
+                data.m_bodyFullyDecoded = completeBody;
+            } else if (data.m_kind
                            == DRW_DynamicBlockObject::Kind::GripLocationComponent
                        && data.m_recordName
                            == "BLOCKGRIPLOCATIONCOMPONENT"
@@ -31854,6 +32084,61 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
         && std::isfinite(ent->m_basePoint.y)
         && std::isfinite(ent->m_basePoint.z)
         && ent->reactorHandles.empty();
+    const bool alignmentParameterVersions =
+        (ent->m_major == 29u && ent->m_minor == 2u
+            && ent->m_elementMajor == 29u && ent->m_elementMinor == 2u)
+        || (ent->m_major == 33u && ent->m_minor == 29u
+            && ent->m_elementMajor == 33u && ent->m_elementMinor == 29u);
+    bool alignmentParameterConnections = true;
+    std::size_t alignmentParameterGroupCount = 33u;
+    std::size_t alignmentParameterStringBytes = ent->m_elementName.size();
+    alignmentParameterConnections = alignmentParameterStringBytes
+        <= DRW::kMaxDxfBinaryPayloadBytes;
+    for (std::size_t property = 0u;
+         property < ent->m_twoPointPropertyCodes.size()
+             && alignmentParameterConnections;
+         ++property) {
+        const auto& codes = ent->m_twoPointPropertyCodes[property];
+        const auto& names = ent->m_twoPointPropertyNames[property];
+        if (codes.size() != names.size()
+            || codes.size() > static_cast<std::size_t>(
+                   std::numeric_limits<std::int16_t>::max())
+            || codes.size()
+                > (DRW::kMaxDxfRawRecordGroups
+                    - alignmentParameterGroupCount) / 2u) {
+            alignmentParameterConnections = false;
+            break;
+        }
+        alignmentParameterGroupCount += codes.size() * 2u;
+        for (const UTF8STRING& name : names) {
+            if (name.size() > DRW::kMaxDxfBinaryPayloadBytes
+                    - alignmentParameterStringBytes) {
+                alignmentParameterConnections = false;
+                break;
+            }
+            alignmentParameterStringBytes += name.size();
+        }
+    }
+    const bool alignmentParameter = ent->m_kind
+            == DRW_DynamicBlockObject::Kind::AlignmentParameter
+        && ent->m_recordName == "BLOCKALIGNMENTPARAMETER"
+        && version == DRW::AC1024 && ent->m_bodyFullyDecoded
+        && ent->m_evalExprParsed && ent->m_elementParsed
+        && ent->m_nodeId <= static_cast<std::uint32_t>(
+               std::numeric_limits<std::int32_t>::max())
+        && (ent->m_parentId == DRW::NoHandle
+            || ent->m_parentId
+                == std::numeric_limits<std::uint32_t>::max())
+        && alignmentParameterVersions && ent->m_valueCode == -9999
+        && !ent->m_hasValueDouble && ent->m_valueHandle == 0u
+        && alignmentParameterConnections
+        && std::isfinite(ent->m_firstPoint.x)
+        && std::isfinite(ent->m_firstPoint.y)
+        && std::isfinite(ent->m_firstPoint.z)
+        && std::isfinite(ent->m_secondPoint.x)
+        && std::isfinite(ent->m_secondPoint.y)
+        && std::isfinite(ent->m_secondPoint.z)
+        && ent->reactorHandles.empty();
     const bool gripLocation = ent->m_kind
             == DRW_DynamicBlockObject::Kind::GripLocationComponent
         && ent->m_recordName == gripRecordName
@@ -32042,7 +32327,8 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
             && unusedFlatHandles == 1u;
     }
     if (!purgePreventer && !parameterDependencyBody && !proxyNode
-        && !basePointParameter && !gripLocation && !visibilityGrip
+        && !basePointParameter && !alignmentParameter && !gripLocation
+        && !visibilityGrip
         && !orientedGrip && !visibilityParameter)
         return failDxfWrite();
 
@@ -32112,6 +32398,56 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
             && writer->writeDouble(1012, ent->m_basePoint.x)
             && writer->writeDouble(1022, ent->m_basePoint.y)
             && writer->writeDouble(1032, ent->m_basePoint.z);
+    } else if (written && alignmentParameter) {
+        written = writer->writeString(100, "AcDbEvalExpr")
+            && writer->writeInt32(90,
+                static_cast<std::int32_t>(ent->m_nodeId))
+            && writer->writeInt32(98, 33)
+            && writer->writeInt32(99, 29)
+            && writer->writeString(100, "AcDbBlockElement")
+            && writer->writeUtf8String(300, ent->m_elementName)
+            && writer->writeInt32(98, 33)
+            && writer->writeInt32(99, 29)
+            && writer->writeInt32(1071, ent->m_eed1071)
+            && writer->writeString(100, "AcDbBlockParameter")
+            && writer->writeInt16(280,
+                static_cast<std::int16_t>(ent->m_showProperties ? 1 : 0))
+            && writer->writeInt16(281,
+                static_cast<std::int16_t>(ent->m_chainActions ? 1 : 0))
+            && writer->writeString(100, "AcDbBlock2PtParameter")
+            && writer->writeDouble(1010, ent->m_firstPoint.x)
+            && writer->writeDouble(1020, ent->m_firstPoint.y)
+            && writer->writeDouble(1030, ent->m_firstPoint.z)
+            && writer->writeDouble(1011, ent->m_secondPoint.x)
+            && writer->writeDouble(1021, ent->m_secondPoint.y)
+            && writer->writeDouble(1031, ent->m_secondPoint.z)
+            && writer->writeInt16(170, 4);
+        for (const std::int32_t stateValue : ent->m_propertyStates)
+            written = written && writer->writeInt32(91, stateValue);
+        for (std::size_t property = 0u;
+             property < ent->m_twoPointPropertyCodes.size() && written;
+             ++property) {
+            const auto& codes = ent->m_twoPointPropertyCodes[property];
+            const auto& names = ent->m_twoPointPropertyNames[property];
+            const int countCode = 171 + static_cast<int>(property);
+            const int connectionCode = 92 + static_cast<int>(property);
+            const int connectionNameCode = 301 + static_cast<int>(property);
+            written = writer->writeInt16(countCode,
+                static_cast<std::int16_t>(codes.size()));
+            for (std::size_t index = 0u;
+                 index < codes.size() && written; ++index) {
+                written = writer->writeInt32(connectionCode, codes[index])
+                    && writer->writeUtf8String(
+                        connectionNameCode, names[index]);
+            }
+        }
+        written = written
+            && writer->writeInt16(177, ent->m_parameterBaseLocation)
+            && writer->writeString(100,
+                "AcDbBlockAlignmentParameter")
+            && writer->writeInt16(280,
+                static_cast<std::int16_t>(
+                    ent->m_alignPerpendicular ? 1 : 0));
     } else if (written && gripLocation) {
         written = writer->writeString(100, "AcDbEvalExpr")
             && writer->writeInt32(90,

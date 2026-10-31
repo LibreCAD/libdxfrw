@@ -68,16 +68,19 @@ roles, and dependencies. Finish only its remaining record profiles and bind
 every required object/reference to emitted identities before widening output
 eligibility. Serializer readback does not prove native dynamic-block semantics.
 
-The only unimplemented source-backed record projections in this inventory are
-`BLOCKALIGNMENTPARAMETER` (2), `BLOCKFLIPACTION` (3),
+The remaining source-backed record projections in this inventory are
+`BLOCKFLIPACTION` (3),
 `BLOCKFLIPPARAMETER` (3), `BLOCKHORIZONTALCONSTRAINTPARAMETER` (1),
 `BLOCKLINEARPARAMETER` (2), `BLOCKMOVEACTION` (2), `BLOCKSCALEACTION` (1),
-`BLOCKSTRETCHACTION` (6), and `BLOCKVERTICALCONSTRAINTPARAMETER` (1). Implement
-their bounded wire profiles from retained typed fields and exact physical
-source records; serializer readback alone does not establish native semantics.
+`BLOCKSTRETCHACTION` (6), and `BLOCKVERTICALCONSTRAINTPARAMETER` (1): eight
+record classes remain. The AC1024 `BLOCKALIGNMENTPARAMETER` projection and
+ASCII/Binary typed readback are recorded in [its qualification receipt](docs/research/p5-ac1024-alignment-parameter-output-qualification-2026-10-31.json).
+Implement the remaining bounded wire profiles from retained typed fields and
+exact physical source records; serializer readback alone does not establish
+native semantics.
 
 Implementation order: (1) add bounded DXF projections and admitted
-output/replay routes for those nine remaining source-required subclasses; raw
+output/replay routes for those eight remaining source-required subclasses; raw
 callback retention alone is not replay qualification; (2) bind graph/object
 identities, action and reactor roles, EED
 APPID references, constraint dependencies, and the projected

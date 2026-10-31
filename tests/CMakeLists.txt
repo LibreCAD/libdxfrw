@@ -2410,6 +2410,19 @@ set_tests_properties(dwg2dxf_dynamic_block_basepoint_parameter_writer
     TIMEOUT 30
 )
 
+# Exercise the AC1024 two-point alignment profile, including all four
+# connection code/name lists, raw-only unknown tails, rollback, and retry.
+add_test(
+    NAME dwg2dxf_dynamic_block_alignment_parameter_writer
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --dynamic-block-alignment-parameter-dxf-writer
+)
+set_tests_properties(dwg2dxf_dynamic_block_alignment_parameter_writer
+    PROPERTIES
+    LABELS "fast;dxf;adapter;dynamic-block"
+    TIMEOUT 30
+)
+
 add_test(
     NAME dwg2dxf_proxy_object_capture_limits
     COMMAND libdxfrw_dwg2dxf_adapter_tests --proxy-object-capture-limits
