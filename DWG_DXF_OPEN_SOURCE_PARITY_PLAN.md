@@ -47,7 +47,7 @@ close through ordinary local implementation work.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — remaining source-bound associative profiles and recursive closure | Select the next physical-source-backed associative body, dependency, owned-parameter, or versioned-registry profile; prove its bounded fields and reference roles, then close all required descendants through source → planned → emitted document output. The physical mechanical AC1024 `ACDBASSOCVARIABLE` witness remains ineligible until its unclassified body suffix is bounded and understood. | Keep every unsupported or uncorroborated profile raw and retain strict refusal for incomplete required graphs; use eligible repository inputs or locally authored fixtures. |
+| P4 | OPEN — remaining source-bound associative profiles and recursive closure | Current first investigation: establish the body, text, and handle-stream boundary and meaning of the unclassified suffix in the physical mechanical AC1024 `ACDBASSOCVARIABLE` witness. The ODA specification and LibreDWG schema corroborate its known prefix, not that suffix. Do not infer completion from zero padding. If independent evidence cannot define this suffix, keep the record ineligible and select another physical witness with a reproduced missing body or edge. For each admitted profile, prove its exact fields and roles, then close required descendants through source → planned → emitted output. | Keep every unsupported or uncorroborated profile raw and retain strict refusal for incomplete required graphs; use eligible repository inputs or locally authored fixtures. |
 | P5 | OPEN | Close remaining rendering metadata, FIELDLIST/child-graph profiles, independently evidenced block-geometry payloads, TABLE style/format, AC1018 TABLE, and native rendering profiles listed below. | Implement only source- or consumer-witnessed gaps; keep unsupported profiles refused until their schema and wire layout are established. |
 | P6 | OPEN | Resolve only current DWG version/schema/semantic failures; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -82,9 +82,6 @@ engines.
    qualified providers. Keep version-2 nonzero-seed registry layouts raw until
    their framing is proven. Keep investigation DWGs out of committed fixtures;
    bind regressions to eligible repository inputs or locally authored fixtures.
-   The mechanical AC1024 `ACDBASSOCVARIABLE` witness has unclassified bits
-   after its known fields; prove the suffix boundary and meaning before marking
-   the record wire-complete or routing it through graph output.
 2. **Next associative profile admission:** identify the next required body or
    edge from a physical source before editing. Prove the class/version, bounded
    span, exact field values, target roles and ownership; then reuse the existing
