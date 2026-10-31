@@ -167,7 +167,7 @@ receipt and code path already agree.
 
 | Boundary | Remaining decision or proof |
 | --- | --- |
-| Version/route parity | Reconcile current standalone and pinned LibreCAD/bundled/LibreCAD_3 routes; classify meaningful selector deltas and unresolved integrity diagnostics. |
+| Version/route parity | Reconcile current standalone and pinned LibreCAD/bundled/LibreCAD_3 routes; classify meaningful selector deltas and unresolved integrity diagnostics. The current AC1024 mechanical source now converts strictly, but LibreDWG 0.14's independent DXF reader advances past MLEADERSTYLE and then rejects ASSOCVALUEDEPENDENCY group 90 (with a separate duplicate-handle diagnostic); resolve the exact schema/consumer differential before claiming cross-reader compatibility. Evidence and the corrected MLEADERSTYLE wire fields are in [the P5 receipt](docs/research/p5-ac1024-mleaderstyle-dxf-wire-correction-2026-10-31.json). |
 | DWG source profiles | Independent per-version reader/container/HEADER/CLASSES and producer evidence, including R2007+ carrier differences, class counts and real-sample end-to-end conversion. |
 | HATCH/MPOLYGON/MESH | Resolve witnessed zero-fit/producer layout disagreements, extended CMC meaning and unrepresented overrides; qualify geometry and annotation behavior beyond framing. |
 | Text/annotation/coordinates | MTEXT columns/linked contexts, attributes, DIMENSION/DIMARC/large-radial placement, DSTYLE/picture graphs, SHAPE glyph/font identity, LEADER/MLEADER and derived-R12 appearance. |
