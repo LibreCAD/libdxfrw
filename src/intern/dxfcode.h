@@ -58,6 +58,14 @@ inline constexpr bool isDxfXRecordApplicationCode(int code) {
     return code >= 1 && code <= 369 && code != 5 && code != 105;
 }
 
+// AutoCAD dynamic-block XRECORD payloads observed in the DWG corpus use
+// group 1071 as an Int32 in the AcDbXrecord body. This is outside Autodesk's
+// documented XRECORD application-code range; keep it explicitly separate so
+// callers cannot mistake the compatibility exception for standard DXF.
+inline constexpr bool isDxfXRecordDwgCompatibilityCode(int code) {
+    return code == 1071;
+}
+
 // The pinned LibreCAD tree predates the standalone safety correction for two
 // disputed ranges.  Keep that legacy interpretation available to an explicit
 // compatibility probe without changing the standalone-safe default used by

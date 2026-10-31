@@ -17,12 +17,14 @@
 #include "libdxfrw.h"
 #include "dx_data.h"
 #include "dx_mline_source_dependency.h"
+#include "intern/dxfcode.h"
 #include "intern/drw_dbg.h"
 #include "intern/dxfwholesource.h"
 namespace blockref_source_relation { struct Result; }
 
 #include <cstdint>
 #include <cstddef>
+#include <algorithm>
 #include <array>
 #include <iostream>
 #include <iosfwd>
@@ -1461,7 +1463,21 @@ public:
         for (std::uint32_t handle : m_extensionXRecordHandles) {
             for (DRW_XRecord& record : cData->xRecords) {
                 if (record.handle == handle) {
-                    if (!dxfW->writeXRecord(&record))
+                    const auto& values = record.m_dataEntries.empty()
+                        ? record.m_values : record.m_dataEntries;
+                    const bool hasDwgGroup1071 = std::any_of(
+                        values.cbegin(), values.cend(), [](const auto& value) {
+                            return isDxfXRecordDwgCompatibilityCode(
+                                value.code());
+                        });
+                    const bool useDwgCompatibility = hasDwgGroup1071
+                        && cData->sourceFormat == dx_source_format::DWG
+                        && cData->sourceVersion >= DRW::AC1021
+                        && cData->sourceVersion == dxfW->getVersion();
+                    const bool written = useDwgCompatibility
+                        ? dxfW->writeXRecordDwgCompatibility(&record)
+                        : dxfW->writeXRecord(&record);
+                    if (!written)
                         return;
                     break;
                 }

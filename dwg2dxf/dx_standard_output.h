@@ -251,6 +251,12 @@ struct Shape {
                 if (!isDxfXRecordApplicationCode(code)) valid = false;
                 return;
             }
+            if (!xdata && code == 1071 && version >= DRW::AC1021) {
+                // This producer compatibility tag remains part of the
+                // AcDbXrecord body; it does not begin trailing XDATA.
+                (void)reader.getInt32();
+                return;
+            }
             if (!xdata && code != 1001) { valid = false; return; }
         }
         if (code == 102) {
@@ -814,7 +820,13 @@ template<class Mapper> bool xrecordApplicationTransportEqual(const std::vector<D
     if (source.size() > 1000000u || actual.size() > 1000000u) return false;
     std::size_t next = 0u;
     for (const auto& value : source) {
-        if (!isDxfXRecordApplicationCode(value.code()) || next >= actual.size()) return false;
+        const bool standardCode =
+            isDxfXRecordApplicationCode(value.code());
+        const bool dwgCompatibilityCode =
+            isDxfXRecordDwgCompatibilityCode(value.code())
+            && value.type() == DRW_Variant::INTEGER;
+        if ((!standardCode && !dwgCompatibilityCode)
+            || next >= actual.size()) return false;
         if (value.code() < 310 || value.code() > 319) {
             if (value.type() == DRW_Variant::BINARY) return false;
             if (!valueEqual(value,actual[next++],map,references)) return false;

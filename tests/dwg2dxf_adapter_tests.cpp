@@ -5039,6 +5039,129 @@ bool xrecordApplicationChunkControls() {
     return true;
 }
 
+bool xrecordDwgGroup1071CompatibilityOutput() {
+    class DirectXRecordWriter final : public dx_iface {
+    public:
+        DRW_XRecord record;
+        bool called{false};
+        bool emitted{false};
+        bool useCompatibility{false};
+
+        void writeObjects() override {
+            called = true;
+            emitted = useCompatibility
+                ? dxfW->writeXRecordDwgCompatibility(&record)
+                : dxfW->writeXRecord(&record);
+        }
+    };
+
+    for (const bool binary : {false, true}) {
+        DirectXRecordWriter writer;
+        writer.record.handle = 0xA620u;
+        writer.record.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        writer.record.m_values = {
+            DRW_Variant(1071, static_cast<std::int32_t>(135625452)),
+            DRW_Variant(1071, static_cast<std::int32_t>(184556386)),
+            DRW_Variant(70, static_cast<std::int32_t>(25)),
+            DRW_Variant(70, static_cast<std::int32_t>(104)),
+            DRW_Variant(10, DRW_Coord(0.0, 0.0, 0.0)),
+            DRW_Variant(1, std::string("ARCH D"))};
+        writer.record.m_dataEntries = writer.record.m_values;
+
+        const auto nonce = std::chrono::steady_clock::now()
+                               .time_since_epoch()
+                               .count();
+        const std::filesystem::path output =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-xrecord-1071-" + std::to_string(nonce) + ".dxf");
+        const std::string sentinel =
+            "unsupported pre-AC1021 XRECORD 1071 must preserve destination\n";
+        {
+            std::ofstream existing(output, std::ios::binary | std::ios::trunc);
+            existing << sentinel;
+            if (!existing)
+                return fail("could not create XRECORD 1071 destination sentinel");
+        }
+        dx_data authored;
+        if (writer.fileExport(output.string(), DRW::AC1024, binary,
+                              &authored, false, true))
+            return fail("ordinary XRECORD writer accepted group 1071");
+        {
+            std::ifstream existing(output, std::ios::binary);
+            const std::string preserved{
+                std::istreambuf_iterator<char>(existing),
+                std::istreambuf_iterator<char>()};
+            if (preserved != sentinel)
+                return fail("standard-route refusal replaced the destination");
+        }
+        writer.useCompatibility = true;
+        writer.record.m_dataEntries[0] = DRW_Variant(
+            1071, 135625452.0);
+        if (writer.fileExport(output.string(), DRW::AC1024, binary,
+                              &authored, false, true))
+            return fail("non-Int32 XRECORD 1071 was emitted");
+        {
+            std::ifstream existing(output, std::ios::binary);
+            const std::string preserved{
+                std::istreambuf_iterator<char>(existing),
+                std::istreambuf_iterator<char>()};
+            if (preserved != sentinel)
+                return fail("bad-type refusal replaced the destination");
+        }
+        writer.record.m_dataEntries[0] = DRW_Variant(
+            1071, static_cast<std::int32_t>(135625452));
+        if (writer.fileExport(output.string(), DRW::AC1018, binary,
+                              &authored, false, true))
+            return fail("pre-AC1021 XRECORD 1071 was emitted");
+        {
+            std::ifstream existing(output, std::ios::binary);
+            const std::string preserved{
+                std::istreambuf_iterator<char>(existing),
+                std::istreambuf_iterator<char>()};
+            if (preserved != sentinel)
+                return fail("pre-AC1021 refusal replaced the destination");
+        }
+
+        writer.called = false;
+        writer.emitted = false;
+        if (!writer.fileExport(output.string(), DRW::AC1024, binary,
+                               &authored, false, true)
+            || !writer.called || !writer.emitted) {
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+            return fail("AC1024 XRECORD 1071 compatibility retry failed");
+        }
+        dx_data readback;
+        dx_iface reader;
+        const bool imported = reader.fileImport(output.string(), &readback, false);
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+        if (!imported || readback.xRecords.size() != 1u)
+            return fail("AC1024 XRECORD 1071 output failed fresh readback");
+
+        const auto& values = readback.xRecords.front().m_dataEntries;
+        const bool exact = values.size() == 6u
+            && values[0].code() == 1071
+            && values[0].type() == DRW_Variant::INTEGER
+            && values[0].i_val() == 135625452
+            && values[1].code() == 1071
+            && values[1].type() == DRW_Variant::INTEGER
+            && values[1].i_val() == 184556386
+            && values[2].code() == 70 && values[2].i_val() == 25
+            && values[3].code() == 70 && values[3].i_val() == 104
+            && values[4].code() == 10
+            && values[4].type() == DRW_Variant::COORD
+            && values[4].content.v->x == 0.0
+            && values[4].content.v->y == 0.0
+            && values[4].content.v->z == 0.0
+            && values[5].code() == 1 && values[5].c_str() != nullptr
+            && std::string(values[5].c_str()) == "ARCH D";
+        if (!exact)
+            return fail("XRECORD 1071 compatibility changed ordered values");
+    }
+    return true;
+}
+
 enum class StandardDwgProbe { BinaryTransport, ProfileIsolation, ApplicationScope, ApplicationFaults, BinaryApplication, BinaryApplicationFaults, CoordinateApplication, CoordinateApplicationFaults };
 
 bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::BinaryTransport) {
@@ -51120,6 +51243,10 @@ int main(int argc, char** argv) {
         return standardDwgBinaryTransport(StandardDwgProbe::CoordinateApplicationFaults) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--xrecord-application-chunk-controls")
         return xrecordApplicationChunkControls() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1])
+            == "--xrecord-dwg-group-1071-compatibility")
+        return xrecordDwgGroup1071CompatibilityOutput() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--standard-dwg-profile-isolation")
         return standardDwgBinaryTransport(StandardDwgProbe::ProfileIsolation) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--native-xrecord-application-scope")

@@ -2124,6 +2124,10 @@ add_test(NAME dwg2dxf_xrecord_application_chunk_controls
     COMMAND libdxfrw_dwg2dxf_adapter_tests --xrecord-application-chunk-controls)
 set_tests_properties(dwg2dxf_xrecord_application_chunk_controls PROPERTIES
     LABELS "fast;dxf;objects;xrecord;adapter;generated" TIMEOUT 30)
+add_test(NAME dwg2dxf_xrecord_dwg_group_1071_compatibility
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --xrecord-dwg-group-1071-compatibility)
+set_tests_properties(dwg2dxf_xrecord_dwg_group_1071_compatibility PROPERTIES
+    LABELS "fast;dxf;objects;xrecord;compatibility;generated" TIMEOUT 30)
 add_test(NAME dwg2dxf_native_xrecord_coordinates
     COMMAND libdxfrw_dwg2dxf_adapter_tests --native-xrecord-coordinates)
 set_tests_properties(dwg2dxf_native_xrecord_coordinates PROPERTIES

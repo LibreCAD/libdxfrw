@@ -26625,6 +26625,15 @@ bool dxfRW::writeAcDbPlaceholder(DRW_AcDbPlaceholder *ent) {
 }
 
 bool dxfRW::writeXRecord(DRW_XRecord *ent) {
+    return writeXRecordInternal(ent, false);
+}
+
+bool dxfRW::writeXRecordDwgCompatibility(DRW_XRecord *ent) {
+    return writeXRecordInternal(ent, true);
+}
+
+bool dxfRW::writeXRecordInternal(
+        DRW_XRecord *ent, bool allowDwgGroup1071Compatibility) {
     if (!preflightDxfWrite())
         return false;
     if (ent != nullptr && !ent->hasExactDxfCoordinateTuples()) {
@@ -26659,18 +26668,31 @@ bool dxfRW::writeXRecord(DRW_XRecord *ent) {
 
     const std::vector<DRW_Variant>& values = ent->m_dataEntries.empty()
         ? ent->m_values : ent->m_dataEntries;
-    const auto invalidApplicationCode = [this](int code) {
-        if (isDxfXRecordApplicationCode(code))
+    const auto invalidApplicationCode = [this,
+            allowDwgGroup1071Compatibility](int code) {
+        if (isDxfXRecordApplicationCode(code)
+            || (allowDwgGroup1071Compatibility
+                && version >= DRW::AC1021
+                && isDxfXRecordDwgCompatibilityCode(code)))
             return false;
         recordOperationDiagnostic(DRW::OperationPhase::Validation,
             DRW::OperationCause::ValidationFailure, "xrecord-application-code-domain",
-            "XRECORD application values require normal object groups 1..369 except 5/105; XDATA belongs in extData");
+            "XRECORD application values require normal object groups 1..369 except 5/105; group 1071 requires explicit AC1021+ DWG compatibility output");
         m_writeError = true;
         return true;
     };
     for (const DRW_Variant& value : values) {
         if (invalidApplicationCode(value.code()))
             return false;
+        if (isDxfXRecordDwgCompatibilityCode(value.code())
+            && value.type() != DRW_Variant::INTEGER) {
+            recordOperationDiagnostic(DRW::OperationPhase::Validation,
+                DRW::OperationCause::ValidationFailure,
+                "xrecord-dwg-compatibility-value-kind",
+                "the AC1021+ DWG XRECORD compatibility profile permits group 1071 only as Int32");
+            m_writeError = true;
+            return false;
+        }
         if (value.type() == DRW_Variant::COORD
             && !isDxfXRecordPointBaseCode(value.code())) {
             recordOperationDiagnostic(DRW::OperationPhase::Validation,

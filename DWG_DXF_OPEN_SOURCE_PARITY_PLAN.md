@@ -56,21 +56,16 @@ external-only and cannot close through ordinary local implementation work.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**P4 next packet — resolve the physical source's remaining strict-output blocker.**
-On the existing `title_block-arch.dwg`, strict conversion currently stops before
-OBJECTS staging at XRECORD `0x121F`: its payload contains group `1071`, outside
-the [documented normal XRECORD group-code domain](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm).
-Autodesk's [XRECORD group table](https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-F8B4190D-CCC6-4CAB-BDAE-71A7094FB442.htm)
-documents group 90 as a legal 32-bit integer, and its
-[`AcDbXrecord::setFromRbChain` contract](https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbXrecord__setFromRbChain_resbuf__AcDbDatabase_.html)
-permits any valid group code appropriate to the value type. Type-width
-compatibility alone does not establish that changing this application-defined
-field from 1071 to 90 preserves its meaning. LibreDWG 0.14 emits the original
-1071 pairs for this exact source and its importer passes those pairs, but the
-Autodesk contract still does not qualify them as legal XRECORD data or prove
-native acceptance. Keep strict refusal; do not reinterpret the payload as
-XDATA, remap its group code, or use peer emission alone as acceptance evidence.
-After that blocker is resolved, complete the physical
+**P4 next packet — qualify the R24 TABLESTYLE profile blocking the physical
+AC1024 source.** Strict conversion of `title_block-arch.dwg` now advances past
+XRECORD `0x121F` and stops at a cell style outside the witnessed
+title/header/data profile. Trace the exact style fields and referenced
+dependencies in that source; extend only the witnessed shape, then retry strict
+conversion. The completed group-1071 transport is nonstandard and establishes
+no native acceptance, semantic meaning, or support claim; retain its source and
+route evidence in
+[`p4-xrecord-group1071-dwg-compatibility-2026-10-31.json`](docs/research/p4-xrecord-group1071-dwg-compatibility-2026-10-31.json).
+After prerequisites close, complete physical
 BLOCKREPRESENTATIONDATA staged-byte and fresh-readback proof. Source-specific
 evidence and bindings are recorded in:
 [`p4-ac1024-block-representation-data-output-2026-10-31.json`](docs/research/p4-ac1024-block-representation-data-output-2026-10-31.json),
@@ -121,26 +116,21 @@ output gates are met.
 ## P5 — rendering and TABLE
 
 **Dynamic-block output profiles:** qualify the physical AC1024
-`Title_Block-ARCH` graph rooted at BLOCK_RECORD `0x127`. The generated callback
-composition, ASCII/Binary wire/readback, incomplete-graph refusal, destination
-preservation and corrected retry are complete, but its synthetic graph-edge
-and SORTENTSTABLE-membership values do not qualify the physical drawing. That
-source remains blocked before OBJECTS staging by XRECORD `0x121F` group 1071;
-keep strict refusal until that independent P4 blocker has an evidence-backed
-route. Then bind the source's four EvaluationGraph nodes, three edges, linked
-Grip/GripLocation records, visibility flat/state handle sets, exact
-SORTENTSTABLE pairs and all DICTIONARY/owner/reactor roles to staged output and
-fresh ASCII/Binary readback. Preserve fail-closed behavior and prove atomic
-refusal/retry for a missing required source target. Native dynamic-block
-semantics remain a separate qualification. DXF-origin typed/raw replay remains
-unqualified until exact source pairing and one-emission proof pass. Qualify
-other subclasses only when an existing source identifies a required profile.
+`Title_Block-ARCH` graph rooted at BLOCK_RECORD `0x127`. Its physical graph is
+unqualified and blocked before OBJECTS by the P4 TABLESTYLE profile. Once strict
+output reaches OBJECTS, bind the source's four EvaluationGraph nodes, three
+edges, linked Grip/GripLocation records, visibility flat/state handle sets,
+exact SORTENTSTABLE pairs and all DICTIONARY/owner/reactor roles to staged
+output and fresh ASCII/Binary readback. Prove atomic refusal/retry for a missing
+required source target. Native dynamic-block semantics and DXF-origin typed/raw
+replay remain separate open qualifications. Qualify other subclasses only when
+an existing source identifies a required profile.
 
 **Rendering:** close remaining engine/class-revision/schema and optional-presence
 profiles; active/global/environment and background/live-section relations; and
 physical-source admission plus native rendering semantics for SUN profiles.
-Preserve DXF-origin raw SUN replay and refuse RGB/name/book CMC states unless a
-lossless documented route is established. Also close native dictionary collation
+Unsupported RGB/name/book CMC states remain refused unless a lossless documented
+route is established. Also close native dictionary collation
 and layer style overrides, plus VIEWPORT shade modes 4/5 and references
 335/343/344/91. Verify coupled dictionary keys, names, body fields and consumers.
 Investigate PLOTSETTINGS, LAYOUT or VIEWPORT transport only for a distinct
