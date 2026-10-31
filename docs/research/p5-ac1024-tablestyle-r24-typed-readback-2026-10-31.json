@@ -6,6 +6,7 @@
   "status": "LOCAL_GENERATED_ASCII_BINARY_TYPED_READBACK_PROFILE",
   "supportClaimEffect": "none",
   "implementationCommit": "fd3266f0c8e8a050ae52fa83a28e84c0bd3fe8f2",
+  "followupTestCommit": "592246a0810625998a1942278166ad93fc8cea18",
   "sourceBasis": {
     "physicalProfileReceipt": "docs/research/p5-ac1024-tablestyle-r24-output-2026-10-31.json",
     "physicalOutputReceipt": "docs/research/p5-ac1024-tablestyle-physical-output-readback-2026-10-31.json",
@@ -34,12 +35,13 @@
   "proof": {
     "selector": "--tablestyle-r24-typed-writer",
     "ctest": "libdxfrw_tablestyle_r24_typed_writer",
-    "readback": "Fresh ASCII and Binary import yields exactly one typed and one raw TABLESTYLE. The selector checks the table-style link, default Table identity, all three custom style identities, content datatype/alignment/text height and style handle, zero versus six-border shapes, edge/type/lineweight/spacing values, and the existing raw marker/order and output-handle checks.",
+    "readback": "Fresh ASCII and Binary import yields exactly one typed and one raw TABLESTYLE. The selector checks the table-style link, default Table identity, all three custom style identities, content datatype/alignment/text height and style handle, zero versus six-border shapes, edge/type/lineweight/spacing values, and the existing raw marker/order and output-handle checks. A second generated output has one CONTENTFORMAT_BEGIN marker changed in place; import succeeds with the malformed TABLESTYLE retained raw and no typed TABLESTYLE callback.",
     "focusedValidation": {
       "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
       "buildResult": "PASS with configured warning-as-error flags",
       "ctest": "ctest --test-dir build-gcc -R '^libdxfrw_tablestyle_r24_typed_writer$' --output-on-failure",
-      "ctestResult": "PASS 1/1; 0.49 seconds",
+      "ctestResult": "PASS 1/1; 0.47 seconds",
+      "negativeControl": "PASS for ASCII and Binary; malformed nested marker is retained raw-only",
       "fullSuites": "NOT RUN"
     }
   },
@@ -48,10 +50,10 @@
     "sourceSha256": {
       "src/drw_objects.cpp": "463a189f56983b6dbbdd28cb9985d924e13141bc97c6198ebc91f445d4f1ce09",
       "src/drw_objects.h": "54df32a499bf3204c71532e4ebc58a9564dd4cc4e949291cf402eef133f5c712",
-      "tests/dwg2dxf_adapter_tests.cpp": "fe12c93d2ba2a6f144de2a6a20a4f94683b5b15134e270e97ad7fbcecccc8343"
+      "tests/dwg2dxf_adapter_tests.cpp": "b57ee3b9eb382baed8db034f30a7c5aa1b1c698eac7ded3cf9d1b9eaeecd4448"
     },
     "normalArtifactSha256": {
-      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "40a3ea356ecad8c44f0021b883262e7eb768067168436745db17060f3e3e2d40"
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "a0b287629726bfccaa8ef17540f7aa07bc460e381427e6638c6d1438e7aad62c"
     }
   },
   "limits": [
