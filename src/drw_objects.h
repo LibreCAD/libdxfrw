@@ -7791,8 +7791,8 @@ public:
   // AcDbEvalExpr prefix (shared by every evalexpr-bearing class).
   bool m_evalExprParsed = false;
   std::uint32_t m_parentId = 0; /*!< BLd evalexpr.parentid (0xFFFFFFFF = -1) */
-  std::uint32_t m_major = 0;    /*!< BL evalexpr.major (DXF 98) */
-  std::uint32_t m_minor = 0;    /*!< BL evalexpr.minor (DXF 99) */
+  std::uint32_t m_major = 0; /*!< BL EvalExpr major (AC1024 DWG 29; DXF 98 = 33) */
+  std::uint32_t m_minor = 0; /*!< BL EvalExpr minor (AC1024 DWG 2; DXF 99 = 29) */
   std::int16_t m_valueCode =
       0; /*!< BSd evalexpr.value_code (DXF 70; -9999 = none) */
   double m_valueDouble = 0.0; /*!< selector-40 EvalExpr payload (DXF 140) */

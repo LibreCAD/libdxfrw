@@ -82,8 +82,7 @@ constexpr std::size_t kMaxAdapterCellStyleMapRetainedBytes =
     DRW::kMaxDxfBinaryPayloadBytes;
 constexpr std::size_t kMaxAdapterDynamicBlockRecords = 100000u;
 
-bool hasClosedDynamicBlockPurgePreventerProfile(
-        const dx_data& data) noexcept {
+bool hasClosedDynamicBlockOutputProfile(const dx_data& data) noexcept {
     if (data.dynamicBlockObjects.empty())
         return true;
     if (data.sourceFormat == dx_source_format::DXF
@@ -95,12 +94,22 @@ bool hasClosedDynamicBlockPurgePreventerProfile(
     try {
         std::unordered_map<std::uint32_t, const DRW_Dictionary*> dictionaries;
         std::unordered_map<std::uint32_t, const DRW_Block_Record*> blocks;
+        std::unordered_map<std::uint32_t, const DRW_EvaluationGraph*> graphs;
+        std::unordered_map<std::uint32_t,
+            const DRW_DynamicBlockObject*> objects;
         std::unordered_set<std::uint32_t> objectHandles;
         std::unordered_set<std::uint32_t> matchedDictionaries;
+        std::unordered_map<std::uint32_t, std::size_t> gripCountsByGraph;
+        std::unordered_map<std::uint32_t, std::uint32_t>
+            graphByOwnerDictionary;
         dictionaries.reserve(data.dictionaries.size());
         blocks.reserve(data.blockRecords.size());
+        graphs.reserve(data.evaluationGraphs.size());
+        objects.reserve(data.dynamicBlockObjects.size());
         objectHandles.reserve(data.dynamicBlockObjects.size());
         matchedDictionaries.reserve(data.dynamicBlockObjects.size());
+        gripCountsByGraph.reserve(data.evaluationGraphs.size());
+        graphByOwnerDictionary.reserve(data.evaluationGraphs.size());
 
         for (const DRW_Dictionary& dictionary : data.dictionaries) {
             if (dictionary.handle == 0
@@ -113,34 +122,87 @@ bool hasClosedDynamicBlockPurgePreventerProfile(
                 || !blocks.emplace(block.handle, &block).second)
                 return false;
         }
+        for (const DRW_EvaluationGraph& graph : data.evaluationGraphs) {
+            if (graph.handle == 0 || graph.handle == DRW::NoHandle
+                || !graphs.emplace(graph.handle, &graph).second)
+                return false;
+        }
 
         for (const DRW_DynamicBlockObject& object : data.dynamicBlockObjects) {
-            if (object.m_kind
-                    != DRW_DynamicBlockObject::Kind::PurgePreventer
-                || object.m_recordName
-                    != "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION"
-                || !object.m_bodyFullyDecoded
-                || object.m_purgeFlag
-                    > static_cast<std::uint16_t>(
-                        std::numeric_limits<std::int16_t>::max())
-                || object.handle == 0 || object.handle == DRW::NoHandle
-                || object.parentHandle == 0
-                || object.parentHandle == DRW::NoHandle
-                || object.m_purgeBlockHandle == 0
-                || object.m_purgeBlockHandle == DRW::NoHandle
-                || object.xDictHandle != 0 || !object.appData.empty()
-                || !object.extData.empty()
-                || object.reactorHandles.size() != 1u
-                || object.reactorHandles.front() != object.parentHandle
-                || !objectHandles.insert(object.handle).second)
+            if (object.handle == 0 || object.handle == DRW::NoHandle
+                || !objectHandles.insert(object.handle).second
+                || !objects.emplace(object.handle, &object).second)
                 return false;
 
-            const auto dictionary = dictionaries.find(object.parentHandle);
-            const auto block = blocks.find(object.m_purgeBlockHandle);
-            if (dictionary == dictionaries.end() || block == blocks.end())
+            if (object.m_kind
+                    == DRW_DynamicBlockObject::Kind::PurgePreventer) {
+                if (object.m_recordName
+                        != "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION"
+                    || !object.m_bodyFullyDecoded
+                    || object.m_purgeFlag
+                        > static_cast<std::uint16_t>(
+                            std::numeric_limits<std::int16_t>::max())
+                    || object.parentHandle == 0
+                    || object.parentHandle == DRW::NoHandle
+                    || object.m_purgeBlockHandle == 0
+                    || object.m_purgeBlockHandle == DRW::NoHandle
+                    || object.xDictHandle != 0 || !object.appData.empty()
+                    || !object.extData.empty()
+                    || object.reactorHandles.size() != 1u
+                    || object.reactorHandles.front() != object.parentHandle)
+                    return false;
+
+                const auto dictionary = dictionaries.find(object.parentHandle);
+                const auto block = blocks.find(object.m_purgeBlockHandle);
+                if (dictionary == dictionaries.end() || block == blocks.end())
+                    return false;
+                const DRW_Dictionary& owner = *dictionary->second;
+                if (owner.parentHandle != object.m_purgeBlockHandle
+                    || owner.xDictHandle != 0 || owner.hardOwner != 1
+                    || owner.cloning < 0
+                    || owner.cloning > std::numeric_limits<std::int16_t>::max()
+                    || !owner.appData.empty() || !owner.extData.empty()
+                    || !owner.reactorHandles.empty()
+                    || !owner.hasCompleteDwgEntries()
+                    || !owner.hasCompleteDxfEntries()
+                    || owner.m_entries.size() != 1u
+                    || owner.m_entries.front().m_name
+                        != "AcDbDynamicBlockRoundTripPurgePreventer"
+                    || owner.m_entries.front().m_handle != object.handle
+                    || block->second->xDictHandle != owner.handle
+                    || !matchedDictionaries.insert(owner.handle).second)
+                    return false;
+                continue;
+            }
+
+            if (object.m_kind
+                    != DRW_DynamicBlockObject::Kind::GripLocationComponent
+                || object.m_recordName != "BLOCKGRIPLOCATIONCOMPONENT"
+                || data.sourceVersion != DRW::AC1024
+                || !object.m_bodyFullyDecoded || !object.m_evalExprParsed
+                || object.m_major != 29u || object.m_minor != 2u
+                || object.m_valueCode != 40 || !object.m_hasValueDouble
+                || !std::isfinite(object.m_valueDouble)
+                || object.m_valueHandle != 0
+                || object.m_gripExpr.empty()
+                || object.m_gripType != 16
+                || object.parentHandle == 0
+                || object.parentHandle == DRW::NoHandle
+                || object.xDictHandle != 0 || !object.appData.empty()
+                || !object.extData.empty() || !object.reactorHandles.empty())
                 return false;
-            const DRW_Dictionary& owner = *dictionary->second;
-            if (owner.parentHandle != object.m_purgeBlockHandle
+
+            const auto graph = graphs.find(object.parentHandle);
+            if (graph == graphs.end())
+                return false;
+            const DRW_EvaluationGraph& expressionGraph = *graph->second;
+            const auto ownerDictionary =
+                dictionaries.find(expressionGraph.parentHandle);
+            if (ownerDictionary == dictionaries.end())
+                return false;
+            const DRW_Dictionary& owner = *ownerDictionary->second;
+            const auto block = blocks.find(owner.parentHandle);
+            if (owner.parentHandle == 0 || owner.parentHandle == DRW::NoHandle
                 || owner.xDictHandle != 0 || owner.hardOwner != 1
                 || owner.cloning < 0
                 || owner.cloning > std::numeric_limits<std::int16_t>::max()
@@ -149,12 +211,42 @@ bool hasClosedDynamicBlockPurgePreventerProfile(
                 || !owner.hasCompleteDwgEntries()
                 || !owner.hasCompleteDxfEntries()
                 || owner.m_entries.size() != 1u
-                || owner.m_entries.front().m_name
-                    != "AcDbDynamicBlockRoundTripPurgePreventer"
-                || owner.m_entries.front().m_handle != object.handle
-                || block->second->xDictHandle != owner.handle
-                || !matchedDictionaries.insert(owner.handle).second)
+                || owner.m_entries.front().m_name != "ACAD_ENHANCEDBLOCK"
+                || owner.m_entries.front().m_handle != expressionGraph.handle
+                || block == blocks.end()
+                || block->second->xDictHandle != owner.handle)
                 return false;
+            const auto graphOwner = graphByOwnerDictionary.emplace(
+                owner.handle, expressionGraph.handle);
+            if (!graphOwner.second
+                && graphOwner.first->second != expressionGraph.handle)
+                return false;
+            ++gripCountsByGraph[expressionGraph.handle];
+        }
+
+        if (graphs.size() != gripCountsByGraph.size())
+            return false;
+        for (const auto& item : gripCountsByGraph) {
+            const auto graph = graphs.find(item.first);
+            if (graph == graphs.end()
+                || graph->second->m_nodes.size() != item.second)
+                return false;
+            std::unordered_set<std::uint32_t> expressionHandles;
+            expressionHandles.reserve(item.second);
+            for (const DRW_EvaluationGraphNode& node : graph->second->m_nodes) {
+                const auto expression = objects.find(node.m_expressionHandle);
+                if (node.m_expressionHandle == 0
+                    || node.m_expressionHandle == DRW::NoHandle
+                    || node.m_nextNodeIndex < 0
+                    || expression == objects.end()
+                    || expression->second->m_kind
+                        != DRW_DynamicBlockObject::Kind::GripLocationComponent
+                    || expression->second->parentHandle != item.first
+                    || expression->second->m_nodeId
+                        != static_cast<std::uint32_t>(node.m_nextNodeIndex)
+                    || !expressionHandles.insert(node.m_expressionHandle).second)
+                    return false;
+            }
         }
 
         for (const DRW_Dictionary& dictionary : data.dictionaries) {
@@ -162,6 +254,9 @@ bool hasClosedDynamicBlockPurgePreventerProfile(
                 if (entry.m_name
                         == "AcDbDynamicBlockRoundTripPurgePreventer"
                     && matchedDictionaries.count(dictionary.handle) == 0u)
+                    return false;
+                if (entry.m_name == "ACAD_ENHANCEDBLOCK"
+                    && graphByOwnerDictionary.count(dictionary.handle) == 0u)
                     return false;
             }
         }
@@ -6962,7 +7057,7 @@ bool dx_iface::inspectAcdsDxfHistory(const dxfRW::DxfObjectsWriteView& view) noe
 
 bool dx_iface::hasUnchangedDynamicBlockOutputProfile() const noexcept {
     return cData != nullptr
-        && hasClosedDynamicBlockPurgePreventerProfile(*cData);
+        && hasClosedDynamicBlockOutputProfile(*cData);
 }
 
 bool dx_iface::hasUnchangedExtensionDictionaryOwnerSources() const noexcept {
@@ -11018,9 +11113,66 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         }
         if (data->dataStorageSections.empty()) {
             inventoryFamily = "EvaluationGraph owner references";
-            const auto hasEvaluationGraphOwner = [&hasParent, data](
+            const auto isSelectedDynamicBlockGraphOwner =
+                [data](std::uint32_t dictionaryHandle) {
+                    if (data->sourceFormat != dx_source_format::DWG)
+                        return false;
+                    const auto dictionary = std::find_if(
+                        data->dictionaries.begin(), data->dictionaries.end(),
+                        [dictionaryHandle](
+                                const DRW_Dictionary& candidate) {
+                            return candidate.handle == dictionaryHandle;
+                        });
+                    if (dictionary == data->dictionaries.end())
+                        return false;
+                    const std::uint32_t graphHandle =
+                        dictionary->m_entries.size() == 1u
+                        ? dictionary->m_entries.front().m_handle : 0u;
+                    const auto graph = std::find_if(
+                        data->evaluationGraphs.begin(),
+                        data->evaluationGraphs.end(),
+                        [dictionaryHandle, graphHandle](
+                                const DRW_EvaluationGraph& candidate) {
+                            return candidate.handle == graphHandle
+                                && candidate.parentHandle == dictionaryHandle;
+                        });
+                    if (graph == data->evaluationGraphs.end()
+                        || dictionary->parentHandle == 0
+                        || dictionary->parentHandle == DRW::NoHandle
+                        || dictionary->xDictHandle != 0
+                        || dictionary->hardOwner != 1
+                        || !dictionary->hasCompleteDwgEntries()
+                        || !dictionary->hasCompleteDxfEntries()
+                        || dictionary->m_entries.size() != 1u
+                        || dictionary->m_entries.front().m_name
+                            != "ACAD_ENHANCEDBLOCK"
+                        || dictionary->m_entries.front().m_handle
+                            != graphHandle)
+                        return false;
+                    const auto block = std::find_if(
+                        data->blockRecords.begin(), data->blockRecords.end(),
+                        [&dictionary](const DRW_Block_Record& candidate) {
+                            return candidate.handle
+                                == dictionary->parentHandle;
+                        });
+                    if (block == data->blockRecords.end()
+                        || block->xDictHandle != dictionary->handle)
+                        return false;
+                    return std::any_of(
+                        data->dynamicBlockObjects.begin(),
+                        data->dynamicBlockObjects.end(),
+                        [graphHandle](
+                                const DRW_DynamicBlockObject& object) {
+                            return object.m_kind
+                                    == DRW_DynamicBlockObject::Kind::GripLocationComponent
+                                && object.parentHandle == graphHandle;
+                        });
+                };
+            const auto hasEvaluationGraphOwner = [&hasParent, data,
+                                                  &isSelectedDynamicBlockGraphOwner](
                     std::uint32_t parent) {
                 return hasParent(parent)
+                    || isSelectedDynamicBlockGraphOwner(parent)
                     || (data->hasNamedObjectDictionary
                         && data->namedObjectDictionary.handle != 0
                         && data->namedObjectDictionary.handle != DRW::NoHandle
@@ -55025,9 +55177,9 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             "typed named-object callback capture exceeded its bounded retention budget");
         return false;
     }
-    if (!hasClosedDynamicBlockPurgePreventerProfile(*cData)) {
+    if (!hasClosedDynamicBlockOutputProfile(*cData)) {
         reportPreflightFailure(
-            "dynamic-block objects are outside the closed purge-preventer profile");
+            "dynamic-block objects are outside the closed output profiles");
         return false;
     }
     const auto hasVisualStyleEdges = [this]() {
@@ -55247,25 +55399,57 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             return false;
         }
     }
-    // The closed PurgePreventer profile is rooted by its BLOCK_RECORD's
-    // extension DICTIONARY. Stage both edges so the normal BLOCK_RECORD and
-    // object writers emit the same validated graph.
+    // Closed dynamic-block profiles are rooted by their BLOCK_RECORD's
+    // extension DICTIONARY. Stage the owning dictionary edge for both the
+    // PurgePreventer and EvaluationGraph routes so the ordinary writers emit
+    // the validated graph.
     try {
+        std::unordered_map<std::uint32_t, const DRW_EvaluationGraph*>
+            dynamicGraphs;
+        dynamicGraphs.reserve(cData->evaluationGraphs.size());
+        for (const DRW_EvaluationGraph& graph : cData->evaluationGraphs)
+            dynamicGraphs.emplace(graph.handle, &graph);
         for (const DRW_DynamicBlockObject& object :
              cData->dynamicBlockObjects) {
+            std::uint32_t blockHandle = 0u;
+            std::uint32_t dictionaryHandle = 0u;
+            if (object.m_kind
+                    == DRW_DynamicBlockObject::Kind::PurgePreventer) {
+                blockHandle = object.m_purgeBlockHandle;
+                dictionaryHandle = object.parentHandle;
+            } else {
+                const auto graph = dynamicGraphs.find(object.parentHandle);
+                if (graph == dynamicGraphs.end()) {
+                    reportPreflightFailure(
+                        "dynamic-block EvaluationGraph owner disappeared during staging");
+                    return false;
+                }
+                dictionaryHandle = graph->second->parentHandle;
+                const auto dictionary = std::find_if(
+                    cData->dictionaries.begin(), cData->dictionaries.end(),
+                    [dictionaryHandle](const DRW_Dictionary& candidate) {
+                        return candidate.handle == dictionaryHandle;
+                    });
+                if (dictionary == cData->dictionaries.end()) {
+                    reportPreflightFailure(
+                        "dynamic-block owner DICTIONARY disappeared during staging");
+                    return false;
+                }
+                blockHandle = dictionary->parentHandle;
+            }
             const auto inserted = selectedBlockRecordXdicts.emplace(
-                object.m_purgeBlockHandle, object.parentHandle);
+                blockHandle, dictionaryHandle);
             if (!inserted.second
-                && inserted.first->second != object.parentHandle) {
+                && inserted.first->second != dictionaryHandle) {
                 reportPreflightFailure(
                     "dynamic-block BLOCK_RECORD has conflicting XDICTIONARY targets");
                 return false;
             }
             if (std::find(m_extensionDictionaryHandles.begin(),
                           m_extensionDictionaryHandles.end(),
-                          object.parentHandle)
+                          dictionaryHandle)
                 == m_extensionDictionaryHandles.end())
-                m_extensionDictionaryHandles.push_back(object.parentHandle);
+                m_extensionDictionaryHandles.push_back(dictionaryHandle);
         }
     } catch (...) {
         reportPreflightFailure(
@@ -56849,33 +57033,58 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             classes.push_back(std::move(evaluationGraphClass));
         }
         if (!cData->dynamicBlockObjects.empty()) {
-            const auto isPurgePreventerClass = [](const DRW_Class& cls) {
+            const auto isDynamicBlockClass = [](const DRW_Class& cls) {
                 return sameAsciiName(
                            cls.recName,
                            "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION")
                     || sameAsciiName(
                            cls.className,
-                           "AcDbDynamicBlockPurgePreventer");
+                           "AcDbDynamicBlockPurgePreventer")
+                    || sameAsciiName(
+                           cls.recName, "BLOCKGRIPLOCATIONCOMPONENT")
+                    || sameAsciiName(cls.className, "AcDbBlockGripExpr");
             };
+            std::map<std::string, std::size_t> instanceCounts;
+            for (const DRW_DynamicBlockObject& object :
+                 cData->dynamicBlockObjects) {
+                if (object.m_kind
+                        == DRW_DynamicBlockObject::Kind::PurgePreventer
+                    && sameAsciiName(object.m_recordName,
+                        "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION")) {
+                    ++instanceCounts["ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION"];
+                } else if (object.m_kind
+                               == DRW_DynamicBlockObject::Kind::GripLocationComponent
+                           && sameAsciiName(object.m_recordName,
+                               "BLOCKGRIPLOCATIONCOMPONENT")) {
+                    ++instanceCounts["BLOCKGRIPLOCATIONCOMPONENT"];
+                } else {
+                    delete dxfW;
+                    dxfW = nullptr;
+                    return false;
+                }
+            }
             classes.erase(
                 std::remove_if(classes.begin(), classes.end(),
-                               isPurgePreventerClass),
+                               isDynamicBlockClass),
                 classes.end());
-            DRW_Class purgePreventerClass;
-            if (!dxfRW::dxfClassForRecordName(
-                    "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION",
-                    purgePreventerClass)
-                || cData->dynamicBlockObjects.size()
-                    > static_cast<std::size_t>(
+            for (const auto& instance : instanceCounts) {
+                if (instance.second > static_cast<std::size_t>(
                         std::numeric_limits<int>::max())) {
-                delete dxfW;
-                dxfW = nullptr;
-                return false;
+                    delete dxfW;
+                    dxfW = nullptr;
+                    return false;
+                }
+                DRW_Class dynamicClass;
+                if (!dxfRW::dxfClassForRecordName(
+                        instance.first, dynamicClass)) {
+                    delete dxfW;
+                    dxfW = nullptr;
+                    return false;
+                }
+                dynamicClass.instanceCount = static_cast<int>(instance.second);
+                dynamicClass.wasaProxyFlag = 0;
+                classes.push_back(std::move(dynamicClass));
             }
-            purgePreventerClass.instanceCount = static_cast<int>(
-                cData->dynamicBlockObjects.size());
-            purgePreventerClass.wasaProxyFlag = 0;
-            classes.push_back(std::move(purgePreventerClass));
         }
         const auto rejectClassRegistration = [this, &reportPreflightFailure](
                 const std::string& reason) {

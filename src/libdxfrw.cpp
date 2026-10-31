@@ -20668,10 +20668,10 @@ bool dxfRW::processAssociativeObject() {
     return setError(DRW::BAD_READ_OBJECTS);
 }
 
-// Dynamic-block DXF records are opaque shell objects in dwgTs.  Decode only
-// the common object references and keep the complete group stream in the raw
-// net; the individual AcDbEvalExpr/AcDbBlockElement layouts vary by class and
-// are not reliable enough to infer from a producer-specific DXF sample.
+// Dynamic-block DXF records keep their complete group stream in the raw net.
+// Decode only the explicitly profiled PurgePreventer and AC1024
+// GripLocationComponent bodies; other AcDbEvalExpr/AcDbBlockElement variants
+// remain opaque until their field layout is independently established.
 bool dxfRW::processDynamicBlockObject() {
     DRW_DBG("dxfRW::processDynamicBlockObject");
     int code;
@@ -20743,6 +20743,125 @@ bool dxfRW::processDynamicBlockObject() {
                 }
                 data.m_bodyFullyDecoded = completeBody
                     && sawPurgeSubclass && sawPurgeFlag;
+            } else if (data.m_kind
+                           == DRW_DynamicBlockObject::Kind::GripLocationComponent
+                       && data.m_recordName
+                           == "BLOCKGRIPLOCATIONCOMPONENT"
+                       && reader->getSourceVersion() == DRW::AC1024) {
+                // The admitted AC1024 DXF witness uses this exact
+                // AcDbEvalExpr value-pair and AcDbBlockGripExpr field order.
+                // Keep other producer/version variants on the raw shell path
+                // until their field mapping is independently established.
+                std::array<const DRW_Variant*, 10> body{};
+                std::size_t bodyCount = 0u;
+                bool inBody = false;
+                bool completeBody = true;
+                for (const DRW_Variant& group : raw.groups) {
+                    if (group.code() == 100
+                        && group.type() == DRW_Variant::STRING) {
+                        const char* marker = group.c_str();
+                        const std::string_view name = marker != nullptr
+                            ? std::string_view(marker) : std::string_view();
+                        if (!inBody) {
+                            if (name == "AcDbEvalExpr") {
+                                inBody = true;
+                                body[bodyCount++] = &group;
+                            }
+                            continue;
+                        }
+                        if (bodyCount == 7u
+                            && name == "AcDbBlockGripExpr") {
+                            body[bodyCount++] = &group;
+                            continue;
+                        }
+                        completeBody = false;
+                        continue;
+                    }
+                    if (!inBody)
+                        continue;
+                    if (bodyCount >= body.size()) {
+                        completeBody = false;
+                        continue;
+                    }
+                    body[bodyCount++] = &group;
+                }
+                const auto integerGroup = [](const DRW_Variant* group,
+                                             int code,
+                                             std::int32_t& value) {
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::INTEGER
+                        || group->i_val()
+                            < std::numeric_limits<std::int32_t>::min()
+                        || group->i_val()
+                            > std::numeric_limits<std::int32_t>::max())
+                        return false;
+                    value = static_cast<std::int32_t>(group->i_val());
+                    return true;
+                };
+                std::int32_t nodeId = 0;
+                std::int32_t major = 0;
+                std::int32_t minor = 0;
+                std::int32_t valueCode = 0;
+                std::int32_t gripType = 0;
+                const DRW_Variant* evaluatedText =
+                    bodyCount == body.size() ? body[4] : nullptr;
+                const DRW_Variant* evaluatedDouble =
+                    bodyCount == body.size() ? body[6] : nullptr;
+                const DRW_Variant* gripExpression =
+                    bodyCount == body.size() ? body[9] : nullptr;
+                completeBody = completeBody && inBody
+                    && bodyCount == body.size()
+                    && body[0] != nullptr && body[0]->code() == 100
+                    && body[1] != nullptr && body[1]->code() == 90
+                    && body[2] != nullptr && body[2]->code() == 98
+                    && body[3] != nullptr && body[3]->code() == 99
+                    && evaluatedText != nullptr
+                    && evaluatedText->code() == 1
+                    && evaluatedText->type() == DRW_Variant::STRING
+                    && evaluatedText->c_str() != nullptr
+                    && evaluatedText->c_str()[0] == '\0'
+                    && integerGroup(body[5], 70, valueCode)
+                    && valueCode == 40
+                    && evaluatedDouble != nullptr
+                    && evaluatedDouble->code() == 40
+                    && evaluatedDouble->type() == DRW_Variant::DOUBLE
+                    && std::isfinite(evaluatedDouble->d_val())
+                    && body[7] != nullptr && body[7]->code() == 100
+                    && integerGroup(body[8], 91, gripType)
+                    && gripType == 16
+                    && gripExpression != nullptr
+                    && gripExpression->code() == 300
+                    && gripExpression->type() == DRW_Variant::STRING
+                    && gripExpression->c_str() != nullptr
+                    && integerGroup(body[1], 90, nodeId)
+                    && integerGroup(body[2], 98, major)
+                    && integerGroup(body[3], 99, minor)
+                    && nodeId >= 0 && major == 33 && minor == 29;
+                if (completeBody) {
+                    const char* expression = gripExpression->c_str();
+                    DxfReadRetainedLeaseCheckpoint expressionCheckpoint(
+                        data.m_dxfRetainedStringLease);
+                    if (!retainDxfReadBytes(
+                            data.m_dxfRetainedStringLease,
+                            reader->retainedByteBudget(),
+                            std::strlen(expression)))
+                        return setError(DRW::BAD_CODE_PARSED);
+                    try {
+                        data.m_nodeId = static_cast<std::uint32_t>(nodeId);
+                        data.m_major = static_cast<std::uint32_t>(major);
+                        data.m_minor = static_cast<std::uint32_t>(minor);
+                        data.m_valueCode = static_cast<std::int16_t>(valueCode);
+                        data.m_valueDouble = evaluatedDouble->d_val();
+                        data.m_hasValueDouble = true;
+                        data.m_gripType = gripType;
+                        data.m_gripExpr = expression;
+                    } catch (...) {
+                        return setError(DRW::BAD_CODE_PARSED);
+                    }
+                    expressionCheckpoint.commit();
+                    data.m_evalExprParsed = true;
+                }
+                data.m_bodyFullyDecoded = completeBody;
             }
             iface->addDynamicBlockObject(data);
             iface->addRawDxfObject(raw);
@@ -30578,34 +30697,47 @@ bool dxfRW::writeEvaluationGraph(DRW_EvaluationGraph *ent,
     return true;
 }
 
-// AcDbDynamicBlockPurgePreventer (AC1024 source-backed profile). Both
-// LibreDWG's DWG->DXF output and ACadSharp's DXF writer emit the custom
-// subclass plus group 70 only. The DWG code-5 block handle is represented by
-// the owning extension dictionary's BLOCK_RECORD edge; the adapter validates
-// that edge before admitting this writer. Do not emit the DWG-only handle as
-// an invented DXF reference.
+// The two dynamic-block records below are admitted as separate, closed
+// profiles. Their DWG ownership links are represented by their enclosing DXF
+// graph/dictionary edges; do not invent body references absent from DXF.
 bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
-    static constexpr char recordName[] =
+    static constexpr char purgeRecordName[] =
         "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION";
-    static constexpr char subclassName[] =
+    static constexpr char purgeSubclassName[] =
         "AcDbDynamicBlockPurgePreventer";
+    static constexpr char gripRecordName[] =
+        "BLOCKGRIPLOCATIONCOMPONENT";
+    static constexpr char gripSubclassName[] = "AcDbBlockGripExpr";
     if (!preflightTableEntry(ent) || ent == nullptr || writer == nullptr
         || version < DRW::AC1024
-        || ent->m_kind != DRW_DynamicBlockObject::Kind::PurgePreventer
-        || ent->m_recordName != recordName || !ent->m_bodyFullyDecoded
-        || ent->m_purgeFlag
-            > static_cast<std::uint16_t>(
-                std::numeric_limits<std::int16_t>::max())
         || ent->handle == 0 || ent->handle == DRW::NoHandle
         || ent->parentHandle == 0 || ent->parentHandle == DRW::NoHandle
-        || ent->m_purgeBlockHandle == 0
-        || ent->m_purgeBlockHandle == DRW::NoHandle
-        || ent->reactorHandles.size() != 1u
-        || ent->reactorHandles.front() != ent->parentHandle
         || ent->xDictHandle != 0 || !ent->appData.empty()
-        || !ent->extData.empty()) {
+        || !ent->extData.empty())
         return failDxfWrite();
-    }
+
+    const bool purgePreventer = ent->m_kind
+            == DRW_DynamicBlockObject::Kind::PurgePreventer
+        && ent->m_recordName == purgeRecordName && ent->m_bodyFullyDecoded
+        && ent->m_purgeFlag <= static_cast<std::uint16_t>(
+               std::numeric_limits<std::int16_t>::max())
+        && ent->m_purgeBlockHandle != 0
+        && ent->m_purgeBlockHandle != DRW::NoHandle
+        && ent->reactorHandles.size() == 1u
+        && ent->reactorHandles.front() == ent->parentHandle;
+    const bool gripLocation = ent->m_kind
+            == DRW_DynamicBlockObject::Kind::GripLocationComponent
+        && ent->m_recordName == gripRecordName
+        && version == DRW::AC1024 && ent->m_bodyFullyDecoded
+        && ent->m_evalExprParsed && ent->m_nodeId <= static_cast<std::uint32_t>(
+               std::numeric_limits<std::int32_t>::max())
+        && ent->m_major == 29u && ent->m_minor == 2u
+        && ent->m_valueCode == 40 && ent->m_hasValueDouble
+        && std::isfinite(ent->m_valueDouble) && ent->m_valueHandle == 0
+        && ent->m_gripType == 16 && !ent->m_gripExpr.empty()
+        && ent->reactorHandles.empty();
+    if (!purgePreventer && !gripLocation)
+        return failDxfWrite();
 
     RecordStateScope state(*this, ent);
     const std::uint32_t emittedHandle = remapObjectHandle(ent->handle);
@@ -30618,12 +30750,29 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
     }
 
     DxfWriterRecordScope record(*writer);
-    bool written = writer->writeString(0, recordName)
+    bool written = writer->writeString(0, ent->m_recordName)
         && writer->writeString(5, toHexStr(emittedHandle))
         && writeTableEntryAppData(*ent)
-        && writer->writeString(330, toHexStr(emittedOwner))
-        && writer->writeString(100, subclassName)
-        && writer->writeInt16(70, static_cast<std::int16_t>(ent->m_purgeFlag));
+        && writer->writeString(330, toHexStr(emittedOwner));
+    if (written && purgePreventer) {
+        written = writer->writeString(100, purgeSubclassName)
+            && writer->writeInt16(70,
+                static_cast<std::int16_t>(ent->m_purgeFlag));
+    } else if (written) {
+        written = writer->writeString(100, "AcDbEvalExpr")
+            && writer->writeInt32(90,
+                static_cast<std::int32_t>(ent->m_nodeId))
+            // AC1024 DWG stores EvalExpr version 29/2, while the DXF
+            // representation uses the schema identifiers 33/29.
+            && writer->writeInt32(98, 33)
+            && writer->writeInt32(99, 29)
+            && writer->writeUtf8String(1, "")
+            && writer->writeInt16(70, ent->m_valueCode)
+            && writer->writeDouble(40, ent->m_valueDouble)
+            && writer->writeString(100, gripSubclassName)
+            && writer->writeInt32(91, ent->m_gripType)
+            && writer->writeUtf8String(300, ent->m_gripExpr);
+    }
     if (written && !ent->extData.empty())
         written = writeExtData(ent->extData);
     if (!written || writer->hasWriteError() || !preflightDxfWrite()

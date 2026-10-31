@@ -62,21 +62,22 @@ extension-DICTIONARY reciprocity. The Title_Block-ARCH BLOCK_RECORD `0x127`
 has a three-entry DICTIONARY `0x1116`: `ACAD_ENHANCEDBLOCK` → EvaluationGraph
 `0x1117`, `ACAD_SORTENTS` → SORTENTSTABLE `0x111C`, and
 `AcDbDynamicBlockRoundTripPurgePreventer` → `0x1122`. Close all three source
-edges together. Complete source-body and node/edge proofs for the visibility
-parameter/grip targets in the EvaluationGraph, and prove the table's ordered
-membership plus reciprocal owner. Separately resolve `ACDB_BLOCKREPRESENTATION_DATA`
+edges together. The EvaluationGraph `0x1117` has four nodes (IDs 16–19,
+targets `0x1118`–`0x111B`) and three source edges. Complete the
+`BLOCKVISIBILITYPARAMETER` `0x1118` body (states ARCH D/C/B/A, 29 state block
+references each, 117 source block handles total) and `BLOCKVISIBILITYGRIP`
+`0x1119` body (node 17, EvalExpr node IDs 18/19); bind every body, source
+identity, edge, owner and remapped reference in the composed output. Prove the
+SORTENTSTABLE's ordered membership plus reciprocal owner. Separately resolve
+`ACDB_BLOCKREPRESENTATION_DATA`
 `0xDD6` and owner `0xDD5`; do not infer that it belongs to `0x1116`. Bind every
 source identity, target role, field and remapped output reference before
-relaxing strict refusal. The current `BLOCKGRIPLOCATIONCOMPONENT` writer trial
-is not qualified: this reader decodes the source records' EvalExpr version
-values as `29/2`, while LibreDWG's DXF output for the same source writes `33/29`.
-Resolve that source-to-DXF mapping and bind it to the original record before
-admitting the body; synthetic round-trip tests do not settle the discrepancy.
-DXF-origin typed/raw replay remains unqualified.
+relaxing strict refusal. DXF-origin typed/raw replay remains unqualified.
 Current source and isolated-record evidence is in
 [`p4-ac1024-sortents-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-sortents-output-qualification-2026-10-31.json),
 [`p4-ac1024-dictionary-identity-output-qualification-2026-10-31.json`](docs/research/p4-ac1024-dictionary-identity-output-qualification-2026-10-31.json),
 [`p5-dynamic-block-purge-preventer-record-output-2026-10-31.json`](docs/research/p5-dynamic-block-purge-preventer-record-output-2026-10-31.json),
+[`p5-dynamic-block-grip-location-output-qualification-2026-10-31.json`](docs/research/p5-dynamic-block-grip-location-output-qualification-2026-10-31.json),
 and [`p4-existing-dwg-corpus-strict-sweep-2026-10-31.json`](docs/research/p4-existing-dwg-corpus-strict-sweep-2026-10-31.json).
 
 ## P4 — original bodies and complete document closure
@@ -124,15 +125,17 @@ output gates are met.
 
 **Dynamic-block output profiles:** compose the actual AC1024
 `Title_Block-ARCH` three-entry owner graph rooted at BLOCK_RECORD `0x127`.
-Implement the remaining source-backed visibility parameter/grip bodies and
-their EvaluationGraph node/edge bindings; emit the graph, SORTENTSTABLE and
-PurgePreventer targets exactly once with DICTIONARY edges, owners, reactors and
-remapped handles intact. Prove staged bytes and fresh ASCII/Binary readback for
-the full closure. Keep the mixed-key graph refused until every required target
-is selected and emitted; do not relax SORTENTSTABLE owner validation to bypass
-missing children. DXF-origin typed/raw replay remains unqualified until exact
-source pairing and one-emission proof pass. Qualify other subclasses only when
-an existing source identifies a required profile.
+Complete the remaining source-backed `BLOCKVISIBILITYPARAMETER` `0x1118` and
+`BLOCKVISIBILITYGRIP` `0x1119` bodies, bind all four EvaluationGraph nodes
+(IDs 16–19) and three source edges, preserve all 117 visibility-parameter block
+handles and the grip's expression-node links, then close the SORTENTSTABLE
+reciprocity. Emit all required graph targets with DICTIONARY edges, owners,
+reactors and remapped handles intact; prove staged bytes and fresh ASCII/Binary
+readback for the full closure. Keep the mixed-key graph refused until every
+required target is selected and emitted; do not relax SORTENTSTABLE owner
+validation to bypass missing children. DXF-origin typed/raw replay remains
+unqualified until exact source pairing and one-emission proof pass. Qualify
+other subclasses only when an existing source identifies a required profile.
 
 **Rendering:** close remaining engine/class-revision/schema and optional-presence
 profiles; active/global/environment, background/live-section/sun relations; native

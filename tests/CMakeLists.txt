@@ -1431,13 +1431,22 @@ set_tests_properties(dwg2dxf_modeler_dxf_move_dispatch PROPERTIES
     TIMEOUT 10
 )
 
-# The bounded ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION profile round-trips in
-# ASCII and Binary DXF; other dynamic-block subclasses remain fail-closed.
+# The two isolated dynamic-block object profiles round-trip in ASCII and
+# Binary DXF; other subclasses and incomplete owner graphs remain fail-closed.
 add_test(
     NAME dwg2dxf_dynamic_block_purge_preventer
     COMMAND libdxfrw_dwg2dxf_adapter_tests --dynamic-block-purge-preventer
 )
 set_tests_properties(dwg2dxf_dynamic_block_purge_preventer PROPERTIES
+    LABELS "fast;dxf;adapter;dynamic-block"
+    TIMEOUT 30
+)
+
+add_test(
+    NAME dwg2dxf_dynamic_block_grip_location
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --dynamic-block-grip-location
+)
+set_tests_properties(dwg2dxf_dynamic_block_grip_location PROPERTIES
     LABELS "fast;dxf;adapter;dynamic-block"
     TIMEOUT 30
 )

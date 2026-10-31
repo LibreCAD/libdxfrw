@@ -983,6 +983,9 @@ bool readDxfEvaluationGraphWireGroups(
 bool readDxfDynamicBlockPurgeWireGroups(
         const std::filesystem::path& path, bool binary,
         std::vector<std::pair<int, std::string>>& groups);
+bool readDxfDynamicBlockGripWireGroups(
+        const std::filesystem::path& path, bool binary,
+        std::vector<std::pair<int, std::string>>& groups);
 
 bool fail(const std::string& message) {
     std::cerr << message << '\n';
@@ -8205,6 +8208,274 @@ bool dynamicBlockPurgePreventerOutputProfile() {
     std::filesystem::remove(unsupportedPath, ignored);
     if (!unsupportedRejected)
         return fail("unqualified dynamic-block subclass bypassed refusal");
+    return true;
+}
+
+bool dynamicBlockGripLocationOutputProfile() {
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    const auto populate = [](dx_data& data, dx_iface& iface) {
+        iface.cData = &data;
+        data.sourceFormat = dx_source_format::DWG;
+        data.sourceVersion = DRW::AC1024;
+        constexpr std::uint32_t blockHandle = 0xE600u;
+        constexpr std::uint32_t dictionaryHandle = 0xE601u;
+        constexpr std::uint32_t graphHandle = 0xE602u;
+        constexpr std::uint32_t gripHandle = 0xE603u;
+
+        DRW_Block_Record block;
+        block.handle = blockHandle;
+        block.name = "GRIP_PROFILE_BLOCK";
+        block.xDictHandle = dictionaryHandle;
+        data.blockRecords.push_back(block);
+        dx_ifaceBlock* definition = new dx_ifaceBlock();
+        definition->name = block.name;
+        definition->parentHandle = blockHandle;
+        data.blocks.push_back(definition);
+
+        DRW_Dictionary dictionary;
+        dictionary.handle = dictionaryHandle;
+        dictionary.parentHandle = blockHandle;
+        dictionary.hardOwner = 1;
+        dictionary.cloning = 1;
+        dictionary.m_entries.push_back(
+            {"ACAD_ENHANCEDBLOCK", graphHandle});
+        data.dictionaries.push_back(dictionary);
+
+        DRW_EvaluationGraph graph;
+        graph.handle = graphHandle;
+        graph.parentHandle = dictionaryHandle;
+        DRW_EvaluationGraphNode node;
+        node.m_index = 0;
+        node.m_flags = 32;
+        node.m_nextNodeIndex = 18;
+        node.m_expressionHandle = gripHandle;
+        graph.m_nodes.push_back(node);
+        iface.addEvaluationGraph(graph);
+
+        DRW_DynamicBlockObject grip("BLOCKGRIPLOCATIONCOMPONENT");
+        grip.handle = gripHandle;
+        grip.parentHandle = graphHandle;
+        grip.m_nodeId = 18u;
+        grip.m_major = 29u;
+        grip.m_minor = 2u;
+        grip.m_valueCode = 40;
+        grip.m_valueDouble = 0.0;
+        grip.m_hasValueDouble = true;
+        grip.m_evalExprParsed = true;
+        grip.m_gripType = 16;
+        grip.m_gripExpr = "UpdatedX";
+        grip.m_bodyFullyDecoded = true;
+        iface.addDynamicBlockObject(grip);
+        return !data.dynamicBlockCaptureFailed
+            && !data.evaluationGraphCaptureFailed
+            && data.dynamicBlockObjects.size() == 1u
+            && data.evaluationGraphs.size() == 1u;
+    };
+
+    const std::vector<std::pair<int, std::string>> expectedWire{
+        {100, "AcDbEvalExpr"}, {90, "18"}, {98, "33"}, {99, "29"},
+        {1, ""}, {70, "40"}, {40, "0.000000"},
+        {100, "AcDbBlockGripExpr"}, {91, "16"}, {300, "UpdatedX"}};
+    for (const bool binary : {false, true}) {
+        const std::string encoding = binary ? "binary" : "ascii";
+        const std::filesystem::path output =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-dynamic-grip-location-" + encoding + "-"
+               + std::to_string(nonce) + ".dxf");
+        dx_data data;
+        dx_iface iface;
+        if (!populate(data, iface))
+            return fail("GripLocation input graph was not retained");
+        if (!iface.fileExport(output.string(), DRW::AC1024, binary,
+                              &data, false)) {
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+            return fail("closed GripLocation profile did not export: "
+                + iface.extensionGraphFailureDetail());
+        }
+
+        std::vector<std::pair<int, std::string>> wireGroups;
+        const bool exactWire = readDxfDynamicBlockGripWireGroups(
+            output, binary, wireGroups) && wireGroups == expectedWire;
+        dx_data readback;
+        dx_iface rereader;
+        const bool imported = rereader.fileImport(
+            output.string(), &readback, false);
+        const auto importedDictionary = std::find_if(
+            readback.dictionaries.begin(), readback.dictionaries.end(),
+            [](const DRW_Dictionary& dictionary) {
+                return dictionary.handle == 0xE601u;
+            });
+        const auto importedBlock = std::find_if(
+            readback.blockRecords.begin(), readback.blockRecords.end(),
+            [](const DRW_Block_Record& block) {
+                return block.name == "GRIP_PROFILE_BLOCK";
+            });
+        if (!exactWire) {
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+            return fail("GripLocation exact output field sequence changed on "
+                        + encoding + " encoding");
+        }
+        if (!imported || readback.dynamicBlockObjects.size() != 1u
+            || readback.evaluationGraphs.size() != 1u
+            || readback.dynamicBlockObjects.front().handle != 0xE603u
+            || readback.dynamicBlockObjects.front().parentHandle != 0xE602u
+            || !readback.dynamicBlockObjects.front().m_bodyFullyDecoded
+            || !readback.dynamicBlockObjects.front().m_evalExprParsed
+            || readback.dynamicBlockObjects.front().m_nodeId != 18u
+            || readback.dynamicBlockObjects.front().m_major != 33u
+            || readback.dynamicBlockObjects.front().m_minor != 29u
+            || readback.dynamicBlockObjects.front().m_valueCode != 40
+            || !readback.dynamicBlockObjects.front().m_hasValueDouble
+            || readback.dynamicBlockObjects.front().m_valueDouble != 0.0
+            || readback.dynamicBlockObjects.front().m_gripType != 16
+            || readback.dynamicBlockObjects.front().m_gripExpr != "UpdatedX"
+            || readback.evaluationGraphs.front().handle != 0xE602u
+            || readback.evaluationGraphs.front().parentHandle != 0xE601u
+            || readback.evaluationGraphs.front().m_nodes.size() != 1u
+            || readback.evaluationGraphs.front().m_nodes.front()
+                    .m_expressionHandle != 0xE603u
+            || readback.evaluationGraphs.front().m_nodes.front()
+                    .m_nextNodeIndex != 18
+            || importedDictionary == readback.dictionaries.end()
+            || importedDictionary->m_entries.size() != 1u
+            || importedDictionary->m_entries.front().m_name
+                != "ACAD_ENHANCEDBLOCK"
+            || importedDictionary->m_entries.front().m_handle != 0xE602u
+            || importedBlock == readback.blockRecords.end()
+            || importedBlock->xDictHandle != 0xE601u
+            || std::count_if(readback.dxfClasses.begin(),
+                readback.dxfClasses.end(), [](const DRW_Class& cls) {
+                    return cls.recName == "BLOCKGRIPLOCATIONCOMPONENT"
+                        && cls.instanceCount == 1;
+                }) != 1) {
+            std::error_code ignored;
+            std::filesystem::remove(output, ignored);
+            return fail("GripLocation fields, graph, owner, or CLASS changed "
+                        "on " + encoding + " output/readback");
+        }
+        if (!binary) {
+            const std::filesystem::path alteredPath =
+                std::filesystem::temp_directory_path()
+                / ("libdxfrw-dynamic-grip-location-version-"
+                   + std::to_string(nonce) + ".dxf");
+            std::ifstream input(output, std::ios::binary);
+            std::vector<std::string> lines;
+            std::string line;
+            while (std::getline(input, line))
+                lines.push_back(line);
+            bool inGripObject = false;
+            bool changedVersion = false;
+            for (std::size_t index = 0; index + 1u < lines.size();
+                 index += 2u) {
+                int code = -1;
+                try {
+                    code = std::stoi(lines[index]);
+                } catch (...) {
+                    break;
+                }
+                if (code == 0) {
+                    inGripObject = lines[index + 1u]
+                        == "BLOCKGRIPLOCATIONCOMPONENT";
+                } else if (inGripObject && code == 98) {
+                    lines[index + 1u] = "34";
+                    changedVersion = true;
+                    break;
+                }
+            }
+            bool wroteAltered = false;
+            if (changedVersion) {
+                std::ofstream altered(alteredPath, std::ios::binary);
+                if (altered) {
+                    for (const std::string& value : lines)
+                        altered << value << '\n';
+                    wroteAltered = static_cast<bool>(altered);
+                }
+            }
+            dx_data alteredReadback;
+            dx_iface alteredReader;
+            const bool alteredImported = wroteAltered
+                && alteredReader.fileImport(alteredPath.string(),
+                                            &alteredReadback, false);
+            std::error_code ignored;
+            std::filesystem::remove(alteredPath, ignored);
+            if (!alteredImported
+                || alteredReadback.dynamicBlockObjects.size() != 1u
+                || alteredReadback.dynamicBlockObjects.front()
+                       .m_bodyFullyDecoded) {
+                std::filesystem::remove(output, ignored);
+                return fail("unsupported EvalExpr DXF version pair was "
+                            "admitted as a complete GripLocation body");
+            }
+        }
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+    }
+
+    dx_data retry;
+    dx_iface retryIface;
+    if (!populate(retry, retryIface))
+        return fail("could not construct GripLocation retry input");
+    retry.dynamicBlockObjects.front().m_nodeId = 19u;
+    const std::filesystem::path sentinelPath =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-dynamic-grip-location-sentinel-"
+           + std::to_string(nonce) + ".dxf");
+    const std::string sentinel = "existing destination survives\n";
+    { std::ofstream existing(sentinelPath, std::ios::binary); existing << sentinel; }
+    retry.dynamicBlockObjects.front().m_major = 33u;
+    retry.dynamicBlockObjects.front().m_minor = 29u;
+    if (retryIface.fileExport(sentinelPath.string(), DRW::AC1024, false,
+                              &retry, false)) {
+        std::error_code ignored;
+        std::filesystem::remove(sentinelPath, ignored);
+        return fail("unsupported source EvalExpr version pair was emitted");
+    }
+    {
+        std::ifstream sentinelInput(sentinelPath, std::ios::binary);
+        const std::string preserved{
+            std::istreambuf_iterator<char>(sentinelInput),
+            std::istreambuf_iterator<char>()};
+        if (preserved != sentinel) {
+            std::error_code ignored;
+            std::filesystem::remove(sentinelPath, ignored);
+            return fail("unsupported EvalExpr version pair replaced the destination");
+        }
+    }
+    retry.dynamicBlockObjects.front().m_major = 29u;
+    retry.dynamicBlockObjects.front().m_minor = 2u;
+    if (retryIface.fileExport(sentinelPath.string(), DRW::AC1024, false,
+                              &retry, false)) {
+        std::error_code ignored;
+        std::filesystem::remove(sentinelPath, ignored);
+        return fail("node ID mismatch bypassed GripLocation graph validation");
+    }
+    std::ifstream sentinelInput(sentinelPath, std::ios::binary);
+    const std::string preserved{
+        std::istreambuf_iterator<char>(sentinelInput),
+        std::istreambuf_iterator<char>()};
+    if (preserved != sentinel) {
+        std::error_code ignored;
+        std::filesystem::remove(sentinelPath, ignored);
+        return fail("invalid GripLocation replaced the destination");
+    }
+    retry.dynamicBlockObjects.front().m_nodeId = 18u;
+    dx_data retryReadback;
+    dx_iface retryReader;
+    if (!retryIface.fileExport(sentinelPath.string(), DRW::AC1024, false,
+                               &retry, false)
+        || !retryReader.fileImport(sentinelPath.string(), &retryReadback, false)
+        || retryReadback.dynamicBlockObjects.size() != 1u
+        || retryReadback.dynamicBlockObjects.front().m_nodeId != 18u) {
+        std::error_code ignored;
+        std::filesystem::remove(sentinelPath, ignored);
+        return fail("corrected GripLocation failed same-adapter retry");
+    }
+    std::error_code ignored;
+    std::filesystem::remove(sentinelPath, ignored);
     return true;
 }
 
@@ -18484,6 +18755,54 @@ bool readDxfDynamicBlockPurgeWireGroups(
         } else if (code == 100 || code == 102) {
             groups.emplace_back(code, reader->getString());
         } else {
+            return false;
+        }
+    }
+    return inObject && !groups.empty() && !stream.bad();
+}
+
+bool readDxfDynamicBlockGripWireGroups(
+        const std::filesystem::path& path, bool binary,
+        std::vector<std::pair<int, std::string>>& groups) {
+    std::ifstream stream(path, std::ios::binary);
+    if (!stream)
+        return false;
+    if (binary)
+        stream.seekg(22);
+    if (!stream)
+        return false;
+    std::unique_ptr<dxfReader> reader = binary
+        ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
+        : std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+    bool inObject = false;
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 0) {
+            if (inObject)
+                return !groups.empty() && !stream.bad();
+            inObject = reader->getString()
+                == "BLOCKGRIPLOCATIONCOMPONENT";
+            continue;
+        }
+        if (!inObject || code == 5 || code == 330)
+            continue;
+        switch (code) {
+        case 100:
+        case 1:
+        case 300:
+            groups.emplace_back(code, reader->getString());
+            break;
+        case 90:
+        case 98:
+        case 99:
+        case 70:
+        case 91:
+            groups.emplace_back(code, std::to_string(reader->getInt32()));
+            break;
+        case 40:
+            groups.emplace_back(code, std::to_string(reader->getDouble()));
+            break;
+        default:
             return false;
         }
     }
@@ -48466,6 +48785,9 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--dynamic-block-purge-preventer")
         return dynamicBlockPurgePreventerOutputProfile() ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1]) == "--dynamic-block-grip-location")
+        return dynamicBlockGripLocationOutputProfile() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--object-context-data-loss-refusal")
         return objectContextDataLossRefusesExport() ? 0 : 1;

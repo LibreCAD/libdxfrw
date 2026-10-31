@@ -582,8 +582,9 @@ public:
     bool writeAssociativeConstraintGroup(DRW_AssociativeObject *ent);
     bool writeEvaluationGraph(DRW_EvaluationGraph *ent,
                               const char *recordName = "EVALUATION_GRAPH");
-    //! Emit only the source-backed AcDbDynamicBlockPurgePreventer DXF profile.
-    //! The DWG-only block handle must be closed by the owning dictionary graph.
+    //! Emit only the source-backed PurgePreventer and GripLocationComponent
+    //! DXF profiles. Their DWG owner links must close through the owning
+    //! dictionary and EvaluationGraph routes.
     bool writeDynamicBlockObject(DRW_DynamicBlockObject *ent);
     bool writeRawDxfObject(DRW_RawDxfObject *obj);
     bool writeRawDxfObject(DRW_RawDxfObject *obj,

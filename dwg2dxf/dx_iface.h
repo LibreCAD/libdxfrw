@@ -1970,7 +1970,7 @@ public:
                 }
             }
         }
-        objectWritePhase = "dynamic-block purge-preventer records";
+        objectWritePhase = "dynamic-block object records";
         for (DRW_DynamicBlockObject& object : cData->dynamicBlockObjects) {
             if (!dxfW->writeDynamicBlockObject(&object))
                 return;
