@@ -29407,15 +29407,29 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             && style.m_bottomMargin == 0.0 && style.m_rightMargin == 0.0
             && style.m_marginHorizontalSpacing == 0.0
             && style.m_marginVerticalSpacing == 0.0;
-        const auto isSelectedInvisibleBorder = [](
+        const auto isSelectedSimpleBorder = [](
                 const DRW_TableStyleBorder& border) {
             const std::uint32_t edgeFlags =
                 static_cast<std::uint32_t>(border.m_edgeFlags);
             const bool supportedEdges = edgeFlags != 0u
                 && (edgeFlags & ~std::uint32_t{0x3Fu}) == 0u;
-            return supportedEdges
-                && border.m_propertyOverrideFlags == 0x10
-                && border.m_borderType == 0 && border.m_color == 0
+            const bool colorOverride =
+                (border.m_propertyOverrideFlags & 0x08u) != 0u;
+            const bool visibilityOverride =
+                (border.m_propertyOverrideFlags & 0x10u) != 0u;
+            const bool supportedProperties =
+                border.m_propertyOverrideFlags == 0x08u
+                || border.m_propertyOverrideFlags == 0x10u
+                || border.m_propertyOverrideFlags == 0x18u;
+            const bool supportedColor = colorOverride
+                ? border.m_color >= 1 && border.m_color <= 255
+                : border.m_color == 0;
+            const bool supportedVisibility = visibilityOverride
+                ? (border.m_visible == 0 || border.m_visible == 1)
+                : border.m_visible == 0;
+            return supportedEdges && supportedProperties
+                && supportedColor && supportedVisibility
+                && border.m_borderType == 0
                 && border.m_colorCmc.m_rgb == -1
                 && border.m_colorCmc.m_name.empty()
                 && border.m_colorCmc.m_bookName.empty()
@@ -29424,7 +29438,6 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 && border.m_colorCmc.m_reservedIndex == 0u
                 && border.m_lineWeight == 0
                 && border.m_lineTypeHandle == 0u
-                && border.m_visible == 1
                 && border.m_doubleLineSpacing == 0.0;
         };
         const bool noBorders = style.m_borders.empty();
@@ -29433,7 +29446,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 return false;
             std::uint32_t seenEdges = 0u;
             for (const DRW_TableStyleBorder& border : style.m_borders) {
-                if (!isSelectedInvisibleBorder(border))
+                if (!isSelectedSimpleBorder(border))
                     return false;
                 const std::uint32_t edgeFlags =
                     static_cast<std::uint32_t>(border.m_edgeFlags);

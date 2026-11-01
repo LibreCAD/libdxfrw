@@ -1999,14 +1999,22 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
         std::cerr << "TABLECONTENT cell border visibility: " << why << '\n';
         return false;
     };
-    const std::array<std::vector<int>, 2> edgeProfiles{{
-        {1, 2, 4, 8, 0x10, 0x20},
-        {0x03, 0x0C, 0x30}
+    struct BorderExpectation {
+        int edge;
+        int propertyFlags;
+        int color;
+        int invisibility;
+    };
+    const std::array<std::vector<BorderExpectation>, 2> borderProfiles{{
+        {{1, 0x10, 0, 1}, {2, 0x08, 7, 0}, {4, 0x18, 3, 1},
+         {8, 0x10, 0, 0}, {0x10, 0x08, 10, 0}, {0x20, 0x18, 12, 0}},
+        {{0x03, 0x18, 7, 1}, {0x0C, 0x08, 3, 0}, {0x30, 0x10, 0, 1}}
     }};
-    for (std::size_t run = 0; run < edgeProfiles.size() * 2u; ++run) {
-        const std::size_t profile = run % edgeProfiles.size();
-        const bool binary = run / edgeProfiles.size() != 0u;
-        const std::vector<int>& edges = edgeProfiles[profile];
+    for (std::size_t run = 0; run < borderProfiles.size() * 2u; ++run) {
+        const std::size_t profile = run % borderProfiles.size();
+        const bool binary = run / borderProfiles.size() != 0u;
+        const std::vector<BorderExpectation>& expectedBorders =
+            borderProfiles[profile];
         const auto path = dir / (std::string("cell-border-edges-")
             + std::to_string(profile) + (binary ? "-binary.dxf" : "-ascii.dxf"));
         dx_data data;
@@ -2035,11 +2043,12 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
         DRW_TableStyleCellStyle& cellStyle =
             metadata->m_rows[0].m_cells[0].m_scope.m_style;
         cellStyle.m_hasData = true;
-        for (const int edge : edges) {
+        for (const BorderExpectation& expected : expectedBorders) {
             DRW_TableStyleBorder border;
-            border.m_edgeFlags = edge;
-            border.m_propertyOverrideFlags = 0x10;
-            border.m_visible = 1;
+            border.m_edgeFlags = expected.edge;
+            border.m_propertyOverrideFlags = expected.propertyFlags;
+            border.m_color = expected.color;
+            border.m_visible = expected.invisibility;
             cellStyle.m_borders.push_back(border);
         }
         table.m_dxfMetadata = metadata;
@@ -2110,7 +2119,7 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
                     current.doubleLineSpacing = tag.real;
                 else if (tag.code == 309 && tag.text == "GRIDFORMAT_END") {
                     if (cellStyleBorderCount
-                        != static_cast<int>(edges.size()))
+                        != static_cast<int>(expectedBorders.size()))
                         return fail("cell TABLEFORMAT border count differs");
                     borders.push_back(current);
                     inGridFormat = false;
@@ -2119,14 +2128,16 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
             if (tag.code == 309 && tag.text == "TABLEFORMAT_END")
                 inCellStyle = false;
         }
-        if (inGridFormat || borders.size() != edges.size())
+        if (inGridFormat || borders.size() != expectedBorders.size())
             return fail("physical wire border count differs");
-        for (std::size_t index = 0; index < edges.size(); ++index) {
+        for (std::size_t index = 0; index < expectedBorders.size(); ++index) {
             const BorderWire& border = borders[index];
-            if (border.edge != edges[index] || border.propertyFlags != 0x10
-                || border.borderType != 0 || border.color != 0
+            const BorderExpectation& expected = expectedBorders[index];
+            if (border.edge != expected.edge
+                || border.propertyFlags != expected.propertyFlags
+                || border.borderType != 0 || border.color != expected.color
                 || border.lineWeight != 0 || border.lineType != "0"
-                || border.invisibility != 1
+                || border.invisibility != expected.invisibility
                 || border.doubleLineSpacing != 0.0)
                 return fail("physical border edge fields changed");
         }
@@ -2139,21 +2150,24 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
             return fail("fresh table readback is missing");
         const auto& readStyle = parsed.tableContents.front().m_dxfMetadata
             ->m_rows[0].m_cells[0].m_scope.m_style;
-        if (readStyle.m_borders.size() != edges.size())
+        if (readStyle.m_borders.size() != expectedBorders.size())
             return fail("typed readback border count differs");
-        for (std::size_t index = 0; index < edges.size(); ++index) {
+        for (std::size_t index = 0; index < expectedBorders.size(); ++index) {
             const DRW_TableStyleBorder& border = readStyle.m_borders[index];
-            if (border.m_edgeFlags != edges[index]
-                || border.m_propertyOverrideFlags != 0x10
-                || border.m_borderType != 0 || border.m_color != 0
+            const BorderExpectation& expected = expectedBorders[index];
+            if (border.m_edgeFlags != expected.edge
+                || border.m_propertyOverrideFlags != expected.propertyFlags
+                || border.m_borderType != 0 || border.m_color != expected.color
                 || border.m_lineWeight != 0 || border.m_lineTypeHandle != 0u
-                || border.m_visible != 1
+                || border.m_visible != expected.invisibility
                 || border.m_doubleLineSpacing != 0.0)
                 return fail("typed border edge fields changed");
         }
 
         DRW_TableStyleBorder& invalidBorder = metadata->m_rows[0]
             .m_cells[0].m_scope.m_style.m_borders.front();
+        const int originalBorderProperties =
+            invalidBorder.m_propertyOverrideFlags;
         invalidBorder.m_propertyOverrideFlags = 0x40;
         const std::string sentinel = "PRESERVE_TABLECONTENT_BORDER_DESTINATION";
         { std::ofstream out(path, std::ios::binary); out << sentinel; }
@@ -2165,20 +2179,23 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
               return fail("border refusal changed the existing destination"); }
         if (invalidBorder.m_propertyOverrideFlags != 0x40)
             return fail("border refusal changed the caller model");
-        invalidBorder.m_propertyOverrideFlags = 0x10;
+        invalidBorder.m_propertyOverrideFlags = originalBorderProperties;
         if (!exporter.fileExport(path.string(), DRW::AC1027, binary,
                                  &data, false))
-            return fail("same-adapter corrected border retry failed");
+            return fail("same-adapter corrected border retry failed for profile "
+                + std::to_string(profile) + (binary ? " binary" : " ASCII"));
         dx_data retried;
         if (!reader.fileImport(path.string(), &retried, false)
             || retried.tableContents.size() != 1u
             || !retried.tableContents.front().m_dxfMetadata
             || retried.tableContents.front().m_dxfMetadata->m_rows[0]
-                .m_cells[0].m_scope.m_style.m_borders.size() != edges.size())
+                .m_cells[0].m_scope.m_style.m_borders.size()
+                    != expectedBorders.size())
             return fail("corrected border retry readback differs");
     }
-    std::cout << "TABLECONTENT cell border visibility: one-hot and grouped edge "
-                 "flags, ASCII/binary wire and readback, refusal and retry passed\n";
+    std::cout << "TABLECONTENT cell border transport: one-hot/grouped edges, "
+                 "indexed color and visibility, ASCII/binary readback, refusal "
+                 "and retry passed\n";
     return true;
 }
 

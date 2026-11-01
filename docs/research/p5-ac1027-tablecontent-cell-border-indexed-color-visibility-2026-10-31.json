@@ -1,0 +1,79 @@
+{
+  "schema": "libdxfrw-dxf-implementation-receipt-v1",
+  "date": "2026-10-31",
+  "status": "SCOPED_IMPLEMENTATION_COMPLETE_NO_CLAIM_PROMOTION",
+  "workstream": "P5 / AC1027 TABLECONTENT indexed border color and visibility overrides",
+  "basis": {
+    "authoritativeSpecification": "Open Design Specification for .dwg files v5.4.1, §20.4.101.4.",
+    "localSpecification": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "specifiedFields": {
+      "borderPropertyOverrideFlags": {
+        "0x08": "color",
+        "0x10": "invisibility"
+      },
+      "color": "TC, DXF group 62",
+      "invisibility": "BL, DXF group 93; 1=invisible, 0=visible"
+    },
+    "admittedPropertyMasks": ["0x08", "0x10", "0x18"],
+    "implementationBoundary": "Color admission is restricted to indexed values 1-255 with no extended CMC payload. A set visibility flag admits both specified values; an absent visibility flag requires the default zero field."
+  },
+  "profile": {
+    "version": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "fixture": "Runtime-authored 2x2 TABLECONTENT using tableContentScalarGrid; no drawing fixture files were added.",
+    "edgeProfiles": [
+      {
+        "kind": "one-hot",
+        "borders": [
+          {"edgeFlags": "0x01", "propertyFlags": "0x10", "color": 0, "invisibility": 1},
+          {"edgeFlags": "0x02", "propertyFlags": "0x08", "color": 7, "invisibility": 0},
+          {"edgeFlags": "0x04", "propertyFlags": "0x18", "color": 3, "invisibility": 1},
+          {"edgeFlags": "0x08", "propertyFlags": "0x10", "color": 0, "invisibility": 0},
+          {"edgeFlags": "0x10", "propertyFlags": "0x08", "color": 10, "invisibility": 0},
+          {"edgeFlags": "0x20", "propertyFlags": "0x18", "color": 12, "invisibility": 0}
+        ]
+      },
+      {
+        "kind": "grouped, disjoint",
+        "borders": [
+          {"edgeFlags": "0x03", "propertyFlags": "0x18", "color": 7, "invisibility": 1},
+          {"edgeFlags": "0x0C", "propertyFlags": "0x08", "color": 3, "invisibility": 0},
+          {"edgeFlags": "0x30", "propertyFlags": "0x10", "color": 0, "invisibility": 1}
+        ]
+      }
+    ],
+    "unselectedBorderFields": "Default border type, lineweight, null linetype, and zero double-line spacing."
+  },
+  "implementation": {
+    "files": ["src/libdxfrw.cpp", "tests/table_content_dxf_tests.cpp"],
+    "behavior": "The bounded writer accepts the tested indexed-color and visibility-only field combinations on one-hot and non-overlapping grouped edge masks. It refuses other border properties, out-of-domain color payloads, and overlapping edge declarations.",
+    "physicalWire": "An independent scalar wire observer checks TABLEFORMAT border counts, ordered edge masks, property masks, indexed group-62 values, group-93 values, default companion fields, and GRIDFORMAT terminators.",
+    "typedReadback": "Fresh ASCII and binary imports preserve edge masks, property masks, indexed colors, visibility values and order.",
+    "failureRetry": "An unsupported border property mask 0x40 is refused for every profile/encoding while preserving a destination sentinel and caller model; restoring the exact original mask permits same-adapter retry and readback.",
+    "fixturePolicy": "All inputs are generated in the test at runtime; no external fixture files were added."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_table_content_dxf_tests -j2",
+      "result": "PASS",
+      "compiler": "/usr/bin/g++",
+      "generator": "Unix Makefiles"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_table_content_cell_border_visibility_edges$' --output-on-failure",
+      "result": "PASS, 1/1, 0.55 seconds"
+    },
+    "diffCheck": "git diff --check passed",
+    "sourceSha256": {
+      "src/libdxfrw.cpp": "a3ae39c3100fe27607b3daec4887117daa18601718b649ef35e6143f930459ee",
+      "tests/table_content_dxf_tests.cpp": "bbd5d8d3ba8b00cd985b9528060a830bdcaedd1bfb691f9e6b70570f1cef410d",
+      "focusedExecutable": "45b552dfd37191e93ef4bffb761fb119afe9bf8a875e0dfc076e60952e36ee21"
+    }
+  },
+  "limits": [
+    "Only the AC1027 TABLECONTENT serializer/readback profile is covered; this does not qualify DWG TABLECONTENT output or other DXF versions.",
+    "Color indices 0/256, extended CMC/name/book colors, border type, lineweight, linetype, double-line spacing, and overlapping edge declarations remain refused or unqualified.",
+    "Wire and typed readback do not establish native CAD rendering, producer completeness, whole-document closure, or public support claims."
+  ],
+  "next": "Implement another source- or consumer-backed border property profile or a distinct remaining CONTENTFORMAT/CELLSTYLEMAP profile; retain strict refusal outside the qualified fields."
+}
