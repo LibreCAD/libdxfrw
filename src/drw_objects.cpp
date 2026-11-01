@@ -2150,13 +2150,6 @@ bool readTableStyleCellStyle(DRW::Version version, dwgBuffer *buf,
         value = parsed;
         return true;
     };
-    const auto readLineWeight = [buf, version, bodySize](int& value) {
-        std::int32_t parsed = 0;
-        if (!readSBitShortWithinBody(buf, version, bodySize, parsed))
-            return false;
-        value = parsed;
-        return true;
-    };
     const auto readDouble = [buf, version, bodySize](double& value) {
         return readBitDoubleWithinBody(buf, version, bodySize, value)
             && std::isfinite(value);
@@ -2319,6 +2312,13 @@ bool readLegacyTableStyleRowStyle(DRW::Version version, dwgBuffer *buf,
     const auto readShort = [buf, version, bodySize](int& value) {
         std::int32_t parsed = 0;
         if (!readBitShortWithinBody(buf, version, bodySize, parsed))
+            return false;
+        value = parsed;
+        return true;
+    };
+    const auto readLineWeight = [buf, version, bodySize](int& value) {
+        std::int32_t parsed = 0;
+        if (!readSBitShortWithinBody(buf, version, bodySize, parsed))
             return false;
         value = parsed;
         return true;
