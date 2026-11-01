@@ -10920,6 +10920,9 @@ bool dxfRW::writeCellStyleMap(DRW_CellStyleMap *ent) {
         return (format.m_propertyOverrideFlags & ~std::uint32_t{0x7FFFFu})
                 == 0u
             && (format.m_propertyFlags & ~std::uint32_t{0x100u}) == 0u
+            // AutoScale's value flag is meaningful only when selected for override.
+            && (format.m_propertyFlags
+                & ~format.m_propertyOverrideFlags) == 0u
             && validDataType(format.m_valueDataType)
             && validUnitType(format.m_valueUnitType)
             && safeText(format.m_valueFormatString)

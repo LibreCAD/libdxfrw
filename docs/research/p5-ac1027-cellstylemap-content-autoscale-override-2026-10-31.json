@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw-dxf-implementation-receipt-v1",
+  "date": "2026-10-31",
+  "status": "SCOPED_IMPLEMENTATION_COMPLETE_NO_CLAIM_PROMOTION",
+  "workstream": "P5 / AC1027 CELLSTYLEMAP CONTENTFORMAT AutoScale override selection",
+  "basis": {
+    "authoritativeDwgSpecification": {
+      "title": "Open Design Specification for .dwg files v5.4.1",
+      "localPath": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "section": "20.4.101.3 Content format",
+      "finding": "The content-format override mask includes Auto Scale at bit 0x100, while the property-value flags field carries the Auto Scale value at bit 0x100."
+    },
+    "peerProfile": {
+      "receipt": "docs/research/rpp5yb-tablecontent-content-format-fields-2026-10-30.json",
+      "finding": "The already-qualified TABLECONTENT profile admits propertyFlags only when each set property flag is selected by propertyOverrideMask; its writer rejects propertyFlags & ~propertyOverrideFlags."
+    },
+    "scopeBoundary": "Apply the matching output-side consistency rule to CELLSTYLEMAP CONTENTFORMAT's AutoScale property only. Keep DXF source parsing tolerant so imported source data is retained; unsupported/inconsistent data is refused at output admission. This does not qualify other CONTENTFORMAT masks, TABLE rendering, or native application meaning."
+  },
+  "profile": {
+    "version": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF", "DWG payload preflight/encoding"],
+    "fixture": "Runtime-authored CELLSTYLEMAP and CONTENTFORMAT values; no drawing fixture files were added.",
+    "positive": {
+      "propertyOverrideFlags": "0x121",
+      "propertyFlags": "0x100",
+      "wire": [[300, "CONTENTFORMAT"], [1, "CONTENTFORMAT_BEGIN"], [90, "289"], [91, "256"]],
+      "readback": "Fresh typed readback retains both masks; ASCII and binary output assert the ordered group-90/group-91 fields."
+    },
+    "negative": "propertyFlags=0x100 with AutoScale override bit 0x100 clear is rejected by CELLSTYLEMAP DXF writer preflight and DWG payload validation/encoding before output mutation.",
+    "failureRetry": "DXF refusal preserves a preexisting destination sentinel and caller model. Restoring the selected AutoScale bit permits retry through the same adapter. DWG refusal preserves body, string, and handle buffers and their bit counts."
+  },
+  "implementation": {
+    "files": ["src/drw_objects.cpp", "src/libdxfrw.cpp", "tests/dwg2dxf_adapter_tests.cpp", "tests/dwg_object_vectors_tests.cpp"],
+    "behavior": "CELLSTYLEMAP CONTENTFORMAT output validation now requires every set property value flag to have its corresponding override-selection bit. The rule is enforced in both DXF writer preflight and shared DWG payload validation/encoding.",
+    "fixturePolicy": "Inputs are authored in test code at runtime; no external DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_object_vectors_tests libdxfrw_table_content_dxf_tests -j2",
+      "result": "PASS",
+      "compiler": "Apple clang 21.0.0",
+      "cmake": "4.4.4"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_cellstylemap_dxf_writer|libdxfrw_cellstylemap_source_profiles|libdxfrw_cellstylemap_dwg_encode_roundtrip)$' --output-on-failure",
+      "result": "PASS, 3/3; 2.30 seconds"
+    },
+    "diffCheck": "PASS: git diff --check",
+    "sha256": {
+      "src/drw_objects.cpp": "a39909ba1bc66f39d782efe2ccd333a54e5224b556a143758dbcd2e9184cf19b",
+      "src/libdxfrw.cpp": "78b734457ce97c784c1ceda3b41ef999066717957f48d7636aa907ad5ef6b2c1",
+      "tests/dwg2dxf_adapter_tests.cpp": "a16c58f5673a7a27a6cab098faee1f0c340054f7dd20fa1567b02fcbb0ac19e9",
+      "tests/dwg_object_vectors_tests.cpp": "8e08c3042e2110e748d09b5e4b9721c276bae04a18997bdc809f58d9ed640962",
+      "focusedAdapterExecutable": "3e17025f472927c25e0e8abadca99ffb19103df1e0230879d33a1c7e7876be2f",
+      "focusedObjectVectorsExecutable": "d1f842d9c3f8b661b5d4bdbc67362b377c99e3ab2e5c3f0492242180325e7023",
+      "focusedTableContentExecutable": "d32f310017fe67a531af110ad94b095622aaeab39d1bcf486b300b386d68b941"
+    }
+  },
+  "limits": [
+    "This qualifies only AutoScale override selection for the tested AC1027 CELLSTYLEMAP CONTENTFORMAT output path.",
+    "Source DXF parsing remains tolerant and retains the input profile; this receipt does not establish whether native applications accept or assign meaning to the inconsistent combination.",
+    "No native TABLE rendering, whole-document closure, independent CAD application, DWG version-wide semantic support, platform, or public support claim is established."
+  ],
+  "next": "Continue with remaining source-backed CONTENTFORMAT/CELLSTYLEMAP profiles and separately qualified TABLECONTENT edge-mask semantics; keep unresolved combinations refused at output."
+}

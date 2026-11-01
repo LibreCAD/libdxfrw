@@ -3305,6 +3305,21 @@ void testCellStyleMapDwgEncodeRoundTrip(TestContext& t) {
                  && strings.bitCount() == stringBitsBefore
                  && handles.bitCount() == handleBitsBefore,
              "AC1021 CELLSTYLEMAP rejects unqualified DWG unit types before mutating output buffers");
+
+    CellStyleMapCodecProbe invalidAutoScale = source;
+    invalidAutoScale.m_cellStyles[1].m_contentFormat.m_propertyOverrideFlags
+        &= ~std::uint32_t{0x100u};
+    const bool invalidAutoScaleEncoded = invalidAutoScale.encodeDwg(
+        version, &body, &strings, &handles);
+    t.expect(!invalidAutoScaleEncoded
+                 && !invalidAutoScale.validateDwgPayload(version)
+                 && body.data() == bodyBefore
+                 && strings.data() == stringsBefore
+                 && handles.data() == handlesBefore
+                 && body.bitCount() == bodyBitsBefore
+                 && strings.bitCount() == stringBitsBefore
+                 && handles.bitCount() == handleBitsBefore,
+             "AC1021 CELLSTYLEMAP rejects an AutoScale value without its override bit before mutating output buffers");
 }
 
 void testTableStyleContentFormatEnumDomains(TestContext& t) {

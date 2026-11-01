@@ -46135,7 +46135,7 @@ bool cellStyleMapDxfWriter() {
         custom.m_backgroundColorCmc.m_flags = 0x03u;
         custom.m_contentLayout = 1u;
         DRW_TableStyleContentFormat& format = custom.m_contentFormat;
-        format.m_propertyOverrideFlags = 0x21u;
+        format.m_propertyOverrideFlags = 0x121u;
         format.m_propertyFlags = 0x100u;
         format.m_valueDataType = 1;
         format.m_valueUnitType = 2;
@@ -46300,6 +46300,10 @@ bool cellStyleMapDxfWriter() {
             || typedReadback.cellStyleMaps.front().m_cellStyles[0]
                     .m_contentFormat.m_contentColorCmc.m_flags != 0x03u
             || typedReadback.cellStyleMaps.front().m_cellStyles[0]
+                    .m_contentFormat.m_propertyOverrideFlags != 0x121u
+            || typedReadback.cellStyleMaps.front().m_cellStyles[0]
+                    .m_contentFormat.m_propertyFlags != 0x100u
+            || typedReadback.cellStyleMaps.front().m_cellStyles[0]
                     .m_borders[0].m_lineWeight != 25
             || typedReadback.cellStyleMaps.front().m_cellStyles[0]
                     .m_borders[0].m_lineTypeHandle != 0xD102u
@@ -46378,6 +46382,9 @@ bool cellStyleMapDxfWriter() {
             || !hasGroup(maps.front(), 90, "101")
             || !hasGroup(maps.front(), 90, "102")
             || !hasSequence(maps.front(), std::vector<std::pair<int, std::string>>{
+                   {300, "CONTENTFORMAT"}, {1, "CONTENTFORMAT_BEGIN"},
+                   {90, "289"}, {91, "256"}})
+            || !hasSequence(maps.front(), std::vector<std::pair<int, std::string>>{
                    {62, "4"}, {420, "14342874"},
                    {430, "Generated Background$Cloud White"}})
             || !hasSequence(maps.front(), std::vector<std::pair<int, std::string>>{
@@ -46403,6 +46410,12 @@ bool cellStyleMapDxfWriter() {
             .m_contentFormat.m_contentColorCmc;
         const std::string originalName = invalidColor.m_name;
         const std::string originalBookName = invalidColor.m_bookName;
+        DRW_TableStyleContentFormat& invalidContentFormat =
+            writer.first.m_cellStyles[0].m_contentFormat;
+        const std::uint32_t originalContentOverrideFlags =
+            invalidContentFormat.m_propertyOverrideFlags;
+        const std::uint32_t originalContentPropertyFlags =
+            invalidContentFormat.m_propertyFlags;
         DRW_TableStyleBorder& invalidBorder = writer.first.m_cellStyles[0]
             .m_borders[0];
         const int originalLineWeight = invalidBorder.m_lineWeight;
@@ -46410,7 +46423,9 @@ bool cellStyleMapDxfWriter() {
         { std::ofstream out(output, std::ios::binary); out << sentinel; }
         const auto refusalPreservesState = [&](const std::string& name,
                                                 const std::string& bookName,
-                                                int lineWeight) {
+                                                int lineWeight,
+                                                std::uint32_t contentOverrideFlags,
+                                                std::uint32_t contentPropertyFlags) {
             if (writer.fileExport(output.string(), DRW::AC1027, binary,
                                   &source, false))
                 return false;
@@ -46419,29 +46434,49 @@ bool cellStyleMapDxfWriter() {
                     == sentinel
                 && invalidColor.m_name == name
                 && invalidColor.m_bookName == bookName
-                && invalidBorder.m_lineWeight == lineWeight;
+                && invalidBorder.m_lineWeight == lineWeight
+                && invalidContentFormat.m_propertyOverrideFlags
+                    == contentOverrideFlags
+                && invalidContentFormat.m_propertyFlags
+                    == contentPropertyFlags;
         };
         invalidColor.m_name = "invalid$name";
         if (!refusalPreservesState("invalid$name", originalBookName,
-                                   originalLineWeight))
+                                   originalLineWeight,
+                                   originalContentOverrideFlags,
+                                   originalContentPropertyFlags))
             return fail("ambiguous CMC entry name was accepted or mutated state");
         invalidColor.m_name = originalName;
         invalidColor.m_bookName = "invalid$book";
         if (!refusalPreservesState(originalName, "invalid$book",
-                                   originalLineWeight))
+                                   originalLineWeight,
+                                   originalContentOverrideFlags,
+                                   originalContentPropertyFlags))
             return fail("ambiguous CMC book name was accepted or mutated state");
         invalidColor.m_bookName = originalBookName;
         invalidColor.m_name.clear();
-        if (!refusalPreservesState("", originalBookName, originalLineWeight))
+        if (!refusalPreservesState("", originalBookName, originalLineWeight,
+                                   originalContentOverrideFlags,
+                                   originalContentPropertyFlags))
             return fail("book-only CMC color was accepted or mutated state");
         invalidColor.m_name = originalName;
         invalidBorder.m_lineWeight = 26;
-        if (!refusalPreservesState(originalName, originalBookName, 26))
+        if (!refusalPreservesState(originalName, originalBookName, 26,
+                                   originalContentOverrideFlags,
+                                   originalContentPropertyFlags))
             return fail("invalid CELLSTYLEMAP lineweight was accepted or mutated state");
         invalidBorder.m_lineWeight = -4;
-        if (!refusalPreservesState(originalName, originalBookName, -4))
+        if (!refusalPreservesState(originalName, originalBookName, -4,
+                                   originalContentOverrideFlags,
+                                   originalContentPropertyFlags))
             return fail("internal CELLSTYLEMAP lineweight was accepted or mutated state");
         invalidBorder.m_lineWeight = -2;
+        invalidContentFormat.m_propertyOverrideFlags = 0x21u;
+        if (!refusalPreservesState(originalName, originalBookName, -2,
+                                   0x21u, originalContentPropertyFlags))
+            return fail("AutoScale property without override was accepted or mutated state");
+        invalidContentFormat.m_propertyOverrideFlags =
+            originalContentOverrideFlags;
         if (!writer.fileExport(output.string(), DRW::AC1027, binary,
                                &source, false))
             return fail("same-adapter CELLSTYLEMAP retry failed");

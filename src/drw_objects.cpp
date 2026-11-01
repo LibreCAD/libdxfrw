@@ -17428,6 +17428,8 @@ bool validCellStyleMapContentFormat(
         const DRW_TableStyleContentFormat& format) noexcept {
     return (format.m_propertyOverrideFlags & ~std::uint32_t{0x7FFFFu}) == 0u
         && (format.m_propertyFlags & ~std::uint32_t{0x100u}) == 0u
+        && (format.m_propertyFlags
+            & ~format.m_propertyOverrideFlags) == 0u
         && validTableStyleValueDataType(version, format.m_valueDataType)
         && validTableStyleDwgWriteUnitType(version, format.m_valueUnitType)
         && std::isfinite(format.m_rotation)
