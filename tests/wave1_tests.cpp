@@ -3765,7 +3765,13 @@ void testCommonAppDataBaseScope(TestContext& t) {
                     case 1: { DRW_Layer e; written = emitTable(owner, e, retained, &dxfRW::writeLayer); break; }
                     case 2: { DRW_Textstyle e; written = emitTable(owner, e, retained, &dxfRW::writeTextstyle); break; }
                     case 3: { DRW_Vport e; written = emitTable(owner, e, retained, &dxfRW::writeVport); break; }
-                    case 4: { DRW_Dimstyle e; written = emitTable(owner, e, retained, &dxfRW::writeDimstyle); break; }
+                    case 4: {
+                        DRW_Dimstyle e;
+                        e.dimtxsty.clear();
+                        written = emitTable(owner, e, retained,
+                                            &dxfRW::writeDimstyle);
+                        break;
+                    }
                     case 5: { DRW_View e; written = emitTable(owner, e, retained, &dxfRW::writeView); break; }
                     case 6: { DRW_UCS e; written = emitTable(owner, e, retained, &dxfRW::writeUCS); break; }
                     case 7: { DRW_AppId e; written = emitTable(owner, e, retained, &dxfRW::writeAppId); break; }
@@ -13774,7 +13780,8 @@ void testDxfArbitraryHandlePayloads(TestContext& t) {
         writer.setHandleRemap({{0x14u, 0x200u}});
         DRW_Variant app(1001, std::string("LOCAL_HANDLES"));
         DRW_Variant reference(1005, std::string("14"));
-        t.expect(writer.writeExtData({&app, &reference})
+        t.expect(writer.writeExtData(
+                     std::vector<DRW_Variant*>{&app, &reference})
                      && handles(output.str(), binary, false)
                         == std::vector<std::pair<int, std::string>>{{1005, "200"}},
                  "XDATA handle follows reference remapping within its application group");
@@ -14787,6 +14794,7 @@ void testDynamicDimstyleNumericWireKinds(TestContext& t) {
         expectTypedNumericWire(t, [value](dxfRW& writer) {
             DRW_Dimstyle style;
             style.name = "DYNAMIC_WIRE";
+            style.dimtxsty.clear();
             style.add("WIRE90", 90, value);
             style.add("FOLLOWING_I16", 371, 25);
             style.add("FOLLOWING_BOOL", 295, 1);
@@ -14798,6 +14806,7 @@ void testDynamicDimstyleNumericWireKinds(TestContext& t) {
         expectTypedNumericWire(t, [value](dxfRW& writer) {
             DRW_Dimstyle style;
             style.name = "DYNAMIC_I16";
+            style.dimtxsty.clear();
             style.add("WIRE371", 371, value);
             return writer.writeDimstyle(&style);
         }, {"371:" + std::to_string(value)},
@@ -14820,6 +14829,7 @@ void testDynamicDimstyleNumericWireKinds(TestContext& t) {
         else
             owner.writer = std::make_unique<dxfWriterAscii>(&output);
         DRW_Dimstyle style;
+        style.dimtxsty.clear();
         style.add("WIRE90", 90, 70001);
         t.expect(owner.writeDimstyle(&style)
                      && owner.writer->writeString(0, "WIRE_END"),

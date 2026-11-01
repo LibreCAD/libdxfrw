@@ -33491,7 +33491,7 @@ bool independentTwoLayoutViewportFramesMatch(DRW::Version version) {
 
     const auto dictionaryMapPosition = std::find_if(
         dictionary.objectMap.cbegin(), dictionary.objectMap.cend(),
-        [](
+        [layoutDictionaryHandle](
                 const std::pair<std::uint32_t, std::uint32_t>& entry) {
             return entry.first == layoutDictionaryHandle;
         });
@@ -33541,7 +33541,7 @@ bool independentTwoLayoutViewportFramesMatch(DRW::Version version) {
         const std::size_t dictionaryParentCount = static_cast<std::size_t>(
             std::count_if(group.layoutReceipt.occurrences.cbegin(),
                           group.layoutReceipt.occurrences.cend(),
-                [layoutHandle](
+                [layoutHandle, layoutDictionaryHandle](
                         const DRW::DwgObjectHandleOccurrence& occurrence) {
                     return occurrence.objectHandle == layoutHandle
                         && occurrence.token.code == DRW::DwgSoftPointer
@@ -33551,7 +33551,7 @@ bool independentTwoLayoutViewportFramesMatch(DRW::Version version) {
         const auto dictionaryParent = std::find_if(
             group.layoutReceipt.occurrences.cbegin(),
             group.layoutReceipt.occurrences.cend(),
-            [layoutHandle](
+            [layoutHandle, layoutDictionaryHandle](
                     const DRW::DwgObjectHandleOccurrence& occurrence) {
                 return occurrence.objectHandle == layoutHandle
                     && occurrence.token.code == DRW::DwgSoftPointer
