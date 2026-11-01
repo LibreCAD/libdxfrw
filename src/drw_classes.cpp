@@ -173,6 +173,13 @@ void DRW_Class::toDwgType(){
         dwgType = 1162;
     else if (recName == "GEOPOSITIONMARKER" || recName == "POSITIONMARKER")
         dwgType = 1164;
+    else if (recName == "ACDBPLACEHOLDER"
+             && className == "AcDbPlaceHolder")
+        // ODA §20.4.1 assigns non-fixed object frames through their class
+        // entry. This built-in class is the same logical object as fixed
+        // DWG type 80 (ACDBPLACEHOLDER); its source class ordinal remains
+        // file-local and is never hardcoded here.
+        dwgType = 80;
     else
         dwgType = 0;
     // NOTE: ARC_DIMENSION must NOT be added here. It has no fixed DWG type < 500.

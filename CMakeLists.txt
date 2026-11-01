@@ -1154,6 +1154,12 @@ if(LIBDXFRW_BUILD_TESTS)
     set_tests_properties(libdxfrw_dwg_r2007_class_string_footer PROPERTIES
         LABELS "fast;dwg;framing;generated"
         TIMEOUT 30)
+    add_test(NAME libdxfrw_dwg_acdb_placeholder_class_dispatch
+        COMMAND libdxfrw_dwg_reader_matrix_tests
+            --acdb-placeholder-class-dispatch)
+    set_tests_properties(libdxfrw_dwg_acdb_placeholder_class_dispatch PROPERTIES
+        LABELS "fast;dwg;objects;generated"
+        TIMEOUT 30)
     add_test(NAME libdxfrw_dwg_r2007_section_map_page_extent
         COMMAND libdxfrw_dwg_reader_matrix_tests
             --r2007-section-map-page-extent)

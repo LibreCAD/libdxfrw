@@ -1695,32 +1695,36 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S15 UTF-8/native filesystem follow-up is VERIFYING.
-  S00 through S14 remain historical committed slices, not qualification of
-  this new path behavior; independent support dispositions remain unchanged.
+- Current checkpoint: S16 closes one AC1015 DWG reader-classification defect
+  found while qualifying the FreeCAD 3D consumer route. S15 remains VERIFYING;
+  strict AC1015 output still rejects ten unqualified object callbacks, so no
+  end-to-end FreeCAD 3D result or broader support claim is recorded.
 - Authorized run horizon: active implementation objective; continue through the
   next dependency-ready slice until the user stops or the terminal release gate
   is satisfied.
-- Completion target: record the terminal slice/checkpoint before A0 becomes
-  `ACTIVE`; a general request to implement this whole plan means S14/G, and a
-  PR boundary cannot silently shorten it.
-- Last committed slice: S14 (release/package readiness and LibreCAD system-package lane).
-- Resolved slices: 15/16 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Completion target: S14/G is already complete and is no longer the terminal
+  target. Continue the newly discovered consumer follow-ups and the still-open
+  acceptance gates; record a new terminal slice only after the current DWG/DXF
+  parity, LibreCAD/LibreCAD_3 compatibility, platform qualification, and
+  evidence dispositions are all reconciled. A PR boundary cannot shorten it.
+- Last committed slice: S16 (AC1015 built-in placeholder class dispatch).
+- Resolved slices: 16/18 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
-- Slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 15 COMMITTED.
-- Parent-item states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 16 COMMITTED.
-- Expanded child-item states: 42 COMMITTED / 1 VERIFIED / 1 VERIFYING /
-  0 READY / 0 PLANNED; S12
+- Slice states: 1 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 16 COMMITTED.
+- Parent-item states: 1 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 17 COMMITTED.
+- Expanded child-item states: 43 COMMITTED / 1 VERIFIED / 1 VERIFYING /
+  1 READY / 0 PLANNED; S12
   version/feature coverage, S13 hardening, and S14 release evidence are explicit.
 - Parent claim/evidence dispositions: 5 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 5 EXPERIMENTAL / 0 PROMOTED / 7 NOT_APPLICABLE.
-- Child evidence dispositions: 1 DEFERRED_EXTERNAL (six named external
-  follow-ups) / 28 NOT_EVALUATED-or-NOT_APPLICABLE; none promote claims.
-- Next active slice: S15. S08-S12 local vectors, S13 hardening, and S14
-  package/integration checks are green, but all five support dispositions
-  remain `EXPERIMENTAL` until independent semantic evidence exists.
+  0 DEFERRED_EXTERNAL / 7 EXPERIMENTAL / 0 PROMOTED / 7 NOT_APPLICABLE.
+- Child claim dispositions: 17 EXPERIMENTAL / 16 NOT_APPLICABLE /
+  12 NOT_EVALUATED / 1 DEFERRED_EXTERNAL; none promote claims.
+- Next ready slice: S17, exact AC1015 opaque-callback inventory and first
+  bounded source-to-output family proof. S15's native/hosted filesystem gates
+  continue independently; all support dispositions remain bounded by their
+  existing evidence ledgers.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1740,6 +1744,8 @@ edit this block or commit the same slice concurrently.
 | S13 | G0: diagnostics, aggregate budgets, ownership, fuzz/sanitizers | S10, S11 | COMMITTED | hardening matrix green | Default and opt-in long-fuzz vectors plus focused ASan/UBSan hardening pass; no external bytes; support claims unchanged | S14 |
 | S14 | G1: system-package LibreCAD mode, packaging, docs, release | S07, S12, S13 | COMMITTED | full acceptance criteria | Fresh install/package consumers, LibreCAD filter system-package compile, version/docs/sync audit, and fixture guard pass; claims remain bounded | terminal release checkpoint |
 | S15 | C2: UTF-8/native input and atomic-output paths | S11, S14 | VERIFYING | existing focused native suite on Linux/macOS/Windows; Unicode parent/basename/non-BMP DXF ASCII+binary/DWG; transaction commit/rollback/cleanup; existing hardening and writer controls; LibreCAD ON/OFF consumers | Exact97a8bdba baseline Mac7+3 PASS; pre-fix Unicode vectors8bea476f PASS on Mac, not native Windows red. Candidate four-code-path diffSHA c60d7ea8b79f557233cbbe5645d905fb0d524c9c628f1377de31e1f20f4d76ef passes focused7 and writer/hardening/DXF3 on native Mac and Ubuntu26/aarch64, including explicit UTF-8 filesystem paths PASS; no skips. Five input opens/output target use standard u8path; native temporary basename/ASCII suffix preserves atomic policy. Initial Linux prep128 occurred before CMake due copied ownership; corrected process-scoped exact-directory trust passes, with no global exception or source recopy. This is dirty-source portable proof, not clean-commit hosted receipt or native Windows fix proof. Native Windows/three-platform immutable qualification and LibreCAD consumer pin/ON-OFF proofs remain pending; no historical evidence, locale, defaults or support claims change. | own candidate qualification and LibreCAD consumer pin |
+| S16 | E1N.1: AC1015 built-in placeholder class dispatch | S09 | COMMITTED | exact class-name mapping; generated parser regression; source-traced DWG conversion | ODA §20.4.1 and local AC1015 control identify class ordinal 501 as `AcDbPlaceHolder` / `ACDBPLACEHOLDER`; parser now resolves the built-in class to fixed type 80 without hardcoding ordinal 501. Focused test passes. Full strict conversion still refuses at 0/10 opaque callbacks; no consumer or support promotion. Receipt: `docs/research/ac1015-placeholder-class-dispatch-2026-11-01.json`. | S17 |
+| S17 | E1P: AC1015 opaque-callback inventory and bounded family qualification | S09, S16 | READY | identify each of ten source handles, callback family, output gate, and exact failing proof; implement and verify one dependency-closed family per follow-up slice; retain strict refusal for all remaining frames | Start with the generated AC1015 3D POLYLINE control and correlate source trace, callback ledger, typed model, raw carrier, and emitted DXF record identities. Do not widen version profiles until each family has exact source/field/owner/reaction and readback proof. No binary fixture admission. | S18 family slices |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -1760,6 +1766,8 @@ edit this block or commit the same slice concurrently.
 | G0 | S13 | E2, F0 | COMMITTED | NOT_EVALUATED | Diagnostics, budgets, ownership, fuzzing, and sanitizers pass bounded local and sanitizer lanes |
 | G1 | S14 | D1, F1, G0 | COMMITTED | NOT_EVALUATED | Installed LibreCAD mode, packaging, documentation, and release checks pass; support claims remain governed by evidence ledger |
 | C2 | S15 | F0, G1 | VERIFYING | NOT_EVALUATED | Compact UTF-8/native filename contract; portable local vectors pass, own hosted Windows/three-platform and LibreCAD consumer qualification pending |
+| E1N | S16 | E1 | COMMITTED | EXPERIMENTAL | Built-in ACDBPLACEHOLDER class ordinal resolves to fixed reader type 80; complete AC1015 output qualification remains open |
+| E1P | S17 | E1, E1N | READY | EXPERIMENTAL | Correlate all ten AC1015 opaque callbacks and qualify bounded object families without relaxing strict output acceptance |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1807,6 +1815,8 @@ edit this block or commit the same slice concurrently.
 | G1.4 | G1 / S14 | WP0/WP8; Phase 8 | G1.3 | COMMITTED | NOT_EVALUATED | provenance and fixture release audit | `LIBRECAD_SYNC.md`, release-readiness report, adaptation allowlist, and fixture guard are green; no external DWG/DXF payload is staged |
 | C2.1 | C2 / S15 | WP3/WP7/WP8; Phase 8 follow-up | F0.3, G1.4 | VERIFIED | NOT_EVALUATED | input/output/native-basename implementation and portable real-filesystem controls | Frozen97+c60d7ea8 passes focused7/controls3 on native Mac and Ubuntu26/aarch64; actual Unicode DWG/ASCII+binary DXF, exclusive temporary basename, precommit visibility, commit/rollback/cleanup pass. Logs under /private/tmp/librecad-windows-path.WXbCZP/utf8-candidate-*; no Windows or immutable receipt claim |
 | C2.2 | C2 / S15 | WP3/WP8; Phase 8 follow-up | C2.1 | VERIFYING | NOT_EVALUATED | own three-platform immutable hosted receipts and LibreCAD ON/OFF consumers | Existing focused workflow automatically selects the expanded fixture target; publish a draft verification checkpoint preserving advanced97, then require native Windows/Linux x64/Mac receipts and actual LibreCAD Unicode/persistence/full consumers on its updated pin. Oldceaf or pre-fix Mac proof cannot satisfy this gate |
+| E1N.1 | E1N / S16 | WP5; Phase 5/P8 consumer follow-up | E1.3 | COMMITTED | EXPERIMENTAL | generated AC1015 class-record regression plus source-traced runtime dispatch | `libdxfrw_dwg_acdb_placeholder_class_dispatch` and `dwg2dxf` build pass; local AC1015 trace resolves the observed class record to type 80 and publishes all 38 source frames. Strict finalization still rejects `opaqueViewCallbacks=10`, `opaqueFramesOutputQualified=0`; see the no-binary receipt at `docs/research/ac1015-placeholder-class-dispatch-2026-11-01.json` |
+| E1P.1 | E1P / S17 | WP5/WP6; Phase 5/P8 consumer follow-up | E1N.1 | READY | EXPERIMENTAL | exact ten-handle callback inventory tied to source trace and output proof functions | Produce a bounded per-family map from source handle/type/class through callback and output inspection, identify the first independently closable family, and add its implementation children before activation; strict refusal remains the required negative control |
 
 S04 implementation record (pre-commit): target source/build artifacts were
 imported from the locked target-derived archive with all standalone-only
@@ -1895,7 +1905,10 @@ the evidence ledger. S14 is the terminal release checkpoint; future work is
 independent semantic qualification, not an unrecorded implementation item.
 
 
-<!-- PLAN_PREPARED:S04 --><!-- UPGRADE_PROGRESS_END -->
+<!-- PLAN_PREPARED:S04 -->
+<!-- UPGRADE_PROGRESS_END -->
+
+
 
 
 

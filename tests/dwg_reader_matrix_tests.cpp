@@ -26,6 +26,7 @@
 
 #include "libdwgr.h"
 #include "dx_iface.h"
+#include "drw_classes.h"
 
 #include "intern/dwgreader15.h"
 #include "intern/dwgreader18.h"
@@ -15503,6 +15504,42 @@ void testR2007ClassStringFooter(TestContext& t) {
     }
 }
 
+void testAcDbPlaceholderClassDispatch(TestContext& t) {
+    const auto parseClass = [](const std::string& recordName,
+                               const std::string& className,
+                               DRW_Class& result) {
+        constexpr DRW::Version version = DRW::AC1015;
+        dwgBufferW data;
+        dwgBufferW strings;
+        data.putBitShort(501u); // File-local class ordinal from the DWG.
+        data.putBitShort(0u);   // Proxy capabilities.
+        strings.putVariableText(version, "test-app");
+        strings.putVariableText(version, className);
+        strings.putVariableText(version, recordName);
+        data.putBit(false); // was-a-proxy flag.
+        data.putBitShort(0x1F3u); // OBJECT class.
+        const auto dataBytes = data.data();
+        const auto stringBytes = strings.data();
+        dwgBuffer dataInput(dataBytes.data(), dataBytes.size());
+        dwgBuffer stringInput(stringBytes.data(), stringBytes.size());
+        return result.parseDwg(version, &dataInput, &stringInput)
+            && dataInput.isGood() && stringInput.isGood();
+    };
+
+    DRW_Class placeholder;
+    const bool parsedPlaceholder = parseClass(
+        "ACDBPLACEHOLDER", "AcDbPlaceHolder", placeholder);
+    t.expect(parsedPlaceholder && placeholder.classNum == 501u
+                 && placeholder.dwgType == dwgObjType::ACDBPLACEHOLDER,
+             "the built-in AcDbPlaceHolder class resolves to fixed DWG type 80 without using its file-local ordinal");
+
+    DRW_Class unrelated;
+    const bool parsedUnrelated = parseClass(
+        "ACDBPLACEHOLDER", "AcDbUnrelated", unrelated);
+    t.expect(parsedUnrelated && unrelated.dwgType == 0,
+             "a mismatched C++ class name does not receive the placeholder parser");
+}
+
 class TemplateProbe final : public dwgReader15 {
 public:
     explicit TemplateProbe(DRW::Version target)
@@ -16587,6 +16624,13 @@ int main(int argc, char** argv) {
         std::cout << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
         return focused.failures == 0 ? 0 : 1;
     }
+    if (argc == 2
+        && std::string(argv[1]) == "--acdb-placeholder-class-dispatch") {
+        TestContext focused;
+        testAcDbPlaceholderClassDispatch(focused);
+        std::cout << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return focused.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--r2007-data-page-profiles") {
         TestContext focused;
         testR2007DataPageProfiles(focused);
@@ -16756,6 +16800,7 @@ int main(int argc, char** argv) {
     testFileLevelViewportHandlesSectionR21(context);
     testExactUnknownSectionNames(context);
     testR2004DataPageLogicalTail(context);
+    testAcDbPlaceholderClassDispatch(context);
     testR2007DataPageProfiles(context);
     testR2007SectionMapPageExtent(context);
     testR2004SectionMapPublication(context);
