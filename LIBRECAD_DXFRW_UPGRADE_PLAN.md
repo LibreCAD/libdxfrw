@@ -1681,26 +1681,23 @@ edit this block or commit the same slice concurrently.
   focused native targets with warnings-as-errors, and the reader-matrix and
   round-trip controls have independent passing receipts.
 - S20 remains `VERIFYING`. The earlier Windows path, allocation-accounting,
-  retry-boundary, and shared-temporary-path fixes are implemented and removed
-  from the active work list. The Windows run on digest
-  `eef48bfb5f09317c894b86156cfded40f4666e546d4d9223d2955ebb06b96533` passed
-  5/7 tests. Its captured-resource self-test failure is now fixed by using a
-  native absolute synthetic resource path, and the local self-test passes. The
-  local round-trip test still needs six Windows assertions resolved: PFACE
-  canonical output and five AC1027 ACDS projection cases. The previous
-  `parity-fast` adapter build passed but its hardening vector failed four
-  MLINESTYLE budget assertions; those came from a generated record with a
-  duplicate group-3 description and have been corrected in the test. These are
-  the only H0.4/H0.5 items left below.
+  retry-boundary, shared-temporary-path, PFACE CRLF, and MLINESTYLE test-vector
+  fixes are implemented and removed from the active work list. The previous
+  Windows receipt passed 5/7: its Apple runtime self-test used host-native path
+  rules for Darwin POSIX metadata, and five ASCII ACDS round-trip assertions
+  failed. The validator now checks those schema paths with `PurePosixPath`;
+  local qualification self-test passes. The ACDS artifact shows the failures
+  arise on replay reads, and the test now emits replay-specific read outcomes.
+  Current-digest Windows and `parity-fast` receipts are still required.
 - The current implementation digest is
-  `488663ed3e02ac001de92543ec0d162581368031144eecf820138fd99a4371f8` across
+  `c2d47c678b355215a71de6d7e0c983ac545d451226accadac00eedab7d7e4538` across
   456 inputs. Local Apple Clang 21 builds of the reader matrix and local
   round-trip target pass. The targeted PFACE and AC1027/AC1032 ACDS selectors,
   the hardening executable, and qualification Python self-test pass. A GCC 16
   `-Werror` portability probe passes; the hosted fast build is the broad compile
   gate.
 - The latest native receipts are bound to earlier digests and are retained as
-  baseline only. Digest `488663ed3e02ac001de92543ec0d162581368031144eecf820138fd99a4371f8`
+  baseline only. Digest `c2d47c678b355215a71de6d7e0c983ac545d451226accadac00eedab7d7e4538`
   needs fresh Linux, Windows, and macOS receipts plus a passing `parity-fast`
   run. No support claims changed and no drawing payload was added.
 - Authorized run horizon: continue the active implementation objective through
@@ -1727,7 +1724,7 @@ edit this block or commit the same slice concurrently.
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
 | S15 | C2: UTF-8/native input and atomic-output paths | S11, S14 | VERIFYING | current-digest Linux/macOS/Windows focused receipts; Unicode parent/basename/non-BMP DXF ASCII+binary/DWG; transaction commit/rollback/cleanup; writer controls; LibreCAD filter and LibreCAD_3 runtime/persistence consumers | C2.1 implementation and portable Mac/Ubuntu ARM controls are archived. The prior-digest Linux/GCC 13 and macOS/Apple Clang run `41317674256` passed 7/7 with receipts `f5148aef64cb976a36ff3e2736884901da903375629d301480cf9ee205ea4973` and `2cb3d473d9bf60425ba8dcfc1ebc7905166c2b4c37ab80e697766dc75e0eafbc`; both are baseline only after digest refresh. Windows then compiled but its prior-digest CTests exposed H0.4 failures. Locked LibreCAD filter/parser and LibreCAD_3 compatibility compiles pass; runtime/persistence checks remain. No support claim is promoted. | current-digest three-platform receipts and consumer runtime checks |
-| S20 | H0: hosted build and fast-workflow repair closure | S19 | VERIFYING | focused Linux x64, Windows x64, macOS ARM64 receipts; local round-trip and reader matrix; `parity-fast`; fixture-admission guard | H0.1–H0.3 are archived. Candidate digest `52e5db25bfd15eb445d8f30e2e1ef83da31f756a8af85ff2e77ea4a6bda4ad27`: local Apple Clang hardening and full round-trip executable pass; qualification Python self-test passes. Run `41321665521` on the preceding digest passed 7/7 on Linux and macOS; Windows passed 5/7. Two of the six Windows assertions are now explained and fixed in test code (Apple sysroot path and LF-only PFACE marker); five ASCII ACDS assertions now print individual predicates. The MLINESTYLE budget test fix is in that preceding run's still-running `parity-fast` build. Require current-digest Windows focused results, fresh `parity-fast` and fixture-guard receipts. No support claims or drawing payload files changed. | S15, final release |
+| S20 | H0: hosted build and fast-workflow repair closure | S19 | VERIFYING | focused Linux x64, Windows x64, macOS ARM64 receipts; local round-trip and reader matrix; `parity-fast`; fixture-admission guard | H0.1–H0.3 are archived. Candidate digest `c2d47c678b355215a71de6d7e0c983ac545d451226accadac00eedab7d7e4538`: local Apple Clang hardening and full round-trip executable pass; qualification Python self-test passes. Run `41321665521` on the preceding digest passed 7/7 on Linux and macOS; Windows passed 5/7. The latest Windows artifact `13089669345` exposed a host-path validation bug for Darwin POSIX paths; validation now uses `PurePosixPath`. PFACE CRLF checks pass. The remaining ASCII ACDS failures occur on replay-import paths (`format 15/error 6`); replay-stage diagnostics now include the read outcome. Run `41324551691` and `41324551681` began before the frozen digest refresh and are baseline only. Require fresh current-digest Windows results, `parity-fast` and fixture-guard receipts. No support claims or drawing payload files changed. | S15, final release |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -1737,8 +1734,8 @@ edit this block or commit the same slice concurrently.
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | C2.2 | C2 / S15 | WP3/WP8; Phase 8 follow-up | C2.1 | VERIFYING | NOT_EVALUATED | current-digest three-platform receipts and LibreCAD filter/LibreCAD_3 runtime/persistence consumers | Locked LibreCAD commit `2043e525` source overlay builds `librecad_filter_compile_check` and `libdxfrw_test_core` under Apple Clang 21; `lc3_compat_check` compiles under Apple Clang 21 and GCC 16 without `DWGSUPPORT`. Run `41321665521` on commit `19918bd9` passed all 7 focused tests on Linux/GCC and macOS/Clang; Windows passed 5/7, so it is not a complete current-digest receipt. LibreCAD runtime/persistence checks remain; no claim is promoted. |
-| H0.4 | H0 / S20 | WP4/WP6; Windows qualification follow-up | H0.2 | VERIFYING | NOT_APPLICABLE | Current-digest Windows qualification self-test and all 7 focused CTests pass | Run `41321665521` built successfully on Windows but passed only 5/7 CTests. Artifact `13090050772` identifies one cross-host self-test bug: its synthetic Apple SDK sysroot was a POSIX literal; it now uses `Path.cwd()` to remain absolute on Windows. Four PFACE ASCII assertions were caused by the test's LF-only subclass marker check against Windows CRLF output; the exact marker check now accepts either line ending. Five ASCII ACDS projection assertions remain unexplained; failure-only component diagnostics now report their exact readback predicates. Local full round-trip and qualification self-tests pass on macOS; rerun the focused Windows qualification for the remaining cause. |
-| H0.5 | H0 / S20 | WP1/WP2; fast GCC follow-up | H0.2 | VERIFYING | NOT_APPLICABLE | Current-digest `parity-fast` completes its warnings-as-errors build, fast vectors, CLI checks, and fixture guard | The adapter exact-type, fallback-handle, and standard-header fixes are archived below. Run `41319773161` passed its GCC 13 build and failed four MLINESTYLE retained-byte assertions: the generated test record duplicated group 3 even though the Autodesk DXF table defines one style description and marks only the element fields as repeated ([MLINESTYLE DXF](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm)). The test now measures exact-cap retention with one description and separately verifies duplicate-description refusal preserves the prior value/charge. Run `41321665541` is still building the preceding-digest bounded targets. Re-run `parity-fast` against candidate digest `52e5db25bfd15eb445d8f30e2e1ef83da31f756a8af85ff2e77ea4a6bda4ad27`. |
+| H0.4 | H0 / S20 | WP4/WP6; Windows qualification follow-up | H0.2 | VERIFYING | NOT_APPLICABLE | Current-digest Windows qualification self-test and all 7 focused CTests pass | Run `41321665521` built successfully on Windows but passed only 5/7 CTests. Artifact `13089669345` confirms the Apple runtime validator incorrectly treated Darwin POSIX paths as host-native Windows paths; schema validation now uses `PurePosixPath`, and the local qualification self-test passes. The LF-only PFACE subclass marker is fixed for CRLF. The remaining ASCII ACDS errors are emitted during replay readback (`format 15/error 6`); test output now distinguishes primary import from replay import and includes the replay outcome diagnostic. Run `41324551691` started before the frozen digest update, so current-digest Windows qualification remains required. No claim is promoted. |
+| H0.5 | H0 / S20 | WP1/WP2; fast GCC follow-up | H0.2 | VERIFYING | NOT_APPLICABLE | Current-digest `parity-fast` completes its warnings-as-errors build, fast vectors, CLI checks, and fixture guard | The adapter exact-type, fallback-handle, and standard-header fixes are archived below. Run `41319773161` passed its GCC 13 build and failed four MLINESTYLE retained-byte assertions: the generated test record duplicated group 3 even though the Autodesk DXF table defines one style description and marks only the element fields as repeated ([MLINESTYLE DXF](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm)). The test now measures exact-cap retention with one description and separately verifies duplicate-description refusal preserves the prior value/charge. Run `41324551681` started before the frozen digest refresh. Re-run `parity-fast` and fixture admission against candidate digest `c2d47c678b355215a71de6d7e0c983ac545d451226accadac00eedab7d7e4538`. |
 
 <!-- UPGRADE_PROGRESS_END -->
 
