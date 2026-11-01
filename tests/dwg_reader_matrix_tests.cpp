@@ -13944,6 +13944,117 @@ public:
     dx_data data;
 };
 
+class Ac1027CommonEntityHandleProbe final : public DRW_Line {
+public:
+    void configure(std::uint32_t entityHandle, bool hasOwner,
+                   std::int32_t reactors, bool hasColorBookHandle,
+                   bool hasLinetypeHandle) {
+        DRW_Entity::reset();
+        handle = entityHandle;
+        objSize = 0; // The generated handle stream starts at bit zero.
+        ownerHandle = hasOwner;
+        numReactors = reactors;
+        xDictFlag = 0; // XDICTIONARY handle is present.
+        ltFlags = hasLinetypeHandle ? 3u : 0u;
+        setDwgAcDbColorHandle(hasColorBookHandle, 0u);
+    }
+
+    bool parseHandles(dwgBuffer& buffer, std::uint64_t handleEndBit) {
+        return parseDwgEntHandle(DRW::AC1027, &buffer, true, handleEndBit);
+    }
+};
+
+void testAc1027CommonEntityHandleOrder(TestContext& t) {
+    struct GeneratedStream {
+        std::vector<std::uint8_t> bytes;
+        std::uint64_t fieldEndBit{0};
+        std::uint64_t layerEndBit{0};
+    };
+    const auto makeStream = [](bool hasColorBookHandle,
+                               bool hasLinetypeHandle) {
+        GeneratedStream result;
+        dwgBufferW writer;
+        const auto appendHandle = [&writer](std::uint8_t code,
+                                            std::uint32_t reference) {
+            dwgHandle value;
+            value.code = code;
+            value.ref = reference;
+            value.ref64 = reference;
+            writer.putHandle(value);
+        };
+
+        // ODA v5.4.1 §20.4.2: owner, reactors, XDICTIONARY, optional
+        // R2004+ color-book handle, layer, then optional linetype.
+        appendHandle(DRW::DwgSoftPointer, 0x49u); // owner
+        appendHandle(DRW::DwgSoftPointer, 0x47u); // reactor 1
+        appendHandle(DRW::DwgSoftPointer, 0x48u); // reactor 2
+        appendHandle(DRW::DwgHardOwnership, 0x45u); // XDICTIONARY
+        if (hasColorBookHandle)
+            appendHandle(DRW::DwgHardPointer, 0x46u); // ENC AcDbColor
+        appendHandle(DRW::DwgSoftPointer, 0x42u); // layer
+        result.layerEndBit = writer.bitCount();
+        if (hasLinetypeHandle)
+            appendHandle(DRW::DwgSoftPointer, 0x41u); // linetype
+        result.fieldEndBit = writer.bitCount();
+        appendHandle(DRW::DwgHardPointer, 0xCAFEu); // following-field sentinel
+        result.bytes = writer.data();
+        return result;
+    };
+
+    const auto valid = makeStream(true, true);
+    Ac1027CommonEntityHandleProbe parsed;
+    parsed.configure(0x40u, true, 2, true, true);
+    dwgBuffer validBuffer(valid.bytes.data(), valid.bytes.size());
+    const bool parsedValid = parsed.parseHandles(validBuffer, valid.fieldEndBit);
+    const dwgHandle sentinel = validBuffer.getHandle();
+    t.expect(parsedValid && parsed.parentHandle == 0x49u
+                 && parsed.reactorHandles == std::vector<std::uint32_t>{0x47u, 0x48u}
+                 && parsed.xDictHandle == 0x45u
+                 && parsed.hasDwgAcDbColorHandle()
+                 && parsed.dwgAcDbColorHandle() == 0x46u
+                 && parsed.dwgLayerHandle() == 0x42u
+                 && parsed.dwgLinetypeHandle() == 0x41u
+                 && sentinel.code == DRW::DwgHardPointer
+                 && sentinel.ref == 0xCAFEu
+                 && validBuffer.numRemainingBytes() == 0,
+             "AC1027 ENC/common handles follow ODA field order and preserve next-handle alignment");
+
+    const auto noColor = makeStream(false, false);
+    Ac1027CommonEntityHandleProbe parsedWithoutColor;
+    parsedWithoutColor.configure(0x40u, true, 2, false, false);
+    dwgBuffer noColorBuffer(noColor.bytes.data(), noColor.bytes.size());
+    const bool parsedWithoutColorOk = parsedWithoutColor.parseHandles(
+        noColorBuffer, noColor.fieldEndBit);
+    const dwgHandle noColorSentinel = noColorBuffer.getHandle();
+    t.expect(parsedWithoutColorOk
+                 && !parsedWithoutColor.hasDwgAcDbColorHandle()
+                 && parsedWithoutColor.xDictHandle == 0x45u
+                 && parsedWithoutColor.dwgLayerHandle() == 0x42u
+                 && noColorSentinel.code == DRW::DwgHardPointer
+                 && noColorSentinel.ref == 0xCAFEu
+                 && noColorBuffer.numRemainingBytes() == 0,
+             "AC1027 absent ENC color reference does not shift common handles");
+
+    Ac1027CommonEntityHandleProbe rejected;
+    rejected.configure(0x40u, true, 2, true, true);
+    rejected.parentHandle = 0xEEEEu;
+    rejected.reactorHandles = {0xDDDDu};
+    rejected.xDictHandle = 0xCCCCu;
+    rejected.setDwgAcDbColorHandle(true, 0xBBBBu);
+    rejected.setDwgLayerHandle(0xAAAAu);
+    rejected.setDwgLinetypeHandle(0x9999u);
+    dwgBuffer truncatedBuffer(valid.bytes.data(), valid.bytes.size());
+    const bool parsedTruncated = rejected.parseHandles(
+        truncatedBuffer, valid.layerEndBit);
+    t.expect(!parsedTruncated && rejected.parentHandle == 0xEEEEu
+                 && rejected.reactorHandles == std::vector<std::uint32_t>{0xDDDDu}
+                 && rejected.xDictHandle == 0xCCCCu
+                 && rejected.dwgAcDbColorHandle() == 0xBBBBu
+                 && rejected.dwgLayerHandle() == 0xAAAAu
+                 && rejected.dwgLinetypeHandle() == 0x9999u,
+             "AC1027 truncated common handle tail fails without publishing partial roles");
+}
+
 void testTrackedHeaderRead(TestContext& t) {
     class Sink final : public dx_iface {
     public:
@@ -13962,6 +14073,18 @@ void testTrackedHeaderRead(TestContext& t) {
                     values[i] = found->second->content.i;
             }
         }
+        void addLine(const DRW_Line& line) override {
+            if (line.handle == 0x32u) {
+                ordinaryLineSeen = true;
+                ordinaryLineReactors = line.reactorHandles;
+                ordinaryLineXDictionary = line.xDictHandle;
+                ordinaryLineHasColor = line.hasDwgAcDbColorHandle();
+                ordinaryLineColor = line.dwgAcDbColorHandle();
+                ordinaryLineLayer = line.dwgLayerHandle();
+                ordinaryLineLinetype = line.dwgLinetypeHandle();
+            }
+            dx_iface::addLine(line);
+        }
         void addText(const DRW_Text& text) override {
             rtext += dynamic_cast<const DRW_RText*>(&text) != nullptr;
             arcText += dynamic_cast<const DRW_ArcAlignedText*>(&text) != nullptr;
@@ -13975,6 +14098,13 @@ void testTrackedHeaderRead(TestContext& t) {
         std::size_t headers{0};
         std::size_t roots{0};
         std::size_t rtext{0}, arcText{0}, mpolygon{0};
+        bool ordinaryLineSeen{false};
+        std::vector<std::uint32_t> ordinaryLineReactors;
+        std::uint32_t ordinaryLineXDictionary{0};
+        bool ordinaryLineHasColor{false};
+        std::uint32_t ordinaryLineColor{0};
+        std::uint32_t ordinaryLineLayer{0};
+        std::uint32_t ordinaryLineLinetype{0};
         dx_data data;
     };
     struct Row {
@@ -14006,6 +14136,17 @@ void testTrackedHeaderRead(TestContext& t) {
                      && sink.roots == (row.compatible ? 1u : 0u)
                      && sink.data.hasNamedObjectDictionary == row.compatible,
                  "DWG root identity follows the source HEADER, not handle/order guessing");
+        if (std::string(row.name) == "ordinary_enc_AC1027.dwg") {
+            t.expect(sink.ordinaryLineSeen
+                         && sink.ordinaryLineReactors
+                             == std::vector<std::uint32_t>{0x36u, 0x37u}
+                         && sink.ordinaryLineXDictionary == 0x38u
+                         && sink.ordinaryLineHasColor
+                         && sink.ordinaryLineColor == 0x35u
+                         && sink.ordinaryLineLayer == 0x12u
+                         && sink.ordinaryLineLinetype == 0x10u,
+                     "tracked AC1027 ENC handle slots map in ODA common-handle order");
+        }
         if (row.compatible && root) {
             t.expect(root->code == DRW::DwgHardOwnership
                          && sink.data.namedObjectDictionary.handle == root->ref64
@@ -16639,6 +16780,7 @@ int main(int argc, char** argv) {
     testHeaderVersionEnvelopes(context);
     testDwgNodReference(context);
     testHeaderCompatibilityProfile(context);
+    testAc1027CommonEntityHandleOrder(context);
     testTrackedHeaderRead(context);
     testHeaderPublicRead(context);
     testHeaderWriters(context);

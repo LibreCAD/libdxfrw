@@ -3,9 +3,9 @@
   "id": "p4-ac1027-ordinary-classes-boundary-and-graph-blocker-2026-11-01",
   "date": "2026-11-01",
   "title": "Tracked AC1027 source passes the bounded CLASSES reader profile; entity 0x32 handle roles still disagree across decoders",
-  "status": "READER_PASS; STRICT_OUTPUT_REFUSED; ENTITY_HANDLE_ROLE_RECONCILIATION_REQUIRED",
+  "status": "READER_PASS; ODA_HANDLE_ORDER_VERIFIED; STRICT_OUTPUT_REFUSED; TARGET_REFERENCES_UNRESOLVED; CURRENT_LIBREDWG_ORDER_DIFFERENTIAL_OPEN",
   "supportClaimEffect": "none",
-  "scope": "One tracked AC1027 source profile. Records bounded CLASSES trailer selection, full local/independent reader success, and an unresolved mismatch in detached entity handle roles for LINE 0x32. Strict output remains refused; neither decoder result is treated as semantic/output qualification.",
+  "scope": "One tracked AC1027 source profile. Records bounded CLASSES trailer selection, full local/independent reader success, ODA-aligned local common entity handle roles, generated handle-order/bounds controls, and unresolved source target references. Strict output remains refused; the older LibreDWG 0.14 role projection and current LibreDWG master consume order are not treated as semantic qualification.",
   "source": {
     "path": "tests/fixtures/dwg/ordinary_enc_AC1027.dwg",
     "sha256": "a0ebf245e570bf0dc337c696330b7ea883feaebb7c4e781de8d77ac723815f83",
@@ -39,8 +39,8 @@
     "localTracePath": "/private/tmp/libdxfrw-ordinary-enc-ac1027-after-fix.log",
     "localTraceSha256": "7f04cb3da8c5367d57eaf4105caa51b976921bf1f7572c077c18998e618f1f95",
     "result": "operationSucceeded=true; legacyError=0; classesCrcMismatch=0; 26/26 observed physical frames published; entityParseFailures=0; objectParseFailures=0.",
-    "strictOutput": "The current local projection refuses at extension-object graph validation: it treats handle 0x38 (decimal 56) as an extension DICTIONARY target for entity 0x32, but the independent decode treats 0x38 as a reactor and reports XDICTIONARY handle 0x12, which resolves to a LAYER record. Keep output refused until source field roles and all referenced target kinds/ownership are reconciled.",
-    "disposition": "Reader completion is resolved only for this selected source profile. Its detailed entity-handle projection is not yet interoperable: strict output stays fail-closed, including because the independent trace reports references to absent objects."
+    "strictOutput": "ODA-ordered local projection assigns entity 0x32 reactors 0x36/0x37, XDICTIONARY 0x38, ENC AcDbColor/color-book handle 0x35, layer 0x12, and linetype 0x10. Strict output remains refused because the independent source map reports handles 0x35-0x38 as absent targets. Current LibreDWG master consumes the ENC reference before the common handle sequence, contrary to ODA §20.4.2; this source cannot adjudicate the peer-order difference because its referenced targets are absent.",
+    "disposition": "The local handle projection follows ODA §20.4.2 and is covered by generated bounded order/absence/truncation tests plus a tracked-source role assertion. This does not close graph output: referenced objects 0x35-0x38 are absent. Current LibreDWG master has a different consume order; retain that interoperability differential as unqualified until a producer-conforming source with resolvable targets exists."
   },
   "independentReader": {
     "executable": "/opt/homebrew/bin/dwgread",
@@ -64,7 +64,25 @@
     "buildResult": "passed",
     "ctestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_reader_matrix|libdxfrw_graph_preservation|libdxfrw_writer_primitives|dwg2dxf_standard_dwg_object_source_capture)$' --output-on-failure",
     "ctestResult": "4/4 passed in 3.10 seconds; includes the three previously failing exact HEADER, frame accounting and root identity assertions.",
-    "fixturePolicy": "No fixture files were added; the existing tracked repository DWG was used."
+    "fixturePolicy": "No fixture files were added; the existing tracked repository DWG was used.",
+    "handleOrderSelector": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+    "handleOrderResult": "passed; generated ODA-order stream with and without optional ENC color handle, next-handle sentinel alignment, bounded truncation with transactional metadata, and tracked ordinary_enc_AC1027.dwg entity 0x32 role assertion",
+    "handleOrderExecutableSha256": "f04801fe4e9112f73a7d831ed087bf191b293c2a8d7d532773db6943b682e16a",
+    "handleOrderTestSourceSha256": "407f2fd4b99a6748de534ddcc9cffbcd90bf15a43afc23724e56b79f8ba35db8",
+    "newFixtureFiles": 0,
+    "matrixResult": "passed 1/1 in 2.30 seconds; includes generated ODA-order controls for optional ENC color-handle presence, next-handle alignment, bounded truncation/transactional state, and exact tracked entity 0x32 roles",
+    "normalMatrixExecutableSha256": "cb80233024946b646bdaa849547a0774837620a8fb24095973aa8329d9bc3ae7",
+    "asanMatrixCommand": "ctest --test-dir build-asan-custom -R '^libdxfrw_dwg_reader_matrix$' --output-on-failure",
+    "asanMatrixResult": "passed 1/1 in 4.46 seconds",
+    "asanMatrixExecutableSha256": "d6ed5f83fff936625c3817edf9cfee44c7ce1c458ee697faac45da2128220320",
+    "strictOutputCommand": "build-gcc/dwg2dxf/dwg2dxf tests/fixtures/dwg/ordinary_enc_AC1027.dwg -y -d -v2013 /private/tmp/ordinary-enc-current.dxf",
+    "strictOutputResult": "exited 1 at strict extension-object graph preflight; missing extension DICTIONARY handle 0x38; no DXF was created",
+    "strictOutputTraceSha256": "7f04cb3da8c5367d57eaf4105caa51b976921bf1f7572c077c18998e618f1f95",
+    "handleOrderBuildCommands": [
+      "cmake --build build-gcc --target libdxfrw_dwg_reader_matrix_tests -j4",
+      "cmake --build build-asan-custom --target libdxfrw_dwg_reader_matrix_tests -j4"
+    ],
+    "strictOutputNoFileCreated": true
   },
   "binding": {
     "baseCommit": "7554195dc378b70bc07c0de8c826129f41eda2f7",
@@ -74,7 +92,7 @@
     "bufferSourceSha256": "ca6073614d9ff414a7c76f67f320dd4bea1f8ef1e095414ef697b9364b0be251",
     "localCleanTraceSha256": "7f04cb3da8c5367d57eaf4105caa51b976921bf1f7572c077c18998e618f1f95"
   },
-  "next": "P6: implement the source-bounded AC1027 entity 0x32 handle-span interpretation after resolving the optional color-book slot against the exact source bits; add generated valid/malformed handle-stream cases with following-entity alignment. Preserve strict-output refusal while references are missing or have unsupported target roles.",
+  "next": "P4: close the tracked source graph only if eligible evidence supplies valid target objects for handles 0x35-0x38; otherwise retain strict refusal. P6: investigate current LibreDWG master ordering only against a producer-conforming source with resolvable targets. The local parser-order implementation and generated controls are complete; do not change it based only on this unresolved-target profile.",
   "limitations": [
     "No new test drawing was committed or created for this observation.",
     "No native application, platform, or 3D semantic qualification was performed.",
@@ -96,9 +114,13 @@
         "xDictionary": "0x38",
         "encAcDbColor": "0x35",
         "layer": "0x12",
-        "linetype": "0x10"
+        "linetype": "0x10",
+        "reactorHandles": [
+          "0x36",
+          "0x37"
+        ]
       },
-      "basis": "The current parser consumes numReactors=2 handles first, then reads XDICTIONARY, then the ENC AcDbColor reference, followed by layer and linetype. The clean trace confirms XDICTIONARY=0x38, color=0x35, layer=0x12, and linetype=0x10.",
+      "basis": "ODA §20.4.2 order, the bound clean local trace, and passing generated plus tracked-source assertions",
       "sourcePath": "src/drw_entities.cpp::DRW_Entity::parseDwgEntHandle"
     },
     "independentLibreDwgProjection": {
@@ -121,8 +143,42 @@
       "0x37",
       "0x38"
     ],
-    "targetKindObservation": "In the same source, handle 0x12 resolves to a LAYER table record, so it cannot be admitted as a DICTIONARY without contrary source evidence.",
-    "requiredResolution": "Use ODA v5.4.1 §§2.11 and 20.4.2 plus exact source bits to assign every handle-stream slot. Distinguish the ENC AcDbColor reference, any color-book reference, reactors, XDICTIONARY, layer and linetype. Compare peer behavior only after binding to this exact source hash; preserve refusal for missing or wrong-kind targets."
+    "targetKindObservation": "The tracked source's object map lacks handles 0x35-0x38; the strict output preflight independently refuses the extension DICTIONARY target at 0x38. Other absent-reference roles also prevent graph closure.",
+    "requiredResolution": "The local parser order is ODA-aligned and covered by generated bounded tests. Keep output refusal for missing targets. Resolve the current LibreDWG master ordering differential only with an eligible producer-conforming source with resolvable targets; no parser change is supported by the present evidence.",
+    "odaFieldOrder": [
+      "optional owner soft pointer",
+      "persistent reactor soft pointers",
+      "XDICTIONARY hard owner",
+      "one optional R2004+ color-book hard pointer carrying the ENC AcDbColor reference",
+      "layer hard pointer",
+      "optional linetype hard pointer"
+    ],
+    "odaLocalProjection": {
+      "entity": "0x32",
+      "reactors": [
+        "0x36",
+        "0x37"
+      ],
+      "xDictionary": "0x38",
+      "encAcDbColorColorBook": "0x35",
+      "layer": "0x12",
+      "linetype": "0x10",
+      "basis": "ODA §20.4.2 field order, clean local reader trace, and passing tracked-source regression assertion",
+      "evidence": {
+        "normalMatrixExecutableSha256": "cb80233024946b646bdaa849547a0774837620a8fb24095973aa8329d9bc3ae7",
+        "asanMatrixExecutableSha256": "d6ed5f83fff936625c3817edf9cfee44c7ce1c458ee697faac45da2128220320",
+        "testSourceSha256": "407f2fd4b99a6748de534ddcc9cffbcd90bf15a43afc23724e56b79f8ba35db8"
+      }
+    },
+    "currentLibreDwgMasterOrderDifferential": {
+      "sources": [
+        "https://github.com/LibreDWG/libredwg/blob/master/src/common_entity_data.spec",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/common_entity_handle_data.spec",
+        "https://github.com/LibreDWG/libredwg/blob/master/src/decode.c"
+      ],
+      "finding": "Current master reads one ENC color.handle from hdl_dat during common entity data, before owner/reactor/XDICTIONARY fields in common entity handle data. This conflicts with ODA v5.4.1 §20.4.2 order.",
+      "disposition": "Unqualified implementation differential; do not transplant the peer ordering absent a producer-conforming source whose handle targets resolve."
+    }
   },
   "authoritativeSources": [
     {
@@ -155,7 +211,7 @@
         "20.4.1 Common Entity Data",
         "20.4.2 Common Entity Handle Data"
       ],
-      "finding": "Section 2.11 defines the ENC AcDbColor handle reference. Section 20.4.2 also describes an optional color-book handle; whether that is a distinct slot in this source profile remains open."
+      "finding": "Section 2.11 defines the ENC AcDbColor handle reference. Section 20.4.2 specifies a single optional R2004+ color-book hard-pointer slot after XDICTIONARY and before layer/linetype; the present specification describes no second distinct color-book handle slot."
     },
     "libreDwgMaster": {
       "commonEntityDataSpec": "https://github.com/LibreDWG/libredwg/blob/master/src/common_entity_data.spec",
@@ -164,6 +220,6 @@
       "finding": "Current master reads one ENC color.handle reference in common entity data before the common entity handle sequence; the common handle decoder includes only common_entity_handle_data.spec and does not add a second color handle."
     },
     "olderDecoderFinding": "Installed LibreDWG 0.14 and adjacent local LibreDWG source contain/report an additional color-handle read. Treat their per-entity role projection as historical differential evidence, not the field-order baseline.",
-    "implementationDisposition": "Research of ENC/common ordering is complete. Exact tracked-source slot mapping, optional color-book distinction, implementation and generated valid/malformed alignment tests remain open. Missing targets 0x35-0x38 continue to block strict graph output."
+    "implementationDisposition": "ODA §§2.11 and 20.4.2 plus generated and tracked-source assertions confirm the existing local order: one optional ENC AcDbColor/color-book hard-pointer slot after XDICTIONARY and before layer/linetype. No parser edit is pending. Strict graph output remains blocked by missing target handles 0x35-0x38. Current LibreDWG master consumes its ENC handle earlier; this remains an unqualified interoperability differential."
   }
 }
