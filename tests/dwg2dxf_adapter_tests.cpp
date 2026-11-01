@@ -39248,6 +39248,39 @@ bool physicalLayoutOutputReadback(
     return true;
 }
 
+bool physicalTableStyleSourceProfile(
+        const std::filesystem::path& sourcePath) {
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1018
+        || source.tableStyles.size() != 1u)
+        return fail("physical TABLESTYLE source is not the one-record AC1018 profile");
+
+    const DRW_TableStyle& style = source.tableStyles.front();
+    if (style.m_name != "Standard" || style.m_rowStyles.size() != 3u
+        || style.m_r24PrefixPresent || !style.m_cellStyles.empty())
+        return fail("physical AC1018 TABLESTYLE header is outside the legacy profile");
+    for (const DRW_TableStyleRowStyle& row : style.m_rowStyles) {
+        if (row.m_borders.size() != 6u)
+            return fail("physical AC1018 TABLESTYLE row has the wrong border count");
+        for (std::size_t index = 0; index < row.m_borders.size(); ++index) {
+            const DRW_TableStyleBorder& border = row.m_borders[index];
+            if (border.m_edgeFlags != static_cast<int>(1u << index)
+                || border.m_lineWeight != -2
+                || border.m_propertyOverrideFlags != 0
+                || border.m_borderType != 0
+                || border.m_lineTypeHandle != 0u
+                || border.m_doubleLineSpacing != 0.0)
+                return fail("physical AC1018 TABLESTYLE border lost its signed lineweight or legacy defaults");
+        }
+    }
+    std::cerr << "Physical AC1018 TABLESTYLE source profile passed: 3 rows, "
+                 "18 signed -2 lineweights, and legacy border defaults.\n";
+    return true;
+}
+
 bool physicalTableStyleOutputReadback(
         const std::filesystem::path& sourcePath) {
     dx_iface sourceReader;
@@ -57256,6 +57289,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--layout-physical-output-readback")
         return physicalLayoutOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--tablestyle-physical-ac1018-source-profile")
+        return physicalTableStyleSourceProfile(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--tablestyle-physical-output-readback")
         return physicalTableStyleOutputReadback(argv[2]) ? 0 : 1;

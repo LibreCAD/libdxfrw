@@ -10749,20 +10749,28 @@ bool dxfRW::writeTableStyle(
 
             for (std::size_t index = 0; index < row.m_borders.size(); ++index) {
                 const DRW_TableStyleBorder& border = row.m_borders[index];
-                if (border.m_edgeFlags != (1 << index)
-                    || border.m_propertyOverrideFlags != 0
-                    || border.m_borderType != 0
-                    || border.m_lineWeight
+                if (border.m_edgeFlags != (1 << index))
+                    return reject("TABLESTYLE legacy border order is not representable");
+                if (border.m_propertyOverrideFlags != 0)
+                    return reject("TABLESTYLE legacy border has R24 property overrides");
+                if (border.m_borderType != 0)
+                    return reject("TABLESTYLE legacy border has an R24 border type");
+                if (border.m_lineTypeHandle != 0u)
+                    return reject("TABLESTYLE legacy border has an R24 linetype handle");
+                if (border.m_lineWeight
                         < std::numeric_limits<std::int16_t>::min()
                     || border.m_lineWeight
-                        > std::numeric_limits<std::int16_t>::max()
-                    || border.m_color < 0 || border.m_color > 255
+                        > std::numeric_limits<std::int16_t>::max())
+                    return reject("TABLESTYLE border lineweight is outside the DXF domain");
+                if (border.m_color < 0 || border.m_color > 255
                     || !scalarColorIsDxfRepresentable(
-                        border.m_color, border.m_colorCmc)
-                    || border.m_visible < 0 || border.m_visible > 1
-                    || !std::isfinite(border.m_doubleLineSpacing)
+                        border.m_color, border.m_colorCmc))
+                    return reject("TABLESTYLE border color is not losslessly representable");
+                if (border.m_visible < 0 || border.m_visible > 1)
+                    return reject("TABLESTYLE border visibility is outside the DXF domain");
+                if (!std::isfinite(border.m_doubleLineSpacing)
                     || border.m_doubleLineSpacing != 0.0)
-                    return reject("TABLESTYLE border properties are not losslessly representable");
+                    return reject("TABLESTYLE legacy border has R24 double-line spacing");
             }
         }
     } catch (...) {

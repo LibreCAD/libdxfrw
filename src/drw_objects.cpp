@@ -2150,6 +2150,13 @@ bool readTableStyleCellStyle(DRW::Version version, dwgBuffer *buf,
         value = parsed;
         return true;
     };
+    const auto readLineWeight = [buf, version, bodySize](int& value) {
+        std::int32_t parsed = 0;
+        if (!readSBitShortWithinBody(buf, version, bodySize, parsed))
+            return false;
+        value = parsed;
+        return true;
+    };
     const auto readDouble = [buf, version, bodySize](double& value) {
         return readBitDoubleWithinBody(buf, version, bodySize, value)
             && std::isfinite(value);
@@ -2367,7 +2374,10 @@ bool readLegacyTableStyleRowStyle(DRW::Version version, dwgBuffer *buf,
     for (int i = 0; i < 6; ++i) {
         DRW_TableStyleBorder border;
         border.m_edgeFlags = 1 << i;
-        if (!readShort(border.m_lineWeight)
+        // Preserve signed DXF lineweight sentinels (for example, ByBlock -2)
+        // from the 16-bit DWG slot. Other legacy TABLESTYLE BS fields remain
+        // unsigned bit shorts.
+        if (!readLineWeight(border.m_lineWeight)
             || !readBitWithinBody(buf, version, bodySize, hasBackgroundColor)
             || !readColor(border.m_color, border.m_colorCmc))
             return false;
