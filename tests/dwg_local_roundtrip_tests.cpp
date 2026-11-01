@@ -16865,6 +16865,8 @@ void printLocalDxfHeaderFailure(const std::filesystem::path& path) {
     std::string value;
     std::vector<std::string> firstRows;
     std::vector<std::string> lastHeaderRows;
+    std::vector<std::string> recentRows;
+    std::vector<std::string> invalidGroupCodeRows;
     bool sawSection = false;
     bool inHeader = false;
     bool endedHeader = false;
@@ -16899,8 +16901,24 @@ void printLocalDxfHeaderFailure(const std::filesystem::path& path) {
         ++totalPairs;
         trimCodePadding(code);
         trimCarriageReturn(value);
+        const std::string row = code + "=" + printableRow(value);
         if (firstRows.size() < 16u)
-            firstRows.push_back(code + "=" + printableRow(value));
+            firstRows.push_back(row);
+        const bool numericGroupCode = !code.empty()
+            && std::all_of(code.begin(), code.end(), [](char character) {
+                return character >= '0' && character <= '9';
+            });
+        if (!numericGroupCode && invalidGroupCodeRows.size() < 8u) {
+            std::string context = "pair=" + std::to_string(totalPairs)
+                + " previous=";
+            for (const std::string& previous : recentRows)
+                context += '[' + previous + ']';
+            context += " token=[" + row + ']';
+            invalidGroupCodeRows.push_back(std::move(context));
+        }
+        recentRows.push_back(row);
+        if (recentRows.size() > 4u)
+            recentRows.erase(recentRows.begin());
         if (code == "0" && value == "SECTION") {
             sawSection = true;
         } else if (sawSection && code == "2") {
@@ -16911,7 +16929,7 @@ void printLocalDxfHeaderFailure(const std::filesystem::path& path) {
         }
         if (inHeader) {
             ++headerPairs;
-            lastHeaderRows.push_back(code + "=" + printableRow(value));
+            lastHeaderRows.push_back(row);
             if (lastHeaderRows.size() > 12u)
                 lastHeaderRows.erase(lastHeaderRows.begin());
             if (code == "0" && value == "ENDSEC") {
@@ -16930,6 +16948,9 @@ void printLocalDxfHeaderFailure(const std::filesystem::path& path) {
         std::cerr << '[' << row << ']';
     std::cerr << " tail=";
     for (const std::string& row : lastHeaderRows)
+        std::cerr << '[' << row << ']';
+    std::cerr << " invalidGroupCodes=";
+    for (const std::string& row : invalidGroupCodeRows)
         std::cerr << '[' << row << ']';
     std::cerr << '\n';
 }

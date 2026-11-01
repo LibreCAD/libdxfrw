@@ -1679,19 +1679,20 @@ edit this block or commit the same slice concurrently.
 - Latest completed checkpoint: S19 remains the last completed full slice.
   H0.1–H0.3 and implementation fixes whose slice gates remain open are archived
   in `docs/LIBRECAD_DXFRW_UPGRADE_HISTORY.md`.
-- Current implementation digest: `b67b43a07b0d58b094196b1e62296d28c252e3864e29b9494be1714956bd1702`
-  across 456 inputs, including the Windows replay-diagnostic correction. No
-  drawing payload or support claim changed.
-- On the previous digest `ad267afa6a06060f6dcb0091a6f2fc7a524c576f4cb564626d080abdc5f5e213`,
-  Linux/GCC and macOS/Apple Clang passed in run `41325782125` (artifacts
-  `13091163047` and `13091019534`). Those receipts are now baseline only; all
+- Current implementation digest: `f005a1f42c9718204787660132883ed84cd487804e0a025c4f465bcb4c2d7b5e`
+  across 456 inputs, including bounded first-invalid-group-code context in the
+  Windows replay diagnostic. No drawing payload or support claim changed.
+- On the previous digest `b67b43a07b0d58b094196b1e62296d28c252e3864e29b9494be1714956bd1702`,
+  Linux/GCC and macOS/Apple Clang passed in run `41327050265` (artifacts
+  `13092101769` and `13091414170`). Those receipts are now baseline only; all
   three focused platform receipts must be refreshed for the new digest.
-- Windows/MSVC on the previous digest passed 6/7 focused tests. The sole
-  failing CTest contains five ASCII ACDS replay readback failures at
-  `read-header`. Artifact `13091551224` showed width-padded group-code lines;
-  the failure-only header scanner now trims that padding so the next Windows
-  artifact can expose the actual HEADER tail. Local round-trip passes after
-  this diagnostic change; the ACDS read failure itself remains unresolved.
+- Windows/MSVC on digest `b67b43a…` passed 6/7 focused tests. The sole failing
+  CTest contains five ASCII ACDS replay readback failures at `read-header`.
+  Artifact `13091708665` shows the diagnostic crossed HEADER `ENDSEC` without
+  recognizing it: 1,148 pairs were scanned and the tail had shifted into
+  ACDSDATA. The scanner now records the first nonnumeric group-code tokens
+  with four preceding rows to locate where the pair alignment first diverges.
+  The ACDS read failure remains unresolved.
 - `parity-fast` and fixture-policy qualification must complete on the current
   implementation digest. Plan-only PR-head updates canceled earlier runs, so
   only a completed latest-head run closes this gate.
@@ -1723,8 +1724,8 @@ edit this block or commit the same slice concurrently.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
-| S15 | C2: UTF-8/native input and atomic-output paths | S11, S14 | VERIFYING | current-digest Linux/Windows/macOS focused receipts; Unicode parent/basename/non-BMP DXF ASCII+binary/DWG; transaction commit/rollback/cleanup; writer controls; LibreCAD filter and LibreCAD_3 runtime/persistence consumers | C2.1 implementation and portable controls are archived. Linux/GCC and macOS/Apple Clang passed on the prior digest only; fresh three-platform receipts are required for `b67b43a07b0d58b094196b1e62296d28c252e3864e29b9494be1714956bd1702`. Locked LibreCAD filter/parser and LibreCAD_3 compatibility compiles pass; runtime/persistence checks remain. No support claim is promoted. | current-digest three-platform receipts and consumer runtime checks |
-| S20 | H0: hosted build and fast-workflow repair closure | S19 | VERIFYING | focused Linux x64, Windows x64, macOS ARM64 receipts; local round-trip and reader matrix; `parity-fast`; fixture-admission guard | H0.1–H0.3 and completed implementation fixes are archived. Digest `b67b43a07b0d58b094196b1e62296d28c252e3864e29b9494be1714956bd1702` requires fresh three-platform and fast-workflow receipts. The previous Windows artifact had one failing CTest (6/7), and the new diagnostic trims width-padded group codes; inspect the next artifact's HEADER tail before changing the replay-failure disposition. No support claim or drawing payload changed. | S15, final release |
+| S15 | C2: UTF-8/native input and atomic-output paths | S11, S14 | VERIFYING | current-digest Linux/Windows/macOS focused receipts; Unicode parent/basename/non-BMP DXF ASCII+binary/DWG; transaction commit/rollback/cleanup; writer controls; LibreCAD filter and LibreCAD_3 runtime/persistence consumers | C2.1 implementation and portable controls are archived. Linux/GCC and macOS/Apple Clang passed on the prior digest only; fresh three-platform receipts are required for `f005a1f42c9718204787660132883ed84cd487804e0a025c4f465bcb4c2d7b5e`. Locked LibreCAD filter/parser and LibreCAD_3 compatibility compiles pass; runtime/persistence checks remain. No support claim is promoted. | current-digest three-platform receipts and consumer runtime checks |
+| S20 | H0: hosted build and fast-workflow repair closure | S19 | VERIFYING | focused Linux x64, Windows x64, macOS ARM64 receipts; local round-trip and reader matrix; `parity-fast`; fixture-admission guard | H0.1–H0.3 and completed implementation fixes are archived. Digest `f005a1f42c9718204787660132883ed84cd487804e0a025c4f465bcb4c2d7b5e` requires fresh three-platform and fast-workflow receipts. On the prior digest, Windows passed 6/7; its only failing CTest had five ACDS `read-header` replay failures. Artifact `13091708665` shows the raw-line scanner crossed HEADER `ENDSEC` and reached ACDSDATA, so the new diagnostic captures first invalid group-code context before the next replay failure. No support claim or drawing payload changed. | S15, final release |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -1733,9 +1734,9 @@ edit this block or commit the same slice concurrently.
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| C2.2 | C2 / S15 | WP3/WP8; Phase 8 follow-up | C2.1 | VERIFYING | NOT_EVALUATED | current-digest three-platform receipts and LibreCAD filter/LibreCAD_3 runtime/persistence consumers | The prior-digest Linux/GCC and macOS/Apple Clang receipts passed; refresh all three platforms for digest `b67b43a07b0d58b094196b1e62296d28c252e3864e29b9494be1714956bd1702`. Locked compatibility compiles pass; runtime/persistence checks remain. No claim is promoted. |
-| H0.4 | H0 / S20 | WP4/WP6; Windows qualification follow-up | H0.2 | VERIFYING | NOT_APPLICABLE | Current-digest Windows qualification self-test and all 7 focused CTests pass | Previous Windows receipt passed 6/7; its only failing CTest reports five ASCII ACDS replay reads failing at `read-header`. Artifact `13091551224` exposed width-padded group codes that the diagnostic scanner did not recognize. The scanner now trims that padding, local round-trip passes, and the new Windows artifact must supply the HEADER tail needed to resolve the replay failure. |
-| H0.5 | H0 / S20 | WP1/WP2; fast GCC follow-up | H0.2 | VERIFYING | NOT_APPLICABLE | Current-digest `parity-fast` completes its warnings-as-errors build, fast vectors, CLI checks, and fixture guard | Require a completed latest-head `parity-fast` and fixture-policy run for digest `b67b43a07b0d58b094196b1e62296d28c252e3864e29b9494be1714956bd1702`; prior runs were canceled by PR-head updates. No claim is promoted. |
+| C2.2 | C2 / S15 | WP3/WP8; Phase 8 follow-up | C2.1 | VERIFYING | NOT_EVALUATED | current-digest three-platform receipts and LibreCAD filter/LibreCAD_3 runtime/persistence consumers | The prior-digest Linux/GCC and macOS/Apple Clang receipts passed; refresh all three platforms for digest `f005a1f42c9718204787660132883ed84cd487804e0a025c4f465bcb4c2d7b5e`. Locked compatibility compiles pass; runtime/persistence checks remain. No claim is promoted. |
+| H0.4 | H0 / S20 | WP4/WP6; Windows qualification follow-up | H0.2 | VERIFYING | NOT_APPLICABLE | Current-digest Windows qualification self-test and all 7 focused CTests pass | Previous Windows receipt passed 6/7; its only failing CTest reports five ASCII ACDS replay reads failing at `read-header`. Artifact `13091708665` shows the raw scanner stayed in HEADER through 1,148 pairs and tailed into ACDSDATA because it missed the section boundary after alignment drift. The diagnostic now logs the first nonnumeric group-code rows and their four preceding pairs; use the next Windows artifact to locate the first divergence. |
+| H0.5 | H0 / S20 | WP1/WP2; fast GCC follow-up | H0.2 | VERIFYING | NOT_APPLICABLE | Current-digest `parity-fast` completes its warnings-as-errors build, fast vectors, CLI checks, and fixture guard | Require a completed latest-head `parity-fast` and fixture-policy run for digest `f005a1f42c9718204787660132883ed84cd487804e0a025c4f465bcb4c2d7b5e`; prior runs were canceled by PR-head updates. No claim is promoted. |
 
 <!-- UPGRADE_PROGRESS_END -->
 

@@ -135,6 +135,13 @@ active S20 work list; their parent H0.4/H0.5 qualification items remain open.
   HEADER, and the local round-trip CTest passes. This fixes the diagnostic
   omission only; the ACDS replay read failure remains open until a new Windows
   artifact supplies the header tail.
+  On digest `b67b43a07b0d58b094196b1e62296d28c252e3864e29b9494be1714956bd1702`,
+  hosted run `41327050265` passed Linux/GCC and macOS/Apple Clang; its Windows
+  artifact `13091708665` again passed 6/7 focused tests. The same CTest failure
+  showed the scanner still did not observe HEADER `ENDSEC`: it counted 1,148
+  pairs and its tail had shifted into ACDSDATA. The diagnostic now also records
+  the first nonnumeric group-code rows with four preceding rows. The local
+  round-trip CTest passes; the actual ACDS replay read failure is unresolved.
 - H0.5: adapter tests use explicit `std::int64_t`/`uint32_t` values and the
   independent scalar walker includes `<filesystem>`. Hosted run `41319773161`
   passed its GCC 13 warnings-as-errors build and fixture/inventory checks, then
