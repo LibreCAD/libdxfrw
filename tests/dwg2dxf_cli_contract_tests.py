@@ -458,7 +458,17 @@ def check_batch(converter, root, writer):
 
     # Future output names are admitted by native filesystem lookup in a
     # verified same-collation namespace, not by a portable ASCII/Unicode fold.
-    case_dwg_source = Path(__file__).resolve().parent / "fixtures" / "dwg" / "ordinary_enc_AC1015.dwg"
+    # Use a valid locally generated DWG so this filename test does not depend
+    # on unrelated dangling XDICTIONARY metadata in a tracked reader sample.
+    if writer is None:
+        raise AssertionError("batch DWG control requires the local DWG writer")
+    dwg_source = root / "batch source.dwg"
+    generated = run_bounded(
+        [str(writer), "--generate-cli-batch-source", str(dwg_source)],
+        10, 131072, cwd=root)
+    if generated.returncode != 0 or not dwg_source.is_file():
+        raise AssertionError(f"could not author CLI batch DWG control locally: {generated!r}")
+    case_dwg_source = dwg_source
 
     def aliases_in_directory(directory, first_name, second_name):
         first = directory / first_name
@@ -513,16 +523,7 @@ def check_batch(converter, root, writer):
         raise AssertionError(f"batch relative output directory failed: {result!r}")
     checked += 1
 
-    # Author a minimal valid DWG at runtime. The tracked reader samples include
-    # a dangling XDICTIONARY handle, which strict export correctly refuses.
-    if writer is None:
-        raise AssertionError("batch DWG control requires the local DWG writer")
-    dwg_source = root / "batch source.dwg"
-    generated = run_bounded(
-        [str(writer), "--generate-cli-batch-source", str(dwg_source)],
-        10, 131072, cwd=root)
-    if generated.returncode != 0 or not dwg_source.is_file():
-        raise AssertionError(f"could not author batch DWG control locally: {generated!r}")
+    # Reuse that generated source to verify suffix dispatch and readback.
     list_path.write_text(str(dwg_source) + "\n", encoding="utf-8")
     output = root / "batch DWG suffix"
     output.mkdir()
