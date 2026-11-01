@@ -29707,10 +29707,44 @@ bool fieldListMembershipOutput() {
         writer.addField(child);
         data.fields.front().m_childHandles.push_back(child.handle);
 
+        DRW_Field mainInteger0;
+        mainInteger0.handle = 0x505u;
+        mainInteger0.m_evaluatorId = "Text";
+        mainInteger0.m_fieldCode = "FIELD_LIST_MAIN_INTEGER_0";
+        mainInteger0.m_value.m_dataType = 0;
+        mainInteger0.m_value.m_value = DRW_Variant(91, std::int32_t{10});
+        writer.addField(mainInteger0);
+        DRW_Field mainInteger;
+        mainInteger.handle = 0x506u;
+        mainInteger.m_evaluatorId = "Text";
+        mainInteger.m_fieldCode = "FIELD_LIST_MAIN_INTEGER";
+        mainInteger.m_value.m_dataType = 1;
+        mainInteger.m_value.m_value = DRW_Variant(91, std::int32_t{20});
+        writer.addField(mainInteger);
+        DRW_Field mainDouble;
+        mainDouble.handle = 0x507u;
+        mainDouble.m_evaluatorId = "Text";
+        mainDouble.m_fieldCode = "FIELD_LIST_MAIN_DOUBLE";
+        mainDouble.m_value.m_dataType = 2;
+        mainDouble.m_value.m_value = DRW_Variant(140, 3.75);
+        writer.addField(mainDouble);
+        const std::vector<std::uint8_t> mainBinaryBytes{0xABu, 0xCDu};
+        DRW_Field mainBinary;
+        mainBinary.handle = 0x508u;
+        mainBinary.m_evaluatorId = "Text";
+        mainBinary.m_fieldCode = "FIELD_LIST_MAIN_BINARY";
+        mainBinary.m_value.m_dataType = 8;
+        mainBinary.m_value.m_dataSize = mainBinaryBytes.size();
+        mainBinary.m_value.m_rawData = mainBinaryBytes;
+        mainBinary.m_value.m_value = DRW_Variant(310, mainBinaryBytes);
+        writer.addField(mainBinary);
+
         DRW_FieldList fieldList;
         fieldList.handle = 0x503u;
         fieldList.m_unknown = binary ? 1 : 0;
-        fieldList.m_fieldHandles = {first.handle, second.handle, child.handle};
+        fieldList.m_fieldHandles = {
+            first.handle, second.handle, child.handle, mainInteger0.handle,
+            mainInteger.handle, mainDouble.handle, mainBinary.handle};
         writer.addFieldList(fieldList);
 
         DRW_TableContentObject content;
@@ -29721,7 +29755,8 @@ bool fieldListMembershipOutput() {
         content.m_content.m_rows.resize(1u);
         DRW_TableCell cell;
         for (const std::uint32_t fieldHandle :
-                {first.handle, second.handle}) {
+                {first.handle, second.handle, mainInteger0.handle,
+                 mainInteger.handle, mainDouble.handle, mainBinary.handle}) {
             DRW_TableCellContent reference;
             reference.m_type = 2;
             reference.m_handle = fieldHandle;
@@ -29746,7 +29781,8 @@ bool fieldListMembershipOutput() {
         if (data.fieldLists.size() != 1u)
             return fail("authored FIELDLIST callback was not retained");
         data.fieldLists.front().m_fieldHandles = {
-            first.handle, second.handle, child.handle};
+            first.handle, second.handle, child.handle, mainInteger0.handle,
+            mainInteger.handle, mainDouble.handle, mainBinary.handle};
         DRW_Field& secondField = *std::next(data.fields.begin());
         secondField.m_value.m_handle = 0xDEADu;
         secondField.m_value.m_value.addInt(330, 0xDEADu);
@@ -29772,7 +29808,7 @@ bool fieldListMembershipOutput() {
         dx_iface reader;
         if (!reader.fileImport(output.string(), &readback, false))
             return fail("nested FIELDLIST output did not import");
-        if (readback.fields.size() != 3u || readback.fieldLists.size() != 1u
+        if (readback.fields.size() != 7u || readback.fieldLists.size() != 1u
             || readback.tableContents.size() != 1u
             || !readback.hasNamedObjectDictionary)
             return fail("FIELDLIST readback counts: fields="
@@ -29785,11 +29821,11 @@ bool fieldListMembershipOutput() {
             readback.tableContents.front();
         if (parsedList.parentHandle != readback.namedObjectDictionary.handle
             || parsedList.m_unknown != (binary ? 1 : 0)
-            || parsedList.m_fieldHandles.size() != 3u
+            || parsedList.m_fieldHandles.size() != 7u
             || parsedContent.m_content.m_rows.size() != 1u
             || parsedContent.m_content.m_rows.front().m_cells.size() != 1u
             || parsedContent.m_content.m_rows.front().m_cells.front()
-                   .m_contents.size() != 2u)
+                   .m_contents.size() != 6u)
             return fail("FIELDLIST owner, membership, or TABLECONTENT shape changed");
         const auto parsedFirst = std::find_if(
             readback.fields.begin(), readback.fields.end(),
@@ -29806,10 +29842,35 @@ bool fieldListMembershipOutput() {
             [](const DRW_Field& field) {
                 return field.m_fieldCode == "FIELD_LIST_CHILD";
             });
+        const auto parsedMainInteger0 = std::find_if(
+            readback.fields.begin(), readback.fields.end(),
+            [](const DRW_Field& field) {
+                return field.m_fieldCode == "FIELD_LIST_MAIN_INTEGER_0";
+            });
+        const auto parsedMainInteger = std::find_if(
+            readback.fields.begin(), readback.fields.end(),
+            [](const DRW_Field& field) {
+                return field.m_fieldCode == "FIELD_LIST_MAIN_INTEGER";
+            });
+        const auto parsedMainDouble = std::find_if(
+            readback.fields.begin(), readback.fields.end(),
+            [](const DRW_Field& field) {
+                return field.m_fieldCode == "FIELD_LIST_MAIN_DOUBLE";
+            });
+        const auto parsedMainBinary = std::find_if(
+            readback.fields.begin(), readback.fields.end(),
+            [](const DRW_Field& field) {
+                return field.m_fieldCode == "FIELD_LIST_MAIN_BINARY";
+            });
         if (parsedFirst == readback.fields.end()
             || parsedSecond == readback.fields.end()
             || parsedChild == readback.fields.end())
             return fail("FIELDLIST output lost a FIELD identity");
+        if (parsedMainInteger0 == readback.fields.end()
+            || parsedMainInteger == readback.fields.end()
+            || parsedMainDouble == readback.fields.end()
+            || parsedMainBinary == readback.fields.end())
+            return fail("FIELD output lost a typed main-cache identity");
         const auto rootEntry = std::find_if(
             readback.namedObjectDictionary.m_entries.begin(),
             readback.namedObjectDictionary.m_entries.end(),
@@ -29883,6 +29944,30 @@ bool fieldListMembershipOutput() {
             || parsedSecond->m_value.m_value.type() != DRW_Variant::INTEGER
             || parsedSecond->m_value.m_value.i_val()
                 != static_cast<std::int32_t>((*parsedTarget)->handle)
+            || parsedMainInteger0->m_value.m_dataType != 0
+            || parsedMainInteger0->m_value.m_value.type()
+                != DRW_Variant::INTEGER
+            || parsedMainInteger0->m_value.m_value.code() != 91
+            || parsedMainInteger0->m_value.m_value.i_val() != 10
+            || parsedMainInteger->m_value.m_dataType != 1
+            || parsedMainInteger->m_value.m_value.type()
+                != DRW_Variant::INTEGER
+            || parsedMainInteger->m_value.m_value.code() != 91
+            || parsedMainInteger->m_value.m_value.i_val() != 20
+            || parsedMainDouble->m_value.m_dataType != 2
+            || parsedMainDouble->m_value.m_value.type()
+                != DRW_Variant::DOUBLE
+            || parsedMainDouble->m_value.m_value.code() != 140
+            || parsedMainDouble->m_value.m_value.d_val() != 3.75
+            || parsedMainBinary->m_value.m_dataType != 8
+            || parsedMainBinary->m_value.m_dataSize
+                != mainBinaryBytes.size()
+            || parsedMainBinary->m_value.m_rawData != mainBinaryBytes
+            || parsedMainBinary->m_value.m_value.type()
+                != DRW_Variant::BINARY
+            || parsedMainBinary->m_value.m_value.binary() == nullptr
+            || *parsedMainBinary->m_value.m_value.binary()
+                != mainBinaryBytes
             || parsedFirst->m_childHandles
                 != std::vector<std::uint32_t>{parsedChild->handle}
             || parsedChild->parentHandle != parsedFirst->handle
@@ -30033,7 +30118,7 @@ bool fieldListMembershipOutput() {
         dx_iface importedReader;
         if (!importedReader.fileImport(
                 importedOutput.string(), &importedReadback, false)
-            || importedReadback.fields.size() != 3u
+            || importedReadback.fields.size() != 7u
             || importedReadback.fieldLists.size() != 1u
             || importedReadback.tableContents.size() != 1u
             || !importedReadback.hasNamedObjectDictionary)
@@ -30042,7 +30127,7 @@ bool fieldListMembershipOutput() {
             importedReadback.fieldLists.front();
         if (importedList.parentHandle
                 != importedReadback.namedObjectDictionary.handle
-            || importedList.m_fieldHandles.size() != 3u
+            || importedList.m_fieldHandles.size() != 7u
             || std::any_of(importedList.m_fieldHandles.begin(),
                            importedList.m_fieldHandles.end(),
                 [&importedReadback](std::uint32_t handle) {

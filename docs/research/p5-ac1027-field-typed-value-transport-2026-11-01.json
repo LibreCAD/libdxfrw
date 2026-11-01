@@ -7,14 +7,13 @@
     "fixturePolicy": "FIELD graph and LINE reference target are authored in memory; no DWG/DXF fixture files were added.",
     "qualified": [
       "Counted FIELD object handles use group 97 and repeated group 331 soft-pointer IDs.",
-      "The main FIELD cache string value and ID value are emitted and read back.",
-      "Keyed child values cover the current integer (library types 0 and 1), real (type 2), string (type 4), binary (type 8), and ID (type 64) serializer branches.",
+      "Main and keyed child values cover the current integer (library types 0 and 1), real (type 2), string (type 4), binary (type 8), and ID (type 64) serializer branches.",
       "Resolved target references follow the emitted entity handle when the writer remaps its source handle.",
       "An unresolved ID is refused without replacing an existing destination; correcting it succeeds on the same adapter instance."
     ],
     "notQualified": [
       "Autodesk documents the FIELD wire groups, but does not assign the library's numeric DRW_CadValue type constants; numeric values above identify the existing implementation branches exercised by this test.",
-      "Coordinate child values (library types 16 and 32), main cache variants beyond string/ID, and producer/version profiles beyond this generated AC1027 graph.",
+      "Coordinate values (library types 16 and 32) and producer/version profiles beyond this generated AC1027 graph.",
       "Native FIELD expression evaluation, computed values, or semantic acceptance by an independent CAD application.",
       "A DWG source producer profile or source-to-output semantic association."
     ]
@@ -31,16 +30,16 @@
     }
   ],
   "implementation": {
-    "admission": "The FIELD output profile admits string and resolved ID main cache values; keyed child values admit only the tested integer, real, string, binary, and resolved ID forms. Coordinates and unknown forms remain refused.",
+    "admission": "The FIELD output profile admits only the tested integer, real, string, binary, and resolved-ID forms for main and keyed child values. Coordinates and unknown forms remain refused.",
     "serialization": "The existing FIELD serializer writes the documented group forms and applies the object-handle remapper to groups 331 and type-64 group 330 values.",
     "files": [
       {
         "path": "dwg2dxf/dx_iface.cpp",
-        "sha256": "24e06e3c5a822ee06b7fcbace06fd1885b990c4330fe1b945dfd0b1b0440f625"
+        "sha256": "35ff8d9bb6df4af4e0aa31c7d61c360738149c3d6c0f8475850ee74272af887d"
       },
       {
         "path": "tests/dwg2dxf_adapter_tests.cpp",
-        "sha256": "b99d0e33f9f4af828230d279d236f320b2ff00b89fb3875a99e59a395d9867fa"
+        "sha256": "9b4a7e6faa5480958de0ae69eb41bbf527bee24f6d9bb7de62aaa951cd01a303"
       }
     ]
   },
@@ -50,7 +49,7 @@
     "result": "PASS",
     "observations": [
       "The same generated FIELD graph roundtrips in ASCII and Binary DXF.",
-      "Typed child payloads retain their values, data types, group codes, keyed association, and binary bytes.",
+      "Main and child typed payloads retain their values, data types, group codes, keyed association, and binary bytes.",
       "Object-ID values and group-331 references resolve to the remapped LINE handle on readback.",
       "A deliberately unresolved main CadValue ID preserves the destination sentinel; correction permits same-adapter retry."
     ]

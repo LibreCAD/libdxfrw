@@ -47064,8 +47064,8 @@ bool dx_iface::hasTableContentFieldOutputProfile(
 
         // Autodesk's FIELD schema defines the counted 331 soft-pointer list
         // and the group-330 ID, group-91 integer, group-140 real, and
-        // group-92/310 binary value forms. This profile admits the tested
-        // string/ID main cache and keyed child values using those scalar forms;
+        // group-92/310 binary value forms. This profile admits tested string,
+        // integer, real, binary, and ID values in main and keyed child slots;
         // coordinate and unknown types remain refused.
 
         std::unordered_map<std::uint32_t, std::size_t> referenceCounts;
@@ -47093,8 +47093,7 @@ bool dx_iface::hasTableContentFieldOutputProfile(
                 || field.m_valueStringLength != 0
                 || !referenceCounts.emplace(field.handle, 0u).second)
                 return false;
-            if (!fieldStringValue(field.m_value)
-                && !fieldCadValueObjectId(field.m_value))
+            if (!fieldCadValue(field.m_value))
                 return false;
             for (const std::uint32_t handle : field.m_objectHandles) {
                 if (!resolvedObjectReference(handle))
