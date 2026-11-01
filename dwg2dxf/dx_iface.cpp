@@ -28719,15 +28719,17 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
     if (cData == nullptr)
         return false;
     if (cData->sourceFormat != dx_source_format::DWG
-        || (cData->sourceVersion != DRW::AC1018
+        || (cData->sourceVersion != DRW::AC1015
+            && cData->sourceVersion != DRW::AC1018
             && cData->sourceVersion != DRW::AC1024))
         return true;
     if (version != DRW::AC1024)
         return skip("target is outside AC1024 DXF");
 
-    // Admit only the witnessed AC1018 three-layout or AC1024 two-layout
-    // profile. Both routes require the complete rooted ACAD_LAYOUT dictionary,
-    // reciprocal BLOCK_RECORD edges, and bounded extension dependencies.
+    // Admit only the witnessed AC1015/AC1024 two-layout or AC1018
+    // three-layout profiles. Each route requires a rooted ACAD_LAYOUT
+    // dictionary, reciprocal BLOCK_RECORD edges, and bounded dependencies.
+    const bool ac1015Profile = cData->sourceVersion == DRW::AC1015;
     const bool ac1018Profile = cData->sourceVersion == DRW::AC1018;
     const std::size_t expectedLayoutCount = ac1018Profile ? 3u : 2u;
     if (cData->layouts.size() != expectedLayoutCount
@@ -28818,17 +28820,22 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
 
     const std::array<const char*, 3> expected{{
         "Model", "Layout1",
-        ac1018Profile ? "Layout2" : "Architectural Title Block"}};
+        ac1018Profile ? "Layout2"
+                      : ac1015Profile ? "Layout1"
+                                      : "Architectural Title Block"}};
     std::map<std::uint32_t, DwgLayoutOutputSource> selected;
     std::map<std::uint32_t, DwgNodDictionaryOutputSource>
         selectedNodDictionaries;
     std::set<std::string> selectedNames;
     bool completeNodProfile = false;
     try {
-        if (ac1018Profile) {
-            constexpr std::array<const char*, 4> emptyRootNames{{
-                "ACAD_GROUP", "ACAD_PLOTSETTINGS",
-                "ACAD_MATERIAL", "ACAD_COLOR"}};
+        if (ac1018Profile || ac1015Profile) {
+            const std::vector<const char*> emptyRootNames = ac1018Profile
+                ? std::vector<const char*>{
+                    "ACAD_GROUP", "ACAD_PLOTSETTINGS",
+                    "ACAD_MATERIAL", "ACAD_COLOR"}
+                : std::vector<const char*>{
+                    "ACAD_GROUP", "ACAD_PLOTSETTINGS"};
             bool emptyRootProfile = true;
             for (const char* name : emptyRootNames) {
                 const auto entry = std::find_if(
@@ -28897,17 +28904,21 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
             if (!emptyRootProfile)
                 selectedNodDictionaries.clear();
 
-            // Admit the complete physical NOD only for the observed nine-key
-            // AC1018 graph. Existing child-dictionary proofs cover four empty
-            // roots; the remaining entries are admitted here only when each
-            // target has one typed DICTIONARY/DICTIONARYWDFLT model owned by
-            // this NOD. Staged inspection then checks every emitted identity,
-            // owner, root field and entry against this frozen source model.
-            static constexpr std::array<const char*, 9> expectedNodNames{{
-                "ACAD_COLOR", "ACAD_GROUP", "ACAD_LAYOUT",
-                "ACAD_MATERIAL", "ACAD_MLINESTYLE", "ACAD_PLOTSETTINGS",
-                "ACAD_PLOTSTYLENAME", "ACAD_TABLESTYLE",
-                "AcDbVariableDictionary"}};
+            // Admit complete physical NODs only for the observed AC1015
+            // five-key and AC1018 nine-key graphs. Empty-root child proofs
+            // cover the bounded empty dictionaries; every other NOD edge
+            // must resolve to one typed DICTIONARY/DICTIONARYWDFLT owned by
+            // this NOD. Staged inspection checks the emitted graph against
+            // this frozen source model.
+            const std::vector<const char*> expectedNodNames = ac1018Profile
+                ? std::vector<const char*>{
+                    "ACAD_COLOR", "ACAD_GROUP", "ACAD_LAYOUT",
+                    "ACAD_MATERIAL", "ACAD_MLINESTYLE",
+                    "ACAD_PLOTSETTINGS", "ACAD_PLOTSTYLENAME",
+                    "ACAD_TABLESTYLE", "AcDbVariableDictionary"}
+                : std::vector<const char*>{
+                    "ACAD_GROUP", "ACAD_LAYOUT", "ACAD_MLINESTYLE",
+                    "ACAD_PLOTSETTINGS", "ACAD_PLOTSTYLENAME"};
             if (selectedNodDictionaries.size() == emptyRootNames.size()
                 && nod.m_entries.size() == expectedNodNames.size()
                 && nod.parentHandle == 0u && nod.hardOwner == 0
@@ -28972,7 +28983,7 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
                     completeNodProfile = false;
             }
             if (!completeNodProfile && debug) {
-                std::cerr << "LAYOUT complete AC1018 NOD profile skipped: entries="
+                std::cerr << "LAYOUT complete source-version NOD profile skipped: entries="
                           << nod.m_entries.size() << " selected-empty-roots="
                           << selectedNodDictionaries.size() << " owner="
                           << nod.parentHandle << " hard/cloning="
@@ -29064,13 +29075,13 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
                 && frame->second.m_version == cData->sourceVersion
                 && !frame->second.m_hasDataStorage;
             // LAYOUT stores its common parent/reactor handles in the object
-            // handle stream after the typed body (ODA §20.4.84). The
-            // legacy raw callback frame has no validated common-link fields;
-            // bind those roles from the independently checked typed parser
-            // result and rooted dictionary instead. Keep the AC1024 frame
-            // common-link evidence requirement unchanged.
+            // handle stream after the typed body (ODA §20.4.84). The AC1015
+            // and AC1018 raw callback frames have no validated common-link
+            // fields; bind those roles from the independently checked typed
+            // parser result and rooted dictionary instead. Keep the AC1024
+            // frame common-link evidence requirement unchanged.
             const bool frameCommonMatches = frameIdentityMatches
-                && (ac1018Profile
+                && ((ac1015Profile || ac1018Profile)
                     ? frame->second.m_parentHandle == 0u
                         && !frame->second.m_commonHandleDataValidated
                         && frame->second.m_commonLinkEvidence
@@ -29083,8 +29094,37 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
                     : frame->second.m_parentHandle == layout.parentHandle
                         && drwDwgCommonLinkEvidenceValidated(
                             frame->second.m_commonLinkEvidence));
-            if (!frameIdentityMatches || !frameCommonMatches)
+            if (!frameIdentityMatches || !frameCommonMatches) {
+                if (debug)
+                    std::cerr << "LAYOUT source callback detail: handle="
+                              << std::hex << layout.handle << std::dec
+                              << " found="
+                              << (frame != cData->m_opaqueDwgSourceFrames.end())
+                              << " identity=" << frameIdentityMatches
+                              << " frame-type="
+                              << (frame == cData->m_opaqueDwgSourceFrames.end()
+                                      ? -1 : frame->second.m_objectType)
+                              << " frame-handle="
+                              << (frame == cData->m_opaqueDwgSourceFrames.end()
+                                      ? 0u : frame->second.m_handle)
+                              << " frame-version="
+                              << (frame == cData->m_opaqueDwgSourceFrames.end()
+                                      ? DRW::UNKNOWNV : frame->second.m_version)
+                              << " frame-parent="
+                              << (frame == cData->m_opaqueDwgSourceFrames.end()
+                                      ? 0u : frame->second.m_parentHandle)
+                              << " common-validated="
+                              << (frame != cData->m_opaqueDwgSourceFrames.end()
+                                  && frame->second.m_commonHandleDataValidated)
+                              << " common-evidence="
+                              << (frame == cData->m_opaqueDwgSourceFrames.end()
+                                      ? -1 : static_cast<int>(
+                                          frame->second.m_commonLinkEvidence))
+                              << " typed-parent=" << layout.parentHandle
+                              << " reactors=" << layout.reactorCount()
+                              << '\n';
                 return skip("physical type-82 source callback frame");
+            }
             const auto dictionaryEntry = std::find_if(
                 layoutDictionary->m_entries.begin(),
                 layoutDictionary->m_entries.end(),
@@ -29265,14 +29305,19 @@ bool dx_iface::hasUnchangedDwgLayoutOutputSources(bool debug) const noexcept {
         || m_dwgLayoutOutputGeneration != cData->importGeneration
         || cData->sourceFormat != dx_source_format::DWG
         || cData->sourceVersion != m_dwgLayoutOutputSourceVersion
-        || (m_dwgLayoutOutputSourceVersion != DRW::AC1018
+        || (m_dwgLayoutOutputSourceVersion != DRW::AC1015
+            && m_dwgLayoutOutputSourceVersion != DRW::AC1018
             && m_dwgLayoutOutputSourceVersion != DRW::AC1024)
         || (m_dwgLayoutOutputNodComplete
+            && m_dwgLayoutOutputSourceVersion != DRW::AC1015
             && m_dwgLayoutOutputSourceVersion != DRW::AC1018)
         || (m_dwgLayoutOutputNodComplete
             != (m_dwgLayoutOutputNod.handle != 0u))
         || (m_dwgLayoutOutputSourceVersion == DRW::AC1024
             && !m_dwgNodDictionaryOutputSources.empty())
+        || (m_dwgLayoutOutputSourceVersion == DRW::AC1015
+            && !m_dwgNodDictionaryOutputSources.empty()
+            && m_dwgNodDictionaryOutputSources.size() != 2u)
         || (m_dwgLayoutOutputSourceVersion == DRW::AC1018
             && !m_dwgNodDictionaryOutputSources.empty()
             && m_dwgNodDictionaryOutputSources.size() != 4u)
@@ -29608,13 +29653,31 @@ bool dx_iface::inspectDwgLayoutBlockRecords(
                 bool decodedRecord = false;
                 bool matched = false;
                 std::uint32_t actualLayout = 0u;
+                std::uint32_t actualHandle = 0u;
+                std::string actualName;
+                const auto sameIdentifier = [](std::string_view lhs,
+                                               std::string_view rhs) {
+                    const auto upperAscii = [](char character) {
+                        return character >= 'a' && character <= 'z'
+                            ? static_cast<char>(character - 'a' + 'A')
+                            : character;
+                    };
+                    return lhs.size() == rhs.size()
+                        && std::equal(lhs.begin(), lhs.end(), rhs.begin(),
+                            [&upperAscii](char left, char right) {
+                                return upperAscii(left) == upperAscii(right);
+                            });
+                };
                 dx_standard_output::Decoder decoder(view);
                 const bool decoded = decoder.decodeBlockRecord(
                     body, [&](const DRW_Block_Record& actual) {
                         decodedRecord = true;
+                        actualHandle = actual.handle;
+                        actualName = actual.name;
                         actualLayout = actual.layoutHandle;
                         matched = actual.handle == shape.handle
-                            && actual.name == source->second->blockRecord.name
+                            && sameIdentifier(actual.name,
+                                source->second->blockRecord.name)
                             && actual.layoutHandle == expectedLayout;
                         return matched;
                     });
@@ -29626,6 +29689,8 @@ bool dx_iface::inspectDwgLayoutBlockRecords(
                                   << " source-name="
                                   << source->second->blockRecord.name
                                   << " expected-layout=" << expectedLayout
+                                  << " actual-handle=" << actualHandle
+                                  << " actual-name=" << actualName
                                   << " actual-layout=" << actualLayout
                                   << '\n';
                     stagedFailure = "BLOCK_RECORD typed row or reciprocal LAYOUT backlink";

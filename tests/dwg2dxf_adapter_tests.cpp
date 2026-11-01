@@ -39833,12 +39833,15 @@ bool physicalLayoutOutputReadback(
         const std::filesystem::path& sourcePath) {
     dx_iface sourceReader;
     dx_data source;
-    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+    const auto imported = sourceReader.fileImport(
+        sourcePath.string(), &source, false);
+    const bool ac1015Source = source.sourceVersion == DRW::AC1015;
+    if (!imported
         || source.sourceFormat != dx_source_format::DWG
-        || source.sourceVersion != DRW::AC1024
+        || (!ac1015Source && source.sourceVersion != DRW::AC1024)
         || source.layouts.size() != 2u
         || !source.hasNamedObjectDictionary)
-        return fail("physical LAYOUT source is not the admitted two-layout AC1024 graph");
+        return fail("physical LAYOUT source is not an admitted two-layout AC1015/AC1024 graph");
 
     const auto hasIdentity = [&source](std::uint32_t handle,
                                        const char* name) {
@@ -39848,13 +39851,17 @@ bool physicalLayoutOutputReadback(
             }) == 1;
     };
     std::array<std::pair<std::uint32_t, const char*>, 2> expected{};
-    if (hasIdentity(0x22u, "Model") && hasIdentity(0x59u, "Layout1")) {
+    if (ac1015Source && hasIdentity(0x27u, "Model")
+        && hasIdentity(0x29u, "Layout1")) {
+        expected = {{{0x27u, "Model"}, {0x29u, "Layout1"}}};
+    } else if (!ac1015Source && hasIdentity(0x22u, "Model")
+        && hasIdentity(0x59u, "Layout1")) {
         expected = {{{0x22u, "Model"}, {0x59u, "Layout1"}}};
-    } else if (hasIdentity(0xAu, "Model")
+    } else if (!ac1015Source && hasIdentity(0xAu, "Model")
                && hasIdentity(0xFu, "Architectural Title Block")) {
         expected = {{{0xAu, "Model"}, {0xFu, "Architectural Title Block"}}};
     } else {
-        return fail("physical LAYOUT source is outside the two admitted AC1024 identity pairs");
+        return fail("physical LAYOUT source is outside the admitted AC1015/AC1024 identity profiles");
     }
     const std::string paperLayoutName = expected[1].second;
     const auto hasArchBlockRecord = std::count_if(
@@ -40130,6 +40137,109 @@ bool physicalLayoutOutputReadback(
             != source.namedObjectDictionary.handle
         || sourceLayoutDictionary->m_entries.size() != source.layouts.size())
         return fail("physical ACAD_LAYOUT dictionary root or cardinality is not uniquely closed");
+    const auto uniqueDictionaryWithDefault = [](
+            const dx_data& data, std::uint32_t handle) {
+        const DRW_DictionaryWithDefault* result = nullptr;
+        for (const DRW_DictionaryWithDefault& dictionary :
+             data.dictionaryWithDefaults) {
+            if (dictionary.handle != handle)
+                continue;
+            if (result != nullptr)
+                return static_cast<const DRW_DictionaryWithDefault*>(nullptr);
+            result = &dictionary;
+        }
+        return result;
+    };
+    const auto uniqueDictionaryEntry = [](
+            const DRW_Dictionary& dictionary, const std::string& name) {
+        const DRW_Dictionary::Entry* result = nullptr;
+        for (const DRW_Dictionary::Entry& entry : dictionary.m_entries) {
+            if (entry.m_name != name)
+                continue;
+            if (result != nullptr)
+                return static_cast<const DRW_Dictionary::Entry*>(nullptr);
+            result = &entry;
+        }
+        return result;
+    };
+    if (ac1015Source) {
+        const std::array<std::pair<const char*, std::uint32_t>, 5> roots{{
+            {"ACAD_GROUP", 0x0Du},
+            {"ACAD_PLOTSTYLENAME", 0x0Eu},
+            {"ACAD_MLINESTYLE", 0x17u},
+            {"ACAD_PLOTSETTINGS", 0x19u},
+            {"ACAD_LAYOUT", 0x1Au}}};
+        const DRW_Dictionary& nod = source.namedObjectDictionary;
+        if (nod.handle != 0x0Cu || nod.parentHandle != 0u
+            || nod.hardOwner != 0 || nod.cloning != 1 || nod.countCap
+            || !nod.hasCompleteDwgEntries() || nod.m_entries.size() != 5u
+            || !nod.appData.empty() || !nod.extData.empty()
+            || nod.hasDataStorageBinaryData() || nod.hasDwgCommonLinkTail()
+            || !nod.reactorHandles.empty())
+            return fail("physical AC1015 NOD is outside the exact five-key source profile");
+        for (const auto& identity : roots) {
+            const DRW_Dictionary::Entry* edge =
+                uniqueDictionaryEntry(nod, identity.first);
+            if (edge == nullptr || edge->m_handle != identity.second)
+                return fail("physical AC1015 NOD name/handle inventory differs from independent source evidence");
+        }
+        for (const auto& identity : {roots[0], roots[3]}) {
+            const DRW_Dictionary* dictionary =
+                uniqueDictionary(source, identity.second);
+            if (dictionary == nullptr || dictionary->parentHandle != nod.handle
+                || dictionary->hardOwner != 0 || dictionary->cloning != 1
+                || dictionary->countCap || !dictionary->hasCompleteDwgEntries()
+                || !dictionary->m_entries.empty()
+                || !dictionary->appData.empty() || !dictionary->extData.empty()
+                || dictionary->hasDataStorageBinaryData()
+                || dictionary->hasDwgCommonLinkTail()
+                || dictionary->reactorHandles
+                    != std::vector<std::uint32_t>{nod.handle})
+                return fail("physical AC1015 empty NOD child dictionary owner/reactor shape changed");
+        }
+        const DRW_Dictionary* mlineDictionary =
+            uniqueDictionary(source, roots[2].second);
+        const DRW_DictionaryWithDefault* plotStyleDictionary =
+            uniqueDictionaryWithDefault(source, roots[1].second);
+        const DRW_Dictionary::Entry* mlineStyleEntry = mlineDictionary == nullptr
+            ? nullptr : uniqueDictionaryEntry(*mlineDictionary, "Standard");
+        const DRW_Dictionary::Entry* defaultStyleEntry =
+            plotStyleDictionary == nullptr ? nullptr
+                : uniqueDictionaryEntry(*plotStyleDictionary, "Normal");
+        const bool typedMlineStyle = std::count_if(
+            source.mLineStyles.begin(), source.mLineStyles.end(),
+            [mlineStyleEntry](const DRW_MLineStyle& style) {
+                return mlineStyleEntry != nullptr
+                    && style.handle == mlineStyleEntry->m_handle
+                    && style.name == "Standard"
+                    && style.parentHandle == 0x17u
+                    && style.reactorHandles
+                        == std::vector<std::uint32_t>{0x17u};
+            }) == 1;
+        if (mlineDictionary == nullptr
+            || mlineDictionary->parentHandle != nod.handle
+            || mlineDictionary->hardOwner != 0
+            || mlineDictionary->cloning != 1 || mlineDictionary->countCap
+            || !mlineDictionary->hasCompleteDwgEntries()
+            || mlineDictionary->m_entries.size() != 1u
+            || mlineDictionary->reactorHandles
+                != std::vector<std::uint32_t>{nod.handle}
+            || mlineStyleEntry == nullptr || !typedMlineStyle
+            || plotStyleDictionary == nullptr
+            || plotStyleDictionary->parentHandle != nod.handle
+            || plotStyleDictionary->hardOwner != 0
+            || plotStyleDictionary->cloning != 1
+            || plotStyleDictionary->countCap
+            || !plotStyleDictionary->hasCompleteDwgEntries()
+            || plotStyleDictionary->m_entries.size() != 1u
+            || plotStyleDictionary->reactorHandles
+                != std::vector<std::uint32_t>{nod.handle}
+            || defaultStyleEntry == nullptr
+            || defaultStyleEntry->m_handle
+                != plotStyleDictionary->m_defaultEntryHandle
+            || plotStyleDictionary->m_defaultEntryHandle != 0x0Fu)
+            return fail("physical AC1015 MLINESTYLE/DICTIONARYWDFLT NOD target closure changed");
+    }
     for (const DRW_Layout* layout : sourceLayouts) {
         const std::uint32_t layoutHandle = layout->handle;
         const auto rootEntry = std::find_if(
@@ -40191,7 +40301,11 @@ bool physicalLayoutOutputReadback(
                     return fail("physical LAYOUT extension XRECORD target is missing, ambiguous, or contains unqualified references");
             }
         }
-        if (layout->name == "Model") {
+        if (ac1015Source) {
+            if (layout->lastActiveViewportHandle.ref != 0u
+                || !layout->viewportHandles.empty())
+                return fail("physical AC1015 LAYOUT viewports are outside the exact local source profile");
+        } else if (layout->name == "Model") {
             const DRW_Vport* active =
                 uniqueVport(source, layout->lastActiveViewportHandle.ref);
             if (active == nullptr)
@@ -40244,11 +40358,25 @@ bool physicalLayoutOutputReadback(
             return fail("physical Layout1 could not be selected for atomic refusal");
         const dwgHandle originalBlockRecord =
             mutableLayout->paperSpaceBlockRecordHandle;
-        std::array<bool, 2> qualifiedBeforeFailure{};
-        for (std::size_t index = 0; index < expected.size(); ++index)
-            qualifiedBeforeFailure[index] =
+        std::vector<std::uint32_t> qualificationHandles{
+            expected[0].first, expected[1].first};
+        if (ac1015Source) {
+            qualificationHandles.insert(qualificationHandles.end(),
+                {0x0Cu, 0x0Du, 0x0Eu, 0x0Fu, 0x17u, 0x18u, 0x19u, 0x1Au});
+            std::sort(qualificationHandles.begin(), qualificationHandles.end());
+            if (std::adjacent_find(qualificationHandles.begin(),
+                                   qualificationHandles.end())
+                != qualificationHandles.end()
+                || qualificationHandles.size() != 10u
+                || source.dwgReadOutcome.opaqueViewCallbacks != 10u)
+                return fail("physical AC1015 callback inventory is not the exact ten-frame profile");
+        }
+        std::vector<bool> qualifiedBeforeFailure;
+        qualifiedBeforeFailure.reserve(qualificationHandles.size());
+        for (const std::uint32_t handle : qualificationHandles)
+            qualifiedBeforeFailure.push_back(
                 DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
-                    source, source.importGeneration, expected[index].first);
+                    source, source.importGeneration, handle));
         mutableLayout->paperSpaceBlockRecordHandle.ref = DRW::NoHandle;
         const bool invalidOwnerRejected = !exportPartial();
         std::ifstream refusedOutput(outputPath, std::ios::binary);
@@ -40256,10 +40384,10 @@ bool physicalLayoutOutputReadback(
             std::istreambuf_iterator<char>{refusedOutput}, {}};
         mutableLayout->paperSpaceBlockRecordHandle = originalBlockRecord;
         bool qualificationsUnchanged = true;
-        for (std::size_t index = 0; index < expected.size(); ++index)
+        for (std::size_t index = 0; index < qualificationHandles.size(); ++index)
             qualificationsUnchanged = qualificationsUnchanged
                 && DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
-                    source, source.importGeneration, expected[index].first)
+                    source, source.importGeneration, qualificationHandles[index])
                     == qualifiedBeforeFailure[index];
         if (titleBlockSource) {
             auto visibility = std::find_if(
@@ -40298,7 +40426,16 @@ bool physicalLayoutOutputReadback(
         if (source.dwgReadOutcome.opaqueViewCallbacks != 0u
             && DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
                 source) != source.dwgReadOutcome.opaqueViewCallbacks)
-            return fail("physical LAYOUT output did not qualify every captured source callback");
+            return fail("physical LAYOUT output callback count is "
+                + std::to_string(
+                    DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                        source))
+                + "/" + std::to_string(
+                    source.dwgReadOutcome.opaqueViewCallbacks));
+        for (const std::uint32_t handle : qualificationHandles)
+            if (!DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                    source, source.importGeneration, handle))
+                return fail("physical LAYOUT output did not qualify the complete selected callback graph");
         if (titleBlockSource) {
             constexpr std::array<std::uint32_t, 9> qualifiedTitleGraph{{
                 0xAu, 0xFu, 0x1117u, 0x1118u, 0x1119u, 0x111Au, 0x111Bu,
@@ -40332,6 +40469,97 @@ bool physicalLayoutOutputReadback(
                 != output.namedObjectDictionary.handle
             || outputLayoutDictionary->m_entries.size() != output.layouts.size())
             return fail("physical ACAD_LAYOUT output dictionary was not freshly readable");
+        if (ac1015Source) {
+            const DRW_Dictionary& outputNod = output.namedObjectDictionary;
+            if (outputNod.parentHandle != 0u || outputNod.hardOwner != 0
+                || outputNod.cloning != source.namedObjectDictionary.cloning
+                || outputNod.m_entries.size() != 5u)
+                return fail("physical AC1015 NOD output fields or five-key cardinality changed");
+            for (const auto& sourceRoot : source.namedObjectDictionary.m_entries) {
+                const DRW_Dictionary::Entry* outputRoot =
+                    uniqueDictionaryEntry(outputNod, sourceRoot.m_name);
+                const auto expectedRootRole =
+                    sourceRoot.m_dxfHandleCode
+                        == DRW_Dictionary::Entry::DxfHandleCode::Unspecified
+                    ? (source.namedObjectDictionary.hardOwner
+                        ? DRW_Dictionary::Entry::DxfHandleCode::HardOwner
+                        : DRW_Dictionary::Entry::DxfHandleCode::SoftOwner)
+                    : sourceRoot.m_dxfHandleCode;
+                if (outputRoot == nullptr
+                    || outputRoot->m_dxfHandleCode
+                        != expectedRootRole)
+                    return fail("physical AC1015 NOD output key or handle role did not read back");
+                if (sourceRoot.m_name == "ACAD_LAYOUT") {
+                    if (outputRoot->m_handle != outputLayoutDictionary->handle
+                        || outputLayoutDictionary->parentHandle != outputNod.handle
+                        || outputLayoutDictionary->m_entries.size() != 2u)
+                        return fail("physical AC1015 ACAD_LAYOUT NOD edge or output owner changed");
+                    for (const char* layoutName : {"Model", "Layout1"}) {
+                        const auto outputLayout = std::find_if(
+                            output.layouts.begin(), output.layouts.end(),
+                            [layoutName](const DRW_Layout& layout) {
+                                return layout.name == layoutName;
+                            });
+                        const DRW_Dictionary::Entry* child =
+                            uniqueDictionaryEntry(*outputLayoutDictionary,
+                                                  layoutName);
+                        if (outputLayout == output.layouts.end()
+                            || child == nullptr
+                            || child->m_handle != outputLayout->handle
+                            || outputLayout->parentHandle
+                                != outputLayoutDictionary->handle)
+                            return fail("physical AC1015 ACAD_LAYOUT child name/handle/owner edge changed");
+                    }
+                } else if (sourceRoot.m_name == "ACAD_GROUP"
+                           || sourceRoot.m_name == "ACAD_PLOTSETTINGS") {
+                    const DRW_Dictionary* child =
+                        uniqueDictionary(output, outputRoot->m_handle);
+                    if (child == nullptr || child->parentHandle != outputNod.handle
+                        || !child->m_entries.empty()
+                        || child->reactorHandles
+                            != std::vector<std::uint32_t>{outputNod.handle})
+                        return fail("physical AC1015 empty NOD dictionary owner/reactor changed");
+                } else if (sourceRoot.m_name == "ACAD_MLINESTYLE") {
+                    const DRW_Dictionary* child =
+                        uniqueDictionary(output, outputRoot->m_handle);
+                    const DRW_Dictionary::Entry* styleEntry = child == nullptr
+                        ? nullptr : uniqueDictionaryEntry(*child, "Standard");
+                    const auto outputStyle = styleEntry == nullptr
+                        ? output.mLineStyles.end()
+                        : std::find_if(output.mLineStyles.begin(),
+                            output.mLineStyles.end(),
+                            [styleEntry](const DRW_MLineStyle& style) {
+                                return style.handle == styleEntry->m_handle
+                                    && style.name == "Standard";
+                            });
+                    if (child == nullptr
+                        || child->parentHandle != outputNod.handle
+                        || child->reactorHandles
+                            != std::vector<std::uint32_t>{outputNod.handle}
+                        || child->m_entries.size() != 1u
+                        || styleEntry == nullptr
+                        || outputStyle == output.mLineStyles.end()
+                        || outputStyle->parentHandle != child->handle
+                        || outputStyle->reactorHandles
+                            != std::vector<std::uint32_t>{child->handle})
+                        return fail("physical AC1015 MLINESTYLE NOD child/owner/reactor graph changed");
+                } else if (sourceRoot.m_name == "ACAD_PLOTSTYLENAME") {
+                    const DRW_DictionaryWithDefault* child =
+                        uniqueDictionaryWithDefault(output, outputRoot->m_handle);
+                    const DRW_Dictionary::Entry* normal = child == nullptr
+                        ? nullptr : uniqueDictionaryEntry(*child, "Normal");
+                    if (child == nullptr
+                        || child->parentHandle != outputNod.handle
+                        || child->reactorHandles
+                            != std::vector<std::uint32_t>{outputNod.handle}
+                        || child->m_entries.size() != 1u || normal == nullptr
+                        || normal->m_handle != child->m_defaultEntryHandle)
+                        return fail("physical AC1015 plot-style default NOD child/owner/reactor graph changed");
+                } else {
+                    return fail("physical AC1015 output contains an unexpected NOD key");
+                }
+            }
+        }
 
         for (std::size_t index = 0; index < sourceLayouts.size(); ++index) {
             const DRW_Layout& sourceLayout = *sourceLayouts[index];
@@ -40371,7 +40599,8 @@ bool physicalLayoutOutputReadback(
                     }) != 1
                 || outputMatch->parentHandle != outputLayoutDictionary->handle
                 || sourceBlockRecord == nullptr || outputBlockRecord == nullptr
-                || sourceBlockRecord->name != outputBlockRecord->name
+                || !sameAsciiSymbol(sourceBlockRecord->name,
+                                    outputBlockRecord->name)
                 || sourceBlockRecord->layoutHandle != sourceLayout.handle
                 || outputBlockRecord->layoutHandle != outputMatch->handle
                 || ((sourceExtension == nullptr)
@@ -40445,7 +40674,11 @@ bool physicalLayoutOutputReadback(
                 }
             }
 
-            if (sourceLayout.name == "Model") {
+            if (ac1015Source) {
+                if (sourceLayout.lastActiveViewportHandle.ref != 0u
+                    || outputMatch->lastActiveViewportHandle.ref != 0u)
+                    return fail("physical AC1015 LAYOUT active-viewport field changed");
+            } else if (sourceLayout.name == "Model") {
                 const DRW_Vport* sourceActive = uniqueVport(
                     source, sourceLayout.lastActiveViewportHandle.ref);
                 const DRW_Vport* outputActive = uniqueVport(
