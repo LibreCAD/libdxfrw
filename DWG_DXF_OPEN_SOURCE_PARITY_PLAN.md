@@ -49,7 +49,7 @@ Implementation history and evidence stay in Git and `docs/research/`.
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
 | P4 | OPEN — source/graph closure | Close reproduced source-required bodies and dependencies that still lack strict output/readback proof. For AC1018 `ET-Drawing-with-Border.dwg`, DICTIONARY `0x2CD` remains unqualified because its sole `ACAD_SORTENTS` edge reaches SORTENTSTABLE `0x2CE` under named BLOCK_RECORD `0x24C` (`ET Border block`); the documented DXF owner scope does not admit that named-block table, so preserve/refuse the parent and child as one graph unless an authoritative eligible mapping is found. See the [AC1018 SORTENTSTABLE dependency receipt](docs/research/p4-ac1018-named-block-sortents-dependency-2026-11-01.json) and [owner-scope receipt](docs/research/p4-ac1024-sortents-owner-scope-qualification-2026-11-01.json). For AC1024 `title_block-arch.dwg`, current strict export qualifies 106/109 opaque callbacks; the remaining SORTENTSTABLEs (handles 4202, 4380, 4637) belong to `*U3`, `Title_Block-ARCH`, and `*U6`, respectively, so retain refusal under the same owner-scope rule. The previous title-block VIEWPORT receipt records an earlier result and is not current whole-source closure evidence; see the [current named-block SORTENTSTABLE receipt](docs/research/p4-ac1024-title-block-named-block-sortents-residual-2026-11-01.json). Whole-source AC1018 output remains blocked by the invalid non-shape empty-name STYLE `0xDF`; keep it refused until a source- and consumer-backed output route is established. The AC1024 LayerStates source profile in the [source evidence receipt](docs/research/p4-ac1024-layerstates-xrecord-source-admission-2026-11-01.json) remains read-only because its XRECORD contains group 370, outside Autodesk’s documented DXF XRECORD application domain (1–369 except 5 and 105). Remaining work for this profile is to establish a producer-backed schema or another independently sourced profile with a lossless DXF mapping; only then qualify staged output and ASCII/Binary readback. | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN — dynamic-block, rendering and TABLE residual profiles | Close the remaining source-required bodies, identity/reference edges and fresh readback for the two-root AC1024 architectural dynamic-block graph; resolve its parentId projection and native evaluation gates. Qualify only the still-uncovered rendering profiles and source-backed FIELD value/reference shapes, block-cell geometry, CONTENTFORMAT/CELLSTYLEMAP combinations, overlapping edge semantics and AC1018 TABLE bodies/borders. | Start from the existing source censuses and scoped output receipts; admit only source- or consumer-backed profiles, preserve role/handle dependencies and fail closed on unrepresented fields. |
+| P5 | OPEN — dynamic-block semantics, rendering and TABLE residual profiles | Resolve only the AC1024 architectural graph's `parentId` projection and native-evaluation gates; its local graph/output-readback closure is recorded for the exact input/code binding in the [two-root closure receipt](docs/research/p4-ac1024-two-root-dynamic-graph-closure-2026-10-31.json). Qualify only the still-uncovered rendering profiles and source-backed FIELD value/reference shapes, block-cell geometry, CONTENTFORMAT/CELLSTYLEMAP combinations, overlapping edge semantics and AC1018 TABLE bodies/borders. | Reopen the qualified graph only if its source or relevant implementation changes. For other profiles, admit only source- or consumer-backed fields and edges; preserve role/handle dependencies and fail closed on unrepresented data. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -129,25 +129,25 @@ output gates are met.
 
 ## P5 — rendering and TABLE
 
-**Dynamic blocks:** finish only the source-required gaps for the two-root AC1024
-architectural graph: bind remaining bodies and references to emitted identities,
-close both EvaluationGraph owner routes and their associative dependencies, and
-prove complete staged output plus fresh ASCII/Binary readback and strict source
-conversion. Start from the existing source census and writer-progress receipts;
-refresh only evidence invalidated by changed source bindings. Then resolve the
-`parentId` projection boundary and independently qualify native evaluation.
-Admit other physical subclasses only when an existing source identifies a
-required field, role, or output gap.
+**Dynamic blocks:** only the `parentId` projection boundary and independent
+native evaluation remain for the existing two-root AC1024 architectural graph;
+its local closure and output/readback slice is recorded in the [receipt](docs/research/p4-ac1024-two-root-dynamic-graph-closure-2026-10-31.json).
+Reopen that slice only if its source or relevant code changes. Admit other
+physical subclasses only when a current source identifies a required field,
+role, or output gap.
 
 **Rendering:** close only the unqualified engine/class-revision/schema and
 optional-presence profiles; establish source-backed active/global/environment
-and background/live-section relations; and qualify physical SUN ownership paths
-whose reference/owner graph is not represented by the VPORT/VIEWPORT route,
-followed by native rendering semantics. Unsupported RGB/name/book CMC states
-remain refused unless a lossless documented route is established. Other
-remaining rendering work is native dictionary collation, layer style overrides,
-VIEWPORT shade modes 4/5, and references 335/343/344/91. Verify coupled
-dictionary keys, names, body fields and consumers.
+and background/live-section relations; then qualify native rendering semantics.
+Keep physical SUN ownership constrained to the documented VPORT/VIEWPORT
+hard-owner route. The AC1024 aerial sample's SUN `0x24C` is owned by XRECORD
+`0x246`, so it is not evidence for a valid alternate route; preserve strict
+refusal and reopen implementation only if a conforming source demonstrates a
+missing route ([outlier receipt](docs/research/p5-ac1024-sun-xrecord-owner-outlier-2026-11-01.json)).
+Unsupported RGB/name/book CMC states remain refused unless a lossless documented
+route is established. Other remaining rendering work is native dictionary
+collation, layer style overrides, VIEWPORT shade modes 4/5, and references
+335/343/344/91. Verify coupled dictionary keys, names, body fields and consumers.
 
 **TABLE:**
 
