@@ -51,7 +51,7 @@ Phase rows express aggregate exit gates, not item-level completion counts.
 | P5 | OPEN — dynamic-block semantics, rendering and TABLE residual profiles | Resolve only the AC1024 architectural graph's `parentId` projection and native-evaluation gates. Qualify remaining rendering profiles, physical FIELD producer/version profiles and native FIELD evaluation, block-cell geometry, CONTENTFORMAT/CELLSTYLEMAP combinations, overlapping edge semantics and AC1018 TABLE bodies/borders. | For other profiles, admit only source- or consumer-backed fields and edges; preserve role/handle dependencies and fail closed on unrepresented data. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
-| P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
+| P8 | OPEN — LibreCAD/LibreCAD_3, Linux/Windows, 3D consumers and release gates | Qualify LibreCAD/LibreCAD_3 callback behavior, native Linux/Windows FreeCAD, intended 3D consumers, ABI, packaging and release contracts on a composed candidate. The narrow macOS ARM64 FreeCAD 2D open/insert path has a standalone evidence receipt; it does not close these broader gates. | Relevant local conversion and output paths must be source-stable. |
 | P9 | DEFERRED_EXTERNAL | Resolve J256, J260, J268, J284, J293 and J295 only with eligible independent evidence; external results remain non-promoting until claim gates pass. | Follow `metadata/external-evidence-resolution-v1.json`. |
 
 P6–P9 qualification can proceed when its inputs are ready; it does not block
@@ -212,8 +212,11 @@ same parser is not an independent oracle.
 ## P8 — consumer, platform, packaging and release gates
 
 - Preserve LibreCAD/LibreCAD_3 callback/default behavior; new callbacks remain
-  non-pure. Qualify intended 3D consumers and the actual FreeCAD dwg2dxf
-  open/insert workflow without dropping required geometry.
+  non-pure. Qualify intended 3D consumers and remaining FreeCAD `dwg2dxf`
+  profiles without dropping required geometry. The limited macOS ARM64 2D
+  open/insert profile is recorded in
+  [the FreeCAD route receipt](docs/research/p8-macos-freecad-dwg2dxf-open-insert-qualification-2026-11-01.json);
+  it does not qualify 3D semantics or other platforms.
 - Complete native Linux/Windows FreeCAD qualification and bind the actual loaded
   library/converter child. Verify Windows UTF-8/Qt paths, filesystem collisions,
   MSVC/DLL/shared/static/relocated consumers and package/toolchain contracts.

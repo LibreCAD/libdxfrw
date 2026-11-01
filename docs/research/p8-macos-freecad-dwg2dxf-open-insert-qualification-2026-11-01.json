@@ -1,0 +1,145 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-macos-freecad-dwg2dxf-open-insert-qualification-2026-11-01",
+  "date": "2026-11-01",
+  "generatedAtUtc": "2026-11-01T11:18:31Z",
+  "title": "FreeCAD 1.1.4 macOS ARM64 PATH-discovered DWG open and insert qualification for a bounded 2D LINE profile",
+  "status": "PASS_MACOS_ARM64_2D_PROFILE_ONLY",
+  "supportClaimEffect": "none",
+  "scope": "End-to-end FreeCAD Draft DWG open() and insert() using the installed C++ DXF importer, PATH-discovered build-gcc/dwg2dxf, isolated FreeCAD preferences, and a bounded AC1015 three-LINE control. This is consumer-route evidence only; it does not qualify full DWG/DXF support or 3D semantics.",
+  "repository": {
+    "githubRepository": "LibreCAD/libdxfrw",
+    "checkedOutCommit": "c32ea593a839c8c34e744d44fb588c49a7a4c215",
+    "workingTreeCodeChanges": false
+  },
+  "source": {
+    "trackedPath": "tests/fixtures/dwg/ordinary_enc_AC1015.dwg",
+    "sha256": "80690dc45b2e32b4d378df4be860c51c6b3c952400aa762eb73a654e93a728dd",
+    "repositoryFixture": true,
+    "independentReader": {
+      "path": "/opt/homebrew/bin/dwgread",
+      "version": "dwgread 0.14",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+      "observedLineEndpoints": [
+        [[1.0, 2.0, 0.0], [3.0, 4.0, 0.0]],
+        [[5.0, 6.0, 0.0], [7.0, 8.0, 0.0]],
+        [[9.0, 10.0, 0.0], [11.0, 12.0, 0.0]]
+      ]
+    }
+  },
+  "controlGeneration": {
+    "purpose": "The tracked source is also retained as a negative strict-conversion control: its third LINE references absent reactor/XDICTIONARY targets, so it is not suitable as a positive whole-document consumer input.",
+    "policy": "Generated only under /private/tmp; no DWG or DXF fixture was added to the repository.",
+    "tools": {
+      "dwgread": {
+        "version": "dwgread 0.14",
+        "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+      },
+      "dwgwrite": {
+        "version": "dwgwrite 0.14",
+        "sha256": "8c5dfd7f733e924723155e5040dd33f3fefdf4682071867a4c1d3499adf73e74"
+      }
+    },
+    "transformation": "Read the tracked DWG with dwgread -v5 -O JSON. In the scratch JSON only, remove the reactors and xdicobjhandle properties from the LINE whose JSON handle is [0,1,50]; leave all three line endpoint pairs unchanged. Write the JSON with dwgwrite -I JSON -y -o <scratch.dwg> <scratch.json>. This creates a scratch control with no unresolved references on the 2D witness entities; it is not a committed fixture and is not a claim about source-format completeness.",
+    "scratchJsonSha256": "3ded395883da9c8c27f017e441b0519a5c8ebd6869110658205d3427569ae8a3",
+    "scratchDwgSha256": "010eb92b4541a05502b6a90230d99b1cd118e00a29a7450ad4ef7633064ee292",
+    "scratchDwgVersion": "AC1015",
+    "independentReadback": {
+      "reader": "/opt/homebrew/bin/dwgread 0.14",
+      "exitCode": 0,
+      "observedVersion": "AC1015",
+      "observedLineCount": 3,
+      "observedLineEndpoints": [
+        [[1.0, 2.0, 0.0], [3.0, 4.0, 0.0]],
+        [[5.0, 6.0, 0.0], [7.0, 8.0, 0.0]],
+        [[9.0, 10.0, 0.0], [11.0, 12.0, 0.0]]
+      ]
+    },
+    "scratchLineEndpoints": [
+      [[1.0, 2.0, 0.0], [3.0, 4.0, 0.0]],
+      [[5.0, 6.0, 0.0], [7.0, 8.0, 0.0]],
+      [[9.0, 10.0, 0.0], [11.0, 12.0, 0.0]]
+    ]
+  },
+  "consumer": {
+    "application": "FreeCAD",
+    "version": "1.1.4 Revision 20260928",
+    "revision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "architecture": "arm64",
+    "platform": "macOS 27.0.1",
+    "freecadcmd": {
+      "path": "/Applications/FreeCAD.app/Contents/Resources/bin/freecadcmd",
+      "sha256": "67a66f17b663637bcf022330b37559813e65417e2a96f9da1bb3ae34cad08b60"
+    },
+    "freecadExecutable": {
+      "path": "/Applications/FreeCAD.app/Contents/Resources/bin/freecad",
+      "sha256": "a51b76e19c13df9a8f20263df3029e9e0886a981dc67cb19b81e0956a26b865f"
+    },
+    "importer": "FreeCAD Draft importer using the C++ DXF backend",
+    "isolatedPreferencesSeeded": true,
+    "configurationSha256": "ceb0c5f9462ecae58807378f04f97e0b72fce301aa7e9c985817cbb8e57e0aad"
+  },
+  "converter": {
+    "path": "build-gcc/dwg2dxf/dwg2dxf",
+    "sha256": "809c6957c51f5b7a5083a485303be643fbb32ebdc7203a28b65c71e2f1d29fea",
+    "discovery": "PATH",
+    "conversionMode": "LibreDWG only",
+    "actualArguments": ["<exact input DWG path>", "-o", "<FreeCAD temporary output DXF path>"]
+  },
+  "workflowMacro": {
+    "path": "tests/freecad_dwg2dxf_import_check.FCMacro",
+    "sha256": "0c4e34f62edde13912dd2ce53fc675e855c6431dc7c70abcd2660d2660a1a859",
+    "assertionMarkerRequired": "FREECAD_DWG_IMPORT_ASSERTIONS_PASS="
+  },
+  "positiveResults": [
+    {
+      "operation": "open",
+      "status": "PASS",
+      "inputSha256": "010eb92b4541a05502b6a90230d99b1cd118e00a29a7450ad4ef7633064ee292",
+      "outputDxfSha256": "81e3893f26cacab08a438c095f0c7bdb95d49d650a68aca049bf481e7fcafaa3",
+      "converterExitCode": 0,
+      "importer": "C++",
+      "entityCounts": {"LINE": 3},
+      "createdObjects": 3,
+      "unsupportedFeatures": {},
+      "endpointPairsMatched": true,
+      "eachShapeValid": true,
+      "eachShapeHasOneStraightEdgeAndTwoVertices": true
+    },
+    {
+      "operation": "insert",
+      "status": "PASS",
+      "inputPathContainsSpaces": true,
+      "inputSha256": "010eb92b4541a05502b6a90230d99b1cd118e00a29a7450ad4ef7633064ee292",
+      "outputDxfSha256": "81e3893f26cacab08a438c095f0c7bdb95d49d650a68aca049bf481e7fcafaa3",
+      "converterExitCode": 0,
+      "targetDocumentPreserved": true,
+      "importer": "C++",
+      "entityCounts": {"LINE": 3},
+      "createdObjects": 3,
+      "unsupportedFeatures": {},
+      "endpointPairsMatched": true,
+      "eachShapeValid": true,
+      "eachShapeHasOneStraightEdgeAndTwoVertices": true
+    }
+  ],
+  "negativeResult": {
+    "input": "tests/fixtures/dwg/ordinary_enc_AC1015.dwg",
+    "inputSha256": "80690dc45b2e32b4d378df4be860c51c6b3c952400aa762eb73a654e93a728dd",
+    "result": "EXPECTED_STRICT_REFUSAL",
+    "reason": "The original third LINE references absent reactor/XDICTIONARY targets; strict graph preflight refused the conversion at handle 0x38 and did not publish a DXF.",
+    "meaning": "The qualification did not weaken graph validation to obtain a positive result."
+  },
+  "limitations": [
+    "One AC1015 three-LINE profile only; no broad DWG/DXF support claim follows.",
+    "macOS ARM64 only; native Linux and Windows FreeCAD qualification remains open.",
+    "The control removes unresolved references from the third LINE in scratch JSON before re-encoding; it does not qualify those original graph edges.",
+    "No LibreCAD or LibreCAD_3 runtime was exercised in this slice.",
+    "No 3D/ACIS/ACDS geometry or semantic evaluation was exercised.",
+    "No testing DWG/DXF fixture was committed."
+  ],
+  "planImpact": {
+    "completedSlice": "MacOS ARM64 FreeCAD Draft open() and insert() PATH route with exact converter attribution and endpoint-level semantic checks for the bounded 2D LINE profile.",
+    "remaining": "P8 remains OPEN for LibreCAD/LibreCAD_3, native Linux/Windows FreeCAD, 3D consumers, ABI/API, packaging and release gates."
+  }
+}
