@@ -27646,6 +27646,7 @@ bool dx_iface::inspectDwgMLineStyles(
 
 bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
     m_dwgLayoutOutputSources.clear();
+    m_dwgNodDictionaryOutputSources.clear();
     m_dwgLayoutOutputDictionary = DRW_Dictionary{};
     m_dwgLayoutOutputNodHandle = 0u;
     m_dwgLayoutOutputNodHardOwner = 0;
@@ -27752,8 +27753,82 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
         "Model", "Layout1",
         ac1018Profile ? "Layout2" : "Architectural Title Block"}};
     std::map<std::uint32_t, DwgLayoutOutputSource> selected;
+    std::map<std::uint32_t, DwgNodDictionaryOutputSource>
+        selectedNodDictionaries;
     std::set<std::string> selectedNames;
     try {
+        if (ac1018Profile) {
+            constexpr std::array<const char*, 4> emptyRootNames{{
+                "ACAD_GROUP", "ACAD_PLOTSETTINGS",
+                "ACAD_MATERIAL", "ACAD_COLOR"}};
+            bool emptyRootProfile = true;
+            for (const char* name : emptyRootNames) {
+                const auto entry = std::find_if(
+                    nod.m_entries.begin(), nod.m_entries.end(),
+                    [name](const DRW_Dictionary::Entry& candidate) {
+                        return candidate.m_name == name;
+                    });
+                if (entry == nod.m_entries.end()
+                    || std::count_if(nod.m_entries.begin(), nod.m_entries.end(),
+                        [name](const DRW_Dictionary::Entry& candidate) {
+                            return candidate.m_name == name;
+                        }) != 1u) {
+                    emptyRootProfile = false;
+                    break;
+                }
+                const DRW_Dictionary* dictionary = findDictionary(
+                    entry->m_handle);
+                const auto key = std::make_pair(
+                    cData->importGeneration, entry->m_handle);
+                if (cData->m_opaqueDwgSourceFrameIdentities.count(key) != 1u) {
+                    emptyRootProfile = false;
+                    break;
+                }
+                const DRW_UnsupportedObject* frame = nullptr;
+                const auto opaqueFrame = cData->m_opaqueDwgSourceFrames.find(key);
+                if (opaqueFrame != cData->m_opaqueDwgSourceFrames.end()) {
+                    frame = &opaqueFrame->second;
+                } else {
+                    const auto standardFrame =
+                        cData->m_standardDwgObjectFrames.find(key);
+                    if (standardFrame != cData->m_standardDwgObjectFrames.end())
+                        frame = &standardFrame->second.raw;
+                }
+                if (dictionary == nullptr
+                    || dictionary->handle != entry->m_handle
+                    || dictionary->parentHandle != nod.handle
+                    || dictionary->hardOwner != 0
+                    || dictionary->cloning != 1 || dictionary->countCap
+                    || !dictionary->hasCompleteDwgEntries()
+                    || !dictionary->m_entries.empty()
+                    || !dictionary->appData.empty()
+                    || !dictionary->extData.empty()
+                    || dictionary->hasDataStorageBinaryData()
+                    || dictionary->hasDwgCommonLinkTail()
+                    || !dictionary->pendingAppIdResolutions.empty()
+                    || !dictionary->pendingLayerRefResolutions.empty()
+                    || dictionary->reactorHandles
+                        != std::vector<std::uint32_t>{nod.handle}
+                    || frame == nullptr || frame->m_objectType != 42
+                    || frame->m_handle != entry->m_handle
+                    || frame->m_isEntity
+                    || frame->m_version != cData->sourceVersion
+                    || frame->m_hasDataStorage) {
+                    emptyRootProfile = false;
+                    break;
+                }
+                DwgNodDictionaryOutputSource snapshot;
+                snapshot.model = *dictionary;
+                snapshot.nodEntry = *entry;
+                if (!selectedNodDictionaries.emplace(
+                        dictionary->handle, std::move(snapshot)).second) {
+                    emptyRootProfile = false;
+                    break;
+                }
+            }
+            if (!emptyRootProfile)
+                selectedNodDictionaries.clear();
+        }
         for (const DRW_Layout& layout : cData->layouts) {
             const auto expectedLayout = std::find_if(expected.begin(), expected.end(),
                 [&layout](const auto& item) {
@@ -27958,6 +28033,8 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
             || !expectedPaperLayouts)
             return skip("not every witnessed layout identity was selected");
         m_dwgLayoutOutputSources = std::move(selected);
+        m_dwgNodDictionaryOutputSources =
+            std::move(selectedNodDictionaries);
         m_dwgLayoutOutputDictionary = *layoutDictionary;
         m_dwgLayoutOutputNodHandle = nod.handle;
         m_dwgLayoutOutputNodHardOwner = nod.hardOwner;
@@ -27975,6 +28052,7 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
         // be completed; callers continue through their existing route.
     }
     m_dwgLayoutOutputSources.clear();
+    m_dwgNodDictionaryOutputSources.clear();
     m_dwgLayoutOutputDictionary = DRW_Dictionary{};
     m_dwgLayoutOutputNodHandle = 0u;
     m_dwgLayoutOutputNodHardOwner = 0;
@@ -27996,13 +28074,19 @@ bool dx_iface::hasUnchangedDwgLayoutOutputSources(bool debug) const noexcept {
         return m_dwgLayoutOutputOwner == nullptr
             && m_dwgLayoutOutputGeneration == 0u
             && m_dwgLayoutOutputSourceVersion == DRW::UNKNOWNV
-            && m_dwgLayoutOutputNodHandle == 0u;
+            && m_dwgLayoutOutputNodHandle == 0u
+            && m_dwgNodDictionaryOutputSources.empty();
     if (cData == nullptr || m_dwgLayoutOutputOwner != cData
         || m_dwgLayoutOutputGeneration != cData->importGeneration
         || cData->sourceFormat != dx_source_format::DWG
         || cData->sourceVersion != m_dwgLayoutOutputSourceVersion
         || (m_dwgLayoutOutputSourceVersion != DRW::AC1018
             && m_dwgLayoutOutputSourceVersion != DRW::AC1024)
+        || (m_dwgLayoutOutputSourceVersion == DRW::AC1024
+            && !m_dwgNodDictionaryOutputSources.empty())
+        || (m_dwgLayoutOutputSourceVersion == DRW::AC1018
+            && !m_dwgNodDictionaryOutputSources.empty()
+            && m_dwgNodDictionaryOutputSources.size() != 4u)
         || cData->layouts.size() != m_dwgLayoutOutputSources.size()
         || cData->namedObjectDictionary.handle != m_dwgLayoutOutputNodHandle
         || cData->namedObjectDictionary.hardOwner
@@ -28073,6 +28157,33 @@ bool dx_iface::hasUnchangedDwgLayoutOutputSources(bool debug) const noexcept {
                 }) != 1u
             || !sameRootEntry(*rootEntry))
             return fail("ACAD_LAYOUT NOD entry");
+        for (const auto& row : m_dwgNodDictionaryOutputSources) {
+            const auto liveEntry = std::find_if(
+                nod.m_entries.begin(), nod.m_entries.end(),
+                [&row](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == row.second.nodEntry.m_name;
+                });
+            if (liveEntry == nod.m_entries.end()
+                || std::count_if(nod.m_entries.begin(), nod.m_entries.end(),
+                    [&row](const DRW_Dictionary::Entry& entry) {
+                        return entry.m_name == row.second.nodEntry.m_name;
+                    }) != 1u
+                || liveEntry->m_handle != row.second.nodEntry.m_handle
+                || liveEntry->m_dxfHandleCode
+                    != row.second.nodEntry.m_dxfHandleCode)
+                return fail("empty NOD child DICTIONARY entry changed");
+            const DRW_Dictionary* liveDictionary = nullptr;
+            for (const DRW_Dictionary& candidate : cData->dictionaries) {
+                if (candidate.handle != row.first)
+                    continue;
+                if (liveDictionary != nullptr)
+                    return fail("duplicate empty NOD child DICTIONARY identity");
+                liveDictionary = &candidate;
+            }
+            if (liveDictionary == nullptr
+                || !sameDictionary(row.second.model, *liveDictionary))
+                return fail("empty NOD child DICTIONARY source snapshot changed");
+        }
         const DRW_Dictionary* liveLayoutDictionary = nullptr;
         std::vector<const DRW_Dictionary*> liveExtensions(
             m_dwgLayoutOutputSources.size(), nullptr);
@@ -28407,6 +28518,19 @@ bool dx_iface::inspectDwgLayouts(
                 emittedLayoutDictionary, emittedNod)
             || !hasUnchangedDwgLayoutOutputSources())
             return reject("NOD/ACAD_LAYOUT dictionary emitted identity and owner");
+        std::map<std::uint32_t, std::uint32_t> emittedNodDictionaries;
+        std::set<std::uint32_t> uniqueEmittedNodDictionaries;
+        for (const auto& row : m_dwgNodDictionaryOutputSources) {
+            std::uint32_t emitted = 0u;
+            if (!mapHandle(row.first, emitted)
+                || emitted == emittedNod
+                || !uniqueEmittedNodDictionaries.insert(emitted).second
+                || !dxfW->dxfWriteRecordHasIdentity(
+                    emitted, "DICTIONARY", "OBJECTS")
+                || !dxfW->dxfWriteRecordHasOwner(emitted, emittedNod)
+                || !emittedNodDictionaries.emplace(row.first, emitted).second)
+                return reject("empty NOD child DICTIONARY emitted identity/owner");
+        }
 
         const auto nodEntry = std::find_if(
             cData->namedObjectDictionary.m_entries.begin(),
@@ -28423,6 +28547,7 @@ bool dx_iface::inspectDwgLayouts(
             return reject("NOD ACAD_LAYOUT source root entry");
 
         std::set<std::uint32_t> seenNod, seenRoot, seenLayouts;
+        std::set<std::uint32_t> seenNodDictionaries;
         std::set<std::uint32_t> seenExtensions;
         std::set<std::uint32_t> seenXrecords;
         std::size_t expectedExtensionCount = 0u;
@@ -28441,6 +28566,9 @@ bool dx_iface::inspectDwgLayouts(
                 selectedName = name;
                 if (handle == emittedNod || handle == emittedLayoutDictionary)
                     return true;
+                for (const auto& row : emittedNodDictionaries)
+                    if (handle == row.second)
+                        return true;
                 for (const auto& row : m_dwgLayoutOutputSources) {
                     std::uint32_t emittedLayout = 0u;
                     std::uint32_t emittedExtension = 0u;
@@ -28487,18 +28615,73 @@ bool dx_iface::inspectDwgLayouts(
                                     ? DRW_Dictionary::Entry::DxfHandleCode::HardOwner
                                     : DRW_Dictionary::Entry::DxfHandleCode::SoftOwner)
                                 : m_dwgLayoutOutputNodEntry.m_dxfHandleCode;
-                            return actual.handle == emittedNod
-                                && entry != actual.m_entries.end()
-                                && entry->m_handle == emittedLayoutDictionary
-                                && entry->m_dxfHandleCode == role
-                                && std::count_if(actual.m_entries.begin(),
+                            if (actual.handle != emittedNod
+                                || entry == actual.m_entries.end()
+                                || entry->m_handle != emittedLayoutDictionary
+                                || entry->m_dxfHandleCode != role
+                                || std::count_if(actual.m_entries.begin(),
                                     actual.m_entries.end(),
                                     [](const DRW_Dictionary::Entry& item) {
                                         return item.m_name == "ACAD_LAYOUT";
-                                    }) == 1;
+                                    }) != 1)
+                                return false;
+                            for (const auto& row :
+                                 m_dwgNodDictionaryOutputSources) {
+                                std::uint32_t emitted = 0u;
+                                if (!mapHandle(row.first, emitted))
+                                    return false;
+                                const auto root = std::find_if(
+                                    actual.m_entries.begin(),
+                                    actual.m_entries.end(),
+                                    [&row](const DRW_Dictionary::Entry& item) {
+                                        return item.m_name
+                                            == row.second.nodEntry.m_name;
+                                    });
+                                const auto rootRole =
+                                    row.second.nodEntry.m_dxfHandleCode
+                                        == DRW_Dictionary::Entry::DxfHandleCode::Unspecified
+                                    ? (m_dwgLayoutOutputNodHardOwner
+                                        ? DRW_Dictionary::Entry::DxfHandleCode::HardOwner
+                                        : DRW_Dictionary::Entry::DxfHandleCode::SoftOwner)
+                                    : row.second.nodEntry.m_dxfHandleCode;
+                                if (root == actual.m_entries.end()
+                                    || root->m_handle != emitted
+                                    || root->m_dxfHandleCode != rootRole
+                                    || std::count_if(actual.m_entries.begin(),
+                                        actual.m_entries.end(),
+                                        [&row](const DRW_Dictionary::Entry& item) {
+                                            return item.m_name
+                                                == row.second.nodEntry.m_name;
+                                        }) != 1)
+                                    return false;
+                            }
+                            return true;
                         });
                     if (!decoded)
-                        stagedFailure = "NOD ACAD_LAYOUT key and reference role";
+                        stagedFailure = "NOD ACAD_LAYOUT/empty DICTIONARY keys and reference roles";
+                    return decoded;
+                }
+                for (const auto& row : m_dwgNodDictionaryOutputSources) {
+                    const auto emitted = emittedNodDictionaries.find(row.first);
+                    if (emitted == emittedNodDictionaries.end()
+                        || shape.handle != emitted->second)
+                        continue;
+                    if (selectedName != "DICTIONARY"
+                        || !seenNodDictionaries.insert(shape.handle).second) {
+                        stagedFailure = "duplicate or misnamed empty NOD child DICTIONARY";
+                        return false;
+                    }
+                    dx_standard_output::Decoder decoder(view);
+                    const bool decoded = decoder.decodeRecord<DRW_Dictionary>(
+                        body, [&](const DRW_Dictionary& actual) {
+                            std::vector<std::uint32_t> references;
+                            return actual.handle == emitted->second
+                                && dx_standard_output::equal(
+                                    row.second.model, actual, mapHandle,
+                                    references);
+                        });
+                    if (!decoded)
+                        stagedFailure = "empty NOD child DICTIONARY fields/references";
                     return decoded;
                 }
                 if (shape.handle == emittedLayoutDictionary) {
@@ -28831,6 +29014,8 @@ bool dx_iface::inspectDwgLayouts(
                 return decoded;
             });
         if (!inspected || seenNod.size() != 1u || seenRoot.size() != 1u
+            || seenNodDictionaries.size()
+                != m_dwgNodDictionaryOutputSources.size()
             || seenLayouts.size() != m_dwgLayoutOutputSources.size()
             || seenExtensions.size() != expectedExtensionCount
             || seenXrecords.size() != expectedXrecordCount)
@@ -60745,6 +60930,10 @@ bool dx_iface::finalizeDxfWrite() {
             if (!qualifyCapturedIdentity(
                     m_dwgLayoutOutputDictionary.handle))
                 return false;
+            for (const auto& proof : m_dwgNodDictionaryOutputSources) {
+                if (!qualifyCapturedIdentity(proof.first))
+                    return false;
+            }
             for (const auto& proof : m_dwgLayoutOutputSources) {
                 if (!qualifyCapturedIdentity(proof.first))
                     return false;
@@ -62017,6 +62206,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     m_dwgMLineStyleOutputGeneration=0u;
     m_dwgMLineStylesInspected=false;
     m_dwgLayoutOutputSources.clear();
+    m_dwgNodDictionaryOutputSources.clear();
     m_dwgLayoutOutputDictionary = DRW_Dictionary{};
     m_dwgLayoutOutputNodHandle = 0u;
     m_dwgLayoutOutputNodHardOwner = 0;

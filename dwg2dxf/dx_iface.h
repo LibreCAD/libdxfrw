@@ -2737,8 +2737,14 @@ private:
         DRW_Dictionary extensionDictionary;
         std::vector<std::uint32_t> extensionXRecordHandles;
     };
+    struct DwgNodDictionaryOutputSource {
+        DRW_Dictionary model;
+        DRW_Dictionary::Entry nodEntry;
+    };
     std::map<std::uint32_t,DwgLayoutOutputSource>
         m_dwgLayoutOutputSources;
+    std::map<std::uint32_t,DwgNodDictionaryOutputSource>
+        m_dwgNodDictionaryOutputSources;
     DRW_Dictionary m_dwgLayoutOutputDictionary;
     std::uint32_t m_dwgLayoutOutputNodHandle{0u};
     int m_dwgLayoutOutputNodHardOwner{0};

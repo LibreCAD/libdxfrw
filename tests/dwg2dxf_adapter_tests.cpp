@@ -37728,9 +37728,9 @@ bool physicalDictionaryDefaultOutputReadback(
 
         if (source.sourceVersion == DRW::AC1018
             && (DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
-                    source) != 14u
+                    source) != 18u
                 || source.dwgReadOutcome.opaqueViewCallbacks != 23u))
-            return fail("AC1018 composed output did not qualify exactly fourteen identities in the 23-callback source census");
+            return fail("AC1018 composed output did not qualify exactly eighteen identities in the 23-callback source census");
 
     }
     std::cerr << "Physical DICTIONARYWDFLT/PLACEHOLDER ASCII and binary output, "
@@ -39577,6 +39577,12 @@ bool physicalAc1018LayoutOutputReadback(
 
     const std::array<std::pair<std::uint32_t, const char*>, 3> expected{{
         {0x22u, "Model"}, {0x59u, "Layout1"}, {0x5Eu, "Layout2"}}};
+    const std::array<std::pair<const char*, std::uint32_t>, 4>
+        expectedEmptyRootDictionaries{{
+            {"ACAD_GROUP", 0x0Du},
+            {"ACAD_PLOTSETTINGS", 0x19u},
+            {"ACAD_MATERIAL", 0x72u},
+            {"ACAD_COLOR", 0x73u}}};
     const auto uniqueDictionary = [](const dx_data& data,
                                      std::uint32_t handle) {
         const DRW_Dictionary* result = nullptr;
@@ -39638,6 +39644,97 @@ bool physicalAc1018LayoutOutputReadback(
             != std::vector<std::uint32_t>{source.namedObjectDictionary.handle}
         || sourceLayoutDictionary->m_entries.size() != expected.size())
         return fail("physical AC1018 ACAD_LAYOUT root and three-entry dictionary are not closed");
+
+    std::array<const DRW_Dictionary*, 4> sourceEmptyRootDictionaries{{
+        nullptr, nullptr, nullptr, nullptr}};
+    for (std::size_t index = 0u;
+         index < expectedEmptyRootDictionaries.size(); ++index) {
+        const auto& identity = expectedEmptyRootDictionaries[index];
+        const auto rootEntry = std::find_if(
+            source.namedObjectDictionary.m_entries.begin(),
+            source.namedObjectDictionary.m_entries.end(),
+            [&identity](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == identity.first
+                    && entry.m_handle == identity.second;
+            });
+        const DRW_Dictionary* dictionary = uniqueDictionary(
+            source, identity.second);
+        const DRW_UnsupportedObject* frame =
+            DxIfaceStandardDwgCaptureTestAccess::standardSourceFrame(
+                source, source.importGeneration, identity.second);
+        if (rootEntry == source.namedObjectDictionary.m_entries.end()
+            || std::count_if(
+                source.namedObjectDictionary.m_entries.begin(),
+                source.namedObjectDictionary.m_entries.end(),
+                [&identity](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == identity.first;
+                }) != 1) {
+            return fail("physical AC1018 empty root dictionary NOD key is missing or ambiguous");
+        }
+        if (dictionary == nullptr
+            || dictionary->parentHandle
+                != source.namedObjectDictionary.handle
+            || dictionary->hardOwner != 0 || dictionary->cloning != 1
+            || dictionary->countCap
+            || !dictionary->hasCompleteDwgEntries()
+            || !dictionary->m_entries.empty()
+            || !dictionary->appData.empty() || !dictionary->extData.empty()
+            || dictionary->hasDataStorageBinaryData()
+            || dictionary->hasDwgCommonLinkTail()
+            || !dictionary->pendingAppIdResolutions.empty()
+            || !dictionary->pendingLayerRefResolutions.empty()
+            || dictionary->reactorHandles
+                != std::vector<std::uint32_t>{
+                    source.namedObjectDictionary.handle}) {
+            std::cerr << "Empty root dictionary source detail: key="
+                      << identity.first << " handle=" << identity.second
+                      << " model=" << (dictionary != nullptr)
+                      << " owner=" << (dictionary == nullptr ? 0u
+                          : dictionary->parentHandle)
+                      << " hard/cloning/capped="
+                      << (dictionary == nullptr ? -1 : dictionary->hardOwner)
+                      << '/'
+                      << (dictionary == nullptr ? -1 : dictionary->cloning)
+                      << '/'
+                      << (dictionary != nullptr && dictionary->countCap.has_value())
+                      << " entries/app/eed/reactors="
+                      << (dictionary == nullptr ? 0u : dictionary->m_entries.size())
+                      << '/'
+                      << (dictionary == nullptr ? 0u : dictionary->appData.size())
+                      << '/'
+                      << (dictionary == nullptr ? 0u : dictionary->extData.size())
+                      << '/'
+                      << (dictionary == nullptr ? 0u : dictionary->reactorCount())
+                      << " storage/tail/pending="
+                      << (dictionary != nullptr && dictionary->hasDataStorageBinaryData())
+                      << '/'
+                      << (dictionary != nullptr && dictionary->hasDwgCommonLinkTail())
+                      << '/'
+                      << (dictionary == nullptr ? 0u
+                          : dictionary->pendingAppIdResolutions.size())
+                      << ':'
+                      << (dictionary == nullptr ? 0u
+                          : dictionary->pendingLayerRefResolutions.size())
+                      << '\n';
+            return fail("physical AC1018 empty root dictionary body is outside the bounded profile");
+        }
+        if (frame == nullptr || frame->m_objectType != 42
+            || frame->m_handle != identity.second
+            || frame->m_version != DRW::AC1018 || frame->m_isEntity
+            || frame->m_hasDataStorage) {
+            std::cerr << "Empty root dictionary frame detail: key="
+                      << identity.first << " handle=" << identity.second
+                      << " present=" << (frame != nullptr)
+                      << " type=" << (frame == nullptr ? -1 : frame->m_objectType)
+                      << " frame-handle=" << (frame == nullptr ? 0u : frame->m_handle)
+                      << " version=" << (frame == nullptr ? -1 : frame->m_version)
+                      << " entity=" << (frame != nullptr && frame->m_isEntity)
+                      << " data-storage=" << (frame != nullptr && frame->m_hasDataStorage)
+                      << '\n';
+            return fail("physical AC1018 empty root dictionary callback frame changed");
+        }
+        sourceEmptyRootDictionaries[index] = dictionary;
+    }
 
     std::array<const DRW_Layout*, 3> sourceLayouts{{nullptr, nullptr, nullptr}};
     for (std::size_t index = 0u; index < expected.size(); ++index) {
@@ -39733,7 +39830,7 @@ bool physicalAc1018LayoutOutputReadback(
             return fail("physical AC1018 Layout1 was not selected for rollback control");
         const dwgHandle originalBlockRecord =
             mutablePaperLayout->paperSpaceBlockRecordHandle;
-        std::array<bool, 4> qualificationBeforeFailure{};
+        std::array<bool, 8> qualificationBeforeFailure{};
         for (std::size_t index = 0u; index < expected.size(); ++index)
             qualificationBeforeFailure[index] =
                 DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
@@ -39741,6 +39838,12 @@ bool physicalAc1018LayoutOutputReadback(
         qualificationBeforeFailure[3] =
             DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
                 source, source.importGeneration, sourceLayoutDictionary->handle);
+        for (std::size_t index = 0u;
+             index < sourceEmptyRootDictionaries.size(); ++index)
+            qualificationBeforeFailure[index + 4u] =
+                DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                    source, source.importGeneration,
+                    sourceEmptyRootDictionaries[index]->handle);
         mutablePaperLayout->paperSpaceBlockRecordHandle.ref = DRW::NoHandle;
         const bool invalidOwnerRejected = !exportPartial();
         std::ifstream refusedOutput(outputPath, std::ios::binary);
@@ -39757,6 +39860,13 @@ bool physicalAc1018LayoutOutputReadback(
             && DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
                 source, source.importGeneration, sourceLayoutDictionary->handle)
                 == qualificationBeforeFailure[3];
+        for (std::size_t index = 0u;
+             index < sourceEmptyRootDictionaries.size(); ++index)
+            qualificationsUnchanged = qualificationsUnchanged
+                && DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                    source, source.importGeneration,
+                    sourceEmptyRootDictionaries[index]->handle)
+                    == qualificationBeforeFailure[index + 4u];
         if (!invalidOwnerRejected || refusedContents != sentinel
             || !qualificationsUnchanged)
             return fail("invalid physical AC1018 LAYOUT owner was not refused atomically");
@@ -39773,10 +39883,15 @@ bool physicalAc1018LayoutOutputReadback(
                 source, source.importGeneration,
                 source.namedObjectDictionary.handle))
             return fail("physical AC1018 ACAD_LAYOUT dictionary qualification did not match its exact output proof scope");
+        for (const DRW_Dictionary* dictionary : sourceEmptyRootDictionaries)
+            if (dictionary == nullptr
+                || !DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                    source, source.importGeneration, dictionary->handle))
+                return fail("physical AC1018 empty NOD child DICTIONARY was not qualified after full output proof");
         if (source.dwgReadOutcome.opaqueViewCallbacks != 23u
             || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
-                source) != 14u)
-            return fail("AC1018 LAYOUT output did not add the dictionary and three layout identities to the 23-callback source census");
+                source) != 18u)
+            return fail("AC1018 LAYOUT output did not qualify the four empty NOD dictionaries, ACAD_LAYOUT dictionary and three layout identities in the 23-callback source census");
 
         dx_iface outputReader;
         dx_data output;
@@ -39791,6 +39906,35 @@ bool physicalAc1018LayoutOutputReadback(
             || outputLayoutDictionary->parentHandle
                 != output.namedObjectDictionary.handle)
             return fail("physical AC1018 ACAD_LAYOUT output dictionary was not freshly readable");
+        for (const auto& identity : expectedEmptyRootDictionaries) {
+            const auto rootEntry = std::find_if(
+                output.namedObjectDictionary.m_entries.begin(),
+                output.namedObjectDictionary.m_entries.end(),
+                [&identity](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == identity.first;
+                });
+            const DRW_Dictionary* dictionary = uniqueDictionary(
+                output, rootEntry == output.namedObjectDictionary.m_entries.end()
+                    ? 0u : rootEntry->m_handle);
+            if (rootEntry == output.namedObjectDictionary.m_entries.end()
+                || std::count_if(
+                    output.namedObjectDictionary.m_entries.begin(),
+                    output.namedObjectDictionary.m_entries.end(),
+                    [&identity](const DRW_Dictionary::Entry& entry) {
+                        return entry.m_name == identity.first;
+                    }) != 1
+                || dictionary == nullptr
+                || dictionary->parentHandle
+                    != output.namedObjectDictionary.handle
+                || dictionary->hardOwner != 0 || dictionary->cloning != 1
+                || dictionary->countCap
+                || !dictionary->hasCompleteDwgEntries()
+                || !dictionary->m_entries.empty()
+                || dictionary->reactorHandles
+                    != std::vector<std::uint32_t>{
+                        output.namedObjectDictionary.handle})
+                return fail("physical AC1018 empty NOD child DICTIONARY edge/body changed on fresh readback");
+        }
         for (std::size_t index = 0u; index < expected.size(); ++index) {
             const DRW_Layout& original = *sourceLayouts[index];
             const auto outputMatch = std::find_if(
@@ -41065,9 +41209,9 @@ bool physicalAc1018DictionaryVarOutputReadback(
             return fail("AC1018 DICTIONARYVAR/owner source identities lack output qualification");
         if (!isQualified(0x18u)
             || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
-                source) != 14u
+                source) != 18u
             || source.dwgReadOutcome.opaqueViewCallbacks != 23u)
-            return fail("AC1018 DICTIONARYVAR, MLINESTYLE owner, TABLESTYLE, dictionary-default and LAYOUT output profiles did not join fourteen identities in the 23-callback source graph");
+            return fail("AC1018 DICTIONARYVAR, MLINESTYLE owner, TABLESTYLE, empty-root dictionary and LAYOUT output profiles did not join eighteen identities in the 23-callback source graph");
         if (binary)
             DxIfaceStandardDwgCaptureTestAccess::reportOpaqueOutputGaps(source);
 
