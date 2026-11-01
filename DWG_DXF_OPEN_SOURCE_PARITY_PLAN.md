@@ -48,8 +48,8 @@ Implementation history and evidence stay in Git and `docs/research/`.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — source/graph closure | Resolve reproduced source-required bodies and dependencies that still lack strict output/readback proof. For AC1018 `ET-Drawing-with-Border.dwg`, determine whether the 23 unqualified opaque callbacks can reference the empty-name STYLE at handle `0xDF` before assigning an output disposition; see the independent census [receipt](docs/research/p4-ac1018-empty-style-reference-census-2026-10-31.json). DXF readback currently stops in STYLE with `BAD_CODE_PARSED`; retain strict refusal until reachability and output are qualified. | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN — broader rendering/TABLE and dynamic-block semantics | Resolve native dynamic-block semantics and the parentId projection boundary for the two-root AC1024 graph; finish remaining rendering metadata/native rendering profiles, nested FIELDLIST/child graphs and source-backed FIELD profiles, independently evidenced block-cell geometry, remaining CONTENTFORMAT/CELLSTYLEMAP profiles beyond the qualified AC1027 CMC color-book, border-lineweight, and AutoScale-override-selection slices ([CMC receipt](docs/research/p5-ac1027-cellstylemap-cmc-book-color-2026-10-31.json), [lineweight receipt](docs/research/p5-ac1027-cellstylemap-border-lineweight-domain-2026-10-31.json), [AutoScale receipt](docs/research/p5-ac1027-cellstylemap-content-autoscale-override-2026-10-31.json)), source-backed semantics for overlapping TABLECONTENT edge masks, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
+| P4 | OPEN — source/graph closure | Resolve reproduced source-required bodies and dependencies that still lack strict output/readback proof. For AC1018 `ET-Drawing-with-Border.dwg`, 19 of 23 opaque callbacks still lack output qualification; see the [current source/output evidence](docs/research/p4-ac1018-dictionaryvar-ac1024-output-binding-2026-10-31.json). Extend source reachability/profile evidence for the opaque callbacks, including the empty-name STYLE at handle `0xDF`; the existing [independent census](docs/research/p4-ac1018-empty-style-reference-census-2026-10-31.json) covers only LibreDWG's decoded view. Whole-file DXF readback still stops in STYLE with `BAD_CODE_PARSED`, so strict full-source conversion remains refused. | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P5 | OPEN — broader rendering/TABLE and dynamic-block semantics | Resolve native dynamic-block semantics and the parentId projection boundary for the two-root AC1024 graph; finish remaining rendering metadata/native rendering profiles, nested FIELDLIST/child graphs and source-backed FIELD profiles, independently evidenced block-cell geometry, remaining source- or consumer-backed CONTENTFORMAT/CELLSTYLEMAP profiles, source-backed semantics for overlapping TABLECONTENT edge masks, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -73,11 +73,10 @@ establishes the required behavior for both roots, visibility, parameter/action
 behavior and reachable geometry. The available FreeCAD, ODA converter and
 LibreDWG paths do not currently supply that evaluator.
 
-The sweep also reproduced separate unresolved gates: AC1021 proxy-graphics
-refusal and AC1018 `ET-Drawing-with-Border.dwg` with 23 opaque callbacks but no
-strict output qualifications. Keep these in P6 and P4 respectively; they are
-not completed by the selected P5 packet. Strict refusal remains until each
-document's required graph is covered.
+Separate unresolved gates remain: AC1021 proxy-graphics refusal belongs to P6;
+AC1018 `ET-Drawing-with-Border.dwg` has 19 opaque callbacks without output
+qualification and belongs to P4. Strict refusal remains until each document's
+required graph is covered.
 
 ## P4 — original bodies and complete document closure
 
@@ -150,21 +149,16 @@ reproduced missing provider, remap, collision or composed output failure.
    witness identifies missing fields or semantics. Bind the exact field layout
    and semantics to that witness; keep unsupported payloads refused while
    preserving current block-reference and ATTDEF ownership validation.
-3. Complete only the remaining source- or consumer-backed CONTENTFORMAT string,
+3. Complete the remaining source- or consumer-backed CONTENTFORMAT string,
    data/unit/domain/property combinations and CELLSTYLEMAP body/property
-   profiles beyond the AC1027 CMC color-book output/legacy split-read,
-   border-lineweight domains, and AutoScale override-selection slice
-   ([CMC receipt](docs/research/p5-ac1027-cellstylemap-cmc-book-color-2026-10-31.json),
-   [lineweight receipt](docs/research/p5-ac1027-cellstylemap-border-lineweight-domain-2026-10-31.json),
-   [AutoScale receipt](docs/research/p5-ac1027-cellstylemap-content-autoscale-override-2026-10-31.json)),
-   plus source-backed semantics for overlapping TABLECONTENT edge masks. Keep
-   overlapping masks refused unless their precedence and wire/readback behavior
-   are established.
+   profiles, plus source-backed semantics for overlapping TABLECONTENT edge
+   masks. Keep overlapping masks refused unless their precedence and
+   wire/readback behavior are established.
    Cover the witnessed scope combinations and version gates; keep unsupported
    styles refused until schema and wire order are known.
-4. Complete source-bound AC1018 TABLE body and merge/presence profiles beyond the
-   selected field projections. Preserve explicit zero and absence separately; do
-   not infer visibility polarity from field transport.
+4. Complete the remaining source-bound AC1018 TABLE body and merge/presence
+   profiles. Preserve explicit zero and absence separately; do not infer
+   visibility polarity from field transport.
 5. Qualify native TABLE rendering independently. Serializer readback does not
    establish geometry, merge visibility or rendered style.
 

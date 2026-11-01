@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "date": "2026-10-31",
+  "profile": "AC1018 ET-Drawing-with-Border DICTIONARYVAR to AC1024 DXF output binding",
+  "classification": "BOUNDED_OUTPUT_PROFILE_COMPLETE_NO_CLAIM_PROMOTION",
+  "support_claim_effect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08b2b3bf983472f7b",
+    "version": "AC1018",
+    "committed_as_fixture": false,
+    "existing_source_profile": "docs/research/p4-ac1018-dictionaryvar-source-profile-2026-10-31.json"
+  },
+  "format_and_independent_evidence": {
+    "authoritative_format_source": {
+      "document": "Open Design Specification for .dwg files, v5.4.1",
+      "section": "20.4.74 DICTIONARYVAR",
+      "page": 194,
+      "relevant_layout": "AC1018/R2004+ DICTIONARYVAR fields are followed by owner/reactor/extension-dictionary handles."
+    },
+    "independent_implementation": {
+      "project": "GNU LibreDWG",
+      "version": "0.14",
+      "source_profile": "The three source values and AcDbVariableDictionary owner relationship are recorded in the existing source-profile receipt."
+    }
+  },
+  "qualified_scope": {
+    "target": "AC1024 DXF",
+    "encodings": ["ASCII", "Binary"],
+    "source_values": {
+      "CTABLESTYLE": "STANDARD",
+      "DIMASSOC": "2",
+      "HIDETEXT": "1"
+    },
+    "graph": "The NOD AcDbVariableDictionary entry resolves to the owner DICTIONARY; that dictionary contains the three source keys and targets the emitted DICTIONARYVAR handles. The owner is rooted at the NOD. Each DICTIONARYVAR retains schema 0, its exact value, owner link, and source reactor link in staged-output decoding.",
+    "opaque_output_qualification": "3 DICTIONARYVAR source identities plus their owner DICTIONARY were qualified after staged output inspection: 4 of 23 opaque source identities. The other 19 remain unqualified.",
+    "wire_evidence": "A targeted ASCII/Binary OBJECTS scan binds the emitted NOD edge, owner handle/membership, DICTIONARYVAR handles, schema and values to the imported AC1018 source. The staged-output decoder additionally verifies the mapped common links and dictionary body."
+  },
+  "failure_and_retry": {
+    "invalid_owner": "A mutated source owner link is rejected before publication and preserves a pre-existing destination sentinel.",
+    "strict_whole_source": "Strict full-source conversion is still refused because unresolved opaque callbacks remain; refusal preserves the destination sentinel. The diagnostic observed qualified=4/23.",
+    "retry": "After restoring the owner link, the same adapter successfully emits the bounded non-strict AC1024 ASCII and Binary outputs and passes the targeted wire scan."
+  },
+  "implementation": {
+    "files": ["dwg2dxf/dx_iface.cpp", "tests/dwg2dxf_adapter_tests.cpp"],
+    "behavior": "The existing AC1024 DICTIONARYVAR source/output profile now also admits AC1018 source records for AC1024 DXF output. Staged output inspection qualifies only the captured DICTIONARYVAR identities and their rooted owner when the exact fields, handles and graph match.",
+    "fixture_policy": "No external DWG/DXF fixture files were added."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS",
+      "compiler": "Apple clang 21.0.0",
+      "cmake": "4.4.4"
+    },
+    "focused_selectors": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionaryvar-physical-ac1018-source-profile /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "result": "PASS"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionaryvar-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "result": "PASS for ASCII and Binary output, targeted wire binding, strict refusal, rollback and same-adapter retry"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dictionaryvar-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+        "result": "PASS for existing AC1024 ASCII/Binary compatibility profile"
+      }
+    ],
+    "diff_check": "PASS: git diff --check",
+    "supplemental_probe": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --named-resource-import-evidence /tmp/libdxfrw-named-resource-evidence-20261031-2359",
+      "result": "FAIL before the AC1018 physical profile: the generated DXF direct-NOD negative control reported a Layer TABLE identity/membership graph diagnostic rather than its expected DICTIONARYVAR canonical-owner diagnostic.",
+      "classification": "Unresolved broader DXF named-resource cohort result; this receipt does not claim it passed or classify it as a regression. The AC1018-specific admission path is DWG-source gated."
+    },
+    "sha256": {
+      "dwg2dxf/dx_iface.cpp": "7f3ef2c8031dfd912e20006ddb083b464c7c1d9b26db24f55055297225cf4df6",
+      "tests/dwg2dxf_adapter_tests.cpp": "41e61774ab25e2db00eca5976f76d454d541145b68053952b558f0793abe5950",
+      "focusedAdapterExecutable": "ccc2abfbacfaacb2122cf69a1c16b70c2cc22d29de4261485ef1fab4068470b3"
+    }
+  },
+  "limits": [
+    "This qualifies only the three DICTIONARYVAR values and their owner binding for this exact AC1018 source profile and AC1024 ASCII/Binary output.",
+    "The output path does not complete a fresh whole-file typed reimport: it still stops in the unrelated empty-name STYLE table record with BAD_CODE_PARSED. The exact OBJECTS wire scan and staged decoder are bounded evidence for this slice only.",
+    "Nineteen opaque source identities remain unqualified; strict whole-source output remains refused.",
+    "This receipt does not qualify all AC1018 objects, whole-document conversion, native CAD semantics, 3D support, platform behavior, or any public support claim."
+  ],
+  "next_action": "Continue the source-side reachability/profile work for the remaining opaque callbacks and resolve the empty-name STYLE/full-file readback gate without weakening strict refusal."
+}

@@ -39795,6 +39795,266 @@ bool physicalAc1018DictionaryVarSourceProfile(
     return true;
 }
 
+bool physicalAc1018DictionaryVarOutputReadback(
+        const std::filesystem::path& sourcePath) {
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1018
+        || !source.hasSingleSuccessfulNamedResourceImport()
+        || !source.hasNamedObjectDictionary
+        || source.dictionaryVars.size() != 3u)
+        return fail("physical AC1018 DICTIONARYVAR output source is not the qualified three-record profile");
+
+    const auto ownerEntry = std::find_if(
+        source.namedObjectDictionary.m_entries.begin(),
+        source.namedObjectDictionary.m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == "AcDbVariableDictionary";
+        });
+    if (ownerEntry == source.namedObjectDictionary.m_entries.end())
+        return fail("physical AC1018 DICTIONARYVAR NOD owner is missing");
+    const DRW_Dictionary* owner = nullptr;
+    for (const DRW_Dictionary& dictionary : source.dictionaries) {
+        if (dictionary.handle != ownerEntry->m_handle)
+            continue;
+        if (owner != nullptr)
+            return fail("physical AC1018 DICTIONARYVAR owner is ambiguous");
+        owner = &dictionary;
+    }
+    if (owner == nullptr || owner->parentHandle
+            != source.namedObjectDictionary.handle
+        || owner->m_entries.size() != source.dictionaryVars.size())
+        return fail("physical AC1018 DICTIONARYVAR owner membership is incomplete");
+
+    std::map<std::string, std::string> expectedValues;
+    std::vector<std::uint32_t> sourceHandles;
+    for (const DRW_DictionaryVar& value : source.dictionaryVars) {
+        if (value.handle == 0u || value.handle == DRW::NoHandle
+            || value.parentHandle != owner->handle
+            || !value.hasDwgCommonLinkTail()
+            || value.reactorCount() != 1
+            || value.reactorHandles.size() != 1u
+            || value.reactorHandles.front() != owner->handle)
+            return fail("physical AC1018 DICTIONARYVAR source common links differ from the witnessed profile");
+        const auto key = std::find_if(owner->m_entries.begin(),
+            owner->m_entries.end(), [&value](
+                const DRW_Dictionary::Entry& entry) {
+                    return entry.m_handle == value.handle;
+                });
+        if (key == owner->m_entries.end()
+            || !expectedValues.emplace(key->m_name, value.m_value).second)
+            return fail("physical AC1018 DICTIONARYVAR owner keys are missing or duplicated");
+        sourceHandles.push_back(value.handle);
+    }
+
+    const auto stamp = std::chrono::steady_clock::now()
+        .time_since_epoch().count();
+    const std::filesystem::path directory =
+        std::filesystem::temp_directory_path()
+        / ("libdxfrw-ac1018-dictionaryvar-output-"
+            + std::to_string(stamp));
+    std::error_code filesystemError;
+    if (!std::filesystem::create_directories(directory, filesystemError)
+        || filesystemError)
+        return fail("could not create physical AC1018 DICTIONARYVAR output directory");
+    struct TemporaryDirectory {
+        std::filesystem::path path;
+        ~TemporaryDirectory() {
+            std::error_code ignored;
+            std::filesystem::remove_all(path, ignored);
+        }
+    } temporaryDirectory{directory};
+
+    for (const bool binary : {false, true}) {
+        const std::string encoding = binary ? "binary" : "ascii";
+        const auto strictOutput = directory / ("strict-" + encoding + ".dxf");
+        const std::string sentinel =
+            "AC1018 incomplete source must preserve destination\n";
+        { std::ofstream existing(strictOutput, std::ios::binary);
+          if (!existing || !(existing << sentinel))
+              return fail("could not seed physical AC1018 strict-output sentinel"); }
+
+        dx_iface writer;
+        const std::uint32_t originalOwner = source.dictionaryVars.front().parentHandle;
+        source.dictionaryVars.front().parentHandle = originalOwner + 1u;
+        const auto rejected = directory / ("rejected-" + encoding + ".dxf");
+        { std::ofstream existing(rejected, std::ios::binary);
+          if (!existing || !(existing << sentinel))
+              return fail("could not seed physical AC1018 refusal sentinel"); }
+        if (writer.fileExport(rejected.string(), DRW::AC1024, binary,
+                &source, false, false))
+            return fail("invalid AC1018 DICTIONARYVAR owner was accepted for AC1024 output");
+        source.dictionaryVars.front().parentHandle = originalOwner;
+        std::ifstream refused(rejected, std::ios::binary);
+        if (std::string(std::istreambuf_iterator<char>(refused), {})
+                != sentinel)
+            return fail("invalid AC1018 DICTIONARYVAR attempt replaced the destination");
+
+        if (writer.fileExport(strictOutput.string(), DRW::AC1024, binary,
+                &source, false, true))
+            return fail("incomplete AC1018 source unexpectedly passed strict AC1024 complete-output admission");
+        std::ifstream strictPreserved(strictOutput, std::ios::binary);
+        if (std::string(std::istreambuf_iterator<char>(strictPreserved), {})
+                != sentinel)
+            return fail("strict AC1018 refusal replaced the existing destination");
+
+        const auto output = directory / ("qualified-" + encoding + ".dxf");
+        if (!writer.fileExport(output.string(), DRW::AC1024, binary,
+                &source, false, false))
+            return fail("corrected AC1018 DICTIONARYVAR profile could not retry through the same adapter: "
+                + writer.extensionGraphFailureDetail());
+
+        const auto isQualified = [&source](std::uint32_t handle) {
+            return DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, handle);
+        };
+        if (!isQualified(owner->handle)
+            || !std::all_of(sourceHandles.begin(), sourceHandles.end(),
+                isQualified))
+            return fail("AC1018 DICTIONARYVAR/owner source identities lack output qualification");
+
+        struct ObjectRow {
+            std::string name;
+            std::uint32_t handle{0u};
+            std::uint32_t owner{0u};
+            std::int32_t schema{-1};
+            std::string value;
+            std::map<std::string, std::uint32_t> entries;
+        };
+        std::ifstream wire(output, std::ios::binary);
+        if (!wire)
+            return fail("could not reopen AC1018 DICTIONARYVAR output bytes");
+        if (binary)
+            wire.seekg(22);
+        if (!wire)
+            return fail("could not position at AC1024 binary DXF records");
+        std::unique_ptr<dxfReader> dxf = binary
+            ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&wire))
+            : std::unique_ptr<dxfReader>(new dxfReaderAscii(&wire));
+        std::vector<ObjectRow> objects;
+        ObjectRow* current = nullptr;
+        std::string pendingKey;
+        unsigned reactorDepth = 0u;
+        int code = 0;
+        while (dxf->readRec(&code)) {
+            if (code == 0) {
+                objects.push_back(ObjectRow{});
+                current = &objects.back();
+                current->name = dxf->getString();
+                pendingKey.clear();
+                reactorDepth = 0u;
+                continue;
+            }
+            if (current == nullptr)
+                continue;
+            switch (code) {
+            case 5:
+                current->handle = dxf->getHandleString();
+                break;
+            case 330: {
+                const std::uint32_t handle = dxf->getHandleString();
+                if (reactorDepth == 0u && current->owner == 0u)
+                    current->owner = handle;
+                break;
+            }
+            case 102: {
+                const std::string marker = dxf->getString();
+                if (marker == "{ACAD_REACTORS")
+                    ++reactorDepth;
+                else if (marker == "}" && reactorDepth != 0u)
+                    --reactorDepth;
+                break;
+            }
+            case 3:
+                pendingKey = dxf->getUtf8String();
+                break;
+            case 350:
+            case 360: {
+                const std::uint32_t target = dxf->getHandleString();
+                if (!pendingKey.empty()) {
+                    current->entries.emplace(pendingKey, target);
+                    pendingKey.clear();
+                }
+                break;
+            }
+            case 280:
+                if (current->name == "DICTIONARYVAR")
+                    current->schema = dxf->getInt32();
+                else
+                    (void)dxf->getInt32();
+                break;
+            case 1:
+                if (current->name == "DICTIONARYVAR")
+                    current->value = dxf->getUtf8String();
+                else
+                    (void)dxf->getUtf8String();
+                break;
+            default:
+                (void)dxf->getString();
+                break;
+            }
+        }
+        if (wire.bad())
+            return fail("AC1024 output wire scan encountered an I/O error");
+        const ObjectRow* nod = nullptr;
+        const ObjectRow* emittedOwner = nullptr;
+        for (const ObjectRow& object : objects) {
+            if (object.name != "DICTIONARY")
+                continue;
+            if (object.entries.count("AcDbVariableDictionary") != 0u) {
+                if (nod != nullptr)
+                    return fail("AC1024 output has duplicate NOD records");
+                nod = &object;
+            }
+        }
+        if (nod == nullptr)
+            return fail("AC1024 output omitted the named-object dictionary");
+        const auto ownerTarget = nod->entries.find("AcDbVariableDictionary");
+        if (ownerTarget == nod->entries.end())
+            return fail("AC1024 output omitted the AcDbVariableDictionary edge");
+        for (const ObjectRow& object : objects) {
+            if (object.name == "DICTIONARY"
+                && object.handle == ownerTarget->second) {
+                if (emittedOwner != nullptr)
+                    return fail("AC1024 output duplicates the variable owner dictionary");
+                emittedOwner = &object;
+            }
+        }
+        if (emittedOwner == nullptr
+            || emittedOwner->owner != nod->handle
+            || emittedOwner->entries.size() != expectedValues.size())
+            return fail("AC1024 output variable dictionary owner or membership differs");
+
+        std::map<std::string, std::string> wireValues;
+        std::size_t variableCount = 0u;
+        for (const ObjectRow& object : objects) {
+            if (object.name != "DICTIONARYVAR")
+                continue;
+            ++variableCount;
+            if (object.schema != 0 || object.owner != emittedOwner->handle)
+                return fail("AC1024 DICTIONARYVAR output has an unexpected schema or owner");
+            const auto key = std::find_if(emittedOwner->entries.begin(),
+                emittedOwner->entries.end(), [&object](const auto& entry) {
+                    return entry.second == object.handle;
+                });
+            if (key == emittedOwner->entries.end()
+                || !wireValues.emplace(key->first, object.value).second)
+                return fail("AC1024 output variable handle is not bound by its owner dictionary");
+        }
+        if (variableCount != sourceHandles.size()
+            || wireValues != expectedValues)
+            return fail("AC1024 DICTIONARYVAR physical wire values or owner keys differ from the AC1018 source");
+    }
+
+    std::cerr << "Physical AC1018 DICTIONARYVAR to AC1024 ASCII/Binary output profile passed: "
+                 "three values and their rooted owner were matched to emitted bytes; "
+                 "strict whole-source refusal, rollback, same-adapter retry and "
+                 "targeted output wire scan passed.\n";
+    return true;
+}
+
 bool physicalDictionaryVarOutputReadback(
         const std::filesystem::path& sourcePath) {
     dx_iface sourceReader;
@@ -57506,6 +57766,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--dictionaryvar-physical-ac1018-source-profile")
         return physicalAc1018DictionaryVarSourceProfile(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--dictionaryvar-physical-ac1018-output-readback")
+        return physicalAc1018DictionaryVarOutputReadback(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--mline-style-physical-output-readback")
         return physicalMLineStyleOutputReadback(argv[2]) ? 0 : 1;

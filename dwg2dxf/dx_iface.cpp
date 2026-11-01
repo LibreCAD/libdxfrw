@@ -23314,7 +23314,8 @@ bool dx_iface::prepareDwgDictionaryVars(DRW::Version version, bool binary,
     if (cData == nullptr)
         return reject("no source container");
     if (cData->sourceFormat != dx_source_format::DWG
-        || cData->sourceVersion != DRW::AC1024)
+        || (cData->sourceVersion != DRW::AC1018
+            && cData->sourceVersion != DRW::AC1024))
         return true;
     if (cData->dictionaryVars.empty()
         && m_extensionDictionaryVarHandles.empty())
@@ -23451,18 +23452,21 @@ bool dx_iface::prepareDwgDictionaryVars(DRW::Version version, bool binary,
 }
 
 bool dx_iface::hasUnchangedDwgDictionaryVars() const noexcept {
+    const DRW::Version sourceVersion = cData != nullptr
+        ? cData->sourceVersion : DRW::UNKNOWNV;
     if (m_dwgDictionaryVarOutputSources.empty())
         return m_dwgDictionaryVarOutputOwner == nullptr
             && m_dwgDictionaryVarOutputDictionaries.empty()
             && m_dwgDictionaryVarOutputBytes == 0u;
     if (cData == nullptr || m_dwgDictionaryVarOutputOwner != cData
         || m_dwgDictionaryVarOutputGeneration != cData->importGeneration
-        || m_dwgDictionaryVarOutputVersion != DRW::AC1024
+        || (sourceVersion != DRW::AC1018
+            && sourceVersion != DRW::AC1024)
+        || m_dwgDictionaryVarOutputVersion != sourceVersion
         || m_dwgDictionaryVarTargetVersion != DRW::AC1024
         || m_dwgDictionaryVarOutputBytes
             > kMaxAdapterNamedResourceTypedRetainedBytes
         || cData->sourceFormat != dx_source_format::DWG
-        || cData->sourceVersion != DRW::AC1024
         || !cData->hasSingleSuccessfulNamedResourceImport()
         || !cData->hasNamedObjectDictionary
         || cData->dictionaryVars.size()
@@ -23486,18 +23490,18 @@ bool dx_iface::hasUnchangedDwgDictionaryVars() const noexcept {
             if (source == m_dwgDictionaryVarOutputSources.end()
                 || !observed.insert(current.handle).second
                 || !standardDwgCommonEqual(source->second.model, current,
-                                            DRW::AC1024)
+                                            sourceVersion)
                 || source->second.model.m_schema != current.m_schema
                 || source->second.model.m_value != current.m_value)
                 return false;
         }
-        const auto dictionaryUnchanged = [this](
+        const auto dictionaryUnchanged = [this, sourceVersion](
                 const DRW_Dictionary& current) {
             const auto source = m_dwgDictionaryVarOutputDictionaries.find(
                 current.handle);
             return source != m_dwgDictionaryVarOutputDictionaries.end()
                 && standardDwgModelsEqual(source->second, current,
-                    DRW::AC1024, dwgObjType::DICTIONARY);
+                    sourceVersion, dwgObjType::DICTIONARY);
         };
         if (observed.size() != m_dwgDictionaryVarOutputSources.size()
             || selected.size() != m_dwgDictionaryVarOutputSources.size()
@@ -23989,10 +23993,24 @@ bool dx_iface::inspectDwgDictionaryVars(
                             && actual.m_value == model.m_value;
                     });
             });
-        m_dwgDictionaryVarsInspected = inspect && namesMatch && rootSeen
+        const bool outputMatches = inspect && namesMatch && rootSeen
             && ownerSeen && seenVariables.size() == expected.size();
-        return m_dwgDictionaryVarsInspected
-            || reject("staged identities, owner dictionary or raw fields differ");
+        if (!outputMatches)
+            return reject("staged identities, owner dictionary or raw fields differ");
+
+        const auto qualifySource = [this](std::uint32_t handle) {
+            const dx_data::StandardDwgFrameKey key{
+                cData->importGeneration, handle};
+            return cData->m_opaqueDwgSourceFrameIdentities.count(key) == 0u
+                || recordOpaqueDwgOutputQualification(handle);
+        };
+        for (const auto& item : m_dwgDictionaryVarOutputSources)
+            if (!qualifySource(item.first))
+                return reject("DICTIONARYVAR source identity could not be qualified");
+        if (!qualifySource(first.parentHandle))
+            return reject("AcDbVariableDictionary owner identity could not be qualified");
+        m_dwgDictionaryVarsInspected = true;
+        return true;
     } catch (...) {
         return reject("allocation or decoder exception");
     }
