@@ -36792,6 +36792,11 @@ bool physicalSortEntsOutputReadback(
         [&sourceTable](const DRW_Block_Record& record) {
             return record.handle == sourceTable.m_blockOwnerHandle;
         });
+    const DRW_UnsupportedObject* sourceDictionaryFrame =
+        sourceDictionary == source.dictionaries.end()
+        ? nullptr
+        : DxIfaceStandardDwgCaptureTestAccess::standardSourceFrame(
+            source, source.importGeneration, sourceDictionary->handle);
     const bool hasUniqueSourceSortEntry =
         sourceDictionary != source.dictionaries.end()
         && std::count_if(sourceDictionary->m_entries.begin(),
@@ -36816,6 +36821,14 @@ bool physicalSortEntsOutputReadback(
         || sourceDictionary->m_entries[1].m_name != "ACAD_SORTENTS"
         || sourceDictionary->m_entries[1].m_handle != sourceTable.handle
         || sourceTable.parentHandle != sourceDictionary->handle
+        || sourceDictionaryFrame == nullptr
+        || sourceDictionaryFrame->m_objectType != 42
+        || sourceDictionaryFrame->m_handle != sourceDictionary->handle
+        || sourceDictionaryFrame->m_version != DRW::AC1024
+        || sourceDictionaryFrame->m_isEntity
+        || sourceDictionaryFrame->m_isCustomClass
+        || !sourceDictionaryFrame->m_recordName.empty()
+        || !sourceDictionaryFrame->m_className.empty()
         || sourceTable.reactorHandles
             != std::vector<std::uint32_t>{sourceDictionary->handle}
         || sourceBlockOwner == source.blockRecords.end()
@@ -36989,6 +37002,15 @@ bool physicalSortEntsOutputReadback(
                 dx_dwgReadCompletenessPolicy::AllowPartial);
         };
         DRW_SortEntsTable& mutableTable = source.sortEntsTables.front();
+        const std::size_t qualificationsBeforeFailure =
+            DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                source);
+        const bool tableQualifiedBeforeFailure =
+            DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourceTable.handle);
+        const bool dictionaryQualifiedBeforeFailure =
+            DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourceDictionary->handle);
         const std::uint32_t originalFirstEntity =
             mutableTable.m_entityHandles.front();
         mutableTable.m_entityHandles.front() = DRW::NoHandle;
@@ -36997,10 +37019,23 @@ bool physicalSortEntsOutputReadback(
         const std::string invalidDestination{
             std::istreambuf_iterator<char>{invalidOutput}, {}};
         mutableTable.m_entityHandles.front() = originalFirstEntity;
-        if (!invalidGraphRejected || invalidDestination != sentinel)
+        if (!invalidGraphRejected || invalidDestination != sentinel
+            || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                source) != qualificationsBeforeFailure
+            || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourceTable.handle)
+                != tableQualifiedBeforeFailure
+            || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourceDictionary->handle)
+                != dictionaryQualifiedBeforeFailure)
             return fail("invalid physical SORTENTSTABLE target was not refused atomically");
         if (!exportPartial())
             return fail("corrected physical SORTENTSTABLE could not retry on the same adapter");
+        if (!DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourceTable.handle)
+            || !DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourceDictionary->handle))
+            return fail("physical SORTENTSTABLE output did not qualify its matched owner DICTIONARY callback");
 
         dx_iface outputReader;
         dx_data output;

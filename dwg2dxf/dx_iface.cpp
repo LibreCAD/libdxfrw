@@ -41039,6 +41039,31 @@ bool dx_iface::hasUnchangedDwgSortEntsOutputSources() const noexcept {
                 || source.ownerBlock.xDictHandle
                     != source.ownerDictionary.handle)
                 return false;
+            const auto ownerFrame = cData->m_standardDwgObjectFrames.find(
+                {cData->importGeneration, source.ownerDictionary.handle});
+            const DRW_Dictionary* ownerFrameBaseline =
+                ownerFrame != cData->m_standardDwgObjectFrames.end()
+                    && ownerFrame->second.typedBaseline
+                ? dynamic_cast<const DRW_Dictionary*>(
+                    ownerFrame->second.typedBaseline.get())
+                : nullptr;
+            if (ownerFrame == cData->m_standardDwgObjectFrames.end()
+                || ownerFrame->second.generation != cData->importGeneration
+                || !ownerFrame->second.payloadMatched
+                || ownerFrameBaseline == nullptr
+                || ownerFrame->second.raw.m_handle
+                    != source.ownerDictionary.handle
+                || ownerFrame->second.raw.m_objectType
+                    != dwgObjType::DICTIONARY
+                || ownerFrame->second.raw.m_version != DRW::AC1024
+                || ownerFrame->second.raw.m_isEntity
+                || ownerFrame->second.raw.m_isCustomClass
+                || !ownerFrame->second.raw.m_recordName.empty()
+                || !ownerFrame->second.raw.m_className.empty()
+                || !standardDwgModelsEqual(
+                    *ownerFrameBaseline, source.ownerDictionary,
+                    DRW::AC1024, dwgObjType::DICTIONARY))
+                return false;
             for (std::size_t index = 0u;
                  index < source.membership.m_entries.size(); ++index) {
                 const auto& left = source.membership.m_entries[index];
@@ -56756,9 +56781,33 @@ bool dx_iface::validateSortEntsGraph(const dx_data& data, bool debug) {
                     {data.importGeneration, table.handle});
                 const DRW_DwgSortEntsMembership& sourceMembership =
                     *membership->second;
+                const auto ownerFrame =
+                    data.m_standardDwgObjectFrames.find(
+                        {data.importGeneration, table.parentHandle});
+                const DRW_Dictionary* ownerFrameBaseline =
+                    ownerFrame != data.m_standardDwgObjectFrames.end()
+                        && ownerFrame->second.typedBaseline
+                    ? dynamic_cast<const DRW_Dictionary*>(
+                        ownerFrame->second.typedBaseline.get())
+                    : nullptr;
                 if (dictionary == dictionaries.end()
                     || blockOwner == owners.end()
                     || frame == data.m_opaqueDwgSourceFrames.end()
+                    || ownerFrame == data.m_standardDwgObjectFrames.end()
+                    || ownerFrame->second.generation != data.importGeneration
+                    || !ownerFrame->second.payloadMatched
+                    || ownerFrameBaseline == nullptr
+                    || ownerFrame->second.raw.m_handle != table.parentHandle
+                    || ownerFrame->second.raw.m_objectType
+                        != dwgObjType::DICTIONARY
+                    || ownerFrame->second.raw.m_version != DRW::AC1024
+                    || ownerFrame->second.raw.m_isEntity
+                    || ownerFrame->second.raw.m_isCustomClass
+                    || !ownerFrame->second.raw.m_recordName.empty()
+                    || !ownerFrame->second.raw.m_className.empty()
+                    || !standardDwgModelsEqual(
+                        *ownerFrameBaseline, *dictionary->second,
+                        DRW::AC1024, dwgObjType::DICTIONARY)
                     || table.handle == 0u || table.handle == DRW::NoHandle
                     || table.hasCompleteDwgEntries() == false
                     || !sourceMembership.m_complete
@@ -60676,7 +60725,9 @@ bool dx_iface::finalizeDxfWrite() {
         }
         if (m_dwgSortEntsOutputInspected) {
             for (const auto& proof : m_dwgSortEntsOutputSources) {
-                if (!qualifyCapturedIdentity(proof.first))
+                if (!qualifyCapturedIdentity(proof.first)
+                    || !qualifyCapturedIdentity(
+                        proof.second.ownerDictionary.handle))
                     return false;
             }
         }
