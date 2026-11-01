@@ -189,6 +189,15 @@ public:
         return iface.m_rasterOutputPublished && iface.m_rasterOutputFinalized
             && iface.m_rasterOutputProofs.size() == fields && iface.m_rasterImageEdges.size() == images;
     }
+    static std::size_t mlineStyleOutputSourceCount(const dx_iface& iface) {
+        return iface.m_dwgMLineStyleOutputSources.size();
+    }
+    static std::size_t mlineStyleOutputHandleCount(const dx_iface& iface) {
+        return iface.m_extensionMLineStyleHandles.size();
+    }
+    static bool mlineStyleOutputSourcesUnchanged(const dx_iface& iface) {
+        return iface.hasUnchangedDwgMLineStyleOutputSources();
+    }
     static void resetRasterOutput(dx_iface& iface) { iface.resetStandardDwgOutputProofs(); }
     static void rasterOutputBudget(dx_iface& iface, std::size_t bytes) { iface.m_rasterOutputByteLimit = bytes; }
     static bool rasterObjects(dx_iface& iface, const dxfRW::DxfObjectsWriteView& view) {
@@ -37519,19 +37528,33 @@ bool physicalMLineStyleOutputReadback(
     dx_data source;
     if (!sourceReader.fileImport(sourcePath.string(), &source, false)
         || source.sourceFormat != dx_source_format::DWG
-        || source.sourceVersion != DRW::AC1024
+        || (source.sourceVersion != DRW::AC1018
+            && source.sourceVersion != DRW::AC1024)
         || source.mLineStyleCaptureFailed
         || source.mLineStyles.size() != 1u
         || source.mLineStyles.front().handle != 0x18u
         || source.mLineStyles.front().name != "STANDARD"
         || source.mLineStyles.front().elements.size() != 2u)
-        return fail("physical AC1024 MLINESTYLE source is not the admitted STANDARD sentinel profile");
+        return fail("physical MLINESTYLE source is not an admitted AC1018/AC1024 STANDARD sentinel profile");
     const DRW_MLineStyle& sourceStyle = source.mLineStyles.front();
     if (sourceStyle.elements[0].linetypeIndex != 32767
         || sourceStyle.elements[1].linetypeIndex != 32767
         || sourceStyle.elements[0].linetypeHandle != 0u
         || sourceStyle.elements[1].linetypeHandle != 0u)
         return fail("physical STANDARD MLINESTYLE linetype sentinels or reference roles changed");
+
+    if (source.sourceVersion == DRW::AC1018) {
+        auto invalidTextStyle = std::find_if(
+            source.textStyles.begin(), source.textStyles.end(),
+            [](const DRW_Textstyle& style) { return style.name.empty(); });
+        if (invalidTextStyle == source.textStyles.end()
+            || invalidTextStyle->handle != 0xDFu
+            || invalidTextStyle->font != "ltypeshp.shx"
+            || (invalidTextStyle->flags & 0x01) != 0)
+            return fail("physical AC1018 MLINESTYLE test STYLE isolation profile changed");
+        // Isolate this OBJECTS profile from the unrelated malformed STYLE row.
+        invalidTextStyle->name = "ET_MLINESTYLE_PROFILE_ISOLATION";
+    }
 
     for (const bool binary : {false, true}) {
         const auto nonce = std::chrono::steady_clock::now()
@@ -37580,10 +37603,23 @@ bool physicalMLineStyleOutputReadback(
                 != qualifiedBeforeFailure)
             return fail("unresolved physical MLINESTYLE linetype index was not refused atomically");
         if (!exportPartial())
-            return fail("corrected physical MLINESTYLE could not retry on the same adapter");
+            return fail("corrected physical MLINESTYLE could not retry on the same adapter: source-count="
+                + std::to_string(
+                    DxIfaceStandardDwgCaptureTestAccess::mlineStyleOutputSourceCount(writer))
+                + " selected=" + std::to_string(
+                    DxIfaceStandardDwgCaptureTestAccess::mlineStyleOutputHandleCount(writer))
+                + " unchanged=" + std::to_string(
+                    DxIfaceStandardDwgCaptureTestAccess::mlineStyleOutputSourcesUnchanged(writer)));
         if (!DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
-                source, source.importGeneration, sourceStyle.handle))
-            return fail("physical MLINESTYLE output identity was not committed with the successful export");
+                source, source.importGeneration, sourceStyle.handle)) {
+            return fail("physical MLINESTYLE output identity was not committed with the successful export: source-count="
+                + std::to_string(
+                    DxIfaceStandardDwgCaptureTestAccess::mlineStyleOutputSourceCount(writer))
+                + " selected=" + std::to_string(
+                    DxIfaceStandardDwgCaptureTestAccess::mlineStyleOutputHandleCount(writer))
+                + " unchanged=" + std::to_string(
+                    DxIfaceStandardDwgCaptureTestAccess::mlineStyleOutputSourcesUnchanged(writer)));
+        }
 
         dx_iface outputReader;
         dx_data output;
@@ -37613,8 +37649,9 @@ bool physicalMLineStyleOutputReadback(
                 || actual.linetypeHandle != 0u)
                 return fail("physical MLINESTYLE element order, scalar fields or BYLAYER sentinel changed on readback");
         }
-        std::cerr << "Physical MLINESTYLE "
-                  << (binary ? "binary" : "ASCII")
+        std::cerr << "Physical "
+                  << (source.sourceVersion == DRW::AC1018 ? "AC1018" : "AC1024")
+                  << " MLINESTYLE " << (binary ? "binary" : "ASCII")
                   << " readback passed: STANDARD identity, two BYLAYER sentinel "
                      "elements, atomic refusal and same-adapter retry.\n";
     }
@@ -39919,7 +39956,6 @@ bool physicalAc1018DictionaryVarOutputReadback(
         || !source.hasNamedObjectDictionary
         || source.dictionaryVars.size() != 3u)
         return fail("physical AC1018 DICTIONARYVAR output source is not the qualified three-record profile");
-
     auto invalidTextStyle = std::find_if(
         source.textStyles.begin(), source.textStyles.end(),
         [](const DRW_Textstyle& style) { return style.name.empty(); });
@@ -40031,7 +40067,6 @@ bool physicalAc1018DictionaryVarOutputReadback(
                 &source, false, false))
             return fail("corrected AC1018 DICTIONARYVAR profile could not retry through the same adapter: "
                 + writer.extensionGraphFailureDetail());
-
         const auto isQualified = [&source](std::uint32_t handle) {
             return DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
                 source, source.importGeneration, handle);
@@ -40040,6 +40075,11 @@ bool physicalAc1018DictionaryVarOutputReadback(
             || !std::all_of(sourceHandles.begin(), sourceHandles.end(),
                 isQualified))
             return fail("AC1018 DICTIONARYVAR/owner source identities lack output qualification");
+        if (!isQualified(0x18u)
+            || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                source) != 5u
+            || source.dwgReadOutcome.opaqueViewCallbacks != 23u)
+            return fail("AC1018 MLINESTYLE source/output profile did not join the five qualified identities in the 23-callback source graph");
 
         struct ObjectRow {
             std::string name;

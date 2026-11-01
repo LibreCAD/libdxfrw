@@ -33,13 +33,13 @@
       "HIDETEXT": "1"
     },
     "graph": "The NOD AcDbVariableDictionary entry resolves to the owner DICTIONARY; that dictionary contains the three source keys and targets the emitted DICTIONARYVAR handles. The owner is rooted at the NOD. Each DICTIONARYVAR retains schema 0, its exact value, owner link, and source reactor link in staged-output decoding.",
-    "opaque_output_qualification": "3 DICTIONARYVAR source identities plus their owner DICTIONARY were qualified after staged output inspection: 4 of 23 opaque source identities. The other 19 remain unqualified.",
+    "opaque_output_qualification": "This DICTIONARYVAR slice qualifies three variable identities plus their owner DICTIONARY (four identities). The separately witnessed AC1018 MLINESTYLE slice now qualifies one additional identity; the current composed profile is 5 of 23 qualified, leaving 18 unqualified.",
     "wire_evidence": "A targeted ASCII/Binary OBJECTS scan binds the emitted NOD edge, owner handle/membership, DICTIONARYVAR handles, schema and values to the imported AC1018 source. The staged-output decoder additionally verifies the mapped common links and dictionary body.",
     "isolation_overlay": "The physical output selector temporarily gives the unrelated empty-name non-shape STYLE handle 0xDF a valid test-only name before serialization. This allows the bounded DICTIONARYVAR OBJECTS proof to run after the writer began rejecting invalid STYLE rows. The test does not qualify or modify production source state outside its local dx_data instance."
   },
   "failure_and_retry": {
     "invalid_owner": "A mutated source owner link is rejected before publication and preserves a pre-existing destination sentinel.",
-    "strict_whole_source": "Strict full-source conversion is still refused because unresolved opaque callbacks remain; refusal preserves the destination sentinel. The diagnostic observed qualified=4/23.",
+    "strict_whole_source": "Strict full-source conversion is still refused because unresolved opaque callbacks remain; refusal preserves the destination sentinel. With the subsequently added MLINESTYLE profile, the integrated selector observes qualified=5/23.",
     "retry": "After restoring the owner link, the same adapter successfully emits the bounded non-strict AC1024 ASCII and Binary outputs and passes the targeted wire scan. The test-only STYLE name overlay remains applied during those isolated outputs."
   },
   "implementation": {
@@ -83,8 +83,8 @@
   "limits": [
     "This qualifies only the three DICTIONARYVAR values and their owner binding for this exact AC1018 source profile and AC1024 ASCII/Binary output.",
     "The exact unmodified source is refused at its invalid empty-name STYLE row. The DICTIONARYVAR output selector uses a test-only corrected STYLE name and does not establish fresh whole-file typed reimport or source-preserving STYLE disposition; its wire scan and staged decoder are bounded evidence for this slice only.",
-    "Nineteen opaque source identities remain unqualified; strict whole-source output remains refused.",
+    "This receipt qualifies only four identities. After the separately witnessed MLINESTYLE slice, 18 of 23 identities remain unqualified and strict whole-source output remains refused.",
     "This receipt does not qualify all AC1018 objects, whole-document conversion, native CAD semantics, 3D support, platform behavior, or any public support claim."
   ],
-  "next_action": "Continue source-side reachability/profile work for the remaining 19 unqualified callback identities and resolve the source-qualified empty-name STYLE disposition without weakening strict refusal."
+  "next_action": "Continue source-side reachability/profile work for the remaining 18 unqualified callback identities and resolve the source-qualified empty-name STYLE disposition without weakening strict refusal."
 }

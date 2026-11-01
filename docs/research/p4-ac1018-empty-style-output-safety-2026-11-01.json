@@ -14,8 +14,8 @@
     "independent_reader": "GNU LibreDWG 0.14",
     "decoded_object_and_entity_records": 285,
     "libdxfrw_callback_identities_matched": 23,
-    "callback_identities_output_qualified": 4,
-    "callback_identities_still_unqualified": 19,
+    "callback_identities_output_qualified": 5,
+    "callback_identities_still_unqualified": 18,
     "matched_callback_bodies_referencing_empty_style_0xDF": 0,
     "remaining_decoded_references_to_0xDF": [
       "STYLE_CONTROL membership [2,1,0xDF,0xDF]",
@@ -57,7 +57,7 @@
     "diff_check": "PASS"
   },
   "limits": [
-    "The original source conversion remains refused: strict output still has 19 of 23 opaque callbacks without output qualification.",
+    "The original source conversion remains refused: strict output has 18 of 23 opaque callbacks without output qualification after the separately qualified MLINESTYLE slice.",
     "No source-qualified omission/replay behavior for STYLE 0xDF is implemented.",
     "The independent reader's decoded reference scan does not establish native CAD behavior or prove references cannot occur in unparsed data outside the matched callback records.",
     "This receipt does not qualify whole-document conversion, other empty-name styles, DWG/DXF support claims, or 3D behavior."

@@ -26907,14 +26907,15 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
     if (cData == nullptr)
         return false;
     if (cData->sourceFormat != dx_source_format::DWG
-        || cData->sourceVersion != DRW::AC1024
+        || (cData->sourceVersion != DRW::AC1018
+            && cData->sourceVersion != DRW::AC1024)
         || version != DRW::AC1024
         || m_extensionMLineStyleHandles.empty())
         return true;
 
-    // Admit only the source-backed AC1024 STANDARD profile in the tracked
-    // witness. Other MLINESTYLE bodies continue through the existing writer,
-    // but do not qualify their opaque DWG callbacks.
+    // Admit only the source-backed AC1018/AC1024 STANDARD profile in the
+    // tracked witnesses. Other MLINESTYLE bodies continue through the
+    // existing writer, but do not qualify their opaque DWG callbacks.
     if (m_extensionMLineStyleHandles.size() != 1u
         || cData->mLineStyles.size() != 1u
         || !cData->hasNamedObjectDictionary
@@ -26951,15 +26952,33 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
     const dx_data::StandardDwgFrameKey frameKey{
         cData->importGeneration, style.handle};
     const auto frame = cData->m_opaqueDwgSourceFrames.find(frameKey);
+    // AC1018's opaque callback frame has no common-link projection even
+    // though the typed MLINESTYLE parser captured its owner and reactor. For
+    // this bounded single-style profile, require the frame's exact empty
+    // projection and bind links through the typed dictionary graph below.
+    const bool legacyFrameLinksMatch = frame
+        != cData->m_opaqueDwgSourceFrames.end()
+        && frame->second.m_parentHandle == 0u
+        && frame->second.m_commonLinkEvidence
+            == DRW_DwgCommonLinkEvidence::Unknown
+        && frame->second.m_reactorHandles.empty()
+        && frame->second.m_numReactors == 0
+        && frame->second.m_xDictFlag == 0u
+        && (frame->second.m_xDictHandle == 0u
+            || frame->second.m_xDictHandle == DRW::NoHandle);
+    const bool frameLinksMatch = cData->sourceVersion == DRW::AC1018
+        ? legacyFrameLinksMatch
+        : frame != cData->m_opaqueDwgSourceFrames.end()
+            && frame->second.m_parentHandle == style.parentHandle
+            && drwDwgCommonLinkEvidenceValidated(
+                frame->second.m_commonLinkEvidence);
     if (frame == cData->m_opaqueDwgSourceFrames.end()
         || frame->second.m_objectType != 73
         || frame->second.m_handle != style.handle
         || frame->second.m_isEntity
-        || frame->second.m_version != DRW::AC1024
-        || frame->second.m_parentHandle != style.parentHandle
+        || frame->second.m_version != cData->sourceVersion
         || frame->second.m_hasDataStorage
-        || !drwDwgCommonLinkEvidenceValidated(
-            frame->second.m_commonLinkEvidence))
+        || !frameLinksMatch)
         return true;
 
     const DRW_Dictionary& nod = cData->namedObjectDictionary;
@@ -27033,15 +27052,17 @@ bool dx_iface::hasUnchangedDwgMLineStyleOutputSources() const noexcept {
     if (cData == nullptr || m_dwgMLineStyleOutputOwner != cData
         || m_dwgMLineStyleOutputGeneration != cData->importGeneration
         || cData->sourceFormat != dx_source_format::DWG
-        || cData->sourceVersion != DRW::AC1024
+        || (cData->sourceVersion != DRW::AC1018
+            && cData->sourceVersion != DRW::AC1024)
         || !cData->hasSingleSuccessfulNamedResourceImport()
         || cData->mLineStyles.size() != m_dwgMLineStyleOutputSources.size()
         || m_extensionMLineStyleHandles.size()
             != m_dwgMLineStyleOutputSources.size())
         return false;
-    const auto sameDictionary = [](const DRW_Dictionary& source,
-                                   const DRW_Dictionary& current) {
-        if (!standardDwgCommonEqual(source, current, DRW::AC1024)
+    const auto sameDictionary = [this](const DRW_Dictionary& source,
+                                       const DRW_Dictionary& current) {
+        if (!standardDwgCommonEqual(source, current,
+                                    cData->sourceVersion)
             || source.hardOwner != current.hardOwner
             || source.cloning != current.cloning || source.countCap
             || current.countCap
@@ -27071,16 +27092,35 @@ bool dx_iface::hasUnchangedDwgMLineStyleOutputSources() const noexcept {
             if (frozen == m_dwgMLineStyleOutputSources.end()
                 || !currentStyles.insert(current.handle).second
                 || !standardDwgCommonEqual(frozen->second.model, current,
-                                           DRW::AC1024)
+                                           cData->sourceVersion)
                 || !mlineFieldsEqual(frozen->second.model, current))
                 return false;
             const auto frame = cData->m_opaqueDwgSourceFrames.find(
                 {cData->importGeneration, current.handle});
+            // Keep the AC1018 exception identical to admission: its source
+            // links are frozen in the typed record and verified in the
+            // staged MLINESTYLE/root-dictionary output proof.
+            const bool legacyFrameLinksMatch =
+                frame != cData->m_opaqueDwgSourceFrames.end()
+                && frame->second.m_parentHandle == 0u
+                && frame->second.m_commonLinkEvidence
+                    == DRW_DwgCommonLinkEvidence::Unknown
+                && frame->second.m_reactorHandles.empty()
+                && frame->second.m_numReactors == 0
+                && frame->second.m_xDictFlag == 0u
+                && (frame->second.m_xDictHandle == 0u
+                    || frame->second.m_xDictHandle == DRW::NoHandle);
+            const bool frameLinksMatch =
+                cData->sourceVersion == DRW::AC1018
+                    ? legacyFrameLinksMatch
+                    : frame != cData->m_opaqueDwgSourceFrames.end()
+                        && frame->second.m_parentHandle
+                            == current.parentHandle
+                        && drwDwgCommonLinkEvidenceValidated(
+                            frame->second.m_commonLinkEvidence);
             if (frame == cData->m_opaqueDwgSourceFrames.end()
                 || frame->second.m_objectType != 73
-                || frame->second.m_parentHandle != current.parentHandle
-                || !drwDwgCommonLinkEvidenceValidated(
-                    frame->second.m_commonLinkEvidence))
+                || !frameLinksMatch)
                 return false;
             const DRW_Dictionary& nod = cData->namedObjectDictionary;
             const auto rootEntry = std::find_if(
