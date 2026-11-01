@@ -3553,6 +3553,7 @@ public:
   }
 
 protected:
+  void markDwgEntriesIncomplete() noexcept { m_dwgEntriesComplete = false; }
   bool parseCode(int code, const std::unique_ptr<dxfReader> &reader) override;
   bool parseDwg(DRW::Version version, dwgBuffer *buf,
                 std::uint32_t bs = 0) override;

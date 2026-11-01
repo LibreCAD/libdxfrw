@@ -13674,6 +13674,84 @@ void testDataStorageDefaultSchemaOnlySection(TestContext& t) {
                      + " before type-size lookup and continues bounded parsing");
         }
     }
+
+    std::vector<std::uint8_t> alternateTableRoles = bytes;
+    const auto putAlternateU32 = [&alternateTableRoles](
+        std::size_t offset, std::uint32_t value) {
+        for (unsigned byte = 0; byte < 4u; ++byte)
+            alternateTableRoles[offset + byte] =
+                static_cast<std::uint8_t>(value >> (byte * 8u));
+    };
+    const auto putAlternateU64 = [&putAlternateU32](
+        std::size_t offset, std::uint64_t value) {
+        putAlternateU32(offset, static_cast<std::uint32_t>(value));
+        putAlternateU32(offset + 4u, static_cast<std::uint32_t>(value >> 32u));
+    };
+    const std::size_t alternateIndexPayload = schemaIndexOffset
+        + DRW_DataStorageConst::SEGMENT_HEADER_SIZE;
+    putAlternateU32(alternateIndexPayload, 5u);
+    putAlternateU32(alternateIndexPayload + 4u, 0u);
+    for (std::size_t index = 0; index < schemaOffsets.size(); ++index) {
+        const std::size_t entry = alternateIndexPayload + 8u + index * 12u;
+        putAlternateU32(entry, static_cast<std::uint32_t>(index));
+        putAlternateU32(entry + 4u, 2u); // schdat segment index
+        putAlternateU32(entry + 8u, schemaOffsets[index]);
+    }
+    const std::size_t alternatePropertiesHeader =
+        alternateIndexPayload + 8u + schemaOffsets.size() * 12u;
+    putAlternateU64(alternatePropertiesHeader, 0x00000000000af10cull);
+    putAlternateU32(alternatePropertiesHeader + 8u,
+                    static_cast<std::uint32_t>(unknownPropertyFlags.size()));
+    putAlternateU32(alternatePropertiesHeader + 12u, 0u);
+    for (std::size_t index = 0;
+         index < unknownPropertyFlags.size(); ++index) {
+        const std::size_t entry = alternatePropertiesHeader + 16u
+            + index * 12u;
+        putAlternateU32(entry, 2u); // schdat segment index
+        putAlternateU32(entry + 4u, static_cast<std::uint32_t>(index * 8u));
+        putAlternateU32(entry + 8u, static_cast<std::uint32_t>(index));
+    }
+
+    const DRW_DataStorageSection alternateParsed =
+        DRW_parseDataStorage(alternateTableRoles, DRW::AC1027);
+    const bool identifiesAlternateTableRoles = std::any_of(
+        alternateParsed.diagnostics.cbegin(),
+        alternateParsed.diagnostics.cend(),
+        [](const DRW_DataStorageDiagnostic& diagnostic) {
+            return diagnostic.code
+                == "datastorage-ac1027-schema-table-role-compatibility"
+                && diagnostic.kind
+                    == DRW_DataStorageDiagnostic::Kind::SupportedOpaque;
+        });
+    t.expect(alternateParsed.structurallyValid
+                 && alternateParsed.replayAllowed
+                 && alternateParsed.schemaCount == schemaOffsets.size()
+                 && alternateParsed.schemaUnknownProperties.size()
+                     == unknownPropertyFlags.size()
+                 && alternateParsed.schemas.front().index == 0u
+                 && alternateParsed.schemas.front().indexes
+                     == std::vector<std::uint64_t>{0u, 1u}
+                 && alternateParsed.schemaUnknownProperties.front().localOffset
+                     == 0u
+                 && identifiesAlternateTableRoles,
+             "DataStorage accepts the bounded AC1027 profile with schema roots in schidx table one");
+
+    std::vector<std::uint8_t> malformedAlternateRoles = alternateTableRoles;
+    overwriteU32(malformedAlternateRoles,
+                 alternatePropertiesHeader + 16u + 12u + 4u, 12u);
+    const DRW_DataStorageSection rejectedAlternateRoles =
+        DRW_parseDataStorage(malformedAlternateRoles, DRW::AC1027);
+    const bool didNotSelectAlternateRoles = std::none_of(
+        rejectedAlternateRoles.diagnostics.cbegin(),
+        rejectedAlternateRoles.diagnostics.cend(),
+        [](const DRW_DataStorageDiagnostic& diagnostic) {
+            return diagnostic.code
+                == "datastorage-ac1027-schema-table-role-compatibility";
+        });
+    t.expect(!rejectedAlternateRoles.structurallyValid
+                 && !rejectedAlternateRoles.replayAllowed
+                 && didNotSelectAlternateRoles,
+             "DataStorage malformed AC1027 alternate references remain fail-closed");
 }
 
 void testFramePublicationContract(TestContext& t) {

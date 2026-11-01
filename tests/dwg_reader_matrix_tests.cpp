@@ -13327,7 +13327,7 @@ void checkHeaderVersionProfile(TestContext& t,
                  && trailingReader.diagnostics().size() == 1u
                  && trailingReader.diagnostics()[0].kind
                         == DwgIntegrityCheckKind::HeaderSectionBounds,
-             "decoded page padding cannot extend the logical HEADER: " + label);
+             "canonical HEADER profile cannot claim trailing bytes: " + label);
 
     auto crcMutation = bytes;
     const auto crcOffset = static_cast<std::size_t>(envelope.payloadEnd);
@@ -13611,10 +13611,54 @@ void testHeaderVersionEnvelopes(TestContext& t) {
     auto ac1027High = makeHeaderSection<dwgWriter27>(t, "AC1027 MV>3");
     checkHeaderVersionProfile(t, ac1027High, DRW::AC1027, 6u,
                                            true, "AC1027 MV>3");
+    auto ac1027WithUnclaimedSuffix = ac1027High;
+    excludeHeaderHighSizeWordFromCount(ac1027WithUnclaimedSuffix);
+    std::vector<std::uint8_t> ac1027Suffix(735u);
+    for (std::size_t index = 0; index < ac1027Suffix.size(); ++index)
+        ac1027Suffix[index] = static_cast<std::uint8_t>(index * 37u + 0x31u);
+    ac1027WithUnclaimedSuffix.insert(ac1027WithUnclaimedSuffix.end(),
+                                     ac1027Suffix.begin(),
+                                     ac1027Suffix.end());
+    const auto ac1027WithUnclaimedSuffixOriginal =
+        ac1027WithUnclaimedSuffix;
+    HeaderSectionReader ac1027SuffixReader(
+        ac1027WithUnclaimedSuffix, 0u, DRW::AC1027, 6u);
+    DRW_Header ac1027SuffixHeader;
+    t.expect(ac1027SuffixReader.readDwgHeader(ac1027SuffixHeader)
+                 && ac1027SuffixHeader.vars.count("LUNITS") == 1u
+                 && ac1027SuffixHeader.vars.at("LUNITS")->content.i == 4
+                 && ac1027SuffixReader.diagnostics().size() == 2u
+                 && ac1027SuffixReader.diagnostics()[0].kind
+                        == DwgIntegrityCheckKind::HeaderSectionCompatibility
+                 && ac1027SuffixReader.diagnostics()[0].severity
+                        == DwgIntegritySeverity::Warning
+                 && ac1027SuffixReader.diagnostics()[1].kind
+                        == DwgIntegrityCheckKind::HeaderSectionUnclaimedData
+                 && ac1027SuffixReader.diagnostics()[1].severity
+                        == DwgIntegritySeverity::Warning
+                 && ac1027SuffixReader.diagnostics()[1].hasExpected
+                 && ac1027SuffixReader.diagnostics()[1].expected
+                        == ac1027High.size()
+                 && ac1027SuffixReader.diagnostics()[1].hasObserved
+                 && ac1027SuffixReader.diagnostics()[1].observed
+                        == ac1027WithUnclaimedSuffix.size()
+                 && ac1027WithUnclaimedSuffix
+                        == ac1027WithUnclaimedSuffixOriginal,
+             "AC1027 app-maintenance-4 admits parsed HEADER plus explicit suffix warning without mutating source bytes");
     auto ac1027Low = ac1027High;
     setHeaderHighSizeWord(ac1027Low, false);
     checkHeaderVersionProfile(t, ac1027Low, DRW::AC1027, 3u,
                                            false, "AC1027 MV<=3");
+    auto ac1027LowWithSuffix = ac1027Low;
+    ac1027LowWithSuffix.insert(ac1027LowWithSuffix.end(),
+                               ac1027Suffix.begin(), ac1027Suffix.end());
+    HeaderSectionReader ac1027LowSuffixReader(
+        ac1027LowWithSuffix, 0u, DRW::AC1027, 3u);
+    DRW_Header ac1027LowSuffixHeader;
+    ac1027LowSuffixHeader.addInt("stale", 99, 70);
+    t.expect(!ac1027LowSuffixReader.readDwgHeader(ac1027LowSuffixHeader)
+                 && ac1027LowSuffixHeader.vars.empty(),
+             "AC1027 app-maintenance<=3 does not inherit the suffix profile");
     for (const auto& mismatch : {
              std::pair<const std::vector<std::uint8_t>*, std::uint8_t>{&ac1027High, 3u},
              {&ac1027Low, 4u}}) {

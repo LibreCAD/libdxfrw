@@ -206,15 +206,16 @@ struct DRW_DataStorageSection {
     bool payloadsRetained = false;
     std::vector<DRW_DataStorageSegment> segments;
     std::vector<DRW_DataStorageIndexEntry> dataIndexEntries;
-    //! ODA §24.2.2.5 first-table count and schema-index unknown field.
+    //! Raw first schidx table count and its adjacent unknown field.
     std::uint32_t schemaIndexUnknownPropertyCount = 0;
     std::uint32_t schemaIndexUnknown1 = 0;
     std::uint64_t schemaIndexTag = 0;
+    //! Raw second schidx table count and its adjacent unknown field.
     std::uint32_t schemaIndexPropertyEntryCount = 0;
     std::uint32_t schemaIndexUnknown2 = 0;
-    //! Schema-data references from the second schidx table.
+    //! Entries as encoded in the second schidx table.
     std::vector<DRW_DataStorageSchemaIndexEntry> schemaIndexEntries;
-    //! Opaque schema-property header references from the first table.
+    //! Entries as encoded in the first schidx table.
     std::vector<DRW_DataStorageSchemaIndexEntry> schemaPropertyEntries;
     //! Unknown-property headers and schemas decoded from schdat.
     std::uint32_t schemaUnknownPropertyCount = 0;

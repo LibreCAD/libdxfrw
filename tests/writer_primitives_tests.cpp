@@ -52,6 +52,11 @@ public:
     using dwgWriter15::finishObject;
 };
 
+class DictionaryParseProbe final : public DRW_Dictionary {
+public:
+    using DRW_Dictionary::parseDwg;
+};
+
 void testModularVectors(TestContext& t) {
     const std::vector<std::uint64_t> unsignedValues {0, 1, 127, 128,
                                                        16383, 16384,
@@ -490,6 +495,113 @@ void testModernDictionaryStreamBoundary(TestContext& t) {
             }
         }
     }
+
+    struct DictionaryFrame {
+        std::vector<std::uint8_t> bytes;
+        std::size_t bodyOffset = 0;
+        std::size_t bodyBytes = 0;
+        std::uint32_t handleBits = 0;
+        std::uint64_t stringStartBit = 0;
+    };
+    const auto makeDictionaryFrame = [](std::uint32_t childHandle) {
+        DictionaryFrame result;
+        DRW_Header header;
+        dwgWriter27 writer(nullptr, &header);
+        DRW_Dictionary dictionary;
+        dictionary.handle = 0xD100u;
+        dictionary.parentHandle = 0xCu;
+        dictionary.setDwgCommonObjectState(0, 1, false);
+        dictionary.m_entries.push_back({"A", childHandle});
+        if (!writer.writeDictionary(dictionary))
+            return result;
+
+        result.bytes = writer.buffer();
+        dwgBuffer framing(result.bytes.data(), result.bytes.size());
+        const std::int32_t frameBytes = framing.getModularShort();
+        result.handleBits = framing.getUModularChar();
+        result.bodyOffset = static_cast<std::size_t>(framing.getPosition());
+        if (!framing.isGood() || frameBytes <= 0
+            || result.bodyOffset + static_cast<std::size_t>(frameBytes) + 2u
+                != result.bytes.size()) {
+            result.bytes.clear();
+            return result;
+        }
+        result.bodyBytes = static_cast<std::size_t>(frameBytes);
+        DRW_TextCodec codec;
+        codec.setVersion(DRW::AC1027, false);
+        dwgBuffer body(result.bytes.data() + result.bodyOffset,
+                       result.bodyBytes, &codec);
+        const bool scalarPrefix = body.getObjType(DRW::AC1027) == 42u
+            && body.getHandle().ref == dictionary.handle
+            && body.getBitShort() == 0
+            && body.getBitLong() == 0
+            && body.getBit() == 1
+            && body.getBit() == 0
+            && body.getBitLong() == 1;
+        body.getBitShort(); // cloning
+        body.getRawChar8(); // hard-owner flag
+        result.stringStartBit = body.getPosition() * 8u + body.getBitPos();
+        std::uint64_t stringStart = 0;
+        std::uint64_t stringEnd = 0;
+        const std::uint64_t endBit = result.bodyBytes * 8u
+            - result.handleBits;
+        if (!scalarPrefix || !body.isGood()
+            || !body.getR2007StringStreamBounds(
+                endBit, stringStart, stringEnd)
+            || stringStart != result.stringStartBit
+            || stringEnd < stringStart) {
+            result.bytes.clear();
+        }
+        return result;
+    };
+    const auto patchFirstNameToEmpty = [](DictionaryFrame& frame) {
+        if (frame.bytes.empty())
+            return false;
+        // A R2007+ TU length of zero is the two-bit value 10. Patch only that
+        // length code so the generated frame keeps its original handle stream.
+        for (unsigned bitIndex = 0; bitIndex < 2u; ++bitIndex) {
+            const std::uint64_t bit = frame.bodyOffset * 8u
+                + frame.stringStartBit + bitIndex;
+            const std::uint8_t mask = static_cast<std::uint8_t>(
+                1u << (7u - static_cast<unsigned>(bit % 8u)));
+            if (bitIndex == 0u)
+                frame.bytes[static_cast<std::size_t>(bit / 8u)] |= mask;
+            else
+                frame.bytes[static_cast<std::size_t>(bit / 8u)] &=
+                    static_cast<std::uint8_t>(~mask);
+        }
+        return true;
+    };
+    const auto parseDictionaryFrame = [](
+        const DictionaryFrame& frame, DictionaryParseProbe& dictionary) {
+        DRW_TextCodec codec;
+        codec.setVersion(DRW::AC1027, false);
+        dwgBuffer input(frame.bytes.data() + frame.bodyOffset,
+                        frame.bodyBytes, &codec);
+        return dictionary.parseDwg(DRW::AC1027, &input, frame.handleBits);
+    };
+
+    DictionaryFrame emptyNullEntry = makeDictionaryFrame(0u);
+    DictionaryFrame emptyNonNullEntry = makeDictionaryFrame(0xD101u);
+    const bool prepared = patchFirstNameToEmpty(emptyNullEntry)
+        && patchFirstNameToEmpty(emptyNonNullEntry);
+    DictionaryParseProbe parsedDictionary;
+    const bool parsedEmptyNonNull = prepared
+        && parseDictionaryFrame(emptyNonNullEntry, parsedDictionary);
+    const bool rejectedEmptyNonNull = prepared && !parsedEmptyNonNull
+        && !parsedDictionary.hasCompleteDwgEntries()
+        && parsedDictionary.m_entries.empty();
+    const bool acceptedEmptyNull = prepared
+        && parseDictionaryFrame(emptyNullEntry, parsedDictionary)
+        && parsedDictionary.hasCompleteDwgEntries()
+        && parsedDictionary.m_entries.size() == 1u
+        && parsedDictionary.m_entries.front().m_name.empty()
+        && parsedDictionary.m_entries.front().m_handle == 0u
+        && !parsedDictionary.hasCompleteDxfEntries();
+    t.expect(rejectedEmptyNonNull,
+             "DICTIONARY rejects an empty name paired with a non-null handle and clears failed state");
+    t.expect(acceptedEmptyNull,
+             "DICTIONARY retains an observed empty-name/null-handle DWG pair while DXF output remains incomplete");
 }
 
 void testWriteRejectionDoesNotTouchDestination(TestContext& t) {

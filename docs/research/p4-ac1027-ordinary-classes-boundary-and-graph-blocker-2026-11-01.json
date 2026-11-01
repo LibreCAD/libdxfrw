@@ -1,0 +1,80 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1027-ordinary-classes-boundary-and-graph-blocker-2026-11-01",
+  "date": "2026-11-01",
+  "title": "Tracked AC1027 ordinary source passes reader after bounded CLASSES CRC profile; strict output exposes extension DICTIONARY blocker",
+  "status": "READER_PASS; STRICT_OUTPUT_REFUSED_AT_GRAPH_VALIDATION",
+  "supportClaimEffect": "none",
+  "scope": "One tracked AC1027 source profile. Records bounded CLASSES trailer selection and full local/independent reader success. Strict DXF output remains refused by an extension-DICTIONARY reciprocity check; this receipt does not establish output completeness or semantic support.",
+  "source": {
+    "path": "tests/fixtures/dwg/ordinary_enc_AC1027.dwg",
+    "sha256": "a0ebf245e570bf0dc337c696330b7ea883feaebb7c4e781de8d77ac723815f83",
+    "version": "AC1027",
+    "repositoryFixture": true
+  },
+  "classesBoundary": {
+    "declaredDataSize": 5928,
+    "optionalHighSizeWord": 0,
+    "declaredBitSize": 47385,
+    "canonicalCandidate": {
+      "offset": 5952,
+      "storedCrc": "0x3b5e",
+      "calculatedCrc": "0x2580",
+      "remainingBytes": 13,
+      "result": "CRC mismatch; insufficient remaining source bytes for CRC, allowed tail, and exact CLASSES end sentinel"
+    },
+    "boundedAlternateCandidate": {
+      "offset": 5948,
+      "storedCrc": "0xf1a5",
+      "calculatedCrc": "0xf1a5",
+      "tailBytes": 1,
+      "endSentinelEndsAt": 5967,
+      "result": "nonzero matching CRC, one allowed tail byte, exact CLASSES end sentinel within the source section bounds"
+    },
+    "selection": "Used only for AC1027 with the extended class-size profile and only when the canonical candidate lacks a source-bounded valid trailer; does not change the canonical profile or generalize to other versions.",
+    "readerTraceMarker": "Using bounded AC1027 CLASSES CRC profile with the optional high-size word excluded from the declared data-area size"
+  },
+  "readerResult": {
+    "localCommand": "build-gcc/dwg2dxf/dwg2dxf tests/fixtures/dwg/ordinary_enc_AC1027.dwg -y -d -v2013 <scratch output path>",
+    "localTracePath": "/private/tmp/libdxfrw-ordinary-enc-ac1027-after-fix.log",
+    "localTraceSha256": "7f04cb3da8c5367d57eaf4105caa51b976921bf1f7572c077c18998e618f1f95",
+    "result": "operationSucceeded=true; legacyError=0; classesCrcMismatch=0; 26/26 observed physical frames published; entityParseFailures=0; objectParseFailures=0.",
+    "strictOutput": "Refused at extension-object graph validation: invalid-graph nodes=0 edges=1 staged-handles=0 source-records=7 xrecord-payload-slots=0; extension DICTIONARY is missing, ambiguous, or not reciprocally owned by its source record: handle=56 (decimal), corresponding to 0x38.",
+    "disposition": "The reader and strict writer results are independent: reader completion is resolved for this selected source profile, while output remains fail-closed until the exact dictionary/source-record ownership and dependency graph are proven."
+  },
+  "independentReader": {
+    "executable": "/opt/homebrew/bin/dwgread",
+    "version": "0.14",
+    "executableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "command": "dwgread -v5 -O JSON tests/fixtures/dwg/ordinary_enc_AC1027.dwg",
+    "tracePath": "/private/tmp/libredwg-ordinary-enc-ac1027.log",
+    "traceSha256": "a1df9d09181174a80e75203ac929cde7759e53743cdb1f1730ed0dd6a6b7546e",
+    "outputPath": "/private/tmp/libredwg-ordinary-enc-ac1027.json",
+    "outputSha256": "82a3d69ebe6cb67f742fa1da6b491a3faa208cc10735dd1bb0e0b3899ad8bba5",
+    "result": "SUCCESS 0x0; independent decoder accepted and decoded the same tracked source. This does not establish semantic equivalence or DXF output support."
+  },
+  "focusedValidation": {
+    "buildTargets": [
+      "libdxfrw_dwg_reader_matrix_tests",
+      "libdxfrw_graph_preservation_tests",
+      "libdxfrw_writer_primitives_tests",
+      "libdxfrw_dwg2dxf_adapter_tests",
+      "dwg2dxf"
+    ],
+    "buildResult": "passed",
+    "ctestCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_reader_matrix|libdxfrw_graph_preservation|libdxfrw_writer_primitives|dwg2dxf_standard_dwg_object_source_capture)$' --output-on-failure",
+    "ctestResult": "4/4 passed in 3.10 seconds; includes the three previously failing exact HEADER, frame accounting and root identity assertions.",
+    "fixturePolicy": "No fixture files were added; the existing tracked repository DWG was used."
+  },
+  "binding": {
+    "baseCommit": "7554195dc378b70bc07c0de8c826129f41eda2f7",
+    "readerSourceSha256": "232741fdc78628aec0c77d34e5d1e22d65c027ffec30cd85b9512d8c449f7b80",
+    "executableSha256": "809c6957c51f5b7a5083a485303be643fbb32ebdc7203a28b65c71e2f1d29fea"
+  },
+  "next": "P4: trace handle 0x38 back to its source object and verify extension-DICTIONARY owner role, reciprocal back-reference, and required descendants; add only source-backed output mapping/readback proof or retain refusal.",
+  "limitations": [
+    "No new test drawing was committed or created for this observation.",
+    "No native application, platform, or 3D semantic qualification was performed.",
+    "This receipt concerns one AC1027 source profile and cannot promote format support claims."
+  ]
+}

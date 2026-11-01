@@ -9630,6 +9630,7 @@ bool DRW_Dictionary::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
         if (buf != nullptr)
             buf->invalidate();
         reset();
+        markDwgEntriesIncomplete();
     }
     return ret;
 }
@@ -9640,6 +9641,7 @@ bool DRW_Dictionary::parseDwgImpl(DRW::Version version, dwgBuffer *buf,
         if (buf != nullptr)
             buf->invalidate();
         reset();
+        markDwgEntriesIncomplete();
         return false;
     };
     if (buf == nullptr)
@@ -9758,7 +9760,12 @@ bool DRW_Dictionary::parseDwgImpl(DRW::Version version, dwgBuffer *buf,
         const bool nullItemHandleIsValid = itemH.ref == 0
             && itemH.size == 0
             && (itemH.code == 0 || itemH.code == dwgItemHandleCode());
-        if (names[i].empty() || (itemH.ref == 0 && !nullItemHandleIsValid))
+        if (itemH.ref == 0 && !nullItemHandleIsValid)
+            return false;
+        // Preserve the observed DWG empty-name/null-handle slot as an exact
+        // counted pair. DXF completeness and writer admission still reject an
+        // empty dictionary key, so parsing it does not qualify lossy output.
+        if (names[i].empty() && !nullItemHandleIsValid)
             return false;
         entries.push_back({names[i], itemH.ref});
     }
@@ -9799,6 +9806,7 @@ bool DRW_DictionaryWithDefault::parseDwg(DRW::Version version, dwgBuffer *buf, s
         if (buf != nullptr)
             buf->invalidate();
         reset();
+        markDwgEntriesIncomplete();
         return false;
     };
     reset();

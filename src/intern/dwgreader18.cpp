@@ -1360,6 +1360,60 @@ bool dwgReader18::readDwgClasses(){
         recordFailure(DwgIntegrityCheckKind::PageGeometry, si.Id);
         return false;
     }
+    if (version == DRW::AC1027 && hasExtendedClassSize) {
+        const auto hasBoundedClassTrailer = [&dataBuf, &si](
+                std::uint64_t candidate) {
+            std::uint64_t crcEnd = 0;
+            if (!dwgSafety::add(candidate, 2u, crcEnd)
+                || candidate > si.size || crcEnd > si.size
+                || candidate > static_cast<std::uint64_t>(
+                       std::numeric_limits<std::int32_t>::max() - 1))
+                return false;
+
+            auto probe = dataBuf.forkIndependent();
+            if (!probe.setPosition(candidate))
+                return false;
+            const std::uint16_t stored = probe.getRawShort16();
+            const std::uint16_t calculated = probe.crc8(
+                0xc0c1, 16, static_cast<std::int32_t>(candidate));
+            if (!probe.isGood() || stored == 0u || calculated != stored)
+                return false;
+
+            constexpr std::array<std::uint64_t, 4> tailSizes = {8u, 2u, 1u, 0u};
+            for (const std::uint64_t tailSize : tailSizes) {
+                std::uint64_t sentinelStart = 0;
+                std::uint64_t sectionEnd = 0;
+                if (!dwgSafety::add(crcEnd, tailSize, sentinelStart)
+                    || !dwgSafety::add(sentinelStart, 16u, sectionEnd)
+                    || sectionEnd != si.size
+                    || !probe.setPosition(sentinelStart))
+                    continue;
+                bool sentinelMatches = true;
+                for (const std::uint8_t expected
+                     : dwgSentinels::CLASSES_END) {
+                    if (probe.getRawChar8() != expected) {
+                        sentinelMatches = false;
+                        break;
+                    }
+                }
+                if (sentinelMatches && probe.isGood())
+                    return true;
+            }
+            return false;
+        };
+
+        if (!hasBoundedClassTrailer(crcPosition)) {
+            std::uint64_t alternateCrcPosition = 0;
+            if (dwgSafety::add(size, 20u, alternateCrcPosition)
+                && alternateCrcPosition != crcPosition
+                && hasBoundedClassTrailer(alternateCrcPosition)) {
+                crcPosition = alternateCrcPosition;
+                DRW_DBG("Using bounded AC1027 CLASSES CRC profile with ");
+                DRW_DBG("the optional high-size word excluded from the ");
+                DRW_DBG("declared data-area size\n");
+            }
+        }
+    }
     if (version > DRW::AC1018)
         classDataEndBit = bitSize;
     if (version > DRW::AC1021) {
@@ -1767,7 +1821,44 @@ bool dwgReader18::captureRawDwgDataSections() {
             // to modeler callbacks that would expose dangling presence bits.
             if (typed.parseFailed || !typed.structurallyValid
                 || !typed.replayAllowed) {
+                DRW_DBG("DataStorage section rejected: ");
+                DRW_DBG(section.m_name);
+                DRW_DBG(" parseFailed=");
+                DRW_DBG(static_cast<int>(typed.parseFailed));
+                DRW_DBG(" structurallyValid=");
+                DRW_DBG(static_cast<int>(typed.structurallyValid));
+                DRW_DBG(" replayAllowed=");
+                DRW_DBG(static_cast<int>(typed.replayAllowed));
+                DRW_DBG(" diagnostics=");
+                DRW_DBG(static_cast<unsigned long>(typed.diagnostics.size()));
+                const std::size_t diagnosticCount = std::min<std::size_t>(
+                    typed.diagnostics.size(), 4u);
+                for (std::size_t i = 0; i < diagnosticCount; ++i) {
+                    const DRW_DataStorageDiagnostic& diagnostic =
+                        typed.diagnostics[i];
+                    DRW_DBG(" ");
+                    DRW_DBG(diagnostic.code);
+                    if (diagnostic.hasOffset) {
+                        DRW_DBG("@");
+                        DRW_DBG(static_cast<unsigned long long>(
+                            diagnostic.offset));
+                    }
+                }
+                DRW_DBG("\n");
                 return false;
+            }
+            for (const DRW_DataStorageDiagnostic& diagnostic
+                 : typed.diagnostics) {
+                if (diagnostic.code
+                    != "datastorage-ac1027-schema-table-role-compatibility")
+                    continue;
+                DRW_DBG("DataStorage alternate AC1027 schema-table profile accepted: schemas=");
+                DRW_DBG(static_cast<unsigned long>(typed.schemas.size()));
+                DRW_DBG(" unknown-properties=");
+                DRW_DBG(static_cast<unsigned long>(
+                    typed.schemaUnknownProperties.size()));
+                DRW_DBG("\n");
+                break;
             }
             stagedDataStorageSections.push_back(std::move(typed));
         }

@@ -17600,7 +17600,10 @@ bool standardDwgObjectSourceCapture() {
         case 2: membership.m_complete = false; break;
         case 3: membership.m_hasSourceLocation = false; break;
         case 4: membership.m_dictionaryHandle++; break;
-        case 5: membership.m_entries.front().m_name.clear(); break;
+        case 5:
+            membership.m_entries.front().m_name.clear();
+            membership.m_entries.front().m_handle = 0x501u;
+            break;
         case 6: Access::seedEntries(data, dx_iface::StandardDwgObjectCaptureMaxEntries); break;
         default: Access::seedBytes(data, dx_iface::StandardDwgObjectCaptureMaxRetainedBytes); break;
         }
@@ -17609,6 +17612,26 @@ bool standardDwgObjectSourceCapture() {
         if (!data.hasStandardDwgObjectCaptureFailure()
             || data.dwgReadOutcome.standardObjectSourceReceiptsMatched != 0u)
             return fail("standard DWG inconsistent membership/cap was admitted: " + std::to_string(fault));
+    }
+    {
+        dx_data data;
+        dx_iface iface;
+        setup(data, iface);
+        const auto raw = rawFrame(42);
+        iface.addUnsupportedObject(raw);
+        const auto receipt = publication(raw);
+        iface.addDwgFramePublication(receipt);
+        auto membership = dictionary(receipt);
+        membership.m_entries = {{"", 0u}};
+        iface.addDwgDictionaryMembership(membership);
+        Access::finish(iface, true);
+        const auto& retained = Access::dictionary(data, raw.m_handle);
+        if (data.hasStandardDwgObjectCaptureFailure()
+            || data.dwgReadOutcome.standardObjectSourceReceiptsMatched != 1u
+            || retained.m_entries.size() != 1u
+            || !retained.m_entries.front().m_name.empty()
+            || retained.m_entries.front().m_handle != 0u)
+            return fail("complete DWG source membership did not retain its empty-name/null-handle pair");
     }
     for (const bool aliasOrdinal : {false, true}) {
         dx_data data;

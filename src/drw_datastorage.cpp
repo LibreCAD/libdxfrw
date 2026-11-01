@@ -158,6 +158,8 @@ void pushDiag(DRW_DataStorageSection& section,
             return DRW_DataStorageDiagnostic::Kind::Informational;
         if (code == "datastorage-payload-retention-budget-exceeded")
             return DRW_DataStorageDiagnostic::Kind::SupportedOpaque;
+        if (code == "datastorage-ac1027-schema-table-role-compatibility")
+            return DRW_DataStorageDiagnostic::Kind::SupportedOpaque;
         if (code == "datastorage-segment-signature-invalid"
             || code == "datastorage-segment-index-mismatch"
             || code == "datastorage-segment-header-size-mismatch"
@@ -758,6 +760,87 @@ void readSchemaIndex(const ByteReader& r, DRW_DataStorageSection& section) {
     }
 }
 
+bool hasAc1027ReversedSchemaTableRoles(
+    const ByteReader& r, const DRW_DataStorageSection& section,
+    std::uint32_t& schemaSegmentIndex) {
+    if (section.m_version != DRW::AC1027
+        || section.schemaIndexUnknownPropertyCount
+               != section.schemaPropertyEntries.size()
+        || section.schemaIndexPropertyEntryCount
+               != section.schemaIndexEntries.size()
+        || section.schemaPropertyEntries.empty()
+        || section.schemaIndexEntries.empty()) {
+        return false;
+    }
+
+    const DRW_DataStorageSegment* schemaSegment = nullptr;
+    for (const DRW_DataStorageSegment& segment : section.segments) {
+        if (segment.kind != DRW_DataStorageSegmentKind::SchemaData)
+            continue;
+        if (schemaSegment != nullptr)
+            return false;
+        schemaSegment = &segment;
+        schemaSegmentIndex = segment.index;
+    }
+    if (schemaSegment == nullptr)
+        return false;
+
+    const std::uint64_t schemaCount =
+        static_cast<std::uint64_t>(section.schemaPropertyEntries.size());
+    const std::uint64_t unknownCount =
+        static_cast<std::uint64_t>(section.schemaIndexEntries.size());
+    std::uint64_t firstSchemaLocalOffset = 0;
+    if (!checkedMultiply(unknownCount, 8u, firstSchemaLocalOffset))
+        return false;
+
+    std::uint64_t previousSchemaOffset = 0;
+    for (std::size_t index = 0;
+         index < section.schemaPropertyEntries.size(); ++index) {
+        const DRW_DataStorageSchemaIndexEntry& reference =
+            section.schemaPropertyEntries[index];
+        if (reference.index != index
+            || reference.segmentIndex != schemaSegmentIndex
+            || reference.localOffset < firstSchemaLocalOffset
+            || (index != 0u
+                && reference.localOffset <= previousSchemaOffset)) {
+            return false;
+        }
+        previousSchemaOffset = reference.localOffset;
+    }
+
+    for (std::size_t index = 0;
+         index < section.schemaIndexEntries.size(); ++index) {
+        const DRW_DataStorageSchemaIndexEntry& reference =
+            section.schemaIndexEntries[index];
+        std::uint64_t expectedOffset = 0;
+        if (!checkedMultiply(index, 8u, expectedOffset)
+            || reference.segmentIndex != schemaSegmentIndex
+            || reference.localOffset != expectedOffset
+            || reference.index >= schemaCount) {
+            return false;
+        }
+    }
+
+    std::uint64_t payloadStart = 0;
+    std::uint64_t segmentEnd = 0;
+    std::uint64_t systemDataEnd = 0;
+    std::uint64_t alignmentBytes = 0;
+    if (!getSegmentBounds(r, *schemaSegment, payloadStart, segmentEnd)
+        || !checkedMultiply(schemaSegment->systemDataAlignmentOffset, 16u,
+                            alignmentBytes)
+        || !checkedAdd(schemaSegment->offset, alignmentBytes,
+                       systemDataEnd)
+        || systemDataEnd < payloadStart || systemDataEnd > segmentEnd
+        || !isRangeWithin(payloadStart, firstSchemaLocalOffset,
+                          systemDataEnd)) {
+        return false;
+    }
+
+    return !section.schemaPropertyEntries.empty()
+        && section.schemaPropertyEntries.front().localOffset
+            == firstSchemaLocalOffset;
+}
+
 void readSchemaNames(const ByteReader& r,
                      DRW_DataStorageSection& section,
                      std::uint64_t namesOffset,
@@ -823,7 +906,9 @@ void readSchemaUnknownProperties(const ByteReader& r,
                                  std::uint64_t payloadStart,
                                  std::uint64_t firstSchemaOffset,
                                  std::uint64_t systemDataEnd,
-                                 std::uint32_t segmentIndex) {
+                                 std::uint32_t segmentIndex,
+                                 const std::vector<
+                                     DRW_DataStorageSchemaIndexEntry>& references) {
     std::uint64_t unknownEnd = systemDataEnd;
     if (firstSchemaOffset != std::numeric_limits<std::uint64_t>::max()) {
         if (firstSchemaOffset
@@ -845,8 +930,7 @@ void readSchemaUnknownProperties(const ByteReader& r,
     // property.
     bool usedReferences = false;
     std::unordered_set<std::uint32_t> seenOffsets;
-    for (const DRW_DataStorageSchemaIndexEntry& reference
-         : section.schemaPropertyEntries) {
+    for (const DRW_DataStorageSchemaIndexEntry& reference : references) {
         if (reference.segmentIndex != segmentIndex)
             continue;
         usedReferences = true;
@@ -1110,14 +1194,21 @@ bool readSchema(const ByteReader& r,
     return true;
 }
 
-void readSchemaData(const ByteReader& r, DRW_DataStorageSection& section) {
-    if (section.schemaIndexEntries.empty())
+void readSchemaData(const ByteReader& r, DRW_DataStorageSection& section,
+                    bool reversedTableRoles = false) {
+    const std::vector<DRW_DataStorageSchemaIndexEntry>& schemaReferences =
+        reversedTableRoles ? section.schemaPropertyEntries
+                           : section.schemaIndexEntries;
+    const std::vector<DRW_DataStorageSchemaIndexEntry>& unknownReferences =
+        reversedTableRoles ? section.schemaIndexEntries
+                           : section.schemaPropertyEntries;
+    if (schemaReferences.empty())
         return;
 
     std::vector<std::uint32_t> schemaSegmentIndexes;
     std::unordered_set<std::uint32_t> seenSegments;
     for (const DRW_DataStorageSchemaIndexEntry& reference
-         : section.schemaIndexEntries) {
+         : schemaReferences) {
         if (static_cast<std::size_t>(reference.segmentIndex)
             >= section.segments.size()) {
             pushDiag(section, "datastorage-schema-segment-missing",
@@ -1159,18 +1250,18 @@ void readSchemaData(const ByteReader& r, DRW_DataStorageSection& section) {
         std::uint64_t firstSchemaOffset =
             std::numeric_limits<std::uint64_t>::max();
         for (const DRW_DataStorageSchemaIndexEntry& reference
-             : section.schemaIndexEntries) {
+             : schemaReferences) {
             if (reference.segmentIndex == segmentIndex)
                 firstSchemaOffset = std::min<std::uint64_t>(
                     firstSchemaOffset, reference.localOffset);
         }
         readSchemaUnknownProperties(r, section, payloadStart,
                                     firstSchemaOffset, namesStart,
-                                    segmentIndex);
+                                    segmentIndex, unknownReferences);
 
         std::unordered_set<std::uint64_t> seenSchemas;
         for (const DRW_DataStorageSchemaIndexEntry& reference
-             : section.schemaIndexEntries) {
+             : schemaReferences) {
             if (reference.segmentIndex != segmentIndex)
                 continue;
             const std::uint64_t key =
@@ -1977,7 +2068,22 @@ DRW_DataStorageSection DRW_parseDataStorage(const std::uint8_t* data,
     readSegmentIndex(r, section.segmentIndexOffset,
                      section.segmentIndexEntryCount, section);
     readSchemaIndex(r, section);
-    readSchemaData(r, section);
+    std::uint32_t compatibleSchemaSegmentIndex = 0;
+    const bool reversedSchemaTableRoles = section.structurallyValid
+        && hasAc1027ReversedSchemaTableRoles(
+            r, section, compatibleSchemaSegmentIndex);
+    if (reversedSchemaTableRoles) {
+        // The observed AC1027 app-maintenance-4 producer profile stores
+        // schema roots in the first schidx table and unknown-property headers
+        // in the second. Keep the ODA-described order as the default; switch
+        // only when the exact bounded, contiguous layout is self-consistent.
+        pushDiag(section,
+                 "datastorage-ac1027-schema-table-role-compatibility",
+                 "AC1027 DataStorage uses the validated alternate schema-index table roles",
+                 0, false,
+                 section.segments[compatibleSchemaSegmentIndex].offset, true);
+    }
+    readSchemaData(r, section, reversedSchemaTableRoles);
     readDataIndex(r, section);
     readDataRecords(r, section, section.payloadsRetained);
     if (!buildRecordIndex(section))

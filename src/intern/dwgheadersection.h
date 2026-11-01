@@ -24,7 +24,9 @@
 // from the inner HEADER envelope. Writer-authored sections include the optional
 // word in RL. A decoded R2010 profile excludes it; admit that narrow form only
 // with a matching CRC, exact sentinel and exact logical length.
-// Tracked AC1032 profiles additionally permit a bounded, diagnosed suffix.
+// AC1027 app-maintenance-4 and tracked AC1032 profiles may contain a bounded,
+// diagnosed suffix after the validated HEADER envelope. The suffix is never
+// folded into the envelope or treated as padding.
 enum class DwgHeaderEnvelopeError { None, Bounds, BeginSentinel, EndSentinel };
 
 struct DwgHeaderEnvelope {
@@ -50,7 +52,16 @@ inline bool dwgHeaderHasHighSizeWord(DRW::Version version,
 inline bool dwgHeaderMayExcludeHighSizeWord(
     DRW::Version version, std::uint8_t appMaintenanceVersion) noexcept {
     return version == DRW::AC1032
-        || (version == DRW::AC1024 && appMaintenanceVersion > 3u);
+        || ((version == DRW::AC1024 || version == DRW::AC1027)
+            && appMaintenanceVersion > 3u);
+}
+
+inline bool dwgHeaderMayHaveUnclaimedSuffix(
+    DRW::Version version, std::uint8_t appMaintenanceVersion,
+    bool excludesHighSizeWord) noexcept {
+    return (version == DRW::AC1027 && appMaintenanceVersion > 3u
+            && excludesHighSizeWord)
+        || (version == DRW::AC1032 && excludesHighSizeWord);
 }
 
 inline DwgHeaderEnvelope inspectDwgHeaderEnvelopeCandidate(
@@ -81,6 +92,8 @@ inline DwgHeaderEnvelope inspectDwgHeaderEnvelopeCandidate(
     result.hasHighSizeWord = dwgHeaderHasHighSizeWord(version,
                                                        appMaintenanceVersion);
     result.excludesHighSizeWord = excludesHighSizeWord;
+    const bool suffixAllowed = dwgHeaderMayHaveUnclaimedSuffix(
+        version, appMaintenanceVersion, excludesHighSizeWord);
     if (result.start != 16u || count == 0u
         || (excludesHighSizeWord
             && (!dwgHeaderMayExcludeHighSizeWord(version,
@@ -89,7 +102,8 @@ inline DwgHeaderEnvelope inspectDwgHeaderEnvelopeCandidate(
         || (result.hasHighSizeWord && count < sizeof(std::uint32_t))
         || !dwgSafety::add(result.payloadEnd, 18u, result.trailerEnd)
         || result.trailerEnd > input.size()
-        || (!excludesHighSizeWord && result.trailerEnd != input.size())
+        || (!suffixAllowed && !excludesHighSizeWord
+            && result.trailerEnd != input.size())
         || result.payloadEnd > std::numeric_limits<std::int32_t>::max())
         return result;
     probe.setPosition(0u);
@@ -133,8 +147,8 @@ inline DwgHeaderEnvelope inspectDwgHeaderEnvelopeCandidate(
             static_cast<std::int32_t>(result.payloadEnd));
         if (!probe.isGood() || crc != result.storedCrc)
             return result;
-        result.unclaimedBytes = input.size() - result.trailerEnd;
     }
+    result.unclaimedBytes = input.size() - result.trailerEnd;
     result.error = DwgHeaderEnvelopeError::None;
     return result;
 }
@@ -149,7 +163,13 @@ inline DwgHeaderEnvelope inspectDwgHeaderEnvelope(
         return canonical;
     const auto compatible = inspectDwgHeaderEnvelopeCandidate(
         input, version, appMaintenanceVersion, true);
-    const bool suffixAllowed = version == DRW::AC1032;
+    const bool suffixAllowed = dwgHeaderMayHaveUnclaimedSuffix(
+        version, appMaintenanceVersion, true);
+    if (version == DRW::AC1027 && appMaintenanceVersion > 3u) {
+        return compatible.error == DwgHeaderEnvelopeError::None
+                && suffixAllowed && compatible.unclaimedBytes != 0u
+            ? compatible : canonical;
+    }
     return compatible.error == DwgHeaderEnvelopeError::None
             && (suffixAllowed || compatible.unclaimedBytes == 0u)
         ? compatible : canonical;

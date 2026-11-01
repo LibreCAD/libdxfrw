@@ -4485,8 +4485,11 @@ bool strictDwgReadOutcomeIsComplete(const dx_data& data) noexcept {
         observations.integrity.retained,
         observations.integrity.rows.size());
     for (std::size_t index = 0; index < integrityRows; ++index) {
-        if (observations.integrity.rows[index].severity
-            == DwgIntegritySeverity::Error)
+        const DwgReadIntegrityObservation& diagnostic =
+            observations.integrity.rows[index];
+        if (diagnostic.severity == DwgIntegritySeverity::Error
+            || diagnostic.kind
+                == DwgIntegrityCheckKind::HeaderSectionUnclaimedData)
             return false;
     }
     return true;
@@ -22328,8 +22331,11 @@ void dx_iface::addDwgDictionaryMembership(const DRW_DwgDictionaryMembership& dat
     }
     for (const auto& entry : data.m_entries) {
         // A complete DICTIONARY receipt can legitimately contain a null item
-        // reference. Output graph admission remains a separate decision.
-        if (entry.m_name.empty() || !addStringPayloadBytes(entry.m_name, estimate)) {
+        // reference. One observed DWG profile also pairs that null reference
+        // with an empty key. Retain that source pair faithfully; DXF output
+        // admission still rejects empty dictionary keys and null references.
+        if ((entry.m_name.empty() && entry.m_handle != 0u)
+            || !addStringPayloadBytes(entry.m_name, estimate)) {
             reject();
             return;
         }
