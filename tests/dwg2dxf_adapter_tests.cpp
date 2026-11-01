@@ -82,6 +82,146 @@ public:
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
+    static bool makeLayerStateOutputProjection(
+            const dx_data& source, dx_data& projection,
+            const std::vector<std::uint32_t>& dictionaryHandles,
+            std::uint32_t xrecordHandle) {
+        if (source.sourceFormat != dx_source_format::DWG
+            || source.sourceVersion != DRW::AC1024
+            || source.importGeneration == 0u
+            || dictionaryHandles.empty() || xrecordHandle == 0u
+            || xrecordHandle == DRW::NoHandle)
+            return false;
+        if (!source.hasNamedObjectDictionary
+            || std::count_if(
+                source.namedObjectDictionary.m_entries.begin(),
+                source.namedObjectDictionary.m_entries.end(),
+                [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "ACAD_SCALELIST";
+                }) != 1u)
+            return false;
+
+        // This is a test-only projection of the witnessed source graph. Keep
+        // the real LAYER control publication, complete LAYER/LTYPE tables,
+        // and the selected ACAD_SCALELIST dependency. Omit unrelated roots
+        // (including the known invalid SUN owner outlier) while exercising
+        // the production fileExport path without weakening whole-source
+        // admission.
+        projection.sourceFormat = source.sourceFormat;
+        projection.sourceVersion = source.sourceVersion;
+        projection.importGeneration = source.importGeneration;
+        projection.dwgReadOutcome = source.dwgReadOutcome;
+        projection.headerC = source.headerC;
+        projection.lineTypes = source.lineTypes;
+        projection.layers = source.layers;
+        projection.dimStyles = source.dimStyles;
+        projection.textStyles = source.textStyles;
+        projection.appIds = source.appIds;
+        projection.scales = source.scales;
+        projection.namedObjectDictionary = source.namedObjectDictionary;
+        projection.hasNamedObjectDictionary =
+            source.hasNamedObjectDictionary;
+        projection.namedObjectDictionary.m_entries.erase(
+            std::remove_if(
+                projection.namedObjectDictionary.m_entries.begin(),
+                projection.namedObjectDictionary.m_entries.end(),
+                [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name != "ACAD_SCALELIST";
+                }),
+            projection.namedObjectDictionary.m_entries.end());
+        projection.namedResourceImport = source.namedResourceImport;
+        projection.namedResourceImport.scaleRange = {
+            0u, projection.scales.size()};
+        projection.namedResourceImport.dictionaryVarRange = {0u, 0u};
+        projection.namedResourceImport.mLineStyleRange = {0u, 0u};
+        projection.namedResourceImport.mLeaderStyleRange = {0u, 0u};
+        projection.namedResourceImport.typedRetainedRecords =
+            projection.scales.size();
+        // The source aggregate also accounts for families omitted from this
+        // test projection, so retain it as a conservative upper bound.
+        projection.namedResourceTypedRetainedRecords =
+            projection.scales.size();
+        projection.namedResourceTypedRetainedBytes =
+            source.namedResourceTypedRetainedBytes;
+        projection.namedResourceImport.typedRetainedBytes =
+            projection.namedResourceTypedRetainedBytes;
+        const auto detachUnrelatedTableObjects = [](auto& rows) {
+            for (auto& row : rows) {
+                row.xDictHandle = 0u;
+                row.reactorHandles.clear();
+            }
+        };
+        detachUnrelatedTableObjects(projection.lineTypes);
+        detachUnrelatedTableObjects(projection.layers);
+        detachUnrelatedTableObjects(projection.dimStyles);
+        detachUnrelatedTableObjects(projection.textStyles);
+        detachUnrelatedTableObjects(projection.appIds);
+        projection.basicTableRetainedRecords =
+            source.basicTableRetainedRecords;
+        projection.basicTableRetainedItems = source.basicTableRetainedItems;
+        projection.basicTableRetainedBytes = source.basicTableRetainedBytes;
+        projection.basicTableCaptureFailed = source.basicTableCaptureFailed;
+        projection.dictionaryCaptureFailed = source.dictionaryCaptureFailed;
+        projection.xRecordCaptureFailed = source.xRecordCaptureFailed;
+
+        projection.m_dwgLayerControlPublication =
+            source.m_dwgLayerControlPublication;
+        projection.m_dwgLayerControlGeneration =
+            source.m_dwgLayerControlGeneration;
+        projection.m_dwgLayerControlPublicationSeen =
+            source.m_dwgLayerControlPublicationSeen;
+        projection.m_dwgLayerControlCaptureFailed =
+            source.m_dwgLayerControlCaptureFailed;
+
+        std::set<std::uint32_t> requestedDictionaries(
+            dictionaryHandles.begin(), dictionaryHandles.end());
+        projection.dictionaries = source.dictionaries;
+        projection.xRecords = source.xRecords;
+        for (const DRW_Dictionary& dictionary : projection.dictionaries)
+            requestedDictionaries.erase(dictionary.handle);
+        if (!requestedDictionaries.empty())
+            return false;
+        if (std::count_if(projection.xRecords.begin(),
+                          projection.xRecords.end(),
+                [xrecordHandle](const DRW_XRecord& record) {
+                    return record.handle == xrecordHandle;
+                }) != 1u)
+            return false;
+
+        // Keep the physical import's immutable source receipts for each
+        // dictionary/XRECORD model retained in the projection. The graph
+        // walker needs the recursively reachable dictionary/XRECORD targets,
+        // while unrelated typed object families remain outside this test.
+        projection.dictionaryRetainedRecords =
+            source.dictionaryRetainedRecords;
+        projection.dictionaryRetainedEntries =
+            source.dictionaryRetainedEntries;
+        projection.dictionaryRetainedBytes = source.dictionaryRetainedBytes;
+        projection.xRecordRetainedRecords = source.xRecordRetainedRecords;
+        projection.xRecordRetainedItems = source.xRecordRetainedItems;
+        projection.xRecordRetainedBytes = source.xRecordRetainedBytes;
+        const auto retainFrame = [&source, &projection](
+                std::uint32_t handle) {
+            const dx_data::StandardDwgFrameKey key{
+                source.importGeneration, handle};
+            const auto frame = source.m_standardDwgObjectFrames.find(key);
+            if (frame != source.m_standardDwgObjectFrames.end())
+                projection.m_standardDwgObjectFrames.emplace(*frame);
+            if (source.m_opaqueDwgSourceFrameIdentities.count(key) != 0u)
+                projection.m_opaqueDwgSourceFrameIdentities.insert(key);
+            const auto raw = source.m_opaqueDwgSourceFrames.find(key);
+            if (raw != source.m_opaqueDwgSourceFrames.end())
+                projection.m_opaqueDwgSourceFrames.emplace(*raw);
+        };
+        for (const DRW_Dictionary& dictionary : projection.dictionaries)
+            retainFrame(dictionary.handle);
+        for (const DRW_XRecord& record : projection.xRecords)
+            retainFrame(record.handle);
+        for (const DRW_Scale& scale : projection.scales)
+            retainFrame(scale.handle);
+        return true;
+    }
+
     static bool prepareLayerStateOutput(dx_iface& iface,
                                         DRW::Version targetVersion) {
         return iface.prepareDwgLayerStateOutput(targetVersion, false);
@@ -41023,6 +41163,73 @@ bool physicalLayerStateXrecordSourceAdmission(
         || recordFrame->m_version != DRW::AC1024
         || recordFrame->m_isEntity || recordFrame->m_hasDataStorage)
         return fail("LayerStates XRECORD lacks a typed body or source-bound frame");
+    const DRW_Dictionary* stateRecordExtension =
+        stateRecord->xDictHandle == 0u ? nullptr
+            : uniqueDictionary(source, stateRecord->xDictHandle);
+    if (stateRecord->xDictHandle == DRW::NoHandle
+        || (stateRecord->xDictHandle != 0u
+            && (stateRecordExtension == nullptr
+                || stateRecordExtension->parentHandle
+                    != stateRecord->handle)))
+        return fail("LayerStates XRECORD extension dictionary is absent or has the wrong owner");
+    const DRW_XRecord* nestedLayerStateRecord = nullptr;
+    const DRW_Scale* nestedScaleReference = nullptr;
+    const DRW_Dictionary* scaleDictionary = nullptr;
+    const auto nestedScaleReferenceValue =
+        stateRecordExtension == nullptr
+        ? std::vector<std::pair<int, std::uint32_t>>{}
+        : [&]() {
+            if (stateRecordExtension->m_entries.size() != 1u)
+                return std::vector<std::pair<int, std::uint32_t>>{};
+            const DRW_XRecord* nested = uniqueXRecord(
+                source, stateRecordExtension->m_entries.front().m_handle);
+            if (nested == nullptr
+                || nested->parentHandle != stateRecordExtension->handle)
+                return std::vector<std::pair<int, std::uint32_t>>{};
+            nestedLayerStateRecord = nested;
+            std::vector<std::pair<int, std::uint32_t>> references;
+            for (const auto& reference : nested->m_handleValues)
+                if (reference.first == 330)
+                    references.push_back(reference);
+            return references;
+        }();
+    const DRW_Dictionary::Entry* scaleRootEntry = nullptr;
+    std::size_t scaleRootMatches = 0u;
+    for (const DRW_Dictionary::Entry& entry :
+         source.namedObjectDictionary.m_entries) {
+        if (entry.m_name != "ACAD_SCALELIST")
+            continue;
+        scaleRootEntry = &entry;
+        ++scaleRootMatches;
+    }
+    if (nestedLayerStateRecord == nullptr
+        || nestedScaleReferenceValue.size() != 1u
+        || nestedScaleReferenceValue.front().first != 330
+        || scaleRootMatches != 1u || scaleRootEntry == nullptr)
+        return fail("physical LayerStates XRECORD extension does not have one typed SCALE dependency and rooted scale list");
+    for (const DRW_Scale& scale : source.scales)
+        if (scale.handle == nestedScaleReferenceValue.front().second) {
+            if (nestedScaleReference != nullptr)
+                return fail("LayerStates SCALE target handle is ambiguous");
+            nestedScaleReference = &scale;
+        }
+    scaleDictionary = uniqueDictionary(source, scaleRootEntry->m_handle);
+    const DRW_UnsupportedObject* scaleFrame =
+        nestedScaleReference == nullptr ? nullptr
+            : DxIfaceStandardDwgCaptureTestAccess::opaqueSourceFrame(
+                source, source.importGeneration,
+                nestedScaleReference->handle);
+    if (nestedScaleReference == nullptr || scaleFrame == nullptr
+        || scaleFrame->m_recordName != "SCALE"
+        || scaleFrame->m_className != "AcDbScale"
+        || scaleFrame->m_handle != nestedScaleReference->handle
+        || scaleFrame->m_version != DRW::AC1024 || scaleFrame->m_isEntity
+        || scaleDictionary == nullptr
+        || scaleDictionary->parentHandle
+            != source.namedObjectDictionary.handle
+        || nestedScaleReference->parentHandle != scaleDictionary->handle
+        || scaleDictionary->m_entries.size() != source.scales.size())
+        return fail("physical LayerStates nested SCALE dependency is not source-bound to the complete ACAD_SCALELIST owner graph");
     const auto group370 = std::find_if(
         stateRecord->m_dataEntries.begin(), stateRecord->m_dataEntries.end(),
         [](const DRW_Variant& value) { return value.code() == 370; });
@@ -41042,6 +41249,45 @@ bool physicalLayerStateXrecordSourceAdmission(
         std::cerr << '\n';
         return fail("physical LayerStates XRECORD group 370 is not the witnessed Int16 value -3");
     }
+    const auto layerReference = std::find_if(
+        stateRecord->m_handleValues.begin(),
+        stateRecord->m_handleValues.end(),
+        [](const auto& reference) { return reference.first == 330; });
+    const auto lineTypeReference = std::find_if(
+        stateRecord->m_handleValues.begin(),
+        stateRecord->m_handleValues.end(),
+        [](const auto& reference) { return reference.first == 331; });
+    const auto sourceLayer = layerReference
+            == stateRecord->m_handleValues.end()
+        ? source.layers.end()
+        : std::find_if(source.layers.begin(), source.layers.end(),
+            [&layerReference](const DRW_Layer& layer) {
+                return layer.handle == layerReference->second;
+            });
+    const auto sourceLineType = lineTypeReference
+            == stateRecord->m_handleValues.end()
+        ? source.lineTypes.end()
+        : std::find_if(source.lineTypes.begin(), source.lineTypes.end(),
+            [&lineTypeReference](const DRW_LType& lineType) {
+                return lineType.handle == lineTypeReference->second;
+            });
+    if (stateRecord->m_handleValues.size() != 2u
+        || layerReference == stateRecord->m_handleValues.end()
+        || lineTypeReference == stateRecord->m_handleValues.end()
+        || layerReference->second != 16u || sourceLayer == source.layers.end()
+        || sourceLayer->name != "0" || sourceLayer->parentHandle != layerControl
+        || std::count_if(source.layers.begin(), source.layers.end(),
+            [&layerReference](const DRW_Layer& layer) {
+                return layer.handle == layerReference->second;
+            }) != 1
+        || lineTypeReference->second != 22u
+        || sourceLineType == source.lineTypes.end()
+        || sourceLineType->name != "Continuous"
+        || std::count_if(source.lineTypes.begin(), source.lineTypes.end(),
+            [&lineTypeReference](const DRW_LType& lineType) {
+                return lineType.handle == lineTypeReference->second;
+            }) != 1)
+        return fail("physical LayerStates XRECORD group 330/331 dependencies are not the witnessed unique LAYER 0 and LTYPE Continuous records");
 
     dx_iface preflight;
     preflight.cData = &source;
@@ -41273,6 +41519,265 @@ bool physicalLayerStateXrecordSourceAdmission(
             || !variantsUnchanged(sourceValues, actualRecord->m_values)
             || sourceHandleValues != actualRecord->m_handleValues)
             return fail("LayerStates compatibility output changed typed values, order, references or common fields");
+    }
+
+    std::vector<std::uint32_t> layerStateDictionaryHandles{
+        extension->handle, states->handle,
+        companions[0]->handle, companions[1]->handle};
+    if (stateRecordExtension != nullptr)
+        layerStateDictionaryHandles.push_back(stateRecordExtension->handle);
+    dx_data graphProjection;
+    if (!DxIfaceStandardDwgCaptureTestAccess::
+            makeLayerStateOutputProjection(source, graphProjection,
+                layerStateDictionaryHandles, stateRecord->handle))
+        return fail("physical LayerStates graph could not form its test-only source projection");
+    for (const bool binary : {false, true}) {
+        const auto nonce = std::chrono::steady_clock::now()
+                               .time_since_epoch().count();
+        const std::filesystem::path outputPath =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-layerstates-production-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{outputPath};
+
+        dx_iface writer;
+        DRW_XRecord* projectionNestedRecord = nullptr;
+        for (DRW_XRecord& candidate : graphProjection.xRecords)
+            if (candidate.handle == nestedLayerStateRecord->handle) {
+                if (projectionNestedRecord != nullptr)
+                    return fail("LayerStates projection duplicated the nested XRECORD");
+                projectionNestedRecord = &candidate;
+            }
+        if (projectionNestedRecord == nullptr
+            || projectionNestedRecord->m_handleValues.empty())
+            return fail("LayerStates projection lost the nested SCALE reference");
+        const auto nestedHandleValues = projectionNestedRecord->m_handleValues;
+        const std::string graphSentinel =
+            "LayerStates graph destination sentinel\n";
+        {
+            std::ofstream existing(outputPath,
+                                   std::ios::binary | std::ios::trunc);
+            if (!existing || !(existing << graphSentinel))
+                return fail("could not seed LayerStates graph destination sentinel");
+        }
+        projectionNestedRecord->m_handleValues.front().second = 0xdeadbeefu;
+        const bool invalidGraphWrote = writer.fileExport(
+            outputPath.string(), DRW::AC1024, binary,
+            &graphProjection, false, false,
+            dx_dxfSourceTextPolicy::Compatible,
+            DRW::DxfTextWritePolicy::Compatible,
+            dx_dxfProxyGraphicsPolicy::Compatible,
+            dx_dwgReadCompletenessPolicy::AllowPartial);
+        if (invalidGraphWrote
+            || projectionNestedRecord->m_handleValues.front().second
+                != 0xdeadbeefu)
+            return fail("invalid LayerStates graph did not fail while preserving caller-owned source fields");
+        {
+            std::ifstream input(outputPath, std::ios::binary);
+            const std::string retained{
+                std::istreambuf_iterator<char>(input), {}};
+            if (retained != graphSentinel)
+                return fail("invalid LayerStates graph changed the existing destination");
+        }
+        projectionNestedRecord->m_handleValues = nestedHandleValues;
+        if (!writer.fileExport(outputPath.string(), DRW::AC1024, binary,
+                &graphProjection, false, false,
+                dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::Compatible,
+                dx_dxfProxyGraphicsPolicy::Compatible,
+                dx_dwgReadCompletenessPolicy::AllowPartial)) {
+            std::cerr << "LayerStates production writer detail: "
+                      << writer.extensionGraphFailureDetail() << '\n';
+            return fail("physical LayerStates projected graph was refused by production fileExport");
+        }
+        for (const std::uint32_t handle : layerStateDictionaryHandles)
+            if (!DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                    graphProjection, graphProjection.importGeneration, handle))
+                return fail("production fileExport did not qualify a physical LayerStates dictionary identity");
+        if (!DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                graphProjection, graphProjection.importGeneration,
+                stateRecord->handle))
+            return fail("production fileExport did not qualify the physical LayerStates XRECORD identity");
+
+        dx_iface outputReader;
+        dx_data output;
+        if (!outputReader.fileImport(outputPath.string(), &output, false)
+            || output.sourceFormat != dx_source_format::DXF
+            || output.sourceVersion != DRW::AC1024)
+            return fail("physical LayerStates production output did not freshly reimport as AC1024 DXF");
+
+        std::uint32_t outputControl = 0u;
+        std::uint32_t outputExtensionHandle = 0u;
+        if (!output.getLayerTableControlExtensionDictionary(
+                outputControl, outputExtensionHandle)
+            || outputControl != layerControl
+            || outputExtensionHandle != extension->handle)
+            return fail("production LayerStates readback changed the LAYER_CONTROL extension edge");
+        const DRW_Dictionary* outputExtension = uniqueDictionary(
+            output, outputExtensionHandle);
+        const DRW_Dictionary* outputStates = uniqueDictionary(
+            output, states->handle);
+        if (outputExtension == nullptr || outputStates == nullptr
+            || outputExtension->parentHandle != outputControl
+            || outputExtension->hardOwner != extension->hardOwner
+            || outputExtension->cloning != extension->cloning
+            || outputExtension->m_entries.size() != 3u
+            || outputStates->parentHandle != outputExtension->handle
+            || outputStates->m_entries.size() != 1u)
+            return fail("production LayerStates graph changed root/control ownership or dictionary cardinality on readback");
+        for (const DRW_Dictionary::Entry& sourceEntry : extension->m_entries) {
+            const auto outputEntry = std::find_if(
+                outputExtension->m_entries.begin(),
+                outputExtension->m_entries.end(),
+                [&sourceEntry](const DRW_Dictionary::Entry& candidate) {
+                    return candidate.m_name == sourceEntry.m_name;
+                });
+            if (outputEntry == outputExtension->m_entries.end()
+                || outputEntry->m_handle != sourceEntry.m_handle
+                || outputEntry->m_dxfHandleCode
+                    != DRW_Dictionary::Entry::DxfHandleCode::HardOwner)
+                return fail("production LayerStates root key, identity, or hard-owner role changed on readback");
+            const DRW_Dictionary* target = uniqueDictionary(
+                output, outputEntry->m_handle);
+            if (target == nullptr || target->parentHandle != outputExtension->handle
+                || target->reactorHandles
+                    != std::vector<std::uint32_t>{outputExtension->handle})
+                return fail("production LayerStates root target owner/reactor closure changed on readback");
+            if (sourceEntry.m_name != "ACAD_LAYERSTATES"
+                && !target->m_entries.empty())
+                return fail("production LayerStates companion dictionary is no longer empty on readback");
+        }
+        const DRW_Dictionary::Entry& sourceStateEntry = states->m_entries.front();
+        const auto outputStateEntry = std::find_if(
+            outputStates->m_entries.begin(), outputStates->m_entries.end(),
+            [&sourceStateEntry](const DRW_Dictionary::Entry& candidate) {
+                return candidate.m_name == sourceStateEntry.m_name;
+            });
+        const DRW_XRecord* outputRecord = uniqueXRecord(
+            output, sourceStateEntry.m_handle);
+        if (outputStateEntry == outputStates->m_entries.end()
+            || outputStateEntry->m_handle != stateRecord->handle
+            || outputRecord == nullptr
+            || outputRecord->parentHandle != outputStates->handle
+            || outputRecord->reactorHandles
+                != std::vector<std::uint32_t>{outputStates->handle})
+            return fail("production LayerStates XRECORD owner/reference closure changed on readback");
+        auto graphIdentity = [](std::uint32_t sourceHandle,
+                                std::uint32_t& emittedHandle) {
+            emittedHandle = sourceHandle;
+            return true;
+        };
+        std::vector<std::uint32_t> graphReferences;
+        if (!dx_standard_output::equal(*stateRecord, *outputRecord,
+                graphIdentity, graphReferences,
+                dx_standard_output::NoLayerReferences{}, true)
+            || !variantsUnchanged(stateRecord->m_dataEntries,
+                                  outputRecord->m_dataEntries)
+            || !variantsUnchanged(stateRecord->m_values,
+                                  outputRecord->m_values)
+            || stateRecord->m_handleValues != outputRecord->m_handleValues)
+            return fail("production LayerStates graph output changed XRECORD fields, value order, or reference roles on readback");
+        const auto outputLayer = std::find_if(
+            output.layers.begin(), output.layers.end(),
+            [&layerReference](const DRW_Layer& layer) {
+                return layer.handle == layerReference->second;
+            });
+        const auto outputLineType = std::find_if(
+            output.lineTypes.begin(), output.lineTypes.end(),
+            [&lineTypeReference](const DRW_LType& lineType) {
+                return lineType.handle == lineTypeReference->second;
+            });
+        if (outputLayer == output.layers.end()
+            || outputLayer->name != sourceLayer->name
+            || outputLineType == output.lineTypes.end()
+            || outputLineType->name != sourceLineType->name)
+            return fail("production LayerStates XRECORD handle payloads did not resolve to their exact LAYER/LTYPE identities on readback");
+        if (stateRecordExtension != nullptr) {
+            const DRW_Dictionary* outputRecordExtension = uniqueDictionary(
+                output, stateRecordExtension->handle);
+            auto dictionaryIdentity = [](std::uint32_t sourceHandle,
+                                         std::uint32_t& emittedHandle) {
+                emittedHandle = sourceHandle;
+                return true;
+            };
+            std::vector<std::uint32_t> dictionaryReferences;
+            if (outputRecordExtension == nullptr
+                || outputRecordExtension->parentHandle != outputRecord->handle
+                || !dx_standard_output::equal(*stateRecordExtension,
+                    *outputRecordExtension, dictionaryIdentity,
+                    dictionaryReferences))
+                return fail("production LayerStates XRECORD extension dictionary did not preserve its exact owner/body on readback");
+        }
+        const DRW_XRecord* outputNestedLayerStateRecord = uniqueXRecord(
+            output, nestedLayerStateRecord->handle);
+        if (outputNestedLayerStateRecord == nullptr
+            || outputNestedLayerStateRecord->parentHandle
+                != stateRecordExtension->handle
+            || outputNestedLayerStateRecord->m_handleValues
+                != nestedLayerStateRecord->m_handleValues
+            || !variantsUnchanged(nestedLayerStateRecord->m_dataEntries,
+                outputNestedLayerStateRecord->m_dataEntries))
+            return fail("production LayerStates nested XRECORD changed identity, owner, payload or handle references on readback");
+        const auto outputScaleRootEntry = std::find_if(
+            output.namedObjectDictionary.m_entries.begin(),
+            output.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_SCALELIST";
+            });
+        const DRW_Dictionary* outputScaleDictionary =
+            outputScaleRootEntry == output.namedObjectDictionary.m_entries.end()
+            ? nullptr
+            : uniqueDictionary(output, outputScaleRootEntry->m_handle);
+        auto scaleDictionaryIdentity = [](
+                std::uint32_t sourceHandle,
+                std::uint32_t& emittedHandle) {
+            emittedHandle = sourceHandle;
+            return true;
+        };
+        std::vector<std::uint32_t> scaleDictionaryReferences;
+        if (outputScaleRootEntry
+                == output.namedObjectDictionary.m_entries.end()
+            || outputScaleRootEntry->m_handle != scaleDictionary->handle
+            || std::count_if(
+                output.namedObjectDictionary.m_entries.begin(),
+                output.namedObjectDictionary.m_entries.end(),
+                [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "ACAD_SCALELIST";
+                }) != 1u
+            || outputScaleDictionary == nullptr
+            || outputScaleDictionary->parentHandle
+                != output.namedObjectDictionary.handle
+            || outputScaleDictionary->m_entries.size()
+                != scaleDictionary->m_entries.size()
+            || output.scales.size() != source.scales.size()
+            || !dx_standard_output::equal(*scaleDictionary,
+                *outputScaleDictionary, scaleDictionaryIdentity,
+                scaleDictionaryReferences))
+            return fail("production LayerStates SCALE dependency did not retain its complete ACAD_SCALELIST root and owner closure");
+        for (const DRW_Scale& expected : source.scales) {
+            const auto actual = std::find_if(
+                output.scales.begin(), output.scales.end(),
+                [&expected](const DRW_Scale& candidate) {
+                    return candidate.handle == expected.handle;
+                });
+            if (actual == output.scales.end()
+                || actual->parentHandle != expected.parentHandle
+                || actual->name != expected.name
+                || actual->flag != expected.flag
+                || actual->isUnitScale != expected.isUnitScale
+                || actual->paperUnits != expected.paperUnits
+                || actual->drawingUnits != expected.drawingUnits)
+                return fail("production LayerStates output did not preserve every source SCALE identity and field");
+        }
+        std::cout << "Physical AC1024 LayerStates production "
+                  << (binary ? "Binary" : "ASCII")
+                  << " output/readback passed for the source-projected graph: LAYER_CONTROL, three LayerStates roots, nested XRECORD/SCALE dependency and complete ACAD_SCALELIST closure. The unrelated SUN owner outlier remains excluded and fail-closed.\n";
     }
 
     std::cout << "Physical AC1024 LayerStates group 370 is admitted only through the source-qualified producer-compatibility route; ordinary output remains fail-closed, and ASCII/Binary output roundtrips the exact XRECORD with destination preservation and corrected retry.\n";

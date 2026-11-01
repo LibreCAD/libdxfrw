@@ -86,6 +86,9 @@ bool asciiIdentifierEquals(std::string_view source,
                            std::string_view expected) noexcept;
 bool isDynamicBlockDxfRecordName(std::string_view name) noexcept;
 std::string layoutSymbolKey(std::string value);
+bool standardDwgModelsEqual(const DRW_TableEntry& left,
+                            const DRW_TableEntry& right,
+                            DRW::Version version, int objectType) noexcept;
 // The existing AC1024 title_block-arch.dwg witness assigns AcDbEvalGraph
 // source handle 0x1117 CLASS number 511. This is its observed source oType;
 // DRW_EvaluationGraph::kDwgClassNum is the writer's canonical class slot.
@@ -8436,6 +8439,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         std::unordered_set<std::uint32_t> sourceHandles;
         std::unordered_set<std::uint32_t> selectedAcdsHistoryOwners;
         std::unordered_set<std::uint32_t> sourceEntityHandles;
+        std::unordered_set<std::uint32_t> layerHandles;
         std::unordered_set<std::uint32_t> linetypeHandles;
         std::unordered_set<std::uint32_t> groupReferenceHandles;
         std::unordered_map<std::uint32_t, const DRW_TableEntry*> imageDefinitionOwners;
@@ -8458,6 +8462,16 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 return reject(ExtensionGraphFailure::InvalidGraph,
                     "invalid or duplicate NOD handle "
                     + std::to_string(rootHandle));
+        }
+        inventoryFamily = "LAYER records";
+        for (const DRW_Layer& layer : data->layers) {
+            if (!examineSourceRecord())
+                return false;
+            if (layer.handle != 0u && layer.handle != DRW::NoHandle
+                && !layerHandles.insert(layer.handle).second)
+                return reject(ExtensionGraphFailure::InvalidGraph,
+                    "duplicate LAYER source handle "
+                    + std::to_string(layer.handle));
         }
         inventoryFamily = "LTYPE records";
         for (const DRW_LType& lineType : data->lineTypes) {
@@ -9574,6 +9588,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         std::unordered_set<std::uint32_t> visitedRenderSettings;
         std::unordered_set<std::uint32_t> visitedMaterials;
         std::unordered_set<std::uint32_t> visitedAssociatives;
+        std::uint32_t selectedLayerStateScaleNodHandle = 0u;
+        std::uint32_t selectedLayerStateScaleDictionaryHandle = 0u;
+        bool selectedLayerStateScaleFramesChecked = false;
+        bool selectedLayerStateScaleFramesMatched = false;
         std::unordered_set<std::uint32_t>
             selectedBlockRepresentationData;
         enum class Phase {
@@ -11441,6 +11459,11 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                             && generatedDictionaryOwners.count(reactor) == 0
                             && blockDelimiterHandles.count(reactor) == 0
                             && visiting.count(reactor) == 0
+                            // The scale dictionary's NOD reactor resolves to
+                            // the generated NOD after its exact root is proven.
+                            && !(selectedLayerStateScaleDictionaryHandle != 0u
+                                && reactor
+                                    == selectedLayerStateScaleNodHandle)
                             && !queueTarget(reactor, false))
                             return false;
                     } else {
@@ -12282,7 +12305,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 &linetypeHandles, &backgroundHandles,
                                 &blockDelimiterHandles, &blockRecordHandles,
                                 &sourceEntityHandles, &generatedDictionaryOwners, data,
-                                includeNamedObjectRoot](
+                                includeNamedObjectRoot,
+                                &selectedLayerStateScaleNodHandle,
+                                &selectedLayerStateScaleDictionaryHandle](
                                    std::uint32_t parent) {
             return parent == 0 || parent == 0xCu || parent == 0xDu
                 || (includeNamedObjectRoot
@@ -12290,6 +12315,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     && data->namedObjectDictionary.handle != 0
                     && data->namedObjectDictionary.handle != DRW::NoHandle
                     && parent == data->namedObjectDictionary.handle)
+                // The admitted SCALELIST dictionary is the only selected
+                // NOD-owned child traversed without walking unrelated roots.
+                || (selectedLayerStateScaleDictionaryHandle != 0u
+                    && parent == selectedLayerStateScaleNodHandle)
                 || linetypeHandles.count(parent) != 0
                 || backgroundHandles.count(parent) != 0
                 || blockDelimiterHandles.count(parent) != 0
@@ -12673,7 +12702,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             };
             std::string unresolvedHandleTargetDetail;
             const auto validateHandleTarget =
-                [&isHandleCode, &linetypeHandles,
+                [this, &isHandleCode, &layerHandles, &linetypeHandles,
                  &groupReferenceHandles,
                  &imageDefinitionOwners,
                  &generatedDictionaryOwners,
@@ -12684,9 +12713,14 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                  &visitedSectionViewStyles, &visitedScales,
                  &visitedMLineStyles, &visitedMLeaderStyles,
                  &visitedRenderSettings, &visitedMaterials,
+                 &dictionaries, &xrecords, &scales,
+                 &visit, &selectedLayerStateScaleNodHandle,
+                 &selectedLayerStateScaleDictionaryHandle,
+                 &selectedLayerStateScaleFramesChecked,
+                 &selectedLayerStateScaleFramesMatched,
                  &sourceContainsEntityHandle,
                  &unresolvedHandleTargetDetail,
-                 &preservedAseHierarchyIndexDanglingTargets, data](
+                 &preservedAseHierarchyIndexDanglingTargets, data, record](
                     int code, std::uint64_t target) {
                     if (!isHandleCode(code))
                         return true;
@@ -12697,7 +12731,207 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     }
                     const std::uint32_t targetHandle =
                         static_cast<std::uint32_t>(target);
+                    const auto hasMatchedDictionaryFrame =
+                        [data](const DRW_Dictionary& dictionary) {
+                            const dx_data::StandardDwgFrameKey key{
+                                data->importGeneration, dictionary.handle};
+                            const auto frame =
+                                data->m_standardDwgObjectFrames.find(key);
+                            if (data->m_opaqueDwgSourceFrameIdentities.count(key)
+                                    != 1u
+                                || frame
+                                    == data->m_standardDwgObjectFrames.end()
+                                || frame->second.raw.m_objectType
+                                    != dwgObjType::DICTIONARY
+                                || frame->second.raw.m_handle
+                                    != dictionary.handle
+                                || frame->second.raw.m_version
+                                    != data->sourceVersion
+                                || frame->second.raw.m_isEntity
+                                || frame->second.raw.m_hasDataStorage
+                                || !frame->second.payloadMatched
+                                || !frame->second.typedBaseline
+                                || frame->second.opaquePayload)
+                                return false;
+                            return standardDwgModelsEqual(
+                                dictionary, *frame->second.typedBaseline,
+                                data->sourceVersion,
+                                dwgObjType::DICTIONARY);
+                        };
+                    const auto hasMatchedXRecordFrame =
+                        [data](const DRW_XRecord& xrecord) {
+                            const dx_data::StandardDwgFrameKey key{
+                                data->importGeneration, xrecord.handle};
+                            const auto frame =
+                                data->m_standardDwgObjectFrames.find(key);
+                            if (data->m_opaqueDwgSourceFrameIdentities.count(key)
+                                    != 1u
+                                || frame
+                                    == data->m_standardDwgObjectFrames.end()
+                                || frame->second.raw.m_objectType
+                                    != dwgObjType::XRECORD
+                                || frame->second.raw.m_handle != xrecord.handle
+                                || frame->second.raw.m_version
+                                    != data->sourceVersion
+                                || frame->second.raw.m_isEntity
+                                || frame->second.raw.m_hasDataStorage
+                                || !frame->second.payloadMatched
+                                || !frame->second.typedBaseline
+                                || frame->second.opaquePayload)
+                                return false;
+                            return standardDwgModelsEqual(
+                                xrecord, *frame->second.typedBaseline,
+                                data->sourceVersion, dwgObjType::XRECORD);
+                        };
+                    const auto isSelectedLayerStateXRecord = [&]() {
+                        if (data->sourceFormat != dx_source_format::DWG
+                            || data->sourceVersion != DRW::AC1024
+                            || cData != data
+                            || !m_dwgLayerStateOutputPrepared
+                            || !m_dwgLayerStateOutputSource
+                                    .hasLayerStateRecord
+                            || visitedXRecords.count(record->handle) == 0u)
+                            return false;
+                        const std::uint32_t rootHandle =
+                            m_dwgLayerStateOutputSource
+                                .layerStateRecord.handle;
+                        std::uint32_t currentHandle = record->handle;
+                        for (std::size_t depth = 0u;
+                             depth <= dictionaries.size(); ++depth) {
+                            if (currentHandle == rootHandle)
+                                return hasMatchedXRecordFrame(
+                                    m_dwgLayerStateOutputSource
+                                        .layerStateRecord);
+                            const auto current = xrecords.find(currentHandle);
+                            if (current == xrecords.end()
+                                || !hasMatchedXRecordFrame(*current->second))
+                                return false;
+                            const auto owner = dictionaries.find(
+                                current->second->parentHandle);
+                            if (owner == dictionaries.end()
+                                || !hasMatchedDictionaryFrame(*owner->second)
+                                || std::count_if(
+                                    owner->second->m_entries.begin(),
+                                    owner->second->m_entries.end(),
+                                    [currentHandle](
+                                            const DRW_Dictionary::Entry& entry) {
+                                        return entry.m_handle == currentHandle;
+                                    }) != 1u)
+                                return false;
+                            const auto parentRecord = xrecords.find(
+                                owner->second->parentHandle);
+                            if (parentRecord == xrecords.end()
+                                || parentRecord->second->xDictHandle
+                                    != owner->second->handle)
+                                return false;
+                            currentHandle = parentRecord->first;
+                        }
+                        return false;
+                    };
+                    const auto hasMatchedScaleFrame =
+                        [data](const DRW_Scale& scale) {
+                            const dx_data::StandardDwgFrameKey key{
+                                data->importGeneration, scale.handle};
+                            const auto frame =
+                                data->m_opaqueDwgSourceFrames.find(key);
+                            return data->m_opaqueDwgSourceFrameIdentities.count(
+                                       key) == 1u
+                                && frame
+                                    != data->m_opaqueDwgSourceFrames.end()
+                                && frame->second.m_handle == scale.handle
+                                && frame->second.m_version
+                                    == data->sourceVersion
+                                && frame->second.m_recordName == "SCALE"
+                                && frame->second.m_className == "AcDbScale"
+                                && !frame->second.m_isEntity
+                                && frame->second.m_rawBytes.size()
+                                    == frame->second.m_objectSize
+                                && frame->second.m_bodyBitSize
+                                    <= static_cast<std::uint64_t>(
+                                        frame->second.m_objectSize) * 8u;
+                        };
+                    const auto admitSelectedLayerStateScaleReference = [&]() {
+                        if (code != 330
+                            || data->sourceFormat != dx_source_format::DWG
+                            || data->sourceVersion != DRW::AC1024
+                            || !m_dwgLayerStateOutputPrepared
+                            || !isSelectedLayerStateXRecord())
+                            return false;
+                        const auto scale = scales.find(targetHandle);
+                        if (scale == scales.end()
+                            || !hasMatchedScaleFrame(*scale->second)
+                            || !validateNamedObjectRootForExport(
+                                *data, "ACAD_SCALELIST", true))
+                            return false;
+                        const std::uint32_t nodHandle =
+                            data->namedObjectDictionary.handle;
+                        const DRW_Dictionary::Entry* rootEntry = nullptr;
+                        for (const DRW_Dictionary::Entry& entry :
+                             data->namedObjectDictionary.m_entries) {
+                            if (!asciiIdentifierEquals(
+                                    entry.m_name, "ACAD_SCALELIST"))
+                                continue;
+                            if (rootEntry != nullptr)
+                                return false;
+                            rootEntry = &entry;
+                        }
+                        const auto root = rootEntry == nullptr
+                            ? dictionaries.end()
+                            : dictionaries.find(rootEntry->m_handle);
+                        if (rootEntry == nullptr
+                            || rootEntry->m_handle
+                                != scale->second->parentHandle
+                            || root == dictionaries.end()
+                            || root->second->parentHandle != nodHandle
+                            || !root->second->hasCompleteDwgEntries())
+                            return false;
+                        if (!selectedLayerStateScaleFramesChecked) {
+                            selectedLayerStateScaleFramesChecked = true;
+                            selectedLayerStateScaleFramesMatched =
+                                std::all_of(data->scales.begin(),
+                                    data->scales.end(),
+                                    [&hasMatchedScaleFrame](
+                                            const DRW_Scale& candidate) {
+                                        return hasMatchedScaleFrame(candidate);
+                                    });
+                        }
+                        if (!selectedLayerStateScaleFramesMatched)
+                            return false;
+                        selectedLayerStateScaleNodHandle = nodHandle;
+                        selectedLayerStateScaleDictionaryHandle =
+                            root->second->handle;
+                        if (!visit(root->second->handle, true))
+                            return false;
+                        return visitedScales.count(targetHandle) != 0u;
+                    };
+                    const bool sourceBoundLayerStateLayerReference =
+                        code == 330
+                        && layerHandles.count(targetHandle) != 0u
+                        && data->sourceFormat == dx_source_format::DWG
+                        && data->sourceVersion == DRW::AC1024
+                        && cData == data
+                        && m_dwgLayerStateOutputPrepared
+                        && m_dwgLayerStateOutputSource.hasLayerStateRecord
+                        && record->handle
+                            == m_dwgLayerStateOutputSource.layerStateRecord.handle
+                        && std::count(record->m_handleValues.begin(),
+                            record->m_handleValues.end(),
+                            std::make_pair(code, targetHandle)) == 1
+                        && std::count(
+                            m_dwgLayerStateOutputSource.layerStateRecord
+                                .m_handleValues.begin(),
+                            m_dwgLayerStateOutputSource.layerStateRecord
+                                .m_handleValues.end(),
+                            std::make_pair(code, targetHandle)) == 1;
+                    const bool sourceBoundLayerStateScaleReference =
+                        code == 330 && scales.count(targetHandle) != 0u
+                        && std::count(record->m_handleValues.begin(),
+                            record->m_handleValues.end(),
+                            std::make_pair(code, targetHandle)) == 1
+                        && admitSelectedLayerStateScaleReference();
                     const bool resolved = targetHandle == 0
+                        || sourceBoundLayerStateLayerReference
+                        || sourceBoundLayerStateScaleReference
                         || linetypeHandles.count(targetHandle) != 0
                         || groupReferenceHandles.count(targetHandle) != 0
                         || imageDefinitionOwners.count(targetHandle) != 0
@@ -28284,6 +28518,65 @@ bool dx_iface::inspectDwgLayerStateOutput(
                         });
                     if (!decoded)
                         bodyMismatch = true;
+                    if (decoded && source.hasLayerStateRecord) {
+                        for (const auto& reference :
+                             source.layerStateRecord.m_handleValues) {
+                            const std::uint32_t sourceTarget = reference.second;
+                            std::uint32_t emittedTarget = 0u;
+                            if (reference.first == 330) {
+                                const auto layer = std::find_if(
+                                    cData->layers.begin(), cData->layers.end(),
+                                    [sourceTarget](const DRW_Layer& candidate) {
+                                        return candidate.handle == sourceTarget;
+                                    });
+                                const std::size_t layerCount =
+                                    std::count_if(cData->layers.begin(),
+                                        cData->layers.end(),
+                                        [sourceTarget](const DRW_Layer& candidate) {
+                                            return candidate.handle == sourceTarget;
+                                        });
+                                if (layer == cData->layers.end())
+                                    continue;
+                                if (layerCount != 1u
+                                    || layer->parentHandle
+                                        != source.layerControlHandle
+                                    || !mapHandle(sourceTarget, emittedTarget)
+                                    || dxfW->dxfWriteEmittedSourceTableHandle(
+                                        sourceTarget) != emittedTarget
+                                    || dxfW->dxfWriteRecordHandleCount(
+                                        emittedTarget) != 1u
+                                    || !dxfW->dxfWriteRecordHasIdentity(
+                                        emittedTarget, "LAYER", "TABLES"))
+                                    return false;
+                            } else if (reference.first == 331) {
+                                const auto lineType = std::find_if(
+                                    cData->lineTypes.begin(),
+                                    cData->lineTypes.end(),
+                                    [sourceTarget](const DRW_LType& candidate) {
+                                        return candidate.handle == sourceTarget;
+                                    });
+                                const std::size_t lineTypeCount =
+                                    std::count_if(cData->lineTypes.begin(),
+                                        cData->lineTypes.end(),
+                                        [sourceTarget](const DRW_LType& candidate) {
+                                            return candidate.handle == sourceTarget;
+                                        });
+                                if (lineType == cData->lineTypes.end())
+                                    continue;
+                                const std::uint32_t registeredTarget =
+                                    dxfW->dxfWriteSourceLinetypeTargetHandle(
+                                        sourceTarget);
+                                if (lineTypeCount != 1u
+                                    || !mapHandle(sourceTarget, emittedTarget)
+                                    || registeredTarget != emittedTarget
+                                    || dxfW->dxfWriteRecordHandleCount(
+                                        emittedTarget) != 1u
+                                    || !dxfW->dxfWriteRecordHasIdentity(
+                                        emittedTarget, "LTYPE", "TABLES"))
+                                    return false;
+                            }
+                        }
+                    }
                     for (const std::uint32_t reference : references)
                         if (reference == 0u || reference == DRW::NoHandle
                             || dxfW->dxfWriteRecordHandleCount(reference) != 1u)
@@ -64638,6 +64931,12 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         reportPreflightFailure("MATERIAL source/body/owner reconciliation: incomplete profile or conflicting edits");
         return false;
     }
+    // The LayerStates profile is a prerequisite for its narrowly scoped
+    // XRECORD-to-LAYER edge admission in prepareExtensionObjectGraph().
+    if (!prepareDwgLayerStateOutput(v, debug || requireResolvedOwners)) {
+        reportPreflightFailure("LayerStates DWG source/output snapshot");
+        return false;
+    }
     if (!prepareExtensionObjectGraph(cData, includeNamedObjectRoot)) {
         reportPreflightFailure("extension-object graph validation");
         if (debug || requireResolvedOwners) {
@@ -64865,10 +65164,6 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     if (!prepareDwgLayouts(v, debug || requireResolvedOwners)) {
         reportPreflightFailure("LAYOUT DWG source/output snapshot");
-        return false;
-    }
-    if (!prepareDwgLayerStateOutput(v, debug || requireResolvedOwners)) {
-        reportPreflightFailure("LayerStates DWG source/output snapshot");
         return false;
     }
     if (!prepareDxfMLeaderStyles(v, binary, targetTextPolicy)) {
