@@ -10896,6 +10896,15 @@ bool dxfRW::writeCellStyleMap(DRW_CellStyleMap *ent) {
             || value == 8 || value == 0x10 || value == 0x20
             || value == 0x10000;
     };
+    const auto validLineWeight = [](int value) {
+        static constexpr std::array<int, 27> lineWeights{{
+            -3, -2, -1, 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40,
+            50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200,
+            211
+        }};
+        return std::find(lineWeights.begin(), lineWeights.end(), value)
+            != lineWeights.end();
+    };
     const auto resolve = [this](std::uint32_t source,
                                 std::uint32_t& emitted) {
         // NoHandle is represented by zero in this API. Optional text-style
@@ -10923,7 +10932,7 @@ bool dxfRW::writeCellStyleMap(DRW_CellStyleMap *ent) {
             && std::isfinite(format.m_textHeight);
     };
     const auto invalidStyleReason = [
-            &colorIsDefault, &validColor, &validContent](
+            &colorIsDefault, &validColor, &validContent, &validLineWeight](
             const DRW_TableStyleCellStyle& style) -> const char* {
         if (style.m_type < 1 || style.m_type > 5)
             return "CELLSTYLEMAP cell-style type is outside 1-5";
@@ -10996,6 +11005,8 @@ bool dxfRW::writeCellStyleMap(DRW_CellStyleMap *ent) {
                 return "CELLSTYLEMAP border type is invalid";
             if (!validColor(border.m_color, border.m_colorCmc))
                 return "CELLSTYLEMAP border color is invalid";
+            if (!validLineWeight(border.m_lineWeight))
+                return "CELLSTYLEMAP border lineweight is invalid";
             if (border.m_visible < 0 || border.m_visible > 1
                 || !finite(border.m_doubleLineSpacing))
                 return "CELLSTYLEMAP border visibility or spacing is invalid";

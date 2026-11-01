@@ -46300,6 +46300,8 @@ bool cellStyleMapDxfWriter() {
             || typedReadback.cellStyleMaps.front().m_cellStyles[0]
                     .m_contentFormat.m_contentColorCmc.m_flags != 0x03u
             || typedReadback.cellStyleMaps.front().m_cellStyles[0]
+                    .m_borders[0].m_lineWeight != 25
+            || typedReadback.cellStyleMaps.front().m_cellStyles[0]
                     .m_borders[0].m_lineTypeHandle != 0xD102u
             || typedReadback.cellStyleMaps.front().m_cellStyles[0]
                     .m_borders[0].m_colorCmc.m_rgb != 0xABCDEF
@@ -46384,6 +46386,7 @@ bool cellStyleMapDxfWriter() {
             || !hasSequence(maps.front(), std::vector<std::pair<int, std::string>>{
                    {62, "5"}, {420, "11259375"},
                    {430, "Generated Border$Olive"}})
+            || !hasGroup(maps.front(), 92, "25")
             || std::any_of(maps.front().begin(), maps.front().end(),
                 [](const auto& group) { return group.first == 431; })
             || !hasGroup(maps.front(), 300, "generated-custom-style")
@@ -46400,10 +46403,14 @@ bool cellStyleMapDxfWriter() {
             .m_contentFormat.m_contentColorCmc;
         const std::string originalName = invalidColor.m_name;
         const std::string originalBookName = invalidColor.m_bookName;
+        DRW_TableStyleBorder& invalidBorder = writer.first.m_cellStyles[0]
+            .m_borders[0];
+        const int originalLineWeight = invalidBorder.m_lineWeight;
         const std::string sentinel = "PRESERVE_CELLSTYLEMAP_CMC_DESTINATION";
         { std::ofstream out(output, std::ios::binary); out << sentinel; }
         const auto refusalPreservesState = [&](const std::string& name,
-                                                const std::string& bookName) {
+                                                const std::string& bookName,
+                                                int lineWeight) {
             if (writer.fileExport(output.string(), DRW::AC1027, binary,
                                   &source, false))
                 return false;
@@ -46411,30 +46418,42 @@ bool cellStyleMapDxfWriter() {
             return std::string(std::istreambuf_iterator<char>(in), {})
                     == sentinel
                 && invalidColor.m_name == name
-                && invalidColor.m_bookName == bookName;
+                && invalidColor.m_bookName == bookName
+                && invalidBorder.m_lineWeight == lineWeight;
         };
         invalidColor.m_name = "invalid$name";
-        if (!refusalPreservesState("invalid$name", originalBookName))
+        if (!refusalPreservesState("invalid$name", originalBookName,
+                                   originalLineWeight))
             return fail("ambiguous CMC entry name was accepted or mutated state");
         invalidColor.m_name = originalName;
         invalidColor.m_bookName = "invalid$book";
-        if (!refusalPreservesState(originalName, "invalid$book"))
+        if (!refusalPreservesState(originalName, "invalid$book",
+                                   originalLineWeight))
             return fail("ambiguous CMC book name was accepted or mutated state");
         invalidColor.m_bookName = originalBookName;
         invalidColor.m_name.clear();
-        if (!refusalPreservesState("", originalBookName))
+        if (!refusalPreservesState("", originalBookName, originalLineWeight))
             return fail("book-only CMC color was accepted or mutated state");
         invalidColor.m_name = originalName;
+        invalidBorder.m_lineWeight = 26;
+        if (!refusalPreservesState(originalName, originalBookName, 26))
+            return fail("invalid CELLSTYLEMAP lineweight was accepted or mutated state");
+        invalidBorder.m_lineWeight = -4;
+        if (!refusalPreservesState(originalName, originalBookName, -4))
+            return fail("internal CELLSTYLEMAP lineweight was accepted or mutated state");
+        invalidBorder.m_lineWeight = -2;
         if (!writer.fileExport(output.string(), DRW::AC1027, binary,
                                &source, false))
-            return fail("same-adapter CELLSTYLEMAP CMC retry failed");
+            return fail("same-adapter CELLSTYLEMAP retry failed");
         dx_data retried;
         dx_iface retryReader;
         if (!retryReader.fileImport(output.string(), &retried, false)
             || retried.cellStyleMaps.size() != 2u
             || retried.cellStyleMaps.front().m_cellStyles[0]
                     .m_contentFormat.m_contentColorCmc.m_bookName
-                != "generated-book")
+                != "generated-book"
+            || retried.cellStyleMaps.front().m_cellStyles[0]
+                    .m_borders[0].m_lineWeight != -2)
             return fail("corrected CMC retry readback differs");
     }
 
