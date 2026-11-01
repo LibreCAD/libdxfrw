@@ -1993,6 +1993,188 @@ bool tableContentGridWriteTests(const std::filesystem::path& dir) {
     return true;
 }
 
+bool tableContentCellBorderVisibilityEdgesWriteTests(
+        const std::filesystem::path& dir) {
+    const auto fail = [](const std::string& why) {
+        std::cerr << "TABLECONTENT cell border visibility: " << why << '\n';
+        return false;
+    };
+    const std::array<int, 6> edges{{1, 2, 4, 8, 0x10, 0x20}};
+    for (bool binary : {false, true}) {
+        const auto path = dir / (binary ? "cell-border-edges-binary.dxf"
+                                        : "cell-border-edges-ascii.dxf");
+        dx_data data;
+        dx_iface exporter;
+        exporter.cData = &data;
+        exporter.currentBlock = data.mBlock;
+        DRW_TableContentObject table = tableContentScalarGrid();
+        auto metadata = std::make_shared<DRW_TableContentDxfMetadata>();
+        metadata->m_columns.resize(table.m_content.m_columns.size());
+        for (auto& column : metadata->m_columns)
+            column.m_style.m_type = 3;
+        metadata->m_rows.resize(table.m_content.m_rows.size());
+        for (std::size_t row = 0; row < metadata->m_rows.size(); ++row) {
+            auto& detail = metadata->m_rows[row];
+            detail.m_scope.m_style.m_type = 2;
+            detail.m_cells.resize(table.m_content.m_rows[row].m_cells.size());
+            for (auto& cell : detail.m_cells)
+                cell.m_scope.m_style.m_type = 1;
+            for (std::size_t column = 0;
+                 column < detail.m_cells.size(); ++column)
+                detail.m_cells[column].m_contentFormats.resize(
+                    table.m_content.m_rows[row].m_cells[column]
+                        .m_contents.size());
+        }
+        metadata->m_tableStyle.m_type = 4;
+        DRW_TableStyleCellStyle& cellStyle =
+            metadata->m_rows[0].m_cells[0].m_scope.m_style;
+        cellStyle.m_hasData = true;
+        for (const int edge : edges) {
+            DRW_TableStyleBorder border;
+            border.m_edgeFlags = edge;
+            border.m_propertyOverrideFlags = 0x10;
+            border.m_visible = 1;
+            cellStyle.m_borders.push_back(border);
+        }
+        table.m_dxfMetadata = metadata;
+        exporter.addTableContent(table);
+
+        if (!exporter.fileExport(path.string(), DRW::AC1027, binary,
+                                 &data, false))
+            return fail("six one-hot edge visibility records were refused");
+
+        struct BorderWire {
+            int edge = 0;
+            int propertyFlags = -1;
+            int borderType = -1;
+            int color = -1;
+            int lineWeight = -1;
+            std::string lineType;
+            int invisibility = -1;
+            double doubleLineSpacing = -1.0;
+        };
+        const std::vector<AttdefWireTag> wire = attdefWireTags(path, binary);
+        std::vector<BorderWire> borders;
+        int cellStyleBorderCount = -1;
+        int cellStyleHasData = -1;
+        int cellStyleType = -1;
+        bool inCellStyle = false;
+        bool inGridFormat = false;
+        BorderWire current;
+        for (std::size_t index = 0; index < wire.size(); ++index) {
+            const AttdefWireTag& tag = wire[index];
+            if (tag.code == 1 && tag.text == "TABLEFORMAT_BEGIN") {
+                inCellStyle = true;
+                cellStyleType = -1;
+                cellStyleHasData = -1;
+                cellStyleBorderCount = -1;
+            } else if (inCellStyle && cellStyleType == -1
+                       && tag.code == 90) {
+                cellStyleType = static_cast<int>(tag.integer);
+            } else if (inCellStyle && cellStyleType == 1
+                       && cellStyleHasData == -1 && tag.code == 170) {
+                cellStyleHasData = static_cast<int>(tag.integer);
+            } else if (inCellStyle && cellStyleType == 1 && tag.code == 94) {
+                cellStyleBorderCount = static_cast<int>(tag.integer);
+            }
+            if (tag.code == 1 && tag.text == "GRIDFORMAT_BEGIN") {
+                if (!inCellStyle || cellStyleType != 1
+                    || cellStyleHasData != 1 || index < 2u
+                    || wire[index - 1u].code != 302
+                    || wire[index - 1u].text != "GRIDFORMAT"
+                    || wire[index - 2u].code != 95)
+                    return fail("GRIDFORMAT marker is detached from its cell edge");
+                current = BorderWire{};
+                current.edge = static_cast<int>(wire[index - 2u].integer);
+                inGridFormat = true;
+            } else if (inGridFormat) {
+                if (tag.code == 90)
+                    current.propertyFlags = static_cast<int>(tag.integer);
+                else if (tag.code == 91)
+                    current.borderType = static_cast<int>(tag.integer);
+                else if (tag.code == 62)
+                    current.color = static_cast<int>(tag.integer);
+                else if (tag.code == 92)
+                    current.lineWeight = static_cast<int>(tag.integer);
+                else if (tag.code == 340)
+                    current.lineType = tag.text;
+                else if (tag.code == 93)
+                    current.invisibility = static_cast<int>(tag.integer);
+                else if (tag.code == 40)
+                    current.doubleLineSpacing = tag.real;
+                else if (tag.code == 309 && tag.text == "GRIDFORMAT_END") {
+                    if (cellStyleBorderCount != 6)
+                        return fail("cell TABLEFORMAT border count is not six");
+                    borders.push_back(current);
+                    inGridFormat = false;
+                }
+            }
+            if (tag.code == 309 && tag.text == "TABLEFORMAT_END")
+                inCellStyle = false;
+        }
+        if (inGridFormat || borders.size() != edges.size())
+            return fail("physical wire border count differs");
+        for (std::size_t index = 0; index < edges.size(); ++index) {
+            const BorderWire& border = borders[index];
+            if (border.edge != edges[index] || border.propertyFlags != 0x10
+                || border.borderType != 0 || border.color != 0
+                || border.lineWeight != 0 || border.lineType != "0"
+                || border.invisibility != 1
+                || border.doubleLineSpacing != 0.0)
+                return fail("physical one-hot border fields changed");
+        }
+
+        dx_iface reader;
+        dx_data parsed;
+        if (!reader.fileImport(path.string(), &parsed, false)
+            || parsed.tableContents.size() != 1u
+            || !parsed.tableContents.front().m_dxfMetadata)
+            return fail("fresh table readback is missing");
+        const auto& readStyle = parsed.tableContents.front().m_dxfMetadata
+            ->m_rows[0].m_cells[0].m_scope.m_style;
+        if (readStyle.m_borders.size() != edges.size())
+            return fail("typed readback border count differs");
+        for (std::size_t index = 0; index < edges.size(); ++index) {
+            const DRW_TableStyleBorder& border = readStyle.m_borders[index];
+            if (border.m_edgeFlags != edges[index]
+                || border.m_propertyOverrideFlags != 0x10
+                || border.m_borderType != 0 || border.m_color != 0
+                || border.m_lineWeight != 0 || border.m_lineTypeHandle != 0u
+                || border.m_visible != 1
+                || border.m_doubleLineSpacing != 0.0)
+                return fail("typed one-hot border fields changed");
+        }
+
+        DRW_TableStyleBorder& invalidBorder = metadata->m_rows[0]
+            .m_cells[0].m_scope.m_style.m_borders.front();
+        invalidBorder.m_propertyOverrideFlags = 0x40;
+        const std::string sentinel = "PRESERVE_TABLECONTENT_BORDER_DESTINATION";
+        { std::ofstream out(path, std::ios::binary); out << sentinel; }
+        if (exporter.fileExport(path.string(), DRW::AC1027, binary,
+                                &data, false))
+            return fail("unsupported border property override was accepted");
+        { std::ifstream in(path, std::ios::binary);
+          if (std::string(std::istreambuf_iterator<char>(in), {}) != sentinel)
+              return fail("border refusal changed the existing destination"); }
+        if (invalidBorder.m_propertyOverrideFlags != 0x40)
+            return fail("border refusal changed the caller model");
+        invalidBorder.m_propertyOverrideFlags = 0x10;
+        if (!exporter.fileExport(path.string(), DRW::AC1027, binary,
+                                 &data, false))
+            return fail("same-adapter corrected border retry failed");
+        dx_data retried;
+        if (!reader.fileImport(path.string(), &retried, false)
+            || retried.tableContents.size() != 1u
+            || !retried.tableContents.front().m_dxfMetadata
+            || retried.tableContents.front().m_dxfMetadata->m_rows[0]
+                .m_cells[0].m_scope.m_style.m_borders.size() != edges.size())
+            return fail("corrected border retry readback differs");
+    }
+    std::cout << "TABLECONTENT cell border visibility: six one-hot edges, "
+                 "ASCII/binary wire and readback, refusal and retry passed\n";
+    return true;
+}
+
 bool tableContentRowMarginWriteTests(const std::filesystem::path& dir) {
     const auto fail = [](const char* why) {
         std::cerr << "TABLECONTENT row margin: " << why << '\n';
@@ -5095,6 +5277,8 @@ int main(int argc,char** argv) {
     const bool tableProfiles=argc==2 && std::string(argv[1])=="--table-profiles";
     const bool tableValueScopes=argc==2 && std::string(argv[1])=="--table-value-scopes";
     const bool tableGridWrite=argc==2 && std::string(argv[1])=="--table-grid-write";
+    const bool tableCellBorderVisibilityEdges=argc==2
+        && std::string(argv[1])=="--table-cell-border-visibility-edges";
     const bool tableRowMarginWrite=argc==2 && std::string(argv[1])=="--table-row-margin-write";
     const bool tableColumnTableMarginWrite=argc==2 && std::string(argv[1])=="--table-column-table-margin-write";
     const bool tableSingleCellStyleMarginWrite=argc==2 && std::string(argv[1])=="--table-single-cell-style-margin-write";
@@ -5124,12 +5308,70 @@ int main(int argc,char** argv) {
     const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
     const bool spineProof=argc==2 && std::string(argv[1])=="--spine-source-proof";
     const bool blockRecordProof=argc==2 && std::string(argv[1])=="--block-record-source-proof";
-    if (argc!=1 && !viewportSources && !viewUcsSources && !layoutDependencies && !entityDependencies && !tableGeometryDependencies && !effectiveOwnership && !plotSources && !styleFont && !dependencies && !symbolOrigins && !resourceOrigins && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableGridWrite && !tableRowMarginWrite && !tableColumnTableMarginWrite && !tableSingleCellStyleMarginWrite && !tableStyleFormatWrite && !tableStyleReferenceWrite && !tableLinkedGridWrite && !tableExportReuse && !tableValuePayload && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
+    if (argc!=1 && !viewportSources && !viewUcsSources && !layoutDependencies && !entityDependencies && !tableGeometryDependencies && !effectiveOwnership && !plotSources && !styleFont && !dependencies && !symbolOrigins && !resourceOrigins && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableGridWrite && !tableCellBorderVisibilityEdges && !tableRowMarginWrite && !tableColumnTableMarginWrite && !tableSingleCellStyleMarginWrite && !tableStyleFormatWrite && !tableStyleReferenceWrite && !tableLinkedGridWrite && !tableExportReuse && !tableValuePayload && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
     const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     std::error_code error;const auto dir=reserveTestScratch(parent,stem,error);
     if(dir.empty()){std::cerr<<"Cannot reserve test scratch "<<(parent/stem)<<": "<<error.message()<<'\n';return 1;}
-    const bool ok=viewportSources?viewportSourceTests(dir):viewUcsSources?viewUcsSourceTests(dir):layoutDependencies?layoutDependencyTests(dir):entityDependencies?entityDependencyTests(dir):tableGeometryDependencies?tableGeometryDependencyTests(dir):effectiveOwnership?effectiveOwnershipTests(dir):plotSources?plotSourceTests(dir):styleFont?styleFontTests(dir):dependencies?dependencyTests(dir):symbolOrigins?symbolOriginTests(dir):resourceOrigins?resourceOriginTests(dir):compound?compoundTests(dir):proof?contentProofTests(dir):bindings?bindingTests(dir):blockBindings?tableBlockBindingTests(dir):blockNames?tableBlockNameTests(dir):entitiesSource?entitiesSourceTests(dir):entitiesDelivery?entitiesDeliveryTests(dir):entitiesOrigins?entitiesOriginTests(dir):entitiesCompounds?entitiesCompoundTests(dir):entitiesPrimaries?entitiesPrimaryTests(dir):layoutSource?layoutSourceTests(dir):identitySource?identitySourceTests(dir):structuralSource?structuralSourceTests(dir):dictionarySource?dictionarySourceTests(dir):layoutRoles?layoutRoleTests(dir):entitiesRoles?entitiesRoleTests(dir):blockRoles?blockRoleTests(dir):attdefRoles?attdefRoleTests(dir):tableBlockSource?tableBlockSourceTests(dir):tableInputs?tableInputTests(dir):tableBodies?tableBodyTests(dir):tableProfiles?tableProfileTests(dir):tableValueScopes?tableValueScopeTests(dir):tableGridWrite?tableContentGridWriteTests(dir):tableRowMarginWrite?tableContentRowMarginWriteTests(dir):tableColumnTableMarginWrite?tableContentColumnTableMarginWriteTests(dir):tableSingleCellStyleMarginWrite?tableContentSingleCellStyleMarginWriteTests(dir):tableStyleFormatWrite?tableContentTableStyleFormatWriteTests(dir):tableStyleReferenceWrite?tableContentTableStyleReferenceWriteTests(dir):tableLinkedGridWrite?tableContentLinkedGridWriteTests(dir):tableExportReuse?tableExportReuseTests(dir):tableValuePayload?tableValuePayloadTests(dir):tableValueProfiles?tableValueProfileTests(dir):tableReferences?tableReferenceTests(dir):maps?mapProfileTests(dir):mapProof?mapSourceProofTests(dir):styleProof?tableStyleProofTests(dir):symbolProof?symbolSourceProofTests(dir):complexBindings?complexSymbolBindingTests(dir):auxiliaryProof?auxiliarySourceProofTests(dir):spineProof?spineSourceProofTests(dir):blockRecordProof?blockRecordSourceProofTests(dir):tests(dir);
+    const bool ok = viewportSources ? viewportSourceTests(dir)
+        : viewUcsSources ? viewUcsSourceTests(dir)
+        : layoutDependencies ? layoutDependencyTests(dir)
+        : entityDependencies ? entityDependencyTests(dir)
+        : tableGeometryDependencies ? tableGeometryDependencyTests(dir)
+        : effectiveOwnership ? effectiveOwnershipTests(dir)
+        : plotSources ? plotSourceTests(dir)
+        : styleFont ? styleFontTests(dir)
+        : dependencies ? dependencyTests(dir)
+        : symbolOrigins ? symbolOriginTests(dir)
+        : resourceOrigins ? resourceOriginTests(dir)
+        : compound ? compoundTests(dir)
+        : proof ? contentProofTests(dir)
+        : bindings ? bindingTests(dir)
+        : blockBindings ? tableBlockBindingTests(dir)
+        : blockNames ? tableBlockNameTests(dir)
+        : entitiesSource ? entitiesSourceTests(dir)
+        : entitiesDelivery ? entitiesDeliveryTests(dir)
+        : entitiesOrigins ? entitiesOriginTests(dir)
+        : entitiesCompounds ? entitiesCompoundTests(dir)
+        : entitiesPrimaries ? entitiesPrimaryTests(dir)
+        : layoutSource ? layoutSourceTests(dir)
+        : identitySource ? identitySourceTests(dir)
+        : structuralSource ? structuralSourceTests(dir)
+        : dictionarySource ? dictionarySourceTests(dir)
+        : layoutRoles ? layoutRoleTests(dir)
+        : entitiesRoles ? entitiesRoleTests(dir)
+        : blockRoles ? blockRoleTests(dir)
+        : attdefRoles ? attdefRoleTests(dir)
+        : tableBlockSource ? tableBlockSourceTests(dir)
+        : tableInputs ? tableInputTests(dir)
+        : tableBodies ? tableBodyTests(dir)
+        : tableProfiles ? tableProfileTests(dir)
+        : tableValueScopes ? tableValueScopeTests(dir)
+        : tableGridWrite ? tableContentGridWriteTests(dir)
+        : tableCellBorderVisibilityEdges
+            ? tableContentCellBorderVisibilityEdgesWriteTests(dir)
+        : tableRowMarginWrite ? tableContentRowMarginWriteTests(dir)
+        : tableColumnTableMarginWrite
+            ? tableContentColumnTableMarginWriteTests(dir)
+        : tableSingleCellStyleMarginWrite
+            ? tableContentSingleCellStyleMarginWriteTests(dir)
+        : tableStyleFormatWrite ? tableContentTableStyleFormatWriteTests(dir)
+        : tableStyleReferenceWrite
+            ? tableContentTableStyleReferenceWriteTests(dir)
+        : tableLinkedGridWrite ? tableContentLinkedGridWriteTests(dir)
+        : tableExportReuse ? tableExportReuseTests(dir)
+        : tableValuePayload ? tableValuePayloadTests(dir)
+        : tableValueProfiles ? tableValueProfileTests(dir)
+        : tableReferences ? tableReferenceTests(dir)
+        : maps ? mapProfileTests(dir)
+        : mapProof ? mapSourceProofTests(dir)
+        : styleProof ? tableStyleProofTests(dir)
+        : symbolProof ? symbolSourceProofTests(dir)
+        : complexBindings ? complexSymbolBindingTests(dir)
+        : auxiliaryProof ? auxiliarySourceProofTests(dir)
+        : spineProof ? spineSourceProofTests(dir)
+        : blockRecordProof ? blockRecordSourceProofTests(dir)
+        : tests(dir);
     if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }

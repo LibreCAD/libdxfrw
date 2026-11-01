@@ -29407,9 +29407,13 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             && style.m_bottomMargin == 0.0 && style.m_rightMargin == 0.0
             && style.m_marginHorizontalSpacing == 0.0
             && style.m_marginVerticalSpacing == 0.0;
-        const auto isSelectedTopInvisibleBorder = [](
+        const auto isSelectedInvisibleBorder = [](
                 const DRW_TableStyleBorder& border) {
-            return border.m_edgeFlags == 1
+            const std::uint32_t edgeFlags =
+                static_cast<std::uint32_t>(border.m_edgeFlags);
+            const bool oneEdge = edgeFlags != 0u && edgeFlags <= 0x20u
+                && (edgeFlags & (edgeFlags - 1u)) == 0u;
+            return oneEdge
                 && border.m_propertyOverrideFlags == 0x10
                 && border.m_borderType == 0 && border.m_color == 0
                 && border.m_colorCmc.m_rgb == -1
@@ -29424,8 +29428,21 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 && border.m_doubleLineSpacing == 0.0;
         };
         const bool noBorders = style.m_borders.empty();
-        const bool selectedBorder = style.m_borders.size() == 1u
-            && isSelectedTopInvisibleBorder(style.m_borders.front());
+        const bool selectedBorder = [&]() {
+            if (style.m_borders.empty() || style.m_borders.size() > 6u)
+                return false;
+            std::uint32_t seenEdges = 0u;
+            for (const DRW_TableStyleBorder& border : style.m_borders) {
+                if (!isSelectedInvisibleBorder(border))
+                    return false;
+                const std::uint32_t edgeFlags =
+                    static_cast<std::uint32_t>(border.m_edgeFlags);
+                if ((seenEdges & edgeFlags) != 0u)
+                    return false;
+                seenEdges |= edgeFlags;
+            }
+            return true;
+        }();
         const bool selectedStyleContentFormat =
             !formatIsDefault(style.m_contentFormat)
             && contentFormatIsSupported(style.m_contentFormat);
