@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw-dxf-implementation-receipt-v1",
+  "date": "2026-10-31",
+  "status": "SCOPED_IMPLEMENTATION_COMPLETE_NO_CLAIM_PROMOTION",
+  "workstream": "P5 / AC1027 CELLSTYLEMAP CMC color-book output and legacy split-input compatibility",
+  "basis": {
+    "dxfCompatibilityEvidence": [
+      {
+        "authority": "Autodesk AutoLISP acad_truecolordlg reference",
+        "url": "https://help.autodesk.com/cloudhelp/2017/PTB/AutoCAD-AutoLISP/files/GUID-E6FF435F-9E66-4F37-8770-2E3FB87B8E0B.htm",
+        "finding": "A color-book color uses group 430 with BOOK$ENTRY spelling and includes group 420 true color and group 62 nearest color-index value."
+      },
+      {
+        "authority": "Autodesk DXF numerical group-code reference",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+        "finding": "Groups 420-427 carry 32-bit true-color values; groups 430-437 carry strings naming true colors."
+      }
+    ],
+    "localCompatibilityEvidence": {
+      "receipt": "docs/research/p5-ac1027-tablecontent-border-cmc-2026-10-31.json",
+      "finding": "The existing TABLECONTENT CMC provider uses one BOOK$ENTRY string in group 430. The former CELLSTYLEMAP writer emitted group 430 name and group 431 book separately; the reader now retains that legacy input while canonical writes use group 430 BOOK$ENTRY."
+    },
+    "scopeBoundary": "AC1027 CELLSTYLEMAP background, CONTENTFORMAT and border CMC fields only. No DWG byte layout or other group-431 context is changed."
+  },
+  "profile": {
+    "version": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "fixture": "Runtime-authored CELLSTYLEMAP records and runtime-authored legacy split-color input; no drawing fixture files were added.",
+    "wireExamples": [
+      {
+        "field": "background",
+        "groups": [[62, "4"], [420, "14342874"], [430, "Generated Background$Cloud White"]]
+      },
+      {
+        "field": "content",
+        "groups": [[62, "7"], [420, "1193046"], [430, "generated-book$generated-content-color"]]
+      },
+      {
+        "field": "border",
+        "groups": [[62, "5"], [420, "11259375"], [430, "Generated Border$Olive"]]
+      }
+    ],
+    "group431": "Not emitted for the canonical CELLSTYLEMAP CMC profile. Historical split group-430/group-431 input remains readable."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/table_content_dxf_tests.cpp"
+    ],
+    "behavior": "The writer emits CMC fields in 62, optional 420, optional 430 order; it composes color-book and entry names as BOOK$ENTRY. Preflight rejects ambiguous delimiter components and book-only state. The parser splits canonical BOOK$ENTRY and continues to accept historical separate 430 name plus 431 book fields, preserving inferred CMC name/book flags.",
+    "readback": "Fresh ASCII and Binary DXF imports check physical field order, RGB/name/book values, CMC method/flags and background/content/border destinations. Runtime-authored legacy split input checks typed name/book readback.",
+    "failureRetry": "Names containing '$', book names containing '$', and book-only colors are refused. Each refusal preserves an existing destination sentinel and the caller model. A corrected model then exports successfully through the same adapter and fresh readback recovers the book name.",
+    "fixturePolicy": "All inputs are authored in test code at runtime; no external DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_table_content_dxf_tests -j2",
+      "result": "PASS",
+      "compiler": "Apple clang 21.0.0 (configured through /usr/bin/g++)",
+      "cmake": "4.4.4"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_cellstylemap_(dxf_writer|source_profiles)$' --output-on-failure",
+      "result": "PASS, 2/2; 2.14 seconds"
+    },
+    "diffCheck": "PASS: git diff --check",
+    "sha256": {
+      "src/drw_objects.cpp": "bb1e92e96165c6aad5aeb2dac279a049e84387e4bf5f3306b9edb2e0f0074d89",
+      "src/libdxfrw.cpp": "c836a5eee9189d825cc0b77b56f0dd4e5c3292586d274060e1a990c42e1820b5",
+      "tests/dwg2dxf_adapter_tests.cpp": "e55f1bd8a182927bd5e71b0eec501ae27056c0fd757f903de2af95ef11119580",
+      "tests/table_content_dxf_tests.cpp": "26009f5bb0fa83810bd42abb7e8482308f60fdb0636fd9903e0c84369dd8401d",
+      "focusedAdapterExecutable": "60cb7c6b846f729511f98e103d95434a64fb116bfd17ad6d5fcc3223e5be1050",
+      "focusedTableExecutable": "246b9a18db71be1188d16fd2d0f22a0f9f58a748c7c32647e025fced561d30a3"
+    }
+  },
+  "limits": [
+    "This is one AC1027 DXF serialization/readback profile, not complete CELLSTYLEMAP or TABLE support.",
+    "The local reader and writer are exercised together; no independent CAD application was run.",
+    "No native TABLE rendering, DWG semantic, whole-document closure, platform, or public support claim is established."
+  ],
+  "next": "Continue the remaining source-backed CONTENTFORMAT and CELLSTYLEMAP profiles and overlapping TABLECONTENT edge-mask semantics; keep unsupported compositions refused until their source or consumer evidence is qualified."
+}

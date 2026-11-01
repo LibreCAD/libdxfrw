@@ -10844,10 +10844,22 @@ bool dxfRW::writeCellStyleMap(DRW_CellStyleMap *ent) {
     };
     const auto validColor = [&safeText](
             int index, const DRW_TableStyleCmcColor& cmc) {
+        const std::uint8_t nameFlags = static_cast<std::uint8_t>(
+            (cmc.m_name.empty() ? 0u : 0x01u)
+            | (cmc.m_bookName.empty() ? 0u : 0x02u));
+        constexpr std::size_t maxColorNameBytes = 1024u * 1024u;
+        const bool combinedNameFits = cmc.m_bookName.empty()
+            || (!cmc.m_name.empty()
+                && cmc.m_bookName.size() < maxColorNameBytes
+                && cmc.m_name.size() <= maxColorNameBytes
+                    - cmc.m_bookName.size() - 1u);
         if (index < 0 || index > 256 || cmc.m_rgb < -1
-            || cmc.m_rgb > 0xFFFFFF || cmc.m_flags != 0u
-            || cmc.m_reservedIndex != 0u || !safeText(cmc.m_name)
-            || !safeText(cmc.m_bookName))
+            || cmc.m_rgb > 0xFFFFFF || cmc.m_reservedIndex != 0u
+            || !safeText(cmc.m_name) || !safeText(cmc.m_bookName)
+            || cmc.m_name.find('$') != std::string::npos
+            || cmc.m_bookName.find('$') != std::string::npos
+            || !combinedNameFits
+            || (cmc.m_flags != 0u && cmc.m_flags != nameFlags))
             return false;
         switch (cmc.m_method) {
         case 0:
@@ -11052,11 +11064,19 @@ bool dxfRW::writeCellStyleMap(DRW_CellStyleMap *ent) {
             const DRW_TableStyleCmcColor& cmc) {
         if (!writer->writeInt16(62, static_cast<std::int16_t>(index)))
             return false;
-        return (cmc.m_rgb < 0 || writer->writeInt32(420, cmc.m_rgb))
-            && (cmc.m_name.empty()
-                || writer->writeUtf8String(430, cmc.m_name))
-            && (cmc.m_bookName.empty()
-                || writer->writeUtf8String(431, cmc.m_bookName));
+        if (cmc.m_rgb >= 0 && !writer->writeInt32(420, cmc.m_rgb))
+            return false;
+        if (cmc.m_name.empty())
+            return cmc.m_bookName.empty();
+        // DXF represents a color-book CMC as one BOOK$ENTRY group 430 string.
+        std::string colorName;
+        if (!cmc.m_bookName.empty()) {
+            colorName.reserve(cmc.m_bookName.size() + 1u + cmc.m_name.size());
+            colorName.append(cmc.m_bookName);
+            colorName.push_back('$');
+        }
+        colorName.append(cmc.m_name);
+        return writer->writeUtf8String(430, colorName);
     };
     const auto writeContent = [this, &writeColor, &resolve](
             const DRW_TableStyleContentFormat& format) {

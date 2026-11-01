@@ -3792,6 +3792,11 @@ Tags richMapSource(const std::string& version) {
             {95,std::to_string(edge)},{302,"GRIDFORMAT"},{1,"GRIDFORMAT_BEGIN"},
             {90,"63"},{91,"2"},{62,"7"},{92,"17"},{340,"C102"},{93,"1"},{40,"0.25"},{309,"GRIDFORMAT_END"}});
         map.insert(map.begin()+static_cast<std::ptrdiff_t>(tail),extra.begin(),extra.end());
+        const auto rgb=std::find_if(map.begin()+static_cast<std::ptrdiff_t>(start),
+            map.end(),[](const auto& tag){return tag.code==420;});
+        if(rgb==map.end())throw std::runtime_error("map content CMC witness missing");
+        const auto colorName="legacy-color-"+std::to_string(id);
+        map.insert(rgb+1,{{430,colorName},{431,"legacy-book"}});
         map.insert(map.end(),{{1,"CELLSTYLE_BEGIN"},{90,std::to_string(id)},{91,"1"},
             {300,"generated-rich-"+std::to_string(id)},{309,"CELLSTYLE_END"}});
     }
@@ -3826,8 +3831,9 @@ bool mapProfileTests(const std::filesystem::path& dir) {
                 ||f.m_propertyOverrideFlags!=3u||f.m_propertyFlags!=256u||f.m_valueDataType!=512||f.m_valueUnitType!=0
                 ||f.m_valueFormatString!="fmt-é"||f.m_rotation!=0.125||f.m_blockScale!=2||f.m_cellAlignment!=5
                 ||f.m_contentColor!=0||f.m_contentColorCmc.m_rgb!=1193046||f.m_contentColorCmc.m_method!=0xC2u
-                ||f.m_contentColorCmc.m_flags!=0||f.m_contentColorCmc.m_reservedIndex!=0
-                ||!f.m_contentColorCmc.m_name.empty()||!f.m_contentColorCmc.m_bookName.empty()
+                ||f.m_contentColorCmc.m_flags!=3u||f.m_contentColorCmc.m_reservedIndex!=0
+                ||f.m_contentColorCmc.m_name!="legacy-color-"+std::to_string(ids[i])
+                ||f.m_contentColorCmc.m_bookName!="legacy-book"
                 ||f.m_textStyleHandle!=0xC101u||f.m_textHeight!=3.25)return false;
             for(unsigned edge=0;edge<6u;++edge) {
                 const auto& b=s.m_borders[edge];

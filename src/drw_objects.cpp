@@ -18304,20 +18304,62 @@ bool DRW_CellStyleMap::parseCode(
                     return invalid();
                 color->m_rgb = value;
                 color->m_method = 0xC2u;
+            } else if (code == 430) {
+                // DXF color-book names use BOOK$ENTRY in one group 430.
+                // The following branch still accepts this library's prior
+                // split group-430/group-431 representation.
+                const std::string value = reader->getUtf8String();
+                const std::size_t separator = value.find('$');
+                if (value.empty()
+                    || (separator != std::string::npos
+                        && (separator == 0u || separator + 1u >= value.size()
+                            || value.find('$', separator + 1u)
+                                != std::string::npos))
+                    || color->m_dxfNamePresent
+                    || (m_dxfColorFieldsPresent & kColorName) != 0u)
+                    return invalid();
+                if (separator == std::string::npos) {
+                    if (!replaceDxfRetainedStringField(
+                            reader, color->m_dxfRetainedNameBytes,
+                            color->m_name, value))
+                        return false;
+                    color->m_dxfNamePresent = true;
+                    color->m_flags = static_cast<std::uint8_t>(
+                        color->m_flags | 0x01u);
+                    m_dxfColorFieldsPresent |= kColorName;
+                } else {
+                    if (color->m_dxfBookNamePresent
+                        || (m_dxfColorFieldsPresent & kColorBookName) != 0u)
+                        return invalid();
+                    std::string bookName = value.substr(0u, separator);
+                    std::string name = value.substr(separator + 1u);
+                    if (!replaceDxfRetainedStringField(
+                            reader, color->m_dxfRetainedNameBytes,
+                            color->m_name, std::move(name))
+                        || !replaceDxfRetainedStringField(
+                            reader, color->m_dxfRetainedBookNameBytes,
+                            color->m_bookName, std::move(bookName)))
+                        return false;
+                    color->m_dxfNamePresent = true;
+                    color->m_dxfBookNamePresent = true;
+                    color->m_flags = static_cast<std::uint8_t>(
+                        color->m_flags | 0x03u);
+                    m_dxfColorFieldsPresent |= kColorName | kColorBookName;
+                }
             } else {
-                std::size_t& bytes = code == 430
-                    ? color->m_dxfRetainedNameBytes
-                    : color->m_dxfRetainedBookNameBytes;
-                std::string& destination = code == 430
-                    ? color->m_name : color->m_bookName;
-                bool& present = code == 430
-                    ? color->m_dxfNamePresent : color->m_dxfBookNamePresent;
+                std::size_t& bytes = color->m_dxfRetainedBookNameBytes;
+                std::string& destination = color->m_bookName;
+                bool& present = color->m_dxfBookNamePresent;
                 if (present || !replaceDxfRetainedStringField(
                         reader, bytes, destination, reader->getUtf8String()))
                     return false;
                 present = true;
+                color->m_flags = static_cast<std::uint8_t>(
+                    color->m_flags | 0x02u);
+                m_dxfColorFieldsPresent |= kColorBookName;
             }
-            m_dxfColorFieldsPresent |= bit;
+            if (code == 420)
+                m_dxfColorFieldsPresent |= bit;
             if ((m_dxfColorFieldsPresent & ~kColorKnown) != 0u)
                 return invalid();
             return true;

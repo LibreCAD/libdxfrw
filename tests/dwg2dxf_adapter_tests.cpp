@@ -46128,6 +46128,11 @@ bool cellStyleMapDxfWriter() {
         custom.m_propertyOverrideFlags = 0x420u;
         custom.m_mergeFlags = 0x8000u;
         custom.m_backgroundColor = 4;
+        custom.m_backgroundColorCmc.m_rgb = 0xDADADA;
+        custom.m_backgroundColorCmc.m_name = "Cloud White";
+        custom.m_backgroundColorCmc.m_bookName = "Generated Background";
+        custom.m_backgroundColorCmc.m_method = 0xC2u;
+        custom.m_backgroundColorCmc.m_flags = 0x03u;
         custom.m_contentLayout = 1u;
         DRW_TableStyleContentFormat& format = custom.m_contentFormat;
         format.m_propertyOverrideFlags = 0x21u;
@@ -46154,9 +46159,14 @@ bool cellStyleMapDxfWriter() {
         custom.m_marginVerticalSpacing = 6.0;
         DRW_TableStyleBorder border;
         border.m_edgeFlags = 1;
-        border.m_propertyOverrideFlags = 0x13;
+        border.m_propertyOverrideFlags = 0x1F;
         border.m_borderType = 1;
         border.m_color = 5;
+        border.m_colorCmc.m_rgb = 0xABCDEF;
+        border.m_colorCmc.m_name = "Olive";
+        border.m_colorCmc.m_bookName = "Generated Border";
+        border.m_colorCmc.m_method = 0xC2u;
+        border.m_colorCmc.m_flags = 0x03u;
         border.m_lineWeight = 25;
         border.m_lineTypeHandle = 0xD002u;
         border.m_visible = 1;
@@ -46268,7 +46278,39 @@ bool cellStyleMapDxfWriter() {
             || typedReadback.cellStyleMaps.front().m_cellStyles[0]
                     .m_contentFormat.m_textStyleHandle != 0xD101u
             || typedReadback.cellStyleMaps.front().m_cellStyles[0]
+                    .m_backgroundColorCmc.m_rgb != 0xDADADA
+            || typedReadback.cellStyleMaps.front().m_cellStyles[0]
+                    .m_backgroundColorCmc.m_name != "Cloud White"
+            || typedReadback.cellStyleMaps.front().m_cellStyles[0]
+                    .m_backgroundColorCmc.m_bookName != "Generated Background"
+            || typedReadback.cellStyleMaps.front().m_cellStyles[0]
+                    .m_backgroundColorCmc.m_method != 0xC2u
+            || typedReadback.cellStyleMaps.front().m_cellStyles[0]
+                    .m_backgroundColorCmc.m_flags != 0x03u
+            || typedReadback.cellStyleMaps.front().m_cellStyles[0]
+                    .m_contentFormat.m_contentColorCmc.m_rgb != 0x123456
+            || typedReadback.cellStyleMaps.front().m_cellStyles[0]
+                    .m_contentFormat.m_contentColorCmc.m_name
+                != "generated-content-color"
+            || typedReadback.cellStyleMaps.front().m_cellStyles[0]
+                    .m_contentFormat.m_contentColorCmc.m_bookName
+                != "generated-book"
+            || typedReadback.cellStyleMaps.front().m_cellStyles[0]
+                    .m_contentFormat.m_contentColorCmc.m_method != 0xC2u
+            || typedReadback.cellStyleMaps.front().m_cellStyles[0]
+                    .m_contentFormat.m_contentColorCmc.m_flags != 0x03u
+            || typedReadback.cellStyleMaps.front().m_cellStyles[0]
                     .m_borders[0].m_lineTypeHandle != 0xD102u
+            || typedReadback.cellStyleMaps.front().m_cellStyles[0]
+                    .m_borders[0].m_colorCmc.m_rgb != 0xABCDEF
+            || typedReadback.cellStyleMaps.front().m_cellStyles[0]
+                    .m_borders[0].m_colorCmc.m_name != "Olive"
+            || typedReadback.cellStyleMaps.front().m_cellStyles[0]
+                    .m_borders[0].m_colorCmc.m_bookName != "Generated Border"
+            || typedReadback.cellStyleMaps.front().m_cellStyles[0]
+                    .m_borders[0].m_colorCmc.m_method != 0xC2u
+            || typedReadback.cellStyleMaps.front().m_cellStyles[0]
+                    .m_borders[0].m_colorCmc.m_flags != 0x03u
             || typedReadback.cellStyleMaps.front().m_cellStyles[1].m_id
                 != 102
             || typedReadback.cellStyleMaps.back().m_cellStyles.front().m_id
@@ -46280,6 +46322,11 @@ bool cellStyleMapDxfWriter() {
                                  const std::string& value) {
             return std::find(groups.begin(), groups.end(),
                 std::make_pair(code, value)) != groups.end();
+        };
+        const auto hasSequence = [](const auto& groups, const auto& sequence) {
+            return std::search(groups.begin(), groups.end(),
+                               sequence.begin(), sequence.end())
+                != groups.end();
         };
         const auto markerSequence = [](const auto& groups) {
             std::vector<std::pair<int, std::string>> markers;
@@ -46328,9 +46375,17 @@ bool cellStyleMapDxfWriter() {
             || !hasGroup(maps.front(), 90, "2")
             || !hasGroup(maps.front(), 90, "101")
             || !hasGroup(maps.front(), 90, "102")
-            || !hasGroup(maps.front(), 420, "1193046")
-            || !hasGroup(maps.front(), 430, "generated-content-color")
-            || !hasGroup(maps.front(), 431, "generated-book")
+            || !hasSequence(maps.front(), std::vector<std::pair<int, std::string>>{
+                   {62, "4"}, {420, "14342874"},
+                   {430, "Generated Background$Cloud White"}})
+            || !hasSequence(maps.front(), std::vector<std::pair<int, std::string>>{
+                   {62, "7"}, {420, "1193046"},
+                   {430, "generated-book$generated-content-color"}})
+            || !hasSequence(maps.front(), std::vector<std::pair<int, std::string>>{
+                   {62, "5"}, {420, "11259375"},
+                   {430, "Generated Border$Olive"}})
+            || std::any_of(maps.front().begin(), maps.front().end(),
+                [](const auto& group) { return group.first == 431; })
             || !hasGroup(maps.front(), 300, "generated-custom-style")
             || !hasGroup(maps.back(), 300, "generated-data-style")
             || !hasGroup(maps.front(), 340, "D101")
@@ -46340,6 +46395,47 @@ bool cellStyleMapDxfWriter() {
             return fail(binary
                 ? "binary CELLSTYLEMAP wire groups differ from the documented schema"
                 : "ASCII CELLSTYLEMAP wire groups differ from the documented schema");
+
+        DRW_TableStyleCmcColor& invalidColor = writer.first.m_cellStyles[0]
+            .m_contentFormat.m_contentColorCmc;
+        const std::string originalName = invalidColor.m_name;
+        const std::string originalBookName = invalidColor.m_bookName;
+        const std::string sentinel = "PRESERVE_CELLSTYLEMAP_CMC_DESTINATION";
+        { std::ofstream out(output, std::ios::binary); out << sentinel; }
+        const auto refusalPreservesState = [&](const std::string& name,
+                                                const std::string& bookName) {
+            if (writer.fileExport(output.string(), DRW::AC1027, binary,
+                                  &source, false))
+                return false;
+            std::ifstream in(output, std::ios::binary);
+            return std::string(std::istreambuf_iterator<char>(in), {})
+                    == sentinel
+                && invalidColor.m_name == name
+                && invalidColor.m_bookName == bookName;
+        };
+        invalidColor.m_name = "invalid$name";
+        if (!refusalPreservesState("invalid$name", originalBookName))
+            return fail("ambiguous CMC entry name was accepted or mutated state");
+        invalidColor.m_name = originalName;
+        invalidColor.m_bookName = "invalid$book";
+        if (!refusalPreservesState(originalName, "invalid$book"))
+            return fail("ambiguous CMC book name was accepted or mutated state");
+        invalidColor.m_bookName = originalBookName;
+        invalidColor.m_name.clear();
+        if (!refusalPreservesState("", originalBookName))
+            return fail("book-only CMC color was accepted or mutated state");
+        invalidColor.m_name = originalName;
+        if (!writer.fileExport(output.string(), DRW::AC1027, binary,
+                               &source, false))
+            return fail("same-adapter CELLSTYLEMAP CMC retry failed");
+        dx_data retried;
+        dx_iface retryReader;
+        if (!retryReader.fileImport(output.string(), &retried, false)
+            || retried.cellStyleMaps.size() != 2u
+            || retried.cellStyleMaps.front().m_cellStyles[0]
+                    .m_contentFormat.m_contentColorCmc.m_bookName
+                != "generated-book")
+            return fail("corrected CMC retry readback differs");
     }
 
     // ID 4 is the R24 addition; refusal at AC1021 must remain atomic.
