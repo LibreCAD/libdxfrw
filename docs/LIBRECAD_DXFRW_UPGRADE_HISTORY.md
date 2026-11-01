@@ -249,4 +249,15 @@ DWG/DXF bytes are staged, and all broad support dispositions remain bounded by
 the evidence ledger. S14 is the terminal release checkpoint; future work is
 independent semantic qualification, not an unrecorded implementation item.
 
+S20 Windows follow-up: hosted run `41329209151` passed Linux/GCC and macOS/Apple
+Clang but Windows/MSVC failed 3/7 focused CTests on candidate digest
+`9a9b5d52c5477857fe6651af7970d49cab000887b9512b0a908a6205ad9fe102`. Artifact
+`13093020319` showed broad ASCII DXF readback failures at TABLES. The writer now
+keeps byte-addressable Windows CRLF output, and `backpatchDxfTableCapacity`
+accounts for the five-byte ASCII code row and seven-byte value row when placing
+the table count. The focused local `libdxfrw_dwg_local_roundtrip` CTest passes.
+Candidate digest `bb8bc53404402e31d5310032d54855370ef3695b9d9e4e0d4ad4031ca6f8fcaf`
+still needs fresh Windows/Linux/macOS and `parity-fast` receipts. No fixture
+payload or support claim changed.
+
 <!-- UPGRADE_PROGRESS_END -->

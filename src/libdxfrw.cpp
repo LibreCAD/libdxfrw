@@ -243,8 +243,15 @@ bool backpatchDxfTableCapacity(dxfWriter& writer,
         return false;
     const std::streamoff groupStart = groupOffset - std::streampos(0);
     const std::streamoff endOffset = endPosition - std::streampos(0);
-    const std::streamoff codeWidth = !binary ? 4 : (r12Binary ? 1 : 2);
-    const std::streamoff valueWidth = binary ? 2 : 6;
+#if defined(_WIN32)
+    const std::streamoff asciiCodeWidth = 5; // three code digits plus CRLF
+    const std::streamoff asciiValueWidth = 7; // five value digits plus CRLF
+#else
+    const std::streamoff asciiCodeWidth = 4; // three code digits plus LF
+    const std::streamoff asciiValueWidth = 6; // five value digits plus LF
+#endif
+    const std::streamoff codeWidth = !binary ? asciiCodeWidth : (r12Binary ? 1 : 2);
+    const std::streamoff valueWidth = binary ? 2 : asciiValueWidth;
     const std::streamoff valueOffset = groupStart + codeWidth;
     if (groupStart < 0 || valueOffset < groupStart
         || endOffset < valueOffset + valueWidth)
