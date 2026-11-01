@@ -27284,13 +27284,14 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
     if (cData == nullptr)
         return false;
     if (cData->sourceFormat != dx_source_format::DWG
-        || (cData->sourceVersion != DRW::AC1018
+        || (cData->sourceVersion != DRW::AC1015
+            && cData->sourceVersion != DRW::AC1018
             && cData->sourceVersion != DRW::AC1024)
         || version != DRW::AC1024
         || m_extensionMLineStyleHandles.empty())
         return true;
 
-    // Admit only the source-backed AC1018/AC1024 STANDARD profile in the
+    // Admit only the source-backed AC1015/AC1018/AC1024 STANDARD profile in the
     // tracked witnesses. Other MLINESTYLE bodies continue through the
     // existing writer, but do not qualify their opaque DWG callbacks.
     if (m_extensionMLineStyleHandles.size() != 1u
@@ -27299,7 +27300,9 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
         || !cData->hasSingleSuccessfulNamedResourceImport())
         return true;
     const DRW_MLineStyle& style = cData->mLineStyles.front();
-    if (style.name != "STANDARD" || style.elements.size() != 2u
+    const bool expectedStyleName = cData->sourceVersion == DRW::AC1015
+        ? style.name == "Standard" : style.name == "STANDARD";
+    if (!expectedStyleName || style.elements.size() != 2u
         || style.flags != 0 || !style.description.empty()
         || style.handle != m_extensionMLineStyleHandles.front()
         || style.handle == 0u || style.handle == DRW::NoHandle
@@ -27329,10 +27332,10 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
     const dx_data::StandardDwgFrameKey frameKey{
         cData->importGeneration, style.handle};
     const auto frame = cData->m_opaqueDwgSourceFrames.find(frameKey);
-    // AC1018's opaque callback frame has no common-link projection even
-    // though the typed MLINESTYLE parser captured its owner and reactor. For
-    // this bounded single-style profile, require the frame's exact empty
-    // projection and bind links through the typed dictionary graph below.
+    // The AC1015 and AC1018 opaque callback frames have no common-link
+    // projection even though the typed MLINESTYLE parsers captured owner and
+    // reactor links. For this bounded single-style profile, require the exact
+    // empty frame projection and bind links through the typed dictionary graph.
     const bool legacyFrameLinksMatch = frame
         != cData->m_opaqueDwgSourceFrames.end()
         && frame->second.m_parentHandle == 0u
@@ -27343,7 +27346,8 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
         && frame->second.m_xDictFlag == 0u
         && (frame->second.m_xDictHandle == 0u
             || frame->second.m_xDictHandle == DRW::NoHandle);
-    const bool frameLinksMatch = cData->sourceVersion == DRW::AC1018
+    const bool frameLinksMatch = (cData->sourceVersion == DRW::AC1015
+                                  || cData->sourceVersion == DRW::AC1018)
         ? legacyFrameLinksMatch
         : frame != cData->m_opaqueDwgSourceFrames.end()
             && frame->second.m_parentHandle == style.parentHandle
@@ -27453,7 +27457,8 @@ bool dx_iface::hasUnchangedDwgMLineStyleOutputSources() const noexcept {
     if (cData == nullptr || m_dwgMLineStyleOutputOwner != cData
         || m_dwgMLineStyleOutputGeneration != cData->importGeneration
         || cData->sourceFormat != dx_source_format::DWG
-        || (cData->sourceVersion != DRW::AC1018
+        || (cData->sourceVersion != DRW::AC1015
+            && cData->sourceVersion != DRW::AC1018
             && cData->sourceVersion != DRW::AC1024)
         || !cData->hasSingleSuccessfulNamedResourceImport()
         || cData->mLineStyles.size() != m_dwgMLineStyleOutputSources.size()
@@ -27512,7 +27517,8 @@ bool dx_iface::hasUnchangedDwgMLineStyleOutputSources() const noexcept {
                 && (frame->second.m_xDictHandle == 0u
                     || frame->second.m_xDictHandle == DRW::NoHandle);
             const bool frameLinksMatch =
-                cData->sourceVersion == DRW::AC1018
+                (cData->sourceVersion == DRW::AC1015
+                 || cData->sourceVersion == DRW::AC1018)
                     ? legacyFrameLinksMatch
                     : frame != cData->m_opaqueDwgSourceFrames.end()
                         && frame->second.m_parentHandle

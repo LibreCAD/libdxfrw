@@ -38604,15 +38604,37 @@ bool physicalMLineStyleOutputReadback(
     dx_data source;
     if (!sourceReader.fileImport(sourcePath.string(), &source, false)
         || source.sourceFormat != dx_source_format::DWG
-        || (source.sourceVersion != DRW::AC1018
+        || (source.sourceVersion != DRW::AC1015
+            && source.sourceVersion != DRW::AC1018
             && source.sourceVersion != DRW::AC1024)
+        || !source.hasSingleSuccessfulNamedResourceImport()
         || source.mLineStyleCaptureFailed
         || source.mLineStyles.size() != 1u
         || source.mLineStyles.front().handle != 0x18u
-        || source.mLineStyles.front().name != "STANDARD"
+        || source.mLineStyles.front().name
+            != (source.sourceVersion == DRW::AC1015
+                ? "Standard" : "STANDARD")
         || source.mLineStyles.front().elements.size() != 2u)
-        return fail("physical MLINESTYLE source is not an admitted AC1018/AC1024 STANDARD sentinel profile");
+        return fail("physical MLINESTYLE source is not an admitted AC1015/AC1018/AC1024 STANDARD sentinel profile");
     const DRW_MLineStyle& sourceStyle = source.mLineStyles.front();
+    const DRW_UnsupportedObject* sourceStyleFrame =
+        DxIfaceStandardDwgCaptureTestAccess::opaqueSourceFrame(
+            source, source.importGeneration, sourceStyle.handle);
+    if (sourceStyleFrame == nullptr || sourceStyleFrame->m_objectType != 73
+        || sourceStyleFrame->m_handle != sourceStyle.handle
+        || sourceStyleFrame->m_isEntity
+        || sourceStyleFrame->m_version != source.sourceVersion
+        || sourceStyleFrame->m_hasDataStorage
+        || (source.sourceVersion == DRW::AC1015
+            && (sourceStyleFrame->m_parentHandle != 0u
+                || sourceStyleFrame->m_commonLinkEvidence
+                    != DRW_DwgCommonLinkEvidence::Unknown
+                || !sourceStyleFrame->m_reactorHandles.empty()
+                || sourceStyleFrame->m_numReactors != 0
+                || sourceStyleFrame->m_xDictFlag != 0u
+                || (sourceStyleFrame->m_xDictHandle != 0u
+                    && sourceStyleFrame->m_xDictHandle != DRW::NoHandle))))
+        return fail("physical MLINESTYLE opaque frame no longer matches its exact AC1015 empty-link projection");
     if (sourceStyle.elements[0].linetypeIndex != 32767
         || sourceStyle.elements[1].linetypeIndex != 32767
         || sourceStyle.elements[0].linetypeHandle != 0u
@@ -38659,7 +38681,8 @@ bool physicalMLineStyleOutputReadback(
         || ownerFrame->m_isCustomClass || ownerFrame->m_isEntity
         || !ownerFrame->m_recordName.empty()
         || !ownerFrame->m_className.empty()
-        || (source.sourceVersion == DRW::AC1018
+        || ((source.sourceVersion == DRW::AC1018
+             || source.sourceVersion == DRW::AC1015)
             && sourceOwner->handle != 0x17u))
         return fail("physical MLINESTYLE source owner dictionary lacks its exact standard callback and rooted Standard entry");
 
@@ -38753,12 +38776,6 @@ bool physicalMLineStyleOutputReadback(
                 + " unchanged=" + std::to_string(
                     DxIfaceStandardDwgCaptureTestAccess::mlineStyleOutputSourcesUnchanged(writer)));
         }
-        if (source.sourceVersion == DRW::AC1018
-            && DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
-                source, source.importGeneration,
-                source.namedObjectDictionary.handle))
-            return fail("AC1018 MLINESTYLE root-key proof unexpectedly qualified the incomplete NOD");
-
         dx_iface outputReader;
         dx_data output;
         if (!outputReader.fileImport(outputPath.string(), &output, false)
@@ -38768,29 +38785,74 @@ bool physicalMLineStyleOutputReadback(
             || output.mLineStyles.size() != 1u)
             return fail("physical MLINESTYLE output did not freshly reimport as one typed style");
         const DRW_MLineStyle& outputStyle = output.mLineStyles.front();
+        // DWG CMC method bytes are source encoding metadata. The DXF ACI
+        // projection carries BYLAYER as 256 and reads back with method zero.
         if (outputStyle.handle != sourceStyle.handle
             || outputStyle.name != sourceStyle.name
             || outputStyle.parentHandle != sourceStyle.parentHandle
             || outputStyle.flags != sourceStyle.flags
             || outputStyle.description != sourceStyle.description
             || outputStyle.fillColor != sourceStyle.fillColor
+            || outputStyle.fillColor24 != sourceStyle.fillColor24
+            || outputStyle.fillColorMethod != 0u
+            || outputStyle.fillColorFlags != sourceStyle.fillColorFlags
+            || outputStyle.fillColorName != sourceStyle.fillColorName
+            || outputStyle.fillColorBookName != sourceStyle.fillColorBookName
+            || outputStyle.fillColorDwgIndex != sourceStyle.fillColorDwgIndex
             || outputStyle.startAngle != sourceStyle.startAngle
             || outputStyle.endAngle != sourceStyle.endAngle
             || outputStyle.elements.size() != sourceStyle.elements.size())
             return fail("physical MLINESTYLE identity or admitted common fields changed on readback");
+        const DRW_Dictionary* outputOwner = nullptr;
+        for (const DRW_Dictionary& dictionary : output.dictionaries) {
+            if (dictionary.handle != outputStyle.parentHandle)
+                continue;
+            if (outputOwner != nullptr)
+                return fail("physical MLINESTYLE output owner dictionary is ambiguous");
+            outputOwner = &dictionary;
+        }
+        const auto outputRootEntry = std::find_if(
+            output.namedObjectDictionary.m_entries.begin(),
+            output.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_MLINESTYLE";
+            });
+        if (outputOwner == nullptr
+            || outputOwner->parentHandle != output.namedObjectDictionary.handle
+            || outputOwner->m_entries.size() != 1u
+            || outputOwner->m_entries.front().m_name != "Standard"
+            || outputOwner->m_entries.front().m_handle != outputStyle.handle
+            || outputOwner->reactorHandles
+                != std::vector<std::uint32_t>{output.namedObjectDictionary.handle}
+            || outputStyle.reactorHandles
+                != std::vector<std::uint32_t>{outputOwner->handle}
+            || outputRootEntry == output.namedObjectDictionary.m_entries.end()
+            || std::count_if(output.namedObjectDictionary.m_entries.begin(),
+                             output.namedObjectDictionary.m_entries.end(),
+                [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "ACAD_MLINESTYLE";
+                }) != 1
+            || outputRootEntry->m_handle != outputOwner->handle)
+            return fail("physical MLINESTYLE output root, owner, reactor, or style reference changed on readback");
         for (std::size_t index = 0; index < sourceStyle.elements.size(); ++index) {
             const DRW_MLineElement& expected = sourceStyle.elements[index];
             const DRW_MLineElement& actual = outputStyle.elements[index];
             if (actual.offset != expected.offset
                 || actual.color != expected.color
+                || actual.color24 != expected.color24
+                || actual.colorMethod != 0u
+                || actual.colorFlags != expected.colorFlags
+                || actual.colorName != expected.colorName
+                || actual.colorBookName != expected.colorBookName
                 || actual.linetype != "BYLAYER"
                 || actual.linetypeHandle != 0u)
                 return fail("physical MLINESTYLE element order, scalar fields or BYLAYER sentinel changed on readback");
         }
         std::cerr << "Physical "
-                  << (source.sourceVersion == DRW::AC1018 ? "AC1018" : "AC1024")
+                  << (source.sourceVersion == DRW::AC1015 ? "AC1015"
+                      : source.sourceVersion == DRW::AC1018 ? "AC1018" : "AC1024")
                   << " MLINESTYLE " << (binary ? "binary" : "ASCII")
-                  << " readback passed: STANDARD identity, two BYLAYER sentinel "
+                  << " readback passed: style identity, two BYLAYER sentinel "
                      "elements, atomic refusal and same-adapter retry.\n";
     }
     return true;

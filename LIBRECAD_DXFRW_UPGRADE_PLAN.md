@@ -2,53 +2,33 @@
 
 ## Status
 
-Consumer follow-up (2026-10-12, LibreCAD_3 Python binding / libdxfrw PR #103,
-updated onto current `origin/master` at `a05e4f0d`):
-the R2018 ATTRIB parser routes group-3 chunks to embedded MTEXT until the
-attribute subclass, then retains ATTRIB tail parsing. Deep review found the
-parallel ATTDEF override still consumed pre-subclass group-3 chunks as prompts;
-a locally generated in-memory regression reproduced the loss, and ATTDEF now
-delegates those chunks through the same embedded-MTEXT path. The hardening CTest
-passes 1/1 with both ATTRIB and ATTDEF vectors. No external drawing is added.
+Updated 2026-11-01. This section is the concise active-work view; the live
+execution ledger below remains the source of truth for states, dependencies,
+commits, and gate evidence.
 
-The strict implementation digest at advanced head97a8bdba after integrating master was
-`f9b002171299729121eb036c56b269777a1bb9e7b725554cf7f68a4e07f80d3f` (244 inputs).
-The status overlay has no native receipt references for this new implementation;
-all six older references remain archived only. No support claim is promoted:
-experimental rows stay experimental and eligible rows stay pending native.
-The PR update produced successful focused workflow run #111 on Linux GCC,
-Windows MSVC and macOS Clang. All three downloaded receipts report 7/7 focused
-tests and the exact `45690883cb101663b384d1ca952e622ecfa05e4b03f077e5df36feb1effa0f7e`
-implementation digest. The run is a `pull_request` merge build: GitHub's run
-API binds source head `9b2685620ebda2f4a70c2042177be32b6abbe1c0`, while the
-receipt correctly records merge checkout `1cc874cb9b5f3d765f893018eb25e2c5046e3b47`.
-The receipt verifier had conflated those identities and therefore cannot accept
-the artifacts. Its reference model now binds both SHAs separately and its
-positive/negative PR-merge self-test passes. Because the verifier is itself in
-the frozen implementation manifest, this correction requires a refreshed
-strict digest and new hosted receipts; the run-111 artifacts remain diagnostic,
-not accepted qualification. No native receipts are accepted for the current
-worktree. The prior broad run remains incomplete (37/40 Linux/macOS tests passed;
-Windows did not reach broad tests), and LibreCAD ON/OFF consumer proof remains
-required.
-The hosted broad run for that prior head had 37/40 tests pass on Linux/macOS;
-Windows MSVC additionally failed while linking `libdxfrw_gbk_codepage_tests`, so
-its broad tests did not run. Native requalification of the current head remains
-required; pre-native validation and the prior focused receipts are not acceptance.
-The PR changes source, in-memory tests, this plan, and the mutable status overlay;
-no drawing payload or archived evidence file is removed or added.
+### Remaining work only
 
-S15 UTF-8/native-filesystem follow-up (2026-10-12) is VERIFYING. Its strict
-244-input digest is
-`45690883cb101663b384d1ca952e622ecfa05e4b03f077e5df36feb1effa0f7e`.
-Only the digest-excluded mutable status overlay is refreshed; it still accepts
-zero native receipts. Frozen inputs, historical receipts and support statuses
-are unchanged. Portable native Mac and ARM Linux focused7/controls3 pass; the
-run-111 artifacts are not admissible after the verifier fix changed a frozen
-input, and LibreCAD ON/OFF consumer proof remains required.
-The unchanged baseline admission tool rejects the existing numeric registry
-schema before scanning candidate paths. This failure is retained, not waived
-or described as a passing fixture-admission gate; no drawing bytes are added.
+- **S19 / E1R.1 — READY:** qualify the locally authored AC1015 rooted layout/NOD
+  graph. LibreDWG 0.14 independently decodes the five-entry NOD, the rooted
+  `ACAD_LAYOUT` dictionary with Model/Layout1, two empty root dictionaries, and
+  the already-qualified MLINESTYLE and plot-style dictionary-default roots.
+  Extend the existing layout/NOD output profile for this exact AC1015 shape;
+  prove reciprocal layout/block ownership, all root edges and reactor roles,
+  staged OBJECTS bodies, ASCII/binary readback, rollback/retry, and strict
+  conversion behavior. No drawing binary is to be committed.
+- **S15 / C2.2 — VERIFYING:** obtain immutable native Windows, Linux x64, and
+  macOS qualification receipts, then run LibreCAD ON/OFF consumer checks at the
+  updated pin. Existing Mac and ARM Linux evidence is partial and does not close
+  this gate.
+- **External semantic/platform qualification — DEFERRED:** J256, J260, J268,
+  J284, J293, and J295 remain `DEFERRED_EXTERNAL`. Independent semantic or
+  platform evidence is still required; none of these dispositions promotes a
+  support claim. Native FreeCAD 3D and independent ACIS/ACDS semantic evidence
+  also remain open.
+
+Completed slices are removed from this active-work view. Their committed rows
+remain in the append-only execution ledger below because the plan requires
+stable IDs, dependency history, and commit evidence.
 
 ### Independent open-source route and 3D evidence refresh (2026-10-19)
 
@@ -1695,10 +1675,11 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S17 has closed the AC1015 dictionary-default family.
-  Physical ASCII/binary rollback, retry, and readback pass; strict conversion
-  now qualifies 2/10 opaque callbacks and still refuses the other eight.
-  S15 remains independently VERIFYING; FreeCAD 3D qualification remains open.
+- Current checkpoint: S18 closed the AC1015 MLINESTYLE 0x18/root-owner
+  DICTIONARY 0x17 output profile. Physical ASCII/binary readback and
+  rollback/retry pass; strict qualification advanced to 4/10 and still refuses
+  six callbacks. S19 is ready on the complete AC1015 layout/NOD graph; S15 and
+  FreeCAD 3D qualification remain independently open.
 - Authorized run horizon: active implementation objective; continue through the
   next dependency-ready slice until the user stops or the terminal release gate
   is satisfied.
@@ -1707,24 +1688,24 @@ edit this block or commit the same slice concurrently.
   acceptance gates; record a new terminal slice only after the current DWG/DXF
   parity, LibreCAD/LibreCAD_3 compatibility, platform qualification, and
   evidence dispositions are all reconciled. A PR boundary cannot shorten it.
-- Last committed slice: S16 (AC1015 built-in placeholder class dispatch).
-- Resolved slices: 17/19 (`COMMITTED`, or `SUPERSEDED` after all replacements
+- Last committed slice: S18 (AC1015 MLINESTYLE/root-owner output qualification).
+- Resolved slices: 18/20 (`COMMITTED`, or `SUPERSEDED` after all replacements
   commit).
 - Slice states: 1 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 17 COMMITTED.
+  0 BLOCKED_HARD / 0 SUPERSEDED / 18 COMMITTED.
 - Parent-item states: 1 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 18 COMMITTED.
-- Expanded child-item states: 44 COMMITTED / 1 VERIFIED / 1 VERIFYING /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 19 COMMITTED.
+- Expanded child-item states: 45 COMMITTED / 1 VERIFIED / 1 VERIFYING /
   1 READY / 0 PLANNED; S12
   version/feature coverage, S13 hardening, and S14 release evidence are explicit.
 - Parent claim/evidence dispositions: 5 NOT_EVALUATED / 0 SATISFIED /
-  0 DEFERRED_EXTERNAL / 8 EXPERIMENTAL / 0 PROMOTED / 7 NOT_APPLICABLE.
-- Child claim dispositions: 18 EXPERIMENTAL / 16 NOT_APPLICABLE /
+  0 DEFERRED_EXTERNAL / 9 EXPERIMENTAL / 0 PROMOTED / 7 NOT_APPLICABLE.
+- Child claim dispositions: 19 EXPERIMENTAL / 16 NOT_APPLICABLE /
   12 NOT_EVALUATED / 1 DEFERRED_EXTERNAL; none promote claims.
-- Next ready slice: S18, prove the AC1015 MLINESTYLE/root-dictionary profile
-  with exact output identity, fields, and references. S15's native/hosted
-  filesystem gates continue independently; support dispositions remain
-  bounded by their existing evidence ledgers.
+- Next ready slice: S19, qualify the exact AC1015 five-key NOD and rooted
+  layout graph using the locally authored control and independent LibreDWG JSON.
+  S15's native/hosted filesystem gates continue independently; support
+  dispositions remain bounded by their existing evidence ledgers.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -1746,7 +1727,8 @@ edit this block or commit the same slice concurrently.
 | S15 | C2: UTF-8/native input and atomic-output paths | S11, S14 | VERIFYING | existing focused native suite on Linux/macOS/Windows; Unicode parent/basename/non-BMP DXF ASCII+binary/DWG; transaction commit/rollback/cleanup; existing hardening and writer controls; LibreCAD ON/OFF consumers | Exact97a8bdba baseline Mac7+3 PASS; pre-fix Unicode vectors8bea476f PASS on Mac, not native Windows red. Candidate four-code-path diffSHA c60d7ea8b79f557233cbbe5645d905fb0d524c9c628f1377de31e1f20f4d76ef passes focused7 and writer/hardening/DXF3 on native Mac and Ubuntu26/aarch64, including explicit UTF-8 filesystem paths PASS; no skips. Five input opens/output target use standard u8path; native temporary basename/ASCII suffix preserves atomic policy. Initial Linux prep128 occurred before CMake due copied ownership; corrected process-scoped exact-directory trust passes, with no global exception or source recopy. This is dirty-source portable proof, not clean-commit hosted receipt or native Windows fix proof. Native Windows/three-platform immutable qualification and LibreCAD consumer pin/ON-OFF proofs remain pending; no historical evidence, locale, defaults or support claims change. | own candidate qualification and LibreCAD consumer pin |
 | S16 | E1N.1: AC1015 built-in placeholder class dispatch | S09 | COMMITTED | exact class-name mapping; generated parser regression; source-traced DWG conversion | ODA §20.4.1 and local AC1015 control identify class ordinal 501 as `AcDbPlaceHolder` / `ACDBPLACEHOLDER`; parser now resolves the built-in class to fixed type 80 without hardcoding ordinal 501. Focused test passes. Full strict conversion still refuses at 0/10 opaque callbacks; no consumer or support promotion. Receipt: `docs/research/ac1015-placeholder-class-dispatch-2026-11-01.json`. | S17 |
 | S17 | E1P.1: AC1015 opaque-callback inventory and DICTIONARYWDFLT/PLACEHOLDER profile | S09, S16 | COMMITTED | exact ten-frame inventory; source family proof; physical ASCII/binary rollback, retry, and readback | The trace inventory is handles 0x0c, 0x0d, 0x0e, 0x0f, 0x17, 0x18, 0x19, 0x1a, 0x27, and 0x29. AC1015 dictionary-default source capture and output allowlists now admit only the exact Normal/PLACEHOLDER graph. The focused physical test passes; strict qualification advances from 0/10 to 2/10 and continues to refuse. Receipt: `docs/research/ac1015-dictionary-default-output-2026-11-01.json`. | S18 |
-| S18 | E1Q.1: AC1015 MLINESTYLE/root-dictionary output qualification | S17 | READY | exact class/source binding; complete model and root membership comparison; owner/reactor/reference proof; physical target readback; strict refusal on remaining frames | Extend only the AC1015 `Standard` MLINESTYLE profile if its typed source graph and output readback satisfy the current proof. Root dictionary is the source frame observed at 0x17 and the style frame at 0x18. Keep target DXF AC1024; retain existing source mutation, rollback, and retry checks. No binary fixture admission. | S19 |
+| S18 | E1Q.1: AC1015 MLINESTYLE/root-dictionary output qualification | S17 | COMMITTED | independent source graph; exact source-frame boundary; complete typed graph and output fields; owner/reactor references; ASCII/binary physical readback; refusal/rollback/retry; strict gate | LibreDWG 0.14 JSON independently confirms NOD 0x0c -> DICTIONARY 0x17 (`Standard` -> MLINESTYLE 0x18), with exact owner/reactor roles and two ordered BYLAYER elements. AC1015 source frame has the exact empty/Unknown common-link projection; typed model and dictionary frames supply graph links. ASCII/Binary physical output and fresh root/owner/style readback pass; AC1018 and AC1024 controls remain green. Strict output advances to 4/10 and refuses the remaining six. Receipt: `docs/research/ac1015-mlinestyle-output-2026-11-01.json`; no support claim or fixture promotion. | S19 |
+| S19 | E1R.1: AC1015 rooted LAYOUT/NOD graph output qualification | S18 | READY | exact five-entry NOD inventory; ACAD_LAYOUT dictionary and both LAYOUT records; two empty root dictionaries; typed target closure; reciprocal block/layout owner roles; staged NOD/dictionary/layout bodies; ASCII/binary readback; atomic refusal/retry; strict output audit | Reuse only the locally authored AC1015 control. Independent LibreDWG 0.14 JSON binds NOD 0x0c to ACAD_LAYOUT 0x1a (Model 0x27, Layout1 0x29), ACAD_GROUP 0x0d, ACAD_PLOTSETTINGS 0x19, and the already-qualified MLINESTYLE and DICTIONARYWDFLT/PLACEHOLDER roots. Extend the existing versioned layout/NOD profile for this exact graph, retain AC1018/AC1024 behavior, and qualify no handle outside the complete checked profile. Strict conversion may pass only if all ten callback identities are proven; no binary fixture admission. | S20 |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -1769,7 +1751,8 @@ edit this block or commit the same slice concurrently.
 | C2 | S15 | F0, G1 | VERIFYING | NOT_EVALUATED | Compact UTF-8/native filename contract; portable local vectors pass, own hosted Windows/three-platform and LibreCAD consumer qualification pending |
 | E1N | S16 | E1 | COMMITTED | EXPERIMENTAL | Built-in ACDBPLACEHOLDER class ordinal resolves to fixed reader type 80; complete AC1015 output qualification remains open |
 | E1P | S17 | E1, E1N | COMMITTED | EXPERIMENTAL | Exact AC1015 callback inventory and dictionary-default output family proof; strict output advances to 2/10 and remains fail-closed |
-| E1Q | S18 | E1P | READY | EXPERIMENTAL | Qualify the AC1015 MLINESTYLE record and its source dictionary with exact target readback |
+| E1Q | S18 | E1P | COMMITTED | EXPERIMENTAL | AC1015 MLINESTYLE 0x18/root-owner 0x17 physical output and graph readback; strict output remains fail-closed at 4/10 |
+| E1R | S19 | E1Q | READY | EXPERIMENTAL | Qualify the AC1015 five-entry NOD and rooted layout graph for the exact locally authored control |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -1819,7 +1802,8 @@ edit this block or commit the same slice concurrently.
 | C2.2 | C2 / S15 | WP3/WP8; Phase 8 follow-up | C2.1 | VERIFYING | NOT_EVALUATED | own three-platform immutable hosted receipts and LibreCAD ON/OFF consumers | Existing focused workflow automatically selects the expanded fixture target; publish a draft verification checkpoint preserving advanced97, then require native Windows/Linux x64/Mac receipts and actual LibreCAD Unicode/persistence/full consumers on its updated pin. Oldceaf or pre-fix Mac proof cannot satisfy this gate |
 | E1N.1 | E1N / S16 | WP5; Phase 5/P8 consumer follow-up | E1.3 | COMMITTED | EXPERIMENTAL | generated AC1015 class-record regression plus source-traced runtime dispatch | `libdxfrw_dwg_acdb_placeholder_class_dispatch` and `dwg2dxf` build pass; local AC1015 trace resolves the observed class record to type 80 and publishes all 38 source frames. Strict finalization still rejects `opaqueViewCallbacks=10`, `opaqueFramesOutputQualified=0`; see the no-binary receipt at `docs/research/ac1015-placeholder-class-dispatch-2026-11-01.json` |
 | E1P.1 | E1P / S17 | WP5/WP6; Phase 5/P8 consumer follow-up | E1N.1 | COMMITTED | EXPERIMENTAL | exact ten-handle callback inventory; DICTIONARYWDFLT/PLACEHOLDER output profile | The locally authored AC1015 control inventory is 0x0c DICTIONARY (NOD), 0x0d DICTIONARY, 0x0e DICTIONARYWDFLT, 0x0f PLACEHOLDER, 0x17 DICTIONARY, 0x18 MLINESTYLE, 0x19 DICTIONARY, and LAYOUTs 0x27/0x29. Physical ASCII and binary output pass exact graph/readback and malformed-reactor refusal/retry checks. Strict conversion qualifies 2/10, refuses the remaining eight, and promotes no claim; see `docs/research/ac1015-dictionary-default-output-2026-11-01.json`. |
-| E1Q.1 | E1Q / S18 | WP5/WP6; Phase 5/P8 consumer follow-up | E1P.1 | READY | EXPERIMENTAL | AC1015 MLINESTYLE source/output proof and rollback/readback | The source trace identifies MLINESTYLE handle 0x18 and its one-entry DICTIONARY owner 0x17. Inspect the current capture allowlist and exact test seam; extend the profile only after source owner/reactor/style fields, emitted identity, and fresh readback pass. Re-run strict conversion to expose the next gate; preserve refusal for every unqualified callback. |
+| E1Q.1 | E1Q / S18 | WP5/WP6; Phase 5/P8 consumer follow-up | E1P.1 | COMMITTED | EXPERIMENTAL | AC1015 MLINESTYLE graph, exact output fields/references, rollback/retry/readback | LibreDWG source decode plus local AC1015 frame capture prove handle/type and the owner/reactor graph; ASCII/Binary AC1024 readback and AC1018/AC1024 compatibility controls pass. Strict output advances to 4/10; receipt: `docs/research/ac1015-mlinestyle-output-2026-11-01.json`. |
+| E1R.1 | E1R / S19 | WP5/WP6; Phase 5/P8 consumer follow-up | E1Q.1 | READY | EXPERIMENTAL | Exact AC1015 NOD/layout graph output, independent source inventory, object/reference readback | Extend the existing `prepareDwgLayouts` graph profile only for the exact five-key AC1015 NOD: ACAD_LAYOUT 0x1a with Model/Layout1, empty ACAD_GROUP 0x0d and ACAD_PLOTSETTINGS 0x19, plus already-qualified MLINESTYLE and DICTIONARYWDFLT targets. Require reciprocal block/layout ownership, complete typed target coverage, exact reactors and staged records; run ASCII/Binary physical readback, failure/retry, and strict output. Keep all unqualified frames fail-closed and do not add the generated drawing binary.
 
 S04 implementation record (pre-commit): target source/build artifacts were
 imported from the locked target-derived archive with all standalone-only
@@ -1910,7 +1894,16 @@ independent semantic qualification, not an unrecorded implementation item.
 
 <!-- PLAN_PREPARED:S04 -->
 
-<!-- UPGRADE_PROGRESS_END -->
+
+<!-- PLAN_PREPARED:S18 --><!-- UPGRADE_PROGRESS_END -->
+
+
+
+
+
+
+
+
 
 
 
