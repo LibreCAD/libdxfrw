@@ -6759,12 +6759,15 @@ def self_test() -> None:
     _validate_compiler_dependencies(
         dependency_profile, "self-test.compilerDependencies"
     )
+    compiler_resource_path = (
+        Path.cwd() / "toolchain" / "lib" / "clang" / "21"
+    )
     compiler_resource_profile = {
         "schema": 1,
         "status": "captured",
         "method": "clang-resource-tree-v1",
         "compilerId": "AppleClang",
-        "path": "/toolchain/lib/clang/21",
+        "path": str(compiler_resource_path),
         "entryCount": 2,
         "fileCount": 1,
         "totalBytes": 23,

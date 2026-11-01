@@ -1677,28 +1677,32 @@ edit this block or commit the same slice concurrently.
 <!-- UPGRADE_PROGRESS_START -->
 
 - Latest completed checkpoint: S19 remains the last completed full slice.
-  H0.2 is now closed and archived: GCC 13, MSVC, and Apple Clang all compile
-  the focused native targets with warnings-as-errors. Its implementation is in
-  `7d1a6f06`; the prior-digest hosted build step succeeded on all three systems.
-- S20 remains `VERIFYING`. The previous digest `b042eca3771f789446004c3eafcaa32909303083ad685fef4b53944d6247221a`
-  passed Linux/macOS native suites and all three compiler build steps, but its
-  Windows tests exposed host-native path assumptions, MSVC STL allocation
-  accounting/retry assumptions, and a shared temporary-file race. The previous
-  `parity-fast` build exposed ambiguous 64-bit `DRW_Variant` expressions,
-  enum/integer conditionals, and missing standard includes in the independent
-  wire-walker header. These findings are split into H0.4 and H0.5 below.
+  H0.1–H0.3 are closed and archived. GCC 13, MSVC, and Apple Clang compile the
+  focused native targets with warnings-as-errors, and the reader-matrix and
+  round-trip controls have independent passing receipts.
+- S20 remains `VERIFYING`. The earlier Windows path, allocation-accounting,
+  retry-boundary, and shared-temporary-path fixes are implemented and removed
+  from the active work list. The Windows run on digest
+  `eef48bfb5f09317c894b86156cfded40f4666e546d4d9223d2955ebb06b96533` passed
+  5/7 tests. Its captured-resource self-test failure is now fixed by using a
+  native absolute synthetic resource path, and the local self-test passes. The
+  local round-trip test still needs six Windows assertions resolved: PFACE
+  canonical output and five AC1027 ACDS projection cases. The previous
+  `parity-fast` adapter build passed but its hardening vector failed four
+  MLINESTYLE budget assertions; those came from a generated record with a
+  duplicate group-3 description and have been corrected in the test. These are
+  the only H0.4/H0.5 items left below.
 - The current implementation digest is
-  `b89b6bab06553d05da8a526634bafdbab6d4271ec86f9d31d5fbf8598505d9b3` across
+  `488663ed3e02ac001de92543ec0d162581368031144eecf820138fd99a4371f8` across
   456 inputs. Local Apple Clang 21 builds of the reader matrix and local
-  round-trip target pass; the two CTests pass 2/2 under `--parallel 2`, with the
-  resource lock serializing the shared-path tests. The qualification Python
-  self-test and a GCC 16 `-Werror` portability probe pass. The full 50,000-line
-  GCC adapter-test compile was stopped after it remained in one translation
-  unit; the hosted fast build is the required broad compile gate.
-- The latest native receipts are bound to the earlier digest and are retained
-  as baseline only. The refreshed digest needs new Linux, Windows, and macOS
-  receipts plus a passing `parity-fast` run. No support claims changed and no
-  drawing payload was added.
+  round-trip target pass. The targeted PFACE and AC1027/AC1032 ACDS selectors,
+  the hardening executable, and qualification Python self-test pass. A GCC 16
+  `-Werror` portability probe passes; the hosted fast build is the broad compile
+  gate.
+- The latest native receipts are bound to earlier digests and are retained as
+  baseline only. Digest `488663ed3e02ac001de92543ec0d162581368031144eecf820138fd99a4371f8`
+  needs fresh Linux, Windows, and macOS receipts plus a passing `parity-fast`
+  run. No support claims changed and no drawing payload was added.
 - Authorized run horizon: continue the active implementation objective through
   the next dependency-ready slice; commits and checkpoints are not stopping
   points.
@@ -1723,7 +1727,7 @@ edit this block or commit the same slice concurrently.
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
 | S15 | C2: UTF-8/native input and atomic-output paths | S11, S14 | VERIFYING | current-digest Linux/macOS/Windows focused receipts; Unicode parent/basename/non-BMP DXF ASCII+binary/DWG; transaction commit/rollback/cleanup; writer controls; LibreCAD filter and LibreCAD_3 runtime/persistence consumers | C2.1 implementation and portable Mac/Ubuntu ARM controls are archived. The prior-digest Linux/GCC 13 and macOS/Apple Clang run `41317674256` passed 7/7 with receipts `f5148aef64cb976a36ff3e2736884901da903375629d301480cf9ee205ea4973` and `2cb3d473d9bf60425ba8dcfc1ebc7905166c2b4c37ab80e697766dc75e0eafbc`; both are baseline only after digest refresh. Windows then compiled but its prior-digest CTests exposed H0.4 failures. Locked LibreCAD filter/parser and LibreCAD_3 compatibility compiles pass; runtime/persistence checks remain. No support claim is promoted. | current-digest three-platform receipts and consumer runtime checks |
-| S20 | H0: hosted build and fast-workflow repair closure | S19 | VERIFYING | focused Linux x64, Windows x64, macOS ARM64 receipts; local round-trip and reader matrix; `parity-fast`; fixture-admission guard | `7d1a6f06` closed compiler portability (H0.2). On prior digest `b042eca3771f789446004c3eafcaa32909303083ad685fef4b53944d6247221a`, native Linux/macOS passed 7/7, all three compiler build steps succeeded, Windows CTests exposed H0.4, and `parity-fast` exposed H0.5. Current digest `b89b6bab06553d05da8a526634bafdbab6d4271ec86f9d31d5fbf8598505d9b3`: local focused Apple Clang build and CTests pass 2/2; Python self-test and GCC 16 exact-expression/header probe pass. Hosted requalification remains pending. No support claims or drawing payload files changed. | S15, final release |
+| S20 | H0: hosted build and fast-workflow repair closure | S19 | VERIFYING | focused Linux x64, Windows x64, macOS ARM64 receipts; local round-trip and reader matrix; `parity-fast`; fixture-admission guard | H0.1–H0.3 are archived. Current digest `488663ed3e02ac001de92543ec0d162581368031144eecf820138fd99a4371f8`: local Apple Clang hardening and targeted PFACE/ACDS cases pass; qualification Python self-test and GCC 16 exact-expression/header probe pass. Earlier Linux/macOS receipts are baseline only. The prior fast job's compiler build passed, but four invalid-fixture MLINESTYLE budget assertions failed and are now corrected locally. Windows still needs diagnosis of six round-trip assertions. Require fresh three-platform receipts, a green current-digest fast run, and the fixture guard. No support claims or drawing payload files changed. | S15, final release |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -1733,8 +1737,8 @@ edit this block or commit the same slice concurrently.
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | C2.2 | C2 / S15 | WP3/WP8; Phase 8 follow-up | C2.1 | VERIFYING | NOT_EVALUATED | current-digest three-platform receipts and LibreCAD filter/LibreCAD_3 runtime/persistence consumers | Locked LibreCAD commit `2043e525` source overlay builds `librecad_filter_compile_check` and `libdxfrw_test_core` under Apple Clang 21; `lc3_compat_check` compiles under Apple Clang 21 and GCC 16 without `DWGSUPPORT`. Prior-digest Linux/macOS passed 7/7; current digest changed in focused test/build inputs, so fresh receipts are required. Runtime/persistence checks remain; no claim is promoted. |
-| H0.4 | H0 / S20 | WP4/WP6; Windows portability follow-up | H0.2 | VERIFYING | NOT_APPLICABLE | Windows native focused tests pass with native absolute dependency paths, bounded STL allocation estimates, atomic failure/retry, and shared-temp serialization | The prior Windows run compiled, then failed 3/7 CTests: Python self-test rejected POSIX-rooted fake paths; MSVC set/map accounting expected zero control nodes and omitted nested set sentinels; map retry did not reach a growth boundary; round-trip/matrix tests raced on shared temp paths. The self-test now derives absolute paths from `Path.cwd()`. The reader ledger charges each mapped set sentinel, captures constructor allocations directly instead of inferring allocated bytes from `bucket_count()`, and tests retry at the next actual growth allocation. CTest resource locking serializes the colliding executables. Local Apple Clang focused build passes and the two tests pass 2/2 under `--parallel 2`; current-digest Windows receipt is pending. |
-| H0.5 | H0 / S20 | WP1/WP2; fast GCC follow-up | H0.2 | VERIFYING | NOT_APPLICABLE | GCC 13 `parity-fast` compiles the adapter target with warnings-as-errors and completes required fast vectors/CLI checks | The prior fast run failed while compiling `tests/dwg2dxf_adapter_tests.cpp`: ambiguous `dint64`/`DRW_Variant` overloads, enum/non-enum handle fallbacks, and the independent scalar walker used `std::filesystem::path` before including `<filesystem>`. Test data now uses exact `std::int64_t`, fallback handles use `uint32_t`, and the independent header includes its standard dependencies. A GCC 16 `-Werror -fsyntax-only` probe for these expressions/header passes; a full local compile of the large adapter translation unit was stopped before completion to avoid repeating the hosted build delay. Current hosted `parity-fast` result is pending. |
+| H0.4 | H0 / S20 | WP4/WP6; Windows qualification follow-up | H0.2 | VERIFYING | NOT_APPLICABLE | Current-digest Windows qualification self-test and all 7 focused CTests pass | The completed Windows path/accounting/retry/serialization fixes are archived below. The prior `compilerResources` path assumption is fixed with a synthetic absolute path from `Path.cwd()`; its local self-test passes. Round-trip failures remain: PFACE canonical output variants 0/1/2/6 and five AC1027 ACDS projections. Failure-only readback diagnostics are now added; the focused PFACE and ACDS selectors pass locally. Next use the current-digest Windows receipt to read the emitted per-case diagnostics, fix only the demonstrated cause, and rerun the focused Windows qualification. |
+| H0.5 | H0 / S20 | WP1/WP2; fast GCC follow-up | H0.2 | VERIFYING | NOT_APPLICABLE | Current-digest `parity-fast` completes its warnings-as-errors build, fast vectors, CLI checks, and fixture guard | The adapter exact-type, fallback-handle, and standard-header fixes are archived below. Run `41319773161` passed its GCC 13 build and failed four MLINESTYLE retained-byte assertions: the generated test record duplicated group 3 even though the Autodesk DXF table defines one style description and marks only the element fields as repeated ([MLINESTYLE DXF](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm)). The test now measures exact-cap retention with one description and separately verifies duplicate-description refusal preserves the prior value/charge. The local Apple Clang hardening executable passes. Re-run `parity-fast` against current digest `488663ed3e02ac001de92543ec0d162581368031144eecf820138fd99a4371f8`. |
 
 <!-- UPGRADE_PROGRESS_END -->
 

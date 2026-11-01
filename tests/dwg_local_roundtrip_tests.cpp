@@ -17003,6 +17003,18 @@ bool runDxfAcdsDataStorageProjection(
     dx_data imported;
     dx_iface importer;
     const bool readOk = importer.fileImport(output.string(), &imported, false);
+    if (!readOk) {
+        const auto& outcome = imported.dxfReadOutcome;
+        std::cerr << "ACDS projection readback failed: target="
+                  << static_cast<int>(targetVersion) << " encoding="
+                  << encoding << " error=" << static_cast<int>(outcome.error);
+        if (outcome.diagnosticAvailable) {
+            std::cerr << " diagnostic=" << outcome.diagnostic.code
+                      << " phase=" << static_cast<int>(outcome.diagnostic.phase)
+                      << " message=" << outcome.diagnostic.message;
+        }
+        std::cerr << '\n';
+    }
     const DRW_ModelerGeometry* importedModeler = nullptr;
     if (readOk) {
         for (const DRW_Entity* entity : imported.mBlock->ent) {
@@ -24751,21 +24763,45 @@ bool runDxfPolyfaceCompletedPool(bool binary,
             const bool correctSubclass = rawBytes.find(parentMarker) != std::string::npos;
             dx_data reopened;
             dx_iface reimporter;
-            bool canonical = written && correctSubclass
-                && reimporter.fileImport(output.string(), &reopened, false)
-                && reopened.mBlock->ent.size() == 2u;
-            if (canonical) {
-                const auto* decoded = dynamic_cast<const DRW_Polyline*>(reopened.mBlock->ent.front());
-                canonical = decoded && geometryMatches(*decoded, true)
-                    && followingLineMatches(reopened);
-            }
+            const bool reopenedOk = written && correctSubclass
+                && reimporter.fileImport(output.string(), &reopened, false);
+            const std::size_t reopenedEntityCount = reopened.mBlock->ent.size();
+            const auto* decoded = reopenedOk && reopenedEntityCount == 2u
+                ? dynamic_cast<const DRW_Polyline*>(reopened.mBlock->ent.front())
+                : nullptr;
+            const bool reopenedGeometryMatches = decoded != nullptr
+                && geometryMatches(*decoded, true);
+            const bool reopenedLineMatches = reopenedOk
+                && followingLineMatches(reopened);
+            bool canonical = reopenedOk && reopenedEntityCount == 2u
+                && reopenedGeometryMatches && reopenedLineMatches;
+            bool callerStatePreserved = true;
             for (std::size_t i = 0; i != originalOrder.size(); ++i)
-                canonical = canonical && originalOrder[i].first == polyline->vertlist[i].get()
+                callerStatePreserved = callerStatePreserved
+                    && originalOrder[i].first == polyline->vertlist[i].get()
                     && originalOrder[i].second == polyline->vertlist[i]->flags;
-            canonical = canonical && geometryMatches(*polyline, false);
-            if (!canonical)
+            callerStatePreserved = callerStatePreserved
+                && geometryMatches(*polyline, false);
+            canonical = canonical && callerStatePreserved;
+            if (!canonical) {
                 std::cerr << "PFACE canonical output/caller preservation failed ("
-                          << encoding << ", variant " << variant << ")\n";
+                          << encoding << ", variant " << variant << "): write="
+                          << written << " subclass=" << correctSubclass
+                          << " read=" << reopenedOk << " entities="
+                          << reopenedEntityCount << " geometry="
+                          << reopenedGeometryMatches << " followingLine="
+                          << reopenedLineMatches << " callerPreserved="
+                          << callerStatePreserved;
+                if (!reopenedOk && reopened.dxfReadOutcome.diagnosticAvailable) {
+                    const auto& diagnostic = reopened.dxfReadOutcome.diagnostic;
+                    std::cerr << " error="
+                              << static_cast<int>(reopened.dxfReadOutcome.error)
+                              << " diagnostic=" << diagnostic.code
+                              << " phase=" << static_cast<int>(diagnostic.phase)
+                              << " message=" << diagnostic.message;
+                }
+                std::cerr << '\n';
+            }
             valid = canonical && valid;
             // Invalid output must not replace an existing destination.
             for (int corruption = 0; corruption != 3; ++corruption) {

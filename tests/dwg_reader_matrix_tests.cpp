@@ -974,7 +974,7 @@ void testPolylineStagingAllocationRequestEstimates(TestContext& t) {
     AllocationAccounting ownerMapAccounting;
     bool ownerMapPopulationSucceeded = true;
     std::size_t retainedBucketBytes = 0u;
-    std::size_t initialOwnerMapBytes = 0u;
+    std::size_t postReserveContainerBytes = 0u;
     {
         TrackedPendingMap pending(
             0u, std::hash<Handle>{}, std::equal_to<Handle>{},
@@ -984,11 +984,12 @@ void testPolylineStagingAllocationRequestEstimates(TestContext& t) {
             AllocationAccountingAllocator<OrphanPair>(&ownerMapAccounting));
         const std::size_t initialBucketsBytes =
             (pending.bucket_count() + orphans.bucket_count()) * sizeof(void *);
-        // Capture actual constructor allocations separately. Some libraries
-        // report an implicit bucket before allocating its storage.
-        initialOwnerMapBytes = ownerMapAccounting.liveBytes;
         pending.reserve(8u);
         orphans.reserve(8u);
+        // Capture the actual allocator baseline after reserve. Container
+        // control storage may be allocated lazily by reserve(), and reported
+        // bucket_count() may include implicit storage not yet allocated.
+        postReserveContainerBytes = ownerMapAccounting.liveBytes;
         const std::size_t pendingBuckets = pending.bucket_count();
         const std::size_t orphanBuckets = orphans.bucket_count();
         for (Handle handle = 1u; handle <= 8u; ++handle)
@@ -997,19 +998,17 @@ void testPolylineStagingAllocationRequestEstimates(TestContext& t) {
         for (Handle handle = 101u; handle <= 108u; ++handle)
             ownerMapPopulationSucceeded = orphans.emplace(handle, OrphanState{}).second
                 && ownerMapPopulationSucceeded;
-        const std::size_t retainedBucketBytesAfterReserve =
-            (pendingBuckets + orphanBuckets) * sizeof(void *);
         const std::size_t ownerMapNodeBytes =
             pending.size() * (sizeof(PendingPair) + 5u * sizeof(void *))
             + orphans.size() * (sizeof(OrphanPair) + 5u * sizeof(void *));
-        // Include the constructor baseline and both original/replacement
-        // bucket arrays in the transient rehash ceiling. The baseline captures
-        // real control allocations without inferring them from bucket_count().
-        const std::size_t modeledOwnerMapLive = initialOwnerMapBytes
-            + retainedBucketBytesAfterReserve + ownerMapNodeBytes;
-        const std::size_t modeledOwnerMapPeak = initialOwnerMapBytes
-            + initialBucketsBytes + retainedBucketBytesAfterReserve
-            + ownerMapNodeBytes;
+        // The measured post-reserve baseline includes the real final bucket
+        // arrays and any STL controls. Add the original bucket estimate to
+        // bound a transient replacement peak without relying on allocator
+        // internals to report implicit buckets.
+        const std::size_t modeledOwnerMapLive =
+            postReserveContainerBytes + ownerMapNodeBytes;
+        const std::size_t modeledOwnerMapPeak = postReserveContainerBytes
+            + initialBucketsBytes + ownerMapNodeBytes;
         t.expect(ownerMapPopulationSucceeded && pending.size() == 8u
                      && orphans.size() == 8u
                      && pending.bucket_count() == pendingBuckets
@@ -1023,10 +1022,9 @@ void testPolylineStagingAllocationRequestEstimates(TestContext& t) {
         orphans.clear();
         retainedBucketBytes =
             (pending.bucket_count() + orphans.bucket_count()) * sizeof(void *);
-        t.expect(ownerMapAccounting.liveBytes
-                     <= initialOwnerMapBytes + retainedBucketBytes
+        t.expect(ownerMapAccounting.liveBytes <= postReserveContainerBytes
                      && !ownerMapAccounting.deallocationUnderflow,
-                 "POLYLINE pending/orphan clear retains no tracked node bytes beyond bucket estimates");
+                 "POLYLINE pending/orphan clear releases tracked nodes and retains only reserved container storage");
     }
     t.expect(ownerMapAccounting.liveBytes == 0u && retainedBucketBytes != 0u
                  && !ownerMapAccounting.deallocationUnderflow,

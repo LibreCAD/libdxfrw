@@ -107,6 +107,31 @@ This file preserves completed plan rows and implementation receipts after they a
 | H0.1 | H0 / S20 | WP1/WP8; Phase 2/8 follow-up | S19 | COMMITTED | NOT_EVALUATED | canonical source/header, source-release, and hosted test inventories | On candidate `6255f927`, workflow-contract checks passed in run `41312852849`; fast run `41312852905` passed the fixture-policy and `generate_build_inventory.py --check/--self-test` steps. At that checkpoint, the active S20 failure gates were H0.2 and H0.3. |
 | H0.2 | H0 / S20 | WP1/WP2; Phase 2 follow-up | H0.1 | COMMITTED | NOT_APPLICABLE | GCC/MSVC/Apple Clang focused-target compile portability with warnings-as-errors | Implementation commit `7d1a6f06` fixes the MSVC lambda captures and GCC enum/variant diagnostics. On prior digest `b042eca3771f789446004c3eafcaa32909303083ad685fef4b53944d6247221a`, the hosted Linux/GCC 13, Windows/MSVC, and macOS/Apple Clang jobs all completed their focused-target build steps successfully in run `41317674256` (jobs `124881117836`, `124881117779`, `124881117891`). Windows runtime test failures and `parity-fast` adapter compile failures are separately tracked in active H0.4/H0.5. |
 | H0.3 | H0 / S20 | WP4/WP6; focused qualification | H0.1 | COMMITTED | NOT_EVALUATED | focused reader-matrix and local-roundtrip qualification controls | Candidate `c237d094` passed all 7 immutable Linux/GCC 13 focused tests. Receipt SHA-256 `474d30e8d95179efa09dd9b515d344e10b72e2442883b00c1ca8da66e7c3e907`; uploaded artifact SHA-256 `182ddc08c2d058cf013781da0fde1328ebc1a97c0cf7bfab277974cfc336d6d3`. Local reproduction passed the reader matrix and round-trip controls under GCC 16/libstdc++ and Apple Clang 21. No support claim was promoted. |
+
+### Completed implementation work still awaiting slice-level qualification
+
+The following implementation fixes are complete and have been removed from the
+active S20 work list; their parent H0.4/H0.5 qualification items remain open.
+
+- H0.4: qualification self-test dependency and compiler-resource paths use
+  native absolute paths; reader accounting includes set sentinel nodes and
+  measures actual post-reserve allocator storage; retry coverage reaches a
+  real map growth boundary; CTest resource locking serializes the shared
+  temporary-path tests. Failure-only PFACE/ACDS readback diagnostics are now
+  captured by the focused harness. The local qualification self-test and both
+  targeted local round-trip selectors pass. The prior Windows artifact's
+  remaining round-trip failures are tracked in active H0.4.
+- H0.5: adapter tests use explicit `std::int64_t`/`uint32_t` values and the
+  independent scalar walker includes `<filesystem>`. Hosted run `41319773161`
+  passed its GCC 13 warnings-as-errors build and fixture/inventory checks, then
+  exposed four MLINESTYLE budget assertions. The test had emitted duplicate
+  group-3 style descriptions; Autodesk's [MLINESTYLE DXF table](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm)
+  lists one description and identifies only per-element fields as repeatable.
+  Treating duplicate group 3 as invalid is an inference from that table. The
+  exact-cap test now uses a valid single description and a separate malformed
+  duplicate-field test checks refusal and retained-charge preservation. The
+  Apple Clang hardening executable passes; a current-digest hosted fast run is
+  still required.
 ### Archived implementation receipts
 
 S04 implementation record (pre-commit): target source/build artifacts were

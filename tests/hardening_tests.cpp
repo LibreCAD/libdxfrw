@@ -2815,13 +2815,14 @@ std::string generatedLTypeBudgetWire(bool binary, bool fullDrawing,
     return ok ? stream.str() : std::string{};
 }
 
-std::string generatedMLineStyleDescriptionBudgetWire(bool binary) {
+std::string generatedMLineStyleDescriptionBudgetWire(bool binary,
+                                                     bool duplicateDescription = false) {
     std::ostringstream stream(std::ios::out | std::ios::binary);
     std::unique_ptr<dxfWriter> writer = binary
         ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
         : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
     const bool ok = writer->writeString(2, "MLSTYLE")
-        && writer->writeString(3, "old")
+        && (!duplicateDescription || writer->writeString(3, "old"))
         && writer->writeString(3, "retained description");
     writer.reset();
     return ok ? stream.str() : std::string{};
@@ -9167,14 +9168,28 @@ void testDxfMLineStyleDescriptionOwnerBudget(TestContext& t) {
             t.expect(!under && rejectedBudget != nullptr
                          && rejectedBudget->exceeded()
                          && rejected.name == sourceName
-                         && rejected.description == previousDescription
-                         && rejectedBudget->used() == sourceName.size()
-                             + previousDescription.size(),
-                     "one-byte-under MLINESTYLE description replacement preserves the previous value and charge");
+                         && rejected.description.empty()
+                         && rejectedBudget->used() == sourceName.size(),
+                     "one-byte-under MLINESTYLE description admission preserves the prior name and charge");
             rejected.reset();
             t.expect(rejectedBudget->used() == 0u,
-                     "rejected MLINESTYLE description replacement releases its prior lease on reset");
+                     "rejected MLINESTYLE description admission releases its prior lease on reset");
         }
+
+        const std::string duplicateRecords =
+            generatedMLineStyleDescriptionBudgetWire(binary, true);
+        ExposedMLineStyle duplicate;
+        std::shared_ptr<DxfReadRetainedBudget> duplicateBudget;
+        const bool duplicateAccepted = parseRecords(
+            duplicateRecords, duplicateRecords.size() * 16u + 4096u,
+            &duplicate, &duplicateBudget);
+        t.expect(!duplicateAccepted && duplicateBudget != nullptr
+                     && !duplicateBudget->exceeded()
+                     && duplicate.name == sourceName
+                     && duplicate.description == previousDescription
+                     && duplicateBudget->used() == sourceName.size()
+                         + previousDescription.size(),
+                 "duplicate MLINESTYLE description is rejected without replacing the existing value or charge");
     }
 }
 
