@@ -38247,7 +38247,8 @@ bool physicalDictionaryDefaultOutputReadback(
     dx_data source;
     if (!sourceReader.fileImport(sourcePath.string(), &source, false)
         || source.sourceFormat != dx_source_format::DWG
-        || (source.sourceVersion != DRW::AC1024
+        || (source.sourceVersion != DRW::AC1015
+            && source.sourceVersion != DRW::AC1024
             && source.sourceVersion != DRW::AC1018)
         || (requireAc1018 && source.sourceVersion != DRW::AC1018)
         || !source.hasSingleSuccessfulDictionaryDefaultImport()
@@ -38258,7 +38259,7 @@ bool physicalDictionaryDefaultOutputReadback(
         || !source.rawPlaceholders.empty()
         || source.dictionaryWithDefaults.front().handle != 0x0eu
         || source.placeholders.front().handle != 0x0fu)
-        return fail("physical dictionary-default source is not the admitted AC1018/AC1024 typed pair");
+        return fail("physical dictionary-default source is not the admitted AC1015/AC1018/AC1024 typed pair");
 
     const std::uint32_t sourceDictionaryHandle =
         source.dictionaryWithDefaults.front().handle;

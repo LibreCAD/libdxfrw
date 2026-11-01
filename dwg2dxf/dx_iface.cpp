@@ -13666,11 +13666,12 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 m_dwgTableStyleOutputSourceGeneration = 0u;
             }
         }
-        // Bind the physical AC1018/AC1024 ACDBDICTIONARYWDFLT callback to its
-        // typed dictionary/default pair and NOD root. This is deliberately
+        // Bind the physical AC1015/AC1018/AC1024 ACDBDICTIONARYWDFLT callback
+        // to its typed dictionary/default pair and NOD root. This remains
         // limited to the independently read-back Normal/PLACEHOLDER profile.
         if (data->sourceFormat == dx_source_format::DWG
-            && (data->sourceVersion == DRW::AC1018
+            && (data->sourceVersion == DRW::AC1015
+                || data->sourceVersion == DRW::AC1018
                 || data->sourceVersion == DRW::AC1024)
             && data->dwgReadOutcome.attempted
             && data->hasSingleSuccessfulDictionaryDefaultImport()
@@ -42898,7 +42899,8 @@ bool dx_iface::hasUnchangedDwgDictionaryDefaultOutputSources() const noexcept {
         || cData->sourceFormat != dx_source_format::DWG
         || cData->sourceVersion
             != m_dwgDictionaryDefaultOutputSourceVersion
-        || (m_dwgDictionaryDefaultOutputSourceVersion != DRW::AC1018
+        || (m_dwgDictionaryDefaultOutputSourceVersion != DRW::AC1015
+            && m_dwgDictionaryDefaultOutputSourceVersion != DRW::AC1018
             && m_dwgDictionaryDefaultOutputSourceVersion != DRW::AC1024)
         || !cData->hasSingleSuccessfulDictionaryDefaultImport()
         || !cData->hasNamedObjectDictionary
