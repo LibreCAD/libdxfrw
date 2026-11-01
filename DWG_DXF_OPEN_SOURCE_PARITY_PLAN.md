@@ -154,8 +154,7 @@ reproduced missing provider, remap, collision or composed output failure.
    data/unit/domain/property combinations, CELLSTYLEMAP body/property profiles,
    and source-backed semantics for overlapping TABLECONTENT edge masks. Keep
    overlapping masks refused unless their precedence and wire/readback behavior
-   are established; do not treat the completed disjoint-mask and border-property
-   profiles as remaining work.
+   are established.
    Cover the witnessed scope combinations and version gates; keep unsupported
    styles refused until schema and wire order are known.
 4. Complete source-bound AC1018 TABLE body and merge/presence profiles beyond the
@@ -177,7 +176,6 @@ receipt and code path already agree.
 | Text/annotation/coordinates | MTEXT columns/linked contexts, attributes, DIMENSION/DIMARC/large-radial placement, DSTYLE/picture graphs, SHAPE glyph/font identity, LEADER/MLEADER and derived-R12 appearance. |
 | Geometry and clipping | SPLINE/NURBS/ELLIPSE/OCS/polyface/mesh semantics, completed-pool/domain validation and SPATIAL_FILTER/clipping beyond local field checks. |
 | Units and inheritance | LTYPE units/group-9 profiles, UCS base relations, transparency/ByLayer/ByBlock meaning, SCALE annotation/version/API boundaries and Template description/survey policies. |
-| Text and identity | Codepage/alias/recovery/header-order/opaque-text profiles; checked wide-identity rejection and additive API design; AC1012 DXF-output scope. |
 | Unknown/proxy data | Version/edit/cache safety and unknown nested tables. Additional proxy primitives need independent semantics, not cache-byte agreement. Associative output and replay belong to P4. |
 | Safety and caller state | Residual copy/assembly/work/allocator bounds, diagnostics, rollback after published prefixes, source lifetime, platform numeric/string policy and scoped concurrency. |
 | CLI and oracle contracts | Exact option/overwrite admission, bounded batch results, output kinds, namespace/collision checks, partial-read diagnostics, pre-setup projections and implicit default/repair/skip/mask reporting. |
