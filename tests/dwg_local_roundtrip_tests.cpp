@@ -17081,30 +17081,50 @@ bool runDxfAcdsDataStorageProjection(
                                && line->secPoint.y == 25.0
                                && line->secPoint.z == 36.0;
                        });
-    bool result = importedModeler != nullptr
-        && neighborLineMatch
+    const bool hasSection = !imported.rawDxfSections.empty();
+    const bool exactWire = hasSection
+        && exactPagedWire(imported.rawDxfSections.front());
+    const bool payloadRecordMatch = hasSection
+        && findAcdsRecordPayload(imported.rawDxfSections.front(), "ASM_Data",
+                                 linkedHandle, parsedPayload)
+        && linkedHandle == expectedHandle && parsedPayload == payload;
+    const bool dictionaryMatch = std::any_of(
+        imported.dictionaries.begin(), imported.dictionaries.end(),
+        [](const DRW_Dictionary& dictionary) {
+            return dictionary.handle == 0x72u
+                && dictionary.parentHandle == 0xCu
+                && dictionary.m_entries.size() == 3u;
+        });
+    const bool modelerMetadataMatch = importedModeler != nullptr
         && importedModeler->handle != sourceHandle
         && importedModeler->space == (paperSpaceModeler
             ? DRW::PaperSpace : DRW::ModelSpace)
-        && importedModeler->m_historyHandle == 0x20Eu
-        && schemaMatch
-        && classesMatch
-        && exactPagedWire(imported.rawDxfSections.front())
-        && findAcdsRecordPayload(imported.rawDxfSections.front(), "ASM_Data",
-                                 linkedHandle, parsedPayload)
-        && linkedHandle == expectedHandle
-        && parsedPayload == payload
+        && importedModeler->m_historyHandle == 0x20Eu;
+    bool result = modelerMetadataMatch && neighborLineMatch && schemaMatch
+        && classesMatch && exactWire && payloadRecordMatch
         && imported.proxyObjects.size() == 3u
-        && imported.rawProxyObjects.size() == 3u
-        && proxyTerminators
-        && std::any_of(imported.dictionaries.begin(),
-                       imported.dictionaries.end(),
-                       [](const DRW_Dictionary& dictionary) {
-                           return dictionary.handle == 0x72u
-                               && dictionary.parentHandle == 0xCu
-                               && dictionary.m_entries.size() == 3u;
-                       })
-        && imported.materials.size() == 3u;
+        && imported.rawProxyObjects.size() == 3u && proxyTerminators
+        && dictionaryMatch && imported.materials.size() == 3u;
+    if (!result) {
+        std::cerr << "ACDS projection checks: encoding=" << encoding
+                  << " target=" << static_cast<int>(targetVersion)
+                  << " read=" << readOk
+                  << " modeler=" << (importedModeler != nullptr)
+                  << " modelerMetadata=" << modelerMetadataMatch
+                  << " neighbor=" << neighborLineMatch
+                  << " section=" << hasSection
+                  << " schema=" << schemaMatch
+                  << " classes=" << classesMatch
+                  << " exactWire=" << exactWire
+                  << " payload=" << payloadRecordMatch
+                  << " linkedHandle=" << linkedHandle
+                  << " payloadBytes=" << parsedPayload.size()
+                  << " proxies=" << imported.proxyObjects.size()
+                  << " rawProxies=" << imported.rawProxyObjects.size()
+                  << " proxyTerminators=" << proxyTerminators
+                  << " dictionary=" << dictionaryMatch
+                  << " materials=" << imported.materials.size() << '\n';
+    }
     if (result) {
         std::unordered_map<std::uint32_t, const DRW_ProxyObject*> proxies;
         for (const DRW_ProxyObject& value : imported.proxyObjects)
@@ -24759,8 +24779,17 @@ bool runDxfPolyfaceCompletedPool(bool binary,
             std::ifstream rawOutput(output, std::ios::binary);
             const std::string rawBytes((std::istreambuf_iterator<char>(rawOutput)), {});
             const std::string parentMarker = binary
-                ? std::string("AcDbPolyFaceMesh\0", 17) : "AcDbPolyFaceMesh\n";
-            const bool correctSubclass = rawBytes.find(parentMarker) != std::string::npos;
+                ? std::string("AcDbPolyFaceMesh\0", 17) : "AcDbPolyFaceMesh";
+            const std::size_t parentMarkerOffset = rawBytes.find(parentMarker);
+            bool correctSubclass = parentMarkerOffset != std::string::npos;
+            if (correctSubclass && !binary) {
+                const std::size_t lineEnd = parentMarkerOffset + parentMarker.size();
+                correctSubclass = lineEnd < rawBytes.size()
+                    && (rawBytes[lineEnd] == '\n'
+                        || (rawBytes[lineEnd] == '\r'
+                            && lineEnd + 1u < rawBytes.size()
+                            && rawBytes[lineEnd + 1u] == '\n'));
+            }
             dx_data reopened;
             dx_iface reimporter;
             const bool reopenedOk = written && correctSubclass

@@ -114,13 +114,18 @@ The following implementation fixes are complete and have been removed from the
 active S20 work list; their parent H0.4/H0.5 qualification items remain open.
 
 - H0.4: qualification self-test dependency and compiler-resource paths use
-  native absolute paths; reader accounting includes set sentinel nodes and
+  native absolute paths; the synthetic Apple SDK sysroot now also derives
+  from `Path.cwd()` so the absolute-path self-test works on Windows. Reader
+  accounting includes set sentinel nodes and
   measures actual post-reserve allocator storage; retry coverage reaches a
   real map growth boundary; CTest resource locking serializes the shared
   temporary-path tests. Failure-only PFACE/ACDS readback diagnostics are now
-  captured by the focused harness. The local qualification self-test and both
-  targeted local round-trip selectors pass. The prior Windows artifact's
-  remaining round-trip failures are tracked in active H0.4.
+  captured by the focused harness. The Windows PFACE subclass assertion now
+  accepts the exact record followed by either LF or CRLF; the prior four ASCII
+  failures were caused by the test's LF-only byte marker. The local
+  qualification self-test and full round-trip executable pass. The five
+  remaining Windows ASCII ACDS assertion failures are tracked in active H0.4,
+  with per-predicate diagnostics added for the next focused receipt.
 - H0.5: adapter tests use explicit `std::int64_t`/`uint32_t` values and the
   independent scalar walker includes `<filesystem>`. Hosted run `41319773161`
   passed its GCC 13 warnings-as-errors build and fixture/inventory checks, then

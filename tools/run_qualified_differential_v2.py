@@ -6800,9 +6800,9 @@ def self_test() -> None:
     apple_sdk_root = {
         "selectedPaths": [{
             "source": "CMAKE_CXX_COMPILER_APPLE_SYSROOT",
-            "path": "/toolchain/MacOSX.sdk",
+            "path": str(Path.cwd() / "toolchain" / "MacOSX.sdk"),
         }],
-        "resolvedPath": "/toolchain/MacOSX.sdk",
+        "resolvedPath": str(Path.cwd() / "toolchain" / "MacOSX.sdk"),
         "metadataFiles": apple_sdk_manifests,
         "metadataDigest": hashlib.sha256(
             _canonical_bytes(apple_sdk_manifests) + b"\n"
