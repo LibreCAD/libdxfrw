@@ -10798,7 +10798,9 @@ bool DRW_Table::parseDxfCellValue(int code,const std::unique_ptr<dxfReader>& rea
         break;
     case 91:
         if(payload()&&(value.m_dataType==0||value.m_dataType==1)&&once(ValuePayload)) {
-            if(!node())return false;value.m_value.addInt(91,reader->getInt32());
+            if (!node())
+                return false;
+            value.m_value.addInt(91, reader->getInt32());
         }else incomplete();
         break;
     case 140:
@@ -10830,7 +10832,9 @@ bool DRW_Table::parseDxfCellValue(int code,const std::unique_ptr<dxfReader>& rea
         if(!payload()||(value.m_dataType!=16&&value.m_dataType!=32)){incomplete();break;}
         const auto coordinate=reader->getDouble();if(!std::isfinite(coordinate))return false;
         if(code==11&&once(ValueX)) {
-            if(!node())return false;value.m_value.addCoord(11,DRW_Coord(coordinate,0.0,0.0));
+            if (!node())
+                return false;
+            value.m_value.addCoord(11, DRW_Coord(coordinate, 0.0, 0.0));
         }else if(code==21&&(m_dxfValueFields&ValueX)&&once(ValueY))value.m_value.setCoordY(coordinate);
         else if(code==31&&value.m_dataType==32&&(m_dxfValueFields&ValueY)&&once(ValueZ))value.m_value.setCoordZ(coordinate);
         else incomplete();

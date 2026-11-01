@@ -5709,7 +5709,19 @@ bool acisPolynomialRootsInUnitInterval(
             boundaries[boundaryCount++] = critical;
     }
     boundaries[boundaryCount++] = 1.0;
-    std::sort(boundaries, boundaries + boundaryCount);
+    // The polynomial degree is at most four, so this list has at most five
+    // entries. Keep the bounded insertion sort explicit: GCC 13's optimized
+    // std::sort emits a false-positive array-bounds warning for this small
+    // fixed array under -Werror.
+    for (std::size_t index = 1u; index < boundaryCount; ++index) {
+        const double value = boundaries[index];
+        std::size_t insertion = index;
+        while (insertion > 0u && boundaries[insertion - 1u] > value) {
+            boundaries[insertion] = boundaries[insertion - 1u];
+            --insertion;
+        }
+        boundaries[insertion] = value;
+    }
 
     const double zeroTolerance = 128.0
         * std::numeric_limits<double>::epsilon();
@@ -7601,7 +7613,7 @@ bool drw_extractAcisBodyWireframes(
                 }
                 return true;
             };
-            for (const std::string& type : {"lump", "shell", "face", "loop"}) {
+            for (const char* type : {"lump", "shell", "face", "loop"}) {
                 if (!countFunctionalCycles(type, 1u,
                                            projection.nextListCycleCount))
                     return false;
