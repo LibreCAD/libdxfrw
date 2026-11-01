@@ -29,6 +29,7 @@ conanfile.py
 configure.ac
 docs/3D_CONSUMER_CONTRACT.md
 docs/3D_SUPPORT_STATUS.md
+docs/LIBRECAD_DXFRW_UPGRADE_HISTORY.md
 docs/SOURCE_RELEASE.md
 docs/UPGRADE_SUPPORT.md
 docs/research/visualstyle-slot-evidence-grades-2026-10-16.json
