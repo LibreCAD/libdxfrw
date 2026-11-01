@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-title-block-iso-layout-output-readback-2026-10-31",
+  "date": "2026-10-31",
+  "title": "AC1024 ISO title-block LAYOUT output and readback",
+  "status": "PHYSICAL_LAYOUT_PROFILE_ALL_SOURCE_CALLBACKS_QUALIFIED_ASCII_BINARY_READBACK_PASS",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/title_block-iso.dwg",
+    "sha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+    "version": "AC1024",
+    "fixturePolicy": "Existing local input used in place; output fixtures from the focused selector were temporary and removed. No DWG/DXF fixture was added to Git."
+  },
+  "profile": {
+    "layouts": "The source has the admitted Model/Architectural Title Block identity pair and a rooted ACAD_LAYOUT dictionary.",
+    "output": "LAYOUT fields, ordered ACAD_LAYOUT membership, reciprocal paper-space BLOCK_RECORD backlinks, extension dictionary/XRECORD owner and reactor edges, viewport list roles and last-active targets are compared between source and fresh ASCII/Binary output readback.",
+    "opaqueCallbacksQualified": "109/109; the exact source callback count is bound to the existing-input census receipt.",
+    "scopeLimit": "The selector does not apply the separate Title_Block-ARCH dynamic-graph projection to this ISO input. No format-wide dynamic-block or native semantic qualification is established."
+  },
+  "failureAndRetry": "An invalid paper-space BLOCK_RECORD target preserves the destination sentinel and prior qualification state. Restoring the target allows the same adapter to retry and complete output/readback for both encodings.",
+  "validation": {
+    "host": "Darwin 27.0.0 arm64",
+    "cmake": "4.4.4",
+    "strictCli": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/title_block-iso.dwg -y -v2010 /private/tmp/title-block-iso-current-nodbg.dxf",
+      "exitCode": 0,
+      "policy": "CLI default, dx_dwgReadCompletenessPolicy::RequireComplete",
+      "outputSha256": "4e8ebe0286f8298e3b4db54364b11f2d68c000b0080e16708c6ed0cc210fe008"
+    },
+    "focusedSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layout-physical-output-readback /Users/dli/doc/dwg/title_block-iso.dwg",
+      "exitCode": 0,
+      "result": "PASS for ASCII and Binary. Fresh readback preserves the LAYOUT, dictionary, BLOCK_RECORD, extension/XRECORD, viewport and last-active relations; rollback/retry passes; all captured opaque source callback identities are qualified.",
+      "fullSuite": "NOT RUN."
+    },
+    "sourceSha256": {
+      "dwg2dxf/dx_iface.cpp": "aa131de36fe49721ef3d784104d5fc1a225d327b8c7aec717a0aab20c1b8ddc2",
+      "tests/dwg2dxf_adapter_tests.cpp": "28844e7e2b72c36ffc589cd43a33129588cc8681c5ed6cfff6778140ffff823b",
+      "build-gcc/dwg2dxf/dwg2dxf": "fb7f5908c550727e890ba46f85166f33eaae47b4fbc26d287ed41c182203b294",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "70594cee0b97b0b78f8b6f180218b0b125d59622b547bcc42fab69964cd83d43"
+    }
+  },
+  "completedScopeRemovedFromQueue": "This exact AC1024 title_block-iso input/layout profile has strict CLI success and ASCII/Binary physical LAYOUT output/readback with all captured source callbacks qualified.",
+  "remaining": [
+    "Other P4 source/input profiles without strict output/readback proof.",
+    "Title_Block-ARCH-specific and other dynamic-block, native semantic, consumer, platform and P4-P9 gates outside this ISO LAYOUT profile."
+  ],
+  "externalItemsPromoted": 0
+}

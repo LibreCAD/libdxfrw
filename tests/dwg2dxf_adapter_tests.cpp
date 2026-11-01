@@ -38620,7 +38620,31 @@ bool physicalLayoutOutputReadback(
         return fail("physical LAYOUT source is outside the two admitted AC1024 identity pairs");
     }
     const std::string paperLayoutName = expected[1].second;
-    const bool titleBlockSource = expected[1].first == 0xFu;
+    const auto hasArchBlockRecord = std::count_if(
+        source.blockRecords.begin(), source.blockRecords.end(),
+        [](const DRW_Block_Record& record) {
+            return record.handle == 0x127u
+                && record.name == "Title_Block-ARCH";
+        }) == 1;
+    const auto hasArchEvaluationGraph = std::count_if(
+        source.evaluationGraphs.begin(), source.evaluationGraphs.end(),
+        [](const DRW_EvaluationGraph& graph) {
+            return graph.handle == 0x1117u;
+        }) == 1;
+    const auto hasArchDynamicObject = [&source](std::uint32_t handle) {
+        return std::count_if(source.dynamicBlockObjects.begin(),
+            source.dynamicBlockObjects.end(),
+            [handle](const DRW_DynamicBlockObject& object) {
+                return object.handle == handle;
+            }) == 1;
+    };
+    const bool titleBlockSource = expected[1].first == 0xFu
+        && hasArchBlockRecord && hasArchEvaluationGraph
+        && hasArchDynamicObject(0x1118u)
+        && hasArchDynamicObject(0x1119u)
+        && hasArchDynamicObject(0x111Au)
+        && hasArchDynamicObject(0x111Bu)
+        && hasArchDynamicObject(0x1122u);
     std::array<const DRW_Layout*, 2> sourceLayouts{{nullptr, nullptr}};
     for (const auto& layout : source.layouts) {
         const auto found = std::find_if(expected.begin(), expected.end(),
@@ -39034,6 +39058,10 @@ bool physicalLayoutOutputReadback(
             return fail("invalid physical LAYOUT block-record target was not refused atomically");
         if (!exportPartial())
             return fail("corrected physical LAYOUT graph could not retry on the same adapter");
+        if (source.dwgReadOutcome.opaqueViewCallbacks != 0u
+            && DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                source) != source.dwgReadOutcome.opaqueViewCallbacks)
+            return fail("physical LAYOUT output did not qualify every captured source callback");
         if (titleBlockSource) {
             constexpr std::array<std::uint32_t, 9> qualifiedTitleGraph{{
                 0xAu, 0xFu, 0x1117u, 0x1118u, 0x1119u, 0x111Au, 0x111Bu,
