@@ -51,7 +51,7 @@
     "traceSha256": "a1df9d09181174a80e75203ac929cde7759e53743cdb1f1730ed0dd6a6b7546e",
     "outputPath": "/private/tmp/libredwg-ordinary-enc-ac1027.json",
     "outputSha256": "82a3d69ebe6cb67f742fa1da6b491a3faa208cc10735dd1bb0e0b3899ad8bba5",
-    "result": "SUCCESS 0x0; independent decoder accepted the same tracked source. Its trace assigns different ENC/common handle roles from the local reader and reports absent handles 0x35\u20130x38 plus a frame-overrun while attempting a linetype handle. This is differential evidence, not semantic equivalence or output qualification."
+    "result": "SUCCESS 0x0; independent decoder accepted the same tracked source. Its trace assigns different ENC/common handle roles from the local reader and reports absent handles 0x35–0x38 plus a frame-overrun while attempting a linetype handle. This is differential evidence, not semantic equivalence or output qualification."
   },
   "focusedValidation": {
     "buildTargets": [
@@ -74,7 +74,7 @@
     "bufferSourceSha256": "ca6073614d9ff414a7c76f67f320dd4bea1f8ef1e095414ef697b9364b0be251",
     "localCleanTraceSha256": "7f04cb3da8c5367d57eaf4105caa51b976921bf1f7572c077c18998e618f1f95"
   },
-  "next": "P6: reconcile exact AC1027 entity 0x32 ENC/common handle spans against ODA \u00a7\u00a72.11 and 20.4.2 and the independent decoder; add generated-from-scratch bounded valid/malformed handle cases with following-entity alignment. Keep the tracked source strict-output refusal until missing/wrong-kind references and reciprocal ownership are resolved.",
+  "next": "P6: implement the source-bounded AC1027 entity 0x32 handle-span interpretation after resolving the optional color-book slot against the exact source bits; add generated valid/malformed handle-stream cases with following-entity alignment. Preserve strict-output refusal while references are missing or have unsupported target roles.",
   "limitations": [
     "No new test drawing was committed or created for this observation.",
     "No native application, platform, or 3D semantic qualification was performed.",
@@ -109,7 +109,7 @@
       "xDictionary": "0x12",
       "layer": "0x10",
       "linetype": "decoder attempts next handle beyond the declared frame and reports buffer overflow",
-      "interpretationLimit": "These are LibreDWG 0.14 decoder assignments, not yet reconciled against the authoritative DWG field order.",
+      "interpretationLimit": "Historical LibreDWG 0.14 assignments are not authoritative for the current field order. Current LibreDWG master source reads the ENC AcDbColor reference once before the common entity-handle sequence; source-span interpretation and the optional color-book field in this exact profile still require resolution.",
       "peerLabeledColorHandlesInTraceOrder": [
         "0x36",
         "0x37"
@@ -122,7 +122,7 @@
       "0x38"
     ],
     "targetKindObservation": "In the same source, handle 0x12 resolves to a LAYER table record, so it cannot be admitted as a DICTIONARY without contrary source evidence.",
-    "requiredResolution": "Use ODA v5.4.1 \u00a7\u00a72.11 and 20.4.2 plus exact source bits to assign every handle-stream slot. Distinguish the ENC AcDbColor reference, any color-book reference, reactors, XDICTIONARY, layer and linetype. Compare peer behavior only after binding to this exact source hash; preserve refusal for missing or wrong-kind targets."
+    "requiredResolution": "Use ODA v5.4.1 §§2.11 and 20.4.2 plus exact source bits to assign every handle-stream slot. Distinguish the ENC AcDbColor reference, any color-book reference, reactors, XDICTIONARY, layer and linetype. Compare peer behavior only after binding to this exact source hash; preserve refusal for missing or wrong-kind targets."
   },
   "authoritativeSources": [
     {
@@ -144,5 +144,26 @@
       "name": "LibreDWG common_entity_handle_data.spec",
       "url": "https://github.com/LibreDWG/libredwg/blob/master/src/common_entity_handle_data.spec"
     }
-  ]
+  ],
+  "currentSourceReview": {
+    "reviewedAt": "2026-11-01",
+    "odaSpecification": {
+      "version": "5.4.1",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sections": [
+        "2.11 CmColor/ENC",
+        "20.4.1 Common Entity Data",
+        "20.4.2 Common Entity Handle Data"
+      ],
+      "finding": "Section 2.11 defines the ENC AcDbColor handle reference. Section 20.4.2 also describes an optional color-book handle; whether that is a distinct slot in this source profile remains open."
+    },
+    "libreDwgMaster": {
+      "commonEntityDataSpec": "https://github.com/LibreDWG/libredwg/blob/master/src/common_entity_data.spec",
+      "commonEntityHandleDataSpec": "https://github.com/LibreDWG/libredwg/blob/master/src/common_entity_handle_data.spec",
+      "decodeSource": "https://github.com/LibreDWG/libredwg/blob/master/src/decode.c",
+      "finding": "Current master reads one ENC color.handle reference in common entity data before the common entity handle sequence; the common handle decoder includes only common_entity_handle_data.spec and does not add a second color handle."
+    },
+    "olderDecoderFinding": "Installed LibreDWG 0.14 and adjacent local LibreDWG source contain/report an additional color-handle read. Treat their per-entity role projection as historical differential evidence, not the field-order baseline.",
+    "implementationDisposition": "Research of ENC/common ordering is complete. Exact tracked-source slot mapping, optional color-book distinction, implementation and generated valid/malformed alignment tests remain open. Missing targets 0x35-0x38 continue to block strict graph output."
+  }
 }
