@@ -974,7 +974,7 @@ void testPolylineStagingAllocationRequestEstimates(TestContext& t) {
     AllocationAccounting ownerMapAccounting;
     bool ownerMapPopulationSucceeded = true;
     std::size_t retainedBucketBytes = 0u;
-    std::size_t fixedOwnerMapBytes = 0u;
+    std::size_t initialOwnerMapBytes = 0u;
     {
         TrackedPendingMap pending(
             0u, std::hash<Handle>{}, std::equal_to<Handle>{},
@@ -984,7 +984,9 @@ void testPolylineStagingAllocationRequestEstimates(TestContext& t) {
             AllocationAccountingAllocator<OrphanPair>(&ownerMapAccounting));
         const std::size_t initialBucketsBytes =
             (pending.bucket_count() + orphans.bucket_count()) * sizeof(void *);
-        fixedOwnerMapBytes = ownerMapAccounting.liveBytes - initialBucketsBytes;
+        // Capture actual constructor allocations separately. Some libraries
+        // report an implicit bucket before allocating its storage.
+        initialOwnerMapBytes = ownerMapAccounting.liveBytes;
         pending.reserve(8u);
         orphans.reserve(8u);
         const std::size_t pendingBuckets = pending.bucket_count();
@@ -1000,12 +1002,12 @@ void testPolylineStagingAllocationRequestEstimates(TestContext& t) {
         const std::size_t ownerMapNodeBytes =
             pending.size() * (sizeof(PendingPair) + 5u * sizeof(void *))
             + orphans.size() * (sizeof(OrphanPair) + 5u * sizeof(void *));
-        // Include both the original and replacement bucket arrays in the
-        // transient rehash ceiling. Control/sentinel allocations are a fixed
-        // STL baseline measured above, not part of the per-entry model.
-        const std::size_t modeledOwnerMapLive = fixedOwnerMapBytes
+        // Include the constructor baseline and both original/replacement
+        // bucket arrays in the transient rehash ceiling. The baseline captures
+        // real control allocations without inferring them from bucket_count().
+        const std::size_t modeledOwnerMapLive = initialOwnerMapBytes
             + retainedBucketBytesAfterReserve + ownerMapNodeBytes;
-        const std::size_t modeledOwnerMapPeak = fixedOwnerMapBytes
+        const std::size_t modeledOwnerMapPeak = initialOwnerMapBytes
             + initialBucketsBytes + retainedBucketBytesAfterReserve
             + ownerMapNodeBytes;
         t.expect(ownerMapPopulationSucceeded && pending.size() == 8u
@@ -1022,7 +1024,7 @@ void testPolylineStagingAllocationRequestEstimates(TestContext& t) {
         retainedBucketBytes =
             (pending.bucket_count() + orphans.bucket_count()) * sizeof(void *);
         t.expect(ownerMapAccounting.liveBytes
-                     <= fixedOwnerMapBytes + retainedBucketBytes
+                     <= initialOwnerMapBytes + retainedBucketBytes
                      && !ownerMapAccounting.deallocationUnderflow,
                  "POLYLINE pending/orphan clear retains no tracked node bytes beyond bucket estimates");
     }
