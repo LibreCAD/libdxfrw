@@ -48,7 +48,7 @@ Implementation history and evidence stay in Git and `docs/research/`.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — source/graph closure | From existing-input census and current failures, close only reproduced source-required bodies, owner edges and dependencies that still lack strict output/readback proof. Already-qualified input/profile pairs are closed; reopen only on a changed witness or code/source binding. | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — source/graph closure | The AC1024 architectural example's two-root dynamic graph, owner/dependency edges, strict output, rollback/retry and ASCII/Binary readback are closed for the current source/code binding ([receipt](docs/research/p4-ac1024-two-root-dynamic-graph-closure-2026-10-31.json)). Continue only with other reproduced source-required bodies and dependencies that still lack strict output/readback proof; the named remaining source is AC1018 `ET-Drawing-with-Border.dwg` with 23 unqualified opaque callbacks. Reopen a closed pair only on a changed witness or code/source binding. | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN — broader rendering/TABLE and dynamic-block semantics | Resolve the still-open native dynamic-block semantics and parentId projection boundary for the two-root AC1024 graph; finish only remaining rendering metadata/native rendering profiles, FIELDLIST/child graphs and source-backed FIELD profiles, independently evidenced block-cell geometry, TABLECONTENT style/format/payload profiles, and AC1018 TABLE. Completed record transport/readback profiles are not implementation tasks. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -92,7 +92,9 @@ engines.
    qualified providers. Keep version-2 nonzero-seed registry layouts raw until
    their framing is proven. Keep investigation DWGs out of committed fixtures;
    bind regressions to eligible repository inputs or locally authored fixtures.
-2. **Graph and output admission:** close any source-required body, owner edge,
+2. **Graph and output admission:** the AC1024 architectural two-root dynamic
+   graph is already closed for its pinned source/code binding; see the receipt
+   above. For each other source-required body, owner edge,
    extension-dictionary edge or descendant not already admitted. Bind source
    identities and fields to planned records, emitted bytes and fresh readback.
    Use the existing census and profile receipts to trace each remaining callback
