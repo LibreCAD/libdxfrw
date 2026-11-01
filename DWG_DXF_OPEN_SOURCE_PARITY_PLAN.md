@@ -47,8 +47,8 @@ Phase rows express aggregate exit gates, not item-level completion counts.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — source/graph closure | Close reproduced source-required bodies and dependencies that still lack strict output/readback proof. The exact AC1024 mechanical source already passes default `RequireComplete` CLI conversion and a fresh DXF parse/write pass; keep it out of remaining P4 work unless its source or relevant output path changes ([receipt](docs/research/p4-ac1024-mechanical-strict-conversion-readback-2026-11-01.json)). For AC1018 `ET-Drawing-with-Border.dwg`, DICTIONARY `0x2CD` remains unqualified because its sole `ACAD_SORTENTS` edge reaches SORTENTSTABLE `0x2CE` under named BLOCK_RECORD `0x24C` (`ET Border block`); the documented DXF owner scope does not admit that named-block table, so preserve/refuse the parent and child as one graph unless an authoritative eligible mapping is found. See the [AC1018 SORTENTSTABLE dependency receipt](docs/research/p4-ac1018-named-block-sortents-dependency-2026-11-01.json) and [owner-scope receipt](docs/research/p4-ac1024-sortents-owner-scope-qualification-2026-11-01.json). For AC1024 `title_block-arch.dwg`, retain refusal for the three remaining named-block SORTENTSTABLEs (handles 4202, 4380, 4637; owners `*U3`, `Title_Block-ARCH`, and `*U6`) under the same owner-scope rule; see the [current residual receipt](docs/research/p4-ac1024-title-block-named-block-sortents-residual-2026-11-01.json). Whole-source AC1018 output remains blocked by the invalid non-shape empty-name STYLE `0xDF`; keep it refused until a source- and consumer-backed output route is established. The AC1024 LayerStates source profile in the [source evidence receipt](docs/research/p4-ac1024-layerstates-xrecord-source-admission-2026-11-01.json) remains read-only because its XRECORD contains group 370, outside Autodesk’s documented DXF XRECORD application domain (1–369 except 5 and 105). Remaining work for this profile is to establish a producer-backed schema or another independently sourced profile with a lossless DXF mapping; only then qualify staged output and ASCII/Binary readback. | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN — dynamic-block semantics, rendering and TABLE residual profiles | Resolve only the AC1024 architectural graph's `parentId` projection and native-evaluation gates; its local graph/output-readback closure is recorded for the exact input/code binding in the [two-root closure receipt](docs/research/p4-ac1024-two-root-dynamic-graph-closure-2026-10-31.json). Qualify remaining rendering profiles, FIELD producer/version profiles beyond the generated AC1027 transport profile, coordinate-valued FIELD values, block-cell geometry, CONTENTFORMAT/CELLSTYLEMAP combinations, overlapping edge semantics and AC1018 TABLE bodies/borders. | Reopen the qualified graph only if its source or relevant implementation changes. For other profiles, admit only source- or consumer-backed fields and edges; preserve role/handle dependencies and fail closed on unrepresented data. |
+| P4 | OPEN — source/graph closure | Close reproduced source-required bodies and dependencies that still lack strict output/readback proof. For AC1018 `ET-Drawing-with-Border.dwg`, DICTIONARY `0x2CD` remains unqualified because its sole `ACAD_SORTENTS` edge reaches SORTENTSTABLE `0x2CE` under named BLOCK_RECORD `0x24C` (`ET Border block`); the documented DXF owner scope does not admit that named-block table, so preserve/refuse the parent and child as one graph unless an authoritative eligible mapping is found. See the [AC1018 SORTENTSTABLE dependency receipt](docs/research/p4-ac1018-named-block-sortents-dependency-2026-11-01.json) and [owner-scope receipt](docs/research/p4-ac1024-sortents-owner-scope-qualification-2026-11-01.json). For AC1024 `title_block-arch.dwg`, retain refusal for the three remaining named-block SORTENTSTABLEs (handles 4202, 4380, 4637; owners `*U3`, `Title_Block-ARCH`, and `*U6`) under the same owner-scope rule; see the [current residual receipt](docs/research/p4-ac1024-title-block-named-block-sortents-residual-2026-11-01.json). Whole-source AC1018 output remains blocked by the invalid non-shape empty-name STYLE `0xDF`; keep it refused until a source- and consumer-backed output route is established. The AC1024 LayerStates source profile in the [source evidence receipt](docs/research/p4-ac1024-layerstates-xrecord-source-admission-2026-11-01.json) remains read-only because its XRECORD contains group 370, outside Autodesk’s documented DXF XRECORD application domain (1–369 except 5 and 105). Remaining work for this profile is to establish a producer-backed schema or another independently sourced profile with a lossless DXF mapping; only then qualify staged output and ASCII/Binary readback. | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P5 | OPEN — dynamic-block semantics, rendering and TABLE residual profiles | Resolve only the AC1024 architectural graph's `parentId` projection and native-evaluation gates. Qualify remaining rendering profiles, FIELD producer/version profiles beyond the generated AC1027 transport profile, coordinate-valued FIELD values, block-cell geometry, CONTENTFORMAT/CELLSTYLEMAP combinations, overlapping edge semantics and AC1018 TABLE bodies/borders. | For other profiles, admit only source- or consumer-backed fields and edges; preserve role/handle dependencies and fail closed on unrepresented data. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -105,11 +105,9 @@ engines.
    through owner/dependency planning and writer admission. Keep reader
    completeness distinct from output qualification: neither a typed callback nor
    retained raw bytes alone proves output preservation. Admit only complete
-   typed output or a proven end-to-end replay path. The strict output check runs
-   in writer finalization after the staged bytes are complete and before the
-   output transaction commits. Keep unresolved records refused. Never weaken
-   the completeness predicate, emit a partial graph, or infer edges from
-   adjacent handle values.
+   typed output or a proven end-to-end replay path. Keep unresolved records
+   refused. Never weaken the completeness predicate, emit a partial graph, or
+   infer edges from adjacent handle values.
 3. **Recursive closure:** follow only source-required edges reached from the
    admitted graph. Reuse a qualified provider when it closes the exact target
    role; otherwise resolve that source-required body and its descendants, and
@@ -128,12 +126,10 @@ output gates are met.
 
 ## P5 — rendering and TABLE
 
-**Dynamic blocks:** only the `parentId` projection boundary and independent
-native evaluation remain for the existing two-root AC1024 architectural graph;
-its local closure and output/readback slice is recorded in the [receipt](docs/research/p4-ac1024-two-root-dynamic-graph-closure-2026-10-31.json).
-Reopen that slice only if its source or relevant code changes. Admit other
-physical subclasses only when a current source identifies a required field,
-role, or output gap.
+**Dynamic blocks:** resolve the `parentId` projection boundary and independent
+native evaluation for the existing two-root AC1024 architectural graph. Admit
+other physical subclasses only when a current source identifies a required
+field, role, or output gap.
 
 **Rendering:** close only the unqualified engine/class-revision/schema and
 optional-presence profiles; establish source-backed active/global/environment
@@ -150,17 +146,12 @@ collation, layer style overrides, VIEWPORT shade modes 4/5, and references
 
 **TABLE:**
 
-1. **Nested FIELD graphs:** the generated AC1027 transport profile covers
-   counted object handles (DXF 97/331) and main/keyed child values in the
-   integer (library types 0/1), real (2), string (4), binary (8), and ID (64)
-   branches. It has resolved-target checks, entity handle remapping,
-   ASCII/Binary output readback, and destination rollback/retry; see the
-   [current FIELD transport receipt](docs/research/p5-ac1027-field-typed-value-transport-2026-11-01.json).
-   Keep that exact generated profile out of the queue. Remaining work is
-   coordinate-valued FIELD payloads, producer/version profiles beyond this
-   generated AC1027 shape, and additional physical source gaps. Preserve
-   unsupported compositions with explicit refusal. Native expression
-   evaluation and TABLE rendering remain separate semantic qualifications.
+1. **Nested FIELD graphs:** qualify coordinate-valued payloads, additional
+   producer/version profiles, and physical source gaps. Use the existing
+   `p5-ac1027-*` receipts as an exclusion inventory so admitted generated
+   transport profiles are not repeated. Preserve unsupported compositions with
+   explicit refusal. Native expression evaluation and TABLE rendering remain
+   separate semantic qualifications.
 2. **Block-cell geometry:** implement payloads only when a source or consumer
    witness identifies missing fields or semantics. Bind the exact field layout
    and semantics to that witness; keep unsupported payloads refused while
