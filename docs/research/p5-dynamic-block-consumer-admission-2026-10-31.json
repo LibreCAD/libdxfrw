@@ -62,12 +62,38 @@
   "parentIdBoundary": {
     "sourceObservation": "The fresh ASCII/Binary DXF readback receipt records source EvalExpr.parentId 0xFFFFFFFF becoming model default 0 for BLOCKLINEARGRIP handle 0x1111 because the current DXF projection omits that field.",
     "documentationSearch": "The searched public Autodesk DXF pages did not provide a group-code mapping for this custom AcDbEvalExpr parentId field.",
-    "disposition": "UNRESOLVED. Do not call the normalization semantics-neutral. Resolve with authoritative field/profile evidence or a native evaluator roundtrip."
+    "disposition": "UNRESOLVED. Do not call the normalization semantics-neutral. Resolve with authoritative field/profile evidence or a native evaluator roundtrip.",
+    "researchUpdate": {
+      "reviewedAt": "2026-10-31",
+      "sources": [
+        {
+          "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDb_Classes.html",
+          "finding": "Autodesk defines AcDbEvalExpr as a node in AcDbEvalGraph. The public class summary does not specify a parentId DXF group or explain the 0xFFFFFFFF value."
+        },
+        {
+          "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbEvalGraph.html",
+          "finding": "Autodesk describes dynamic-block behavior as an expression graph evaluated according to dependency edges; the reference does not define AcDbEvalExpr parentId serialization semantics."
+        },
+        {
+          "url": "https://www.gnu.org/software/libredwg/manual/html_node/OBJECTS.html",
+          "finding": "LibreDWG documents Dwg_EvalExpr.parentid as BLd and gives no DXF group mapping for that field. This is implementation documentation, not a normative AutoCAD DXF specification."
+        },
+        {
+          "url": "https://github.com/LibreDWG/libredwg/blob/master/src/dwg.spec",
+          "finding": "The current generated DWG specification source contains no EvalExpr/parentid definition; this source search adds no normative DXF mapping."
+        },
+        {
+          "local": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf and /Users/dli/doc/dwg/autocad_2012_dxf-reference.pdf",
+          "finding": "Text searches found no AcDbEvalExpr, parentid, or EVALUATION_GRAPH entries in either local specification/reference PDF."
+        }
+      ],
+      "disposition": "No authoritative DXF group-code representation was found. Do not invent a group code or claim that omission is semantics-neutral. Preserve DWG parentId in the model, leave native dynamic-block semantics unqualified, and revisit only if a primary format source or independent evaluator supplies new evidence."
+    }
   },
   "remaining": [
     "Use an independently implemented dynamic-block evaluator, with exact product/version and operation bound to the exact source/output bytes, to test both roots, visibility, parameter/action behavior and reachable geometry.",
     "Resolve the parentId projection boundary before promoting dynamic-block semantics.",
-    "Continue locally actionable DXF-origin typed/raw adapter replay work without waiting for a native consumer."
+    "Continue other locally actionable P4/P5 implementation work while native evaluator evidence is unavailable; do not treat transport proof as semantic qualification."
   ],
   "limitations": [
     "FreeCAD's documentation describes supported importer scope but does not prove behavior of every future importer, extension or application version.",

@@ -15072,10 +15072,195 @@ bool dynamicBlockGraphFailureReadback(
                                 + encoding);
             }
         }
+
+        class LateDxfDynamicMutation final : public dx_iface {
+        public:
+            bool mutateAfterObjects{false};
+            bool applied{false};
+
+            void writeObjects() override {
+                dx_iface::writeObjects();
+                if (!mutateAfterObjects || cData == nullptr
+                    || cData->dynamicBlockObjects.empty())
+                    return;
+                ++cData->dynamicBlockObjects.front().m_nodeId;
+                applied = true;
+            }
+        } dxfOriginExporter;
+        const std::filesystem::path replayPath =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-dynamic-graph-dxf-origin-" + encoding + "-"
+               + std::to_string(nonce) + ".dxf");
+        struct ReplayCleanup {
+            std::filesystem::path path;
+            ~ReplayCleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } replayCleanup{replayPath};
+        const std::string replaySentinel =
+            "preserve DXF-origin dynamic replay destination\n";
+        const auto seedReplayDestination = [&]() {
+            std::ofstream output(replayPath,
+                std::ios::binary | std::ios::trunc);
+            return output && static_cast<bool>(output << replaySentinel);
+        };
+        const auto replayDestinationPreserved = [&]() {
+            std::ifstream input(replayPath, std::ios::binary);
+            return input && std::string{
+                std::istreambuf_iterator<char>(input), {}} == replaySentinel;
+        };
+        const auto exportDxfOrigin = [&]() {
+            return dxfOriginExporter.fileExport(
+                replayPath.string(), DRW::AC1024, binary, &readback,
+                false, true, dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete);
+        };
+        dxfOriginExporter.cData = &readback;
+        const std::uint32_t originalNodeId =
+            readback.dynamicBlockObjects.front().m_nodeId;
+        if (!seedReplayDestination())
+            return fail("could not seed DXF-origin replay failure sentinel");
+        dxfOriginExporter.mutateAfterObjects = true;
+        dxfOriginExporter.applied = false;
+        const bool dxfOriginRefused = !exportDxfOrigin();
+        dxfOriginExporter.mutateAfterObjects = false;
+        readback.dynamicBlockObjects.front().m_nodeId = originalNodeId;
+        if (!dxfOriginRefused || !dxfOriginExporter.applied
+            || !replayDestinationPreserved()
+            || readback.associativeDxfImport.qualifiedRecords != 0u) {
+            std::cerr << "  DXF-origin late-mutation gate: refused="
+                      << (dxfOriginRefused ? 1 : 0)
+                      << " applied=" << (dxfOriginExporter.applied ? 1 : 0)
+                      << " destination-preserved="
+                      << (replayDestinationPreserved() ? 1 : 0)
+                      << " qualified-records="
+                      << readback.associativeDxfImport.qualifiedRecords
+                      << '\n';
+            return fail("late DXF-origin dynamic mutation published or advanced qualification: "
+                        + encoding);
+        }
+
+        auto compatibilityRecord = readback.xRecords.end();
+        std::size_t compatibilityRecordCount = 0u;
+        for (auto record = readback.xRecords.begin();
+             record != readback.xRecords.end(); ++record) {
+            const auto& values = record->m_dataEntries.empty()
+                ? record->m_values : record->m_dataEntries;
+            if (std::any_of(values.cbegin(), values.cend(),
+                    [](const DRW_Variant& value) {
+                        return value.code() == 1071;
+                    })) {
+                compatibilityRecord = record;
+                ++compatibilityRecordCount;
+            }
+        }
+        if (compatibilityRecordCount == 0u
+            || compatibilityRecord == readback.xRecords.end())
+            return fail("DXF-origin source did not contain a 1071 compatibility XRECORD");
+        auto& compatibilityValues = compatibilityRecord->m_dataEntries.empty()
+            ? compatibilityRecord->m_values
+            : compatibilityRecord->m_dataEntries;
+        const auto compatibilityValue = std::find_if(
+            compatibilityValues.begin(), compatibilityValues.end(),
+            [](const DRW_Variant& value) { return value.code() == 1071; });
+        if (compatibilityValue == compatibilityValues.end()
+            || compatibilityValue->type() != DRW_Variant::INTEGER)
+            return fail("DXF-origin compatibility XRECORD lacks its typed 1071 value");
+        const int originalCompatibilityValue = compatibilityValue->i_val();
+        compatibilityValue->addInt(1071, originalCompatibilityValue + 1);
+        if (!seedReplayDestination()) {
+            compatibilityValue->addInt(1071, originalCompatibilityValue);
+            return fail("could not seed DXF-origin XRECORD mutation sentinel");
+        }
+        const bool compatibilityMutationRefused = !exportDxfOrigin();
+        auto& restoredCompatibilityValues =
+            compatibilityRecord->m_dataEntries.empty()
+                ? compatibilityRecord->m_values
+                : compatibilityRecord->m_dataEntries;
+        const auto restoredCompatibilityValue = std::find_if(
+            restoredCompatibilityValues.begin(),
+            restoredCompatibilityValues.end(),
+            [](const DRW_Variant& value) { return value.code() == 1071; });
+        if (restoredCompatibilityValue == restoredCompatibilityValues.end())
+            return fail("DXF-origin compatibility XRECORD disappeared during refused export");
+        restoredCompatibilityValue->addInt(
+            1071, originalCompatibilityValue);
+        if (!compatibilityMutationRefused || !replayDestinationPreserved()
+            || restoredCompatibilityValue->i_val()
+                != originalCompatibilityValue
+            || readback.associativeDxfImport.qualifiedRecords != 0u)
+            return fail("mutated DXF-origin compatibility XRECORD was emitted or advanced qualification: "
+                        + encoding);
+
+        const bool correctedReplaySucceeded = exportDxfOrigin();
+        if (!correctedReplaySucceeded
+            || readback.associativeDxfImport.qualifiedRecords
+                != readback.associativeObjects.size()) {
+            std::cerr << "  corrected replay after XRECORD restore: handle="
+                      << compatibilityRecord->handle << " value="
+                      << restoredCompatibilityValue->i_val() << " expected="
+                      << originalCompatibilityValue << '\n';
+            return fail("corrected DXF-origin dynamic/associative replay failed: "
+                        + encoding);
+        }
+
+        dx_iface replayReader;
+        dx_data replayReadback;
+        if (!replayReader.fileImport(replayPath.string(), &replayReadback,
+                                     false)
+            || replayReadback.sourceFormat != dx_source_format::DXF
+            || replayReadback.sourceVersion != DRW::AC1024
+            || replayReadback.dynamicBlockObjects.size()
+                != readback.dynamicBlockObjects.size()
+            || replayReadback.rawDynamicBlockObjects.size()
+                != readback.rawDynamicBlockObjects.size()
+            || replayReadback.associativeObjects.size()
+                != readback.associativeObjects.size()
+            || replayReadback.rawAssociativeObjects.size()
+                != readback.rawAssociativeObjects.size())
+            return fail("DXF-origin replay did not freshly read back all typed/raw graph carriers: "
+                        + encoding);
+        std::unordered_map<std::uint32_t,
+            const DRW_DynamicBlockObject*> replayDynamic;
+        for (const DRW_DynamicBlockObject& object :
+             replayReadback.dynamicBlockObjects)
+            if (!replayDynamic.emplace(object.handle, &object).second)
+                return fail("DXF-origin replay aliased a dynamic-block identity");
+        for (const DRW_DynamicBlockObject& object :
+             readback.dynamicBlockObjects) {
+            const auto actual = replayDynamic.find(object.handle);
+            if (actual == replayDynamic.end()
+                || actual->second->m_recordName != object.m_recordName
+                || actual->second->parentHandle != object.parentHandle
+                || actual->second->m_kind != object.m_kind
+                || actual->second->m_nodeId != object.m_nodeId
+                || actual->second->m_bodyFullyDecoded
+                    != object.m_bodyFullyDecoded)
+                return fail("DXF-origin replay changed dynamic identity, owner, or parsed body state: "
+                            + encoding);
+        }
+        std::unordered_map<std::uint32_t,
+            const DRW_AssociativeObject*> replayAssociative;
+        for (const DRW_AssociativeObject& object :
+             replayReadback.associativeObjects)
+            if (!replayAssociative.emplace(object.handle, &object).second)
+                return fail("DXF-origin replay aliased an associative identity");
+        for (const DRW_AssociativeObject& object : readback.associativeObjects) {
+            const auto actual = replayAssociative.find(object.handle);
+            if (actual == replayAssociative.end()
+                || actual->second->m_recordName != object.m_recordName
+                || actual->second->parentHandle != object.parentHandle)
+                return fail("DXF-origin replay changed associative identity/class/owner: "
+                            + encoding);
+        }
         std::cerr << "Two-root dynamic graph " << encoding
                   << " failure/retry/readback passed: 3 constraint groups, "
                      "6 parameter dependencies, 65 dynamic objects, and "
-                     "all 490 strict callback qualifications.\n";
+                     "all 490 strict callback qualifications; DXF-origin "
+                     "typed/raw replay passed.\n";
     }
     return true;
 }

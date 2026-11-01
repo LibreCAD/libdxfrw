@@ -1206,9 +1206,8 @@ public:
             bool& completed;
             ~ObjectWriteDiagnostic() {
                 if (!completed) {
-                    DRW_DBG("DXF OBJECTS callback aborted in ");
-                    DRW_DBG(phase);
-                    DRW_DBG("\n");
+                    std::cerr << "DXF OBJECTS callback aborted in "
+                              << phase << '\n';
                 }
             }
         } objectWriteDiagnostic{objectWritePhase, objectWriteCompleted};
@@ -1471,24 +1470,28 @@ public:
                                 value.code());
                         });
                     const bool useDwgCompatibility = hasDwgCompatibilityCode
-                        && cData->sourceFormat == dx_source_format::DWG
-                        && cData->sourceVersion >= DRW::AC1021
-                        && cData->sourceVersion == dxfW->getVersion();
+                        && ((cData->sourceFormat == dx_source_format::DWG
+                             && cData->sourceVersion >= DRW::AC1021
+                             && cData->sourceVersion == dxfW->getVersion())
+                            || isDxfXRecordCompatibilityReplaySource(record));
                     const bool written = useDwgCompatibility
                         ? dxfW->writeXRecordDwgCompatibility(&record)
                         : dxfW->writeXRecord(&record);
                     if (!written) {
-                        DRW_DBG("XRECORD write failure: handle=");
-                        DRW_DBGH(record.handle);
-                        DRW_DBG(" compatibility=");
-                        DRW_DBG(useDwgCompatibility ? "1" : "0");
-                        DRW_DBG(" source-version=");
-                        DRW_DBG(static_cast<int>(cData->sourceVersion));
-                        DRW_DBG(" target-version=");
-                        DRW_DBG(static_cast<int>(dxfW->getVersion()));
-                        DRW_DBG(" has-1070/1071=");
-                        DRW_DBG(hasDwgCompatibilityCode ? "1" : "0");
-                        DRW_DBG("\n");
+                        std::cerr << "XRECORD write failure: handle="
+                                  << record.handle << " compatibility="
+                                  << (useDwgCompatibility ? 1 : 0)
+                                  << " source-version="
+                                  << static_cast<int>(cData->sourceVersion)
+                                  << " target-version="
+                                  << static_cast<int>(dxfW->getVersion())
+                                  << " has-1070/1071="
+                                  << (hasDwgCompatibilityCode ? 1 : 0)
+                                  << " raw-data-valid="
+                                  << (record.m_rawDataValid ? 1 : 0)
+                                  << " dwg-raw-source="
+                                  << (record.hasDwgRawDataSourceRecord() ? 1 : 0)
+                                  << '\n';
                         return;
                     }
                     break;
@@ -1780,10 +1783,18 @@ public:
                     if (object.handle != handle)
                         continue;
                     ++matches;
-                    if (!dxfW->writeRawDxfObject(&object))
+                    if (!dxfW->writeRawDxfObject(&object)) {
+                        const DRW_OperationDiagnostic diagnostic =
+                            dxfW->getLastDiagnostic();
+                        std::cerr << "DXF-origin VISUALSTYLE raw replay failed: handle="
+                                  << handle << " code=" << diagnostic.code
+                                  << " message=" << diagnostic.message << '\n';
                         return;
+                    }
                 }
                 if (matches != 1u) {
+                    std::cerr << "DXF-origin VISUALSTYLE raw replay identity mismatch: handle="
+                              << handle << " matches=" << matches << '\n';
                     dxfW->writeRawDxfObject(nullptr);
                     return;
                 }
@@ -2018,13 +2029,37 @@ public:
             }
         }
         objectWritePhase = "dynamic-block object records";
-        for (DRW_DynamicBlockObject& object : cData->dynamicBlockObjects) {
-            if (!dxfW->writeDynamicBlockObject(&object)) {
-                DRW_DBG("dynamic-block writer rejected record="
-                        + object.m_recordName + " handle="
-                        + std::to_string(object.handle) + " kind="
-                        + std::to_string(static_cast<int>(object.m_kind)));
+        if (m_dxfDynamicReplayPrepared) {
+            std::unordered_set<std::uint32_t>
+                typedBlockRepresentationHandles;
+            try {
+                typedBlockRepresentationHandles.reserve(
+                    m_extensionBlockRepresentationDataHandles.size());
+                typedBlockRepresentationHandles.insert(
+                    m_extensionBlockRepresentationDataHandles.begin(),
+                    m_extensionBlockRepresentationDataHandles.end());
+            } catch (...) {
+                dxfW->writeRawDxfObject(nullptr);
                 return;
+            }
+            for (DxfDynamicBlockReplaySource& source :
+                 m_dxfDynamicBlockReplaySources) {
+                if (source.hasBlockRepresentationModel
+                    && typedBlockRepresentationHandles.count(
+                        source.raw.handle) != 0u)
+                    continue;
+                if (!dxfW->writeRawDxfObject(&source.raw))
+                    return;
+            }
+        } else {
+            for (DRW_DynamicBlockObject& object : cData->dynamicBlockObjects) {
+                if (!dxfW->writeDynamicBlockObject(&object)) {
+                    DRW_DBG("dynamic-block writer rejected record="
+                            + object.m_recordName + " handle="
+                            + std::to_string(object.handle) + " kind="
+                            + std::to_string(static_cast<int>(object.m_kind)));
+                    return;
+                }
             }
         }
         objectWritePhase = "block representation data records";
@@ -2092,7 +2127,15 @@ public:
                 return;
         }
         objectWritePhase = "associative records";
+        if (m_dxfAssociativeReplayPrepared) {
+            for (DxfAssociativeReplaySource& source :
+                 m_dxfAssociativeReplaySources) {
+                if (!dxfW->writeRawDxfObject(&source.raw))
+                    return;
+            }
+        }
         std::unordered_set<std::uint32_t> associativeHandles;
+        if (!m_dxfAssociativeReplayPrepared) {
         for (const std::uint32_t handle : m_extensionAssociativeHandles) {
             if (!associativeHandles.insert(handle).second) {
                 dxfW->writeRawDxfObject(nullptr);
@@ -2138,6 +2181,7 @@ public:
                 DRW_DBG("\n");
                 return;
             }
+        }
         }
         objectWriteCompleted = true;
     }
@@ -2424,6 +2468,8 @@ private:
     std::size_t m_xrecordWriteSourceByteLimit{ImageDefinitionCaptureMaxRetainedBytes};
     bool captureXrecordWriteSources() noexcept;
     bool hasUnchangedXrecordWriteSources() const noexcept;
+    bool isDxfXRecordCompatibilityReplaySource(
+        const DRW_XRecord& record) const noexcept;
     struct RasterImageEdges {
         std::uint32_t source{0}, emitted{0}, owner{0}, definition{0}, reactor{0};
         dxfRW::ImageDefinitionKey sourceDefinition;
@@ -2526,7 +2572,7 @@ private:
                                      bool includeNamedObjectRoot);
     bool prepareTableFallbackGraph(dx_data& data, DRW::Version targetVersion);
     void writeEntityOrTableFallback(DRW_Entity* entity);
-    bool validateSortEntsGraph(const dx_data& data);
+    bool validateSortEntsGraph(const dx_data& data, bool debug = false);
     bool validateHatchBoundaryGraph(const dx_data& data);
     void recordHatchBlockPublication(const std::string& name, bool written);
     void failHatchPublication() noexcept;
@@ -3198,6 +3244,41 @@ private:
         std::uint32_t sourceBody{0u}, emittedBody{0u};
         std::uint32_t sourceParameter{0u}, emittedParameter{0u};
     };
+    struct DxfDynamicBlockReplaySource {
+        bool hasTypedModel{false};
+        bool hasBlockRepresentationModel{false};
+        DRW_DynamicBlockObject model;
+        DRW_RawDxfObject raw;
+    };
+    struct DxfAssociativeReplaySource {
+        DRW_AssociativeObject model;
+        DRW_RawDxfObject raw;
+    };
+    std::vector<DxfDynamicBlockReplaySource>
+        m_dxfDynamicBlockReplaySources;
+    std::vector<DxfAssociativeReplaySource>
+        m_dxfAssociativeReplaySources;
+    const dx_data* m_dxfDynamicReplayOwner{nullptr};
+    std::uint64_t m_dxfDynamicReplayGeneration{0u};
+    DRW::Version m_dxfDynamicReplayVersion{DRW::UNKNOWNV};
+    bool m_dxfDynamicReplayPrepared{false};
+    bool m_dxfDynamicReplayInspected{false};
+    const dx_data* m_dxfAssociativeReplayOwner{nullptr};
+    std::uint64_t m_dxfAssociativeReplayGeneration{0u};
+    DRW::Version m_dxfAssociativeReplayVersion{DRW::UNKNOWNV};
+    std::size_t m_dxfAssociativeReplayPreparedRecords{0u};
+    bool m_dxfAssociativeReplayPrepared{false};
+    bool m_dxfAssociativeReplayInspected{false};
+    bool prepareDxfDynamicBlockReplaySources(DRW::Version version,
+                                             bool debug) noexcept;
+    bool hasUnchangedDxfDynamicBlockReplaySources() const noexcept;
+    bool prepareDxfAssociativeReplaySources(DRW::Version version,
+                                             bool debug) noexcept;
+    bool hasUnchangedDxfAssociativeReplaySources() const noexcept;
+    bool inspectDxfDynamicBlockReplay(
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept;
+    bool inspectDxfAssociativeReplay(
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept;
     std::map<std::uint32_t, std::uint32_t>
         m_dwgDynamicBlockOutputDictionaries;
     std::map<std::uint32_t, std::string> m_dwgDynamicBlockOutputBlocks;

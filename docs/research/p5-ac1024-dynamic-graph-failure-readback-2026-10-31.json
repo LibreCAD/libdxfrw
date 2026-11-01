@@ -19,12 +19,39 @@
   },
   "implementation": {
     "path": "tests/dwg2dxf_adapter_tests.cpp",
-    "sha256": "db9e495e535ecba8a42987a4f1360f9fefbf05fee6e4fa4849fba07084d5ec69",
+    "sha256": "f620e42033f52bcf4c3b22b6d9b298b63730aa307dd591e97a9885756651f5c3",
+    "sourceBindings": {
+      "dwg2dxf/dx_data.h": "c307a5a3baf78a1a4e95ccf1d84cf3d0e8007aeba227636755693ead46dae417",
+      "dwg2dxf/dx_iface.cpp": "c184747da6e01fe8da94f94fa4450dce40383770125d8c7ce1345b7ed89c26b2",
+      "dwg2dxf/dx_iface.h": "345f47aebc22536ec2511802b4473f6fa0ff3ca37dd70242c7058d3e330dd7cd",
+      "src/drw_objects.cpp": "72c89f1f40d9303c6838ba0d072e09bfe3d25c48eeb6ed10de7f3cc6a870cf57",
+      "src/drw_objects.h": "1555ae41661f794f069e38d8fb0b980602429c56cb1a7b3119aaaafb0a43783c",
+      "src/libdxfrw.cpp": "c64686d06b7c6a8c1b81dd5249f4e05df6eefef51628180b0f5e9c7f240f8b9c"
+    },
     "selector": "--dynamic-block-graph-failure-readback",
-    "result": "Adds ASCII and Binary whole-document exports from the local source. For each of the six selected dynamic parameter dependencies, a missing constraint-group action edge and a wrong dependency owner must refuse publication. Each encoding also injects a late source mutation after OBJECTS staging. Every failure preserves the destination sentinel and leaves source callback qualification state unchanged; the same exporter then retries successfully and qualifies all 490 callbacks."
+    "result": "Adds ASCII and Binary whole-document exports from the local source. For each of the six selected dynamic parameter dependencies, a missing constraint-group action edge and a wrong dependency owner must refuse publication. Each encoding also injects a late source mutation after OBJECTS staging. Every failure preserves the destination sentinel and leaves source callback qualification state unchanged; the same exporter then retries successfully and qualifies all 490 callbacks.",
+    "dxfOriginReplay": {
+      "source": "AC1024 DXF freshly read from the existing local DWG input; no fixture was added",
+      "formats": [
+        "ASCII",
+        "Binary"
+      ],
+      "sourceBinding": "Parse-time typed XRECORD and raw dynamic/associative carrier snapshots are bounded and matched by import generation, version, identity, and full model/raw fields.",
+      "stagedOutputProof": "The OBJECTS inspector compares the exact selected dynamic and associative raw group streams against the source snapshots, applying only the writer handle remap; every expected identity must occur exactly once.",
+      "failureRetryControls": [
+        "late dynamic model mutation after OBJECTS staging refuses output and preserves the destination sentinel",
+        "late XRECORD 1071 mutation refuses output and preserves the destination sentinel",
+        "restoring each source model allows the same exporter to retry successfully"
+      ],
+      "freshReadback": "Both encodings retain the complete typed/raw dynamic and associative carrier counts and preserve every checked identity, class, owner, node, edge, dependency field, and role.",
+      "qualificationLimit": "Adapter-level same-version replay only; native dynamic-block evaluation and EvalExpr parentId semantics remain unqualified."
+    }
   },
   "freshReadback": {
-    "encodings": ["ASCII", "Binary"],
+    "encodings": [
+      "ASCII",
+      "Binary"
+    ],
     "verified": [
       "Exact two-root EvaluationGraph identity set, owner, values, ordered nodes, and edges",
       "Exact 65-object dynamic identity set, unique handles, record kinds, owners, EvalExpr parse state and node IDs",
@@ -37,24 +64,23 @@
     "build": {
       "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
       "result": "PASS with the configured warning-as-error build",
-      "executableSha256": "fa906838588e23928adc5ec13af76cd14434227f9a2d5bfa51a567392bb504b1"
+      "executableSha256": "d95700d17fba22995c3a969f63a3de0b92f73a0f91b1beb01a66ad59668af193"
     },
     "newSelector": {
       "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-graph-failure-readback tests/samples/AC1024/architectural_example-imperial.dwg",
       "exitCode": 0,
-      "result": "PASS for both encodings; expected rejection diagnostics were emitted for missing edges, wrong owners, and late source mutation. Generated output files are removed by the test."
+      "result": "PASS for DWG-origin and DXF-origin paths in both encodings. The DXF-origin path proves source mutation refusal, destination rollback, corrected retry, exact staged typed/raw dynamic and associative bodies, and fresh readback. Expected graph rejection diagnostics are emitted for deliberately invalid edge/owner controls. Generated outputs are removed by the test."
     },
     "existingFocusedControl": {
       "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-visibility-composed-graph",
       "exitCode": 0,
       "result": "PASS"
     },
-    "testExecutableSha256": "fa906838588e23928adc5ec13af76cd14434227f9a2d5bfa51a567392bb504b1"
+    "testExecutableSha256": "d95700d17fba22995c3a969f63a3de0b92f73a0f91b1beb01a66ad59668af193"
   },
   "remaining": [
     "Independent native dynamic-block semantics for both roots, visibility, parameter/action behavior, and reachable geometry",
     "Resolve the EvalExpr parentId DXF-projection boundary with authoritative field or independent semantic evidence",
-    "Adapter-level DXF-origin typed/raw replay",
     "All other open P4-P9 gates"
   ]
 }

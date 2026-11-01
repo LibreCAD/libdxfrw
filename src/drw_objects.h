@@ -7365,6 +7365,7 @@ public:
   // independently bound.
   std::int32_t m_networkVersion = 0;
   std::int32_t m_networkActionIndex = 0;
+  bool m_actionPrefixParsed = false;
   bool m_networkFieldsParsed = false;
   // DXF PERSUBENTMGR stores associated subentities as repeated 330 handles.
   // Keep these separate from the scalar vectors in the fixed DWG type 1313
@@ -7484,6 +7485,7 @@ private:
     m_ownedActions = o.m_ownedActions;
     m_networkVersion = o.m_networkVersion;
     m_networkActionIndex = o.m_networkActionIndex;
+    m_actionPrefixParsed = o.m_actionPrefixParsed;
     m_networkFieldsParsed = o.m_networkFieldsParsed;
     m_persistentSubentityCount = o.m_persistentSubentityCount;
     m_persistentSubentityHandles = o.m_persistentSubentityHandles;

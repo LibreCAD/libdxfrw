@@ -26375,6 +26375,7 @@ void DRW_AssociativeObject::reset() {
     m_ownedActions.clear();
     m_networkVersion = 0;
     m_networkActionIndex = 0;
+    m_actionPrefixParsed = false;
     m_networkFieldsParsed = false;
     m_geomDependencyFieldsParsed = false;
     m_geomClassVersion = 0;
@@ -26512,14 +26513,18 @@ bool DRW_AssociativeObject::parseCode(
         if (m_geomDependencyFieldsParsed)
             m_dependencyWireComplete = m_dependencyFieldsParsed;
     };
-    const auto updateAssociativeNetworkStatus = [this]() {
-        const bool actionPrefixComplete =
+    const auto updateAssociativeActionPrefixStatus = [this]() {
+        m_actionPrefixParsed =
             m_dxfAssociativeActionIntIndex == 5u
             && m_dxfAssociativeActionOwnerSeen
             && m_dxfAssociativeActionBodySeen
             && !m_dxfAssociativeActionUnexpectedField
             && m_dxfAssociativeActionDependencyCount == 0
             && m_dependencies.empty();
+    };
+    const auto updateAssociativeNetworkStatus = [this,
+            &updateAssociativeActionPrefixStatus]() {
+        updateAssociativeActionPrefixStatus();
         const bool networkCountsComplete =
             m_dxfAssociativeNetworkIntIndex == 4u
             && !m_dxfAssociativeNetworkUnexpectedField
@@ -26529,7 +26534,7 @@ bool DRW_AssociativeObject::parseCode(
                 m_dxfAssociativeNetworkActionCount)
             && m_ownedActions.size() == static_cast<std::size_t>(
                 m_dxfAssociativeNetworkOwnedActionCount);
-        m_networkFieldsParsed = actionPrefixComplete && networkCountsComplete;
+        m_networkFieldsParsed = m_actionPrefixParsed && networkCountsComplete;
     };
     const auto updateAssociativeDependencyStatus = [this]() {
         const bool nameStateComplete = m_dependencyNamePresent
@@ -26606,6 +26611,8 @@ bool DRW_AssociativeObject::parseCode(
             m_dxfAssociativeActionUnexpectedField = false;
             m_dxfAssociativeActionDependencyCount = -1;
             m_dependencies.clear();
+                m_actionPrefixParsed = false;
+                m_networkFieldsParsed = false;
             return true;
         }
         if (subclass == "AcDbAssocNetwork") {
@@ -27522,6 +27529,7 @@ bool DRW_AssociativeObject::parseCode(
                 return true;
             }
             ++m_dxfAssociativeActionIntIndex;
+            updateAssociativeActionPrefixStatus();
             return true;
         }
         if (code == 330 || code == 360) {
@@ -27542,9 +27550,11 @@ bool DRW_AssociativeObject::parseCode(
             } else {
                 m_dxfAssociativeActionUnexpectedField = true;
             }
+            updateAssociativeActionPrefixStatus();
             return true;
         }
         m_dxfAssociativeActionUnexpectedField = true;
+        updateAssociativeActionPrefixStatus();
     }
     if (m_dxfAssociativeNetworkSubclass) {
         if (code == 90) {

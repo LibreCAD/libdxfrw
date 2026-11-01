@@ -25787,7 +25787,10 @@ bool validateRawDxfGroups(const std::vector<DRW_Variant>& groups,
                           DxfClassifierProfile profile =
                               DxfClassifierProfile::StandaloneSafe,
                           bool allowMaterialUnsignedColorValues = false,
-                          bool allowVisualStyleUnsignedColorValues = false) {
+                          bool allowVisualStyleUnsignedColorValues = false,
+                          std::size_t* failedGroupIndex = nullptr) {
+    if (failedGroupIndex != nullptr)
+        *failedGroupIndex = groups.size();
     if (groups.size() > DRW::kMaxDxfRawRecordGroups
         || (hasRawValues && rawValues.size() != groups.size())) {
         return false;
@@ -25797,6 +25800,8 @@ bool validateRawDxfGroups(const std::vector<DRW_Variant>& groups,
     int applicationDepth = 0;
     bool xrecordData = false;
     for (std::size_t groupIndex = 0; groupIndex < groups.size(); ++groupIndex) {
+        if (failedGroupIndex != nullptr)
+            *failedGroupIndex = groupIndex;
         const DRW_Variant& group = groups[groupIndex];
         const int code = group.code();
         if (code < 0 || code > 1071
@@ -25813,7 +25818,8 @@ bool validateRawDxfGroups(const std::vector<DRW_Variant>& groups,
         const bool visualStyleUnsignedColor =
             allowVisualStyleUnsignedColorValues
             && code >= 421 && code <= 425
-            && group.type() == DRW_Variant::INTEGER64;
+            && (group.type() == DRW_Variant::INTEGER
+                || group.type() == DRW_Variant::INTEGER64);
         if (writesRawValues
             && !((materialUnsignedColor || visualStyleUnsignedColor)
                      ? isValidRawDxfMaterialColorLexeme(rawValues[groupIndex])
@@ -27586,13 +27592,41 @@ bool dxfRW::writeRawDxfObjectInternal(
         dxfKeywordEquals(obj->name, "MATERIAL");
     const bool allowVisualStyleUnsignedColorValues =
         dxfKeywordEquals(obj->name, "VISUALSTYLE");
-    if (obj->name.empty()
-        || !validateRawDxfGroups(obj->groups, obj->rawValues,
-                                 obj->hasRawValues, binFile,
-                                 /*allowRecordBoundaries=*/false, profile,
-                                 allowMaterialUnsignedColorValues,
-                                 allowVisualStyleUnsignedColorValues)
-        || (requiresDxfSelfHandle(version) && !hasRawDxfSelfHandle(*obj))) {
+    if (obj->name.empty()) {
+        m_writeError = true;
+        return false;
+    }
+    std::size_t failedGroupIndex = obj->groups.size();
+    if (!validateRawDxfGroups(obj->groups, obj->rawValues,
+                              obj->hasRawValues, binFile,
+                              /*allowRecordBoundaries=*/false, profile,
+                              allowMaterialUnsignedColorValues,
+                              allowVisualStyleUnsignedColorValues,
+                              &failedGroupIndex)) {
+        std::string message =
+            "captured raw object groups failed the active DXF value profile";
+        if (failedGroupIndex < obj->groups.size()) {
+            message += " at index " + std::to_string(failedGroupIndex)
+                + " (group code "
+                + std::to_string(obj->groups[failedGroupIndex].code())
+                + ")";
+        }
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Validation,
+            DRW::OperationCause::ValidationFailure,
+            "raw-object-group-validation",
+            message.c_str(),
+            0, false, obj->handle, obj->handle != 0u);
+        m_writeError = true;
+        return false;
+    }
+    if (requiresDxfSelfHandle(version) && !hasRawDxfSelfHandle(*obj)) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Validation,
+            DRW::OperationCause::ValidationFailure,
+            "raw-object-self-handle",
+            "captured raw object lacks a unique valid self-handle group",
+            0, false, obj->handle, obj->handle != 0u);
         m_writeError = true;
         return false;
     }
@@ -27674,8 +27708,15 @@ bool dxfRW::writeRawDxfObjectInternal(
               /*remapEntityXdataHandleReferences=*/false,
               stringOverrides,
               /*allowMaterialUnsignedColorValues=*/false, int32Overrides);
-    if (!wroteGroups)
+    if (!wroteGroups) {
+        recordOperationDiagnostic(
+            DRW::OperationPhase::Objects,
+            DRW::OperationCause::WriteFailure,
+            "raw-object-group-serialization",
+            "captured raw object group sequence could not be serialized",
+            0, false, obj->handle, obj->handle != 0u);
         return false;
+    }
     if (!preflightDxfWrite() || !record.commit()) {
         m_writeError = true;
         return false;
@@ -34696,6 +34737,43 @@ bool dxfRW::writeBlockRepresentationData(
         DRW_BlockRepresentationData *ent) {
     static constexpr char recordName[] = "ACDB_BLOCKREPRESENTATION_DATA";
     static constexpr char subclassName[] = "AcDbBlockRepresentationData";
+    const auto hasSupportedCommonAppData = [](const DRW_TableEntry& entry) {
+        if (entry.appData.empty())
+            return true;
+        if (entry.appData.size() != 1u
+            || entry.reactorHandles.size() != 1u
+            || entry.parentHandle <= 0
+            || static_cast<std::uint64_t>(entry.parentHandle)
+                > std::numeric_limits<std::uint32_t>::max())
+            return false;
+        const auto& group = entry.appData.front();
+        if (group.size() != 3u)
+            return false;
+        auto value = group.cbegin();
+        const DRW_Variant& opener = *value++;
+        const DRW_Variant& reactor = *value++;
+        const DRW_Variant& closer = *value;
+        if (opener.code() != 102
+            || opener.type() != DRW_Variant::STRING
+            || opener.content.s == nullptr
+            || (*opener.content.s != "ACAD_REACTORS"
+                && *opener.content.s != "{ACAD_REACTORS")
+            || reactor.code() != 330
+            || reactor.type() != DRW_Variant::STRING
+            || reactor.content.s == nullptr
+            || closer.code() != 102
+            || closer.type() != DRW_Variant::STRING
+            || closer.content.s == nullptr || *closer.content.s != "}")
+            return false;
+        const std::string& token = *reactor.content.s;
+        std::uint32_t handle = 0u;
+        const auto parsed = std::from_chars(
+            token.data(), token.data() + token.size(), handle, 16);
+        return parsed.ec == std::errc{}
+            && parsed.ptr == token.data() + token.size()
+            && handle == static_cast<std::uint32_t>(entry.parentHandle)
+            && entry.reactorHandles.front() == handle;
+    };
     if (!preflightTableEntry(ent) || ent == nullptr || writer == nullptr
         || version != DRW::AC1024 || ent->handle == 0u
         || ent->handle == DRW::NoHandle || ent->parentHandle <= 0
@@ -34706,7 +34784,7 @@ bool dxfRW::writeBlockRepresentationData(
         || ent->m_blockHandle == 0u
         || ent->m_blockHandle == DRW::NoHandle
         || !ent->bodyFullyDecoded() || ent->xDictHandle != 0u
-        || !ent->appData.empty() || !ent->extData.empty()
+        || !hasSupportedCommonAppData(*ent) || !ent->extData.empty()
         || ent->reactorHandles.size() != 1u
         || ent->reactorHandles.front()
             != static_cast<std::uint32_t>(ent->parentHandle))

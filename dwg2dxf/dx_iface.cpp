@@ -82,6 +82,9 @@ constexpr std::size_t kMaxAdapterCellStyleMapRetainedBytes =
     DRW::kMaxDxfBinaryPayloadBytes;
 constexpr std::size_t kMaxAdapterDynamicBlockRecords = 100000u;
 constexpr std::size_t kMaxAdapterDynamicBlockRawGroups = 4000000u;
+bool asciiIdentifierEquals(std::string_view source,
+                           std::string_view expected) noexcept;
+bool isDynamicBlockDxfRecordName(std::string_view name) noexcept;
 std::string layoutSymbolKey(std::string value);
 // The existing AC1024 title_block-arch.dwg witness assigns AcDbEvalGraph
 // source handle 0x1117 CLASS number 511. This is its observed source oType;
@@ -404,13 +407,233 @@ bool hasCompleteAc1024TitleBlockVisibilityProfile(
     return false;
 }
 
+bool isDxfDynamicReplayAssociativeName(
+        std::string_view name) noexcept {
+    return name == "ACDBASSOCNETWORK"
+        || name == "ACDBASSOC2DCONSTRAINTGROUP"
+        || name == "ACDBASSOCVARIABLE"
+        || name == "ACDBASSOCDEPENDENCY"
+        || name == "ACDBASSOCGEOMDEPENDENCY"
+        || name == "ACDBASSOCVALUEDEPENDENCY"
+        || name == "ASSOCDIMDEPENDENCYBODY"
+        || name == "ACDBASSOCDIMDEPENDENCYBODY";
+}
+
+bool hasCompleteDxfAssociativeCarrierPairs(const dx_data& data) noexcept {
+    const dx_associativeDxfImportReceipt& receipt =
+        data.associativeDxfImport;
+    if (data.sourceFormat != dx_source_format::DXF
+        || data.sourceVersion == DRW::UNKNOWNV
+        || receipt.generation != data.importGeneration
+        || receipt.sourceFormat != dx_source_format::DXF
+        || receipt.sourceVersion != data.sourceVersion
+        || !receipt.successful || !receipt.captureComplete
+        || !receipt.handleCodeScanComplete
+        || !receipt.ownerChainScanComplete
+        || receipt.captureFailed || receipt.resourceLimitExceeded
+        || data.associativeObjects.size() > kMaxAdapterDynamicBlockRecords
+        || data.rawAssociativeObjects.size()
+            != data.associativeObjects.size()
+        || receipt.typedCallbacks != data.associativeObjects.size()
+        || receipt.rawCallbacks != data.rawAssociativeObjects.size()
+        || receipt.typedRange.begin != 0u
+        || receipt.typedRange.end != data.associativeObjects.size()
+        || receipt.rawRange.begin != 0u
+        || receipt.rawRange.end != data.rawAssociativeObjects.size())
+        return false;
+    try {
+        std::unordered_set<std::uint32_t> handles;
+        handles.reserve(data.associativeObjects.size());
+        for (std::size_t index = 0u;
+             index < data.associativeObjects.size(); ++index) {
+            const DRW_AssociativeObject& typed =
+                data.associativeObjects[index];
+            const DRW_RawDxfObject& raw =
+                data.rawAssociativeObjects[index];
+            if (!isDxfDynamicReplayAssociativeName(typed.m_recordName)
+                || typed.handle == 0u || typed.handle == DRW::NoHandle
+                || !handles.insert(typed.handle).second
+                || raw.name != typed.m_recordName
+                || raw.handle != typed.handle
+                || raw.parentHandle != typed.parentHandle
+                || raw.m_version != data.sourceVersion)
+                return false;
+        }
+        return handles.size() == receipt.retainedRecords
+            && receipt.rawGroupCount != 0u;
+    } catch (...) {
+        return false;
+    }
+}
+
+bool hasCompleteDxfDynamicBlockCarrierPairs(
+        const dx_data& data) noexcept {
+    if (data.sourceFormat != dx_source_format::DXF
+        || data.sourceVersion == DRW::UNKNOWNV
+        || data.dynamicBlockCaptureFailed
+        || data.rawDynamicBlockCaptureFailed
+        || data.blockRepresentationDataCaptureFailed
+        || data.dynamicBlockObjects.empty()
+        || data.dynamicBlockObjects.size() > kMaxAdapterDynamicBlockRecords
+        || data.blockRepresentationData.size()
+            > kMaxAdapterDynamicBlockRecords
+        || data.rawDynamicBlockObjects.empty()
+        || data.rawDynamicBlockObjects.size()
+            > kMaxAdapterDynamicBlockRecords)
+        return false;
+    try {
+        std::unordered_map<std::uint32_t, std::size_t> rawByHandle;
+        rawByHandle.reserve(data.rawDynamicBlockObjects.size());
+        for (std::size_t index = 0u;
+             index < data.rawDynamicBlockObjects.size(); ++index) {
+            const DRW_RawDxfObject& raw =
+                data.rawDynamicBlockObjects[index];
+            if (raw.handle == 0u || raw.handle == DRW::NoHandle
+                || !isDynamicBlockDxfRecordName(raw.name)
+                || raw.m_version != data.sourceVersion
+                || !rawByHandle.emplace(raw.handle, index).second)
+                return false;
+        }
+        std::unordered_set<std::uint32_t> typedHandles;
+        typedHandles.reserve(data.dynamicBlockObjects.size());
+        for (const DRW_DynamicBlockObject& typed :
+             data.dynamicBlockObjects) {
+            const auto rawPosition = rawByHandle.find(typed.handle);
+            if (typed.handle == 0u || typed.handle == DRW::NoHandle
+                || !typedHandles.insert(typed.handle).second
+                || !isDynamicBlockDxfRecordName(typed.m_recordName)
+                || typed.m_kind
+                    != DRW_DynamicBlockObject::classify(typed.m_recordName)
+                || rawPosition == rawByHandle.end())
+                return false;
+            const DRW_RawDxfObject& raw =
+                data.rawDynamicBlockObjects[rawPosition->second];
+            if (!asciiIdentifierEquals(typed.m_recordName, raw.name)
+                || raw.parentHandle != typed.parentHandle)
+                return false;
+        }
+        std::unordered_map<std::uint32_t,
+            const DRW_BlockRepresentationData*> blockRepresentationByHandle;
+        blockRepresentationByHandle.reserve(
+            data.blockRepresentationData.size());
+        for (const DRW_BlockRepresentationData& object :
+             data.blockRepresentationData) {
+            const auto rawPosition = rawByHandle.find(object.handle);
+            if (object.handle == 0u || object.handle == DRW::NoHandle
+                || object.parentHandle == 0
+                || object.parentHandle == DRW::NoHandle
+                || object.m_blockHandle == 0u
+                || object.m_blockHandle == DRW::NoHandle
+                || !object.bodyFullyDecoded()
+                || data.sourceVersion != DRW::AC1024
+                || typedHandles.count(object.handle) != 0u
+                || !blockRepresentationByHandle.emplace(
+                    object.handle, &object).second
+                || rawPosition == rawByHandle.end())
+                return false;
+            const DRW_RawDxfObject& raw =
+                data.rawDynamicBlockObjects[rawPosition->second];
+            if (!asciiIdentifierEquals(
+                    raw.name, "ACDB_BLOCKREPRESENTATION_DATA")
+                || raw.parentHandle
+                    != static_cast<std::uint32_t>(object.parentHandle))
+                return false;
+        }
+        for (const DRW_RawDxfObject& raw : data.rawDynamicBlockObjects) {
+            if (asciiIdentifierEquals(
+                    raw.name, "ACDB_BLOCKREPRESENTATION_DATA")
+                && blockRepresentationByHandle.count(raw.handle) != 1u)
+                return false;
+        }
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+bool hasConsistentDxfCommonAppData(const DRW_TableEntry& entry) noexcept {
+    try {
+        bool sawReactors = false;
+        bool sawXDictionary = false;
+        const auto parseHandleValue = [](const DRW_Variant& value,
+                                         std::uint32_t& handle) {
+            if (value.type() != DRW_Variant::STRING || !value.content.s
+                || value.content.s->empty())
+                return false;
+            const std::string& token = *value.content.s;
+            const auto parsed = std::from_chars(
+                token.data(), token.data() + token.size(), handle, 16);
+            return parsed.ec == std::errc{}
+                && parsed.ptr == token.data() + token.size()
+                && handle != 0u && handle != DRW::NoHandle;
+        };
+        for (const auto& group : entry.appData) {
+            if (group.size() < 2u)
+                return false;
+            const DRW_Variant& opener = group.front();
+            const DRW_Variant& closer = group.back();
+            if (opener.code() != 102
+                || opener.type() != DRW_Variant::STRING
+                || !opener.content.s || closer.code() != 102
+                || closer.type() != DRW_Variant::STRING
+                || !closer.content.s || *closer.content.s != "}")
+                return false;
+            const std::string_view marker = *opener.content.s;
+            const bool reactors = marker == "ACAD_REACTORS"
+                || marker == "{ACAD_REACTORS";
+            const bool xDictionary = marker == "ACAD_XDICTIONARY"
+                || marker == "{ACAD_XDICTIONARY";
+            if ((!reactors && !xDictionary)
+                || (reactors && sawReactors)
+                || (xDictionary && sawXDictionary))
+                return false;
+            std::vector<std::uint32_t> handles;
+            for (auto value = std::next(group.begin());
+                 value != std::prev(group.end()); ++value) {
+                const int expectedCode = reactors ? 330 : 360;
+                std::uint32_t handle = 0u;
+                if (value->code() != expectedCode
+                    || !parseHandleValue(*value, handle))
+                    return false;
+                handles.push_back(handle);
+            }
+            if (reactors) {
+                if (handles.empty() || handles != entry.reactorHandles)
+                    return false;
+                sawReactors = true;
+            } else {
+                if (handles.size() != 1u
+                    || handles.front() != entry.xDictHandle)
+                    return false;
+                sawXDictionary = true;
+            }
+        }
+        return sawReactors == !entry.reactorHandles.empty()
+            && sawXDictionary == (entry.xDictHandle != 0u);
+    } catch (...) {
+        return false;
+    }
+}
+
 // Validates the owner relationships for an AC1024 dynamic-block extension
 // dictionary without claiming that its full dynamic-block graph is writable.
 // Output eligibility remains the responsibility of
 // hasClosedDynamicBlockOutputProfile().
 bool hasAc1024DynamicBlockOwnerDictionary(
-        const dx_data& data, std::uint32_t dictionaryHandle) noexcept {
-    if (data.sourceFormat != dx_source_format::DWG
+        const dx_data& data, std::uint32_t dictionaryHandle,
+        bool debug = false) noexcept {
+    const auto fail = [debug](int line) noexcept {
+        if (debug)
+            std::cerr << "  AC1024 dynamic owner-dictionary check failed at line "
+                      << line << '\n';
+        return false;
+    };
+    const bool supportedSource =
+        data.sourceFormat == dx_source_format::DWG
+        || (data.sourceFormat == dx_source_format::DXF
+            && hasCompleteDxfAssociativeCarrierPairs(data)
+            && hasCompleteDxfDynamicBlockCarrierPairs(data));
+    if (!supportedSource
         || data.sourceVersion != DRW::AC1024
         || dictionaryHandle == 0u || dictionaryHandle == DRW::NoHandle
         || data.dictionaries.size() > kMaxAdapterDynamicBlockRecords
@@ -419,14 +642,14 @@ bool hasAc1024DynamicBlockOwnerDictionary(
         || data.dynamicBlockObjects.size()
             > kMaxAdapterDynamicBlockRecords
         || data.sortEntsTables.size() > kMaxAdapterDynamicBlockRecords)
-        return false;
+        return fail(__LINE__);
     try {
         const DRW_Dictionary* owner = nullptr;
         for (const DRW_Dictionary& candidate : data.dictionaries) {
             if (candidate.handle != dictionaryHandle)
                 continue;
             if (owner != nullptr)
-                return false;
+                return fail(__LINE__);
             owner = &candidate;
         }
         if (owner == nullptr || owner->parentHandle == 0u
@@ -434,24 +657,29 @@ bool hasAc1024DynamicBlockOwnerDictionary(
             || owner->xDictHandle != 0u || owner->hardOwner != 1
             || owner->cloning < 0
             || owner->cloning > std::numeric_limits<std::int16_t>::max()
-            || !owner->appData.empty() || !owner->extData.empty()
+            || (data.sourceFormat != dx_source_format::DXF
+                && !owner->appData.empty())
+            || (data.sourceFormat == dx_source_format::DXF
+                && !hasConsistentDxfCommonAppData(*owner))
+            || !owner->extData.empty()
             || !owner->reactorHandles.empty()
-            || !owner->hasCompleteDwgEntries()
+            || (data.sourceFormat != dx_source_format::DXF
+                && !owner->hasCompleteDwgEntries())
             || !owner->hasCompleteDxfEntries()
             || (owner->m_entries.size() != 3u
                 && owner->m_entries.size() != 4u))
-            return false;
+            return fail(__LINE__);
 
         const DRW_Block_Record* block = nullptr;
         for (const DRW_Block_Record& candidate : data.blockRecords) {
             if (candidate.handle != owner->parentHandle)
                 continue;
             if (block != nullptr)
-                return false;
+                return fail(__LINE__);
             block = &candidate;
         }
         if (block == nullptr || block->xDictHandle != owner->handle)
-            return false;
+            return fail(__LINE__);
 
         const DRW_Dictionary::Entry* graphEntry = nullptr;
         const DRW_Dictionary::Entry* sortEntry = nullptr;
@@ -464,7 +692,7 @@ bool hasAc1024DynamicBlockOwnerDictionary(
             if (key.empty() || !keys.insert(key).second
                 || entry.m_handle == 0u
                 || entry.m_handle == DRW::NoHandle)
-                return false;
+                return fail(__LINE__);
             if (key == "ACAD_ENHANCEDBLOCK")
                 graphEntry = &entry;
             else if (key == "ACAD_SORTENTS")
@@ -474,42 +702,63 @@ bool hasAc1024DynamicBlockOwnerDictionary(
             else if (key == "ACAD_ASSOCNETWORK")
                 networkEntry = &entry;
             else
-                return false;
+                return fail(__LINE__);
         }
         if (graphEntry == nullptr || sortEntry == nullptr
             || purgeEntry == nullptr
             || ((owner->m_entries.size() == 4u)
                 != (networkEntry != nullptr)))
-            return false;
+            return fail(__LINE__);
 
         const DRW_EvaluationGraph* graph = nullptr;
         for (const DRW_EvaluationGraph& candidate : data.evaluationGraphs) {
             if (candidate.handle != graphEntry->m_handle)
                 continue;
             if (graph != nullptr)
-                return false;
+                return fail(__LINE__);
             graph = &candidate;
         }
         if (graph == nullptr || graph->parentHandle != owner->handle
-            || graph->xDictHandle != 0u || !graph->appData.empty()
+            || graph->xDictHandle != 0u
+            || (data.sourceFormat != dx_source_format::DXF
+                && !graph->appData.empty())
+            || (data.sourceFormat == dx_source_format::DXF
+                && !hasConsistentDxfCommonAppData(*graph))
             || !graph->extData.empty()
             || graph->reactorHandles
-                != std::vector<std::uint32_t>{owner->handle})
-            return false;
+                != std::vector<std::uint32_t>{owner->handle}) {
+            if (debug) {
+                std::cerr << "  owner=" << owner->handle
+                          << " graph-entry=" << graphEntry->m_handle;
+                if (graph == nullptr) {
+                    std::cerr << " graph=missing\n";
+                } else {
+                    std::cerr << " graph-parent=" << graph->parentHandle
+                              << " xdict=" << graph->xDictHandle
+                              << " appdata=" << graph->appData.size()
+                              << " extdata=" << graph->extData.size()
+                              << " reactors=";
+                    for (std::uint32_t handle : graph->reactorHandles)
+                        std::cerr << handle << ',';
+                    std::cerr << '\n';
+                }
+            }
+            return fail(__LINE__);
+        }
 
         const DRW_SortEntsTable* sortTable = nullptr;
         for (const DRW_SortEntsTable& candidate : data.sortEntsTables) {
             if (candidate.handle != sortEntry->m_handle)
                 continue;
             if (sortTable != nullptr)
-                return false;
+                return fail(__LINE__);
             sortTable = &candidate;
         }
         if (sortTable == nullptr || sortTable->parentHandle != owner->handle
             || sortTable->m_blockOwnerHandle != block->handle
             || sortTable->reactorHandles
                 != std::vector<std::uint32_t>{owner->handle})
-            return false;
+            return fail(__LINE__);
 
         const DRW_DynamicBlockObject* purge = nullptr;
         for (const DRW_DynamicBlockObject& candidate :
@@ -517,7 +766,7 @@ bool hasAc1024DynamicBlockOwnerDictionary(
             if (candidate.handle != purgeEntry->m_handle)
                 continue;
             if (purge != nullptr)
-                return false;
+                return fail(__LINE__);
             purge = &candidate;
         }
         if (purge == nullptr
@@ -527,12 +776,46 @@ bool hasAc1024DynamicBlockOwnerDictionary(
                 != "ACDB_DYNAMICBLOCKPURGEPREVENTER_VERSION"
             || !purge->m_bodyFullyDecoded
             || purge->parentHandle != owner->handle
-            || purge->m_purgeBlockHandle != block->handle
-            || purge->xDictHandle != 0u || !purge->appData.empty()
+            || (data.sourceFormat != dx_source_format::DXF
+                && purge->m_purgeBlockHandle != block->handle)
+            || (data.sourceFormat == dx_source_format::DXF
+                && purge->m_purgeBlockHandle != 0u)
+            || purge->xDictHandle != 0u
+            || (data.sourceFormat != dx_source_format::DXF
+                && !purge->appData.empty())
+            || (data.sourceFormat == dx_source_format::DXF
+                && !hasConsistentDxfCommonAppData(*purge))
             || !purge->extData.empty()
-            || purge->reactorHandles
-                != std::vector<std::uint32_t>{owner->handle})
-            return false;
+            || (data.sourceFormat != dx_source_format::DXF
+                && purge->reactorHandles
+                    != std::vector<std::uint32_t>{owner->handle})
+            || (data.sourceFormat == dx_source_format::DXF
+                && !purge->reactorHandles.empty())) {
+            if (debug) {
+                if (purge == nullptr) {
+                    std::cerr << "  purge entry handle=" << purgeEntry->m_handle
+                              << " is missing\n";
+                } else {
+                    std::cerr << "  purge handle=" << purge->handle
+                              << " kind=" << static_cast<int>(purge->m_kind)
+                              << " name=" << purge->m_recordName
+                              << " decoded=" << purge->m_bodyFullyDecoded
+                              << " parent=" << purge->parentHandle
+                              << " owner=" << owner->handle
+                              << " block-handle=" << purge->m_purgeBlockHandle
+                              << " xdict=" << purge->xDictHandle
+                              << " appdata=" << purge->appData.size()
+                              << " appdata-ok="
+                              << hasConsistentDxfCommonAppData(*purge)
+                              << " extdata=" << purge->extData.size()
+                              << " reactors=";
+                    for (std::uint32_t handle : purge->reactorHandles)
+                        std::cerr << handle << ',';
+                    std::cerr << '\n';
+                }
+            }
+            return fail(__LINE__);
+        }
 
         if (networkEntry != nullptr) {
             const DRW_Dictionary* nested = nullptr;
@@ -540,7 +823,7 @@ bool hasAc1024DynamicBlockOwnerDictionary(
                 if (candidate.handle != networkEntry->m_handle)
                     continue;
                 if (nested != nullptr)
-                    return false;
+                    return fail(__LINE__);
                 nested = &candidate;
             }
             if (nested == nullptr || nested->parentHandle != owner->handle
@@ -550,18 +833,31 @@ bool hasAc1024DynamicBlockOwnerDictionary(
                 || nested->m_entries.size() != 1u
                 || layoutSymbolKey(nested->m_entries.front().m_name)
                     != "ACAD_ASSOCNETWORK"
-                || !nested->hasCompleteDwgEntries()
+                || (data.sourceFormat != dx_source_format::DXF
+                    && !nested->hasCompleteDwgEntries())
                 || !nested->hasCompleteDxfEntries())
-                return false;
+                return fail(__LINE__);
         }
         return true;
     } catch (...) {
-        return false;
+        return fail(__LINE__);
     }
 }
 
-bool hasCompleteAc1024DynamicBlockGraphSet(const dx_data& data) noexcept {
-    if (data.sourceFormat != dx_source_format::DWG
+bool hasCompleteAc1024DynamicBlockGraphSet(
+        const dx_data& data, bool debug = false) noexcept {
+    const auto fail = [debug](int line) noexcept {
+        if (debug)
+            std::cerr << "  AC1024 dynamic graph-set check failed at line "
+                      << line << '\n';
+        return false;
+    };
+    const bool dxfSource = data.sourceFormat == dx_source_format::DXF;
+    const bool supportedSource =
+        data.sourceFormat == dx_source_format::DWG
+        || (dxfSource && hasCompleteDxfAssociativeCarrierPairs(data)
+            && hasCompleteDxfDynamicBlockCarrierPairs(data));
+    if (!supportedSource
         || data.sourceVersion != DRW::AC1024
         || data.dynamicBlockCaptureFailed
         || data.acdsHistoryDwgFrameCaptureFailed
@@ -571,8 +867,11 @@ bool hasCompleteAc1024DynamicBlockGraphSet(const dx_data& data) noexcept {
         || data.blockRecords.size() > kMaxAdapterDynamicBlockRecords
         || data.evaluationGraphs.empty()
         || data.evaluationGraphs.size() > kMaxAdapterDynamicBlockRecords)
-        return false;
+        return fail(__LINE__);
     try {
+        const std::vector<DRW_AssociativeObject>* associativeSource =
+            dxfSource ? &data.associativeObjects
+                      : &data.dwgAssociativeObjects;
         std::unordered_map<std::uint32_t, const DRW_DynamicBlockObject*>
             objects;
         std::unordered_map<std::uint32_t, const DRW_AssociativeObject*>
@@ -582,7 +881,7 @@ bool hasCompleteAc1024DynamicBlockGraphSet(const dx_data& data) noexcept {
         std::unordered_map<std::uint32_t,
             std::unordered_set<std::uint32_t>> expressionsByGraph;
         objects.reserve(data.dynamicBlockObjects.size());
-        associative.reserve(data.dwgAssociativeObjects.size());
+        associative.reserve(associativeSource->size());
         graphs.reserve(data.evaluationGraphs.size());
         ownerByGraph.reserve(data.evaluationGraphs.size());
         expressionsByGraph.reserve(data.evaluationGraphs.size());
@@ -591,17 +890,16 @@ bool hasCompleteAc1024DynamicBlockGraphSet(const dx_data& data) noexcept {
             if (object.handle == 0u || object.handle == DRW::NoHandle
                 || !objects.emplace(object.handle, &object).second
                 || !object.m_bodyFullyDecoded)
-                return false;
+                return fail(__LINE__);
         }
-        for (const DRW_AssociativeObject& object :
-             data.dwgAssociativeObjects)
+        for (const DRW_AssociativeObject& object : *associativeSource)
             if (object.handle == 0u || object.handle == DRW::NoHandle
                 || !associative.emplace(object.handle, &object).second)
-                return false;
+                return fail(__LINE__);
         for (const DRW_EvaluationGraph& graph : data.evaluationGraphs)
             if (graph.handle == 0u || graph.handle == DRW::NoHandle
                 || !graphs.emplace(graph.handle, &graph).second)
-                return false;
+                return fail(__LINE__);
 
         std::size_t ownerCount = 0u;
         for (const DRW_Dictionary& dictionary : data.dictionaries) {
@@ -612,8 +910,8 @@ bool hasCompleteAc1024DynamicBlockGraphSet(const dx_data& data) noexcept {
             if (!hasEnhancedBlock)
                 continue;
             if (!hasAc1024DynamicBlockOwnerDictionary(
-                    data, dictionary.handle))
-                return false;
+                    data, dictionary.handle, debug))
+                return fail(__LINE__);
             const auto graphEntry = std::find_if(
                 dictionary.m_entries.begin(), dictionary.m_entries.end(),
                 [](const DRW_Dictionary::Entry& entry) {
@@ -623,12 +921,12 @@ bool hasCompleteAc1024DynamicBlockGraphSet(const dx_data& data) noexcept {
             if (graphEntry == dictionary.m_entries.end()
                 || !ownerByGraph.emplace(
                     graphEntry->m_handle, dictionary.handle).second)
-                return false;
+                return fail(__LINE__);
             ++ownerCount;
         }
         if (ownerCount == 0u || ownerCount != graphs.size()
             || ownerByGraph.size() != graphs.size())
-            return false;
+            return fail(__LINE__);
 
         std::size_t graphExpressionCount = 0u;
         for (const auto& item : graphs) {
@@ -637,7 +935,7 @@ bool hasCompleteAc1024DynamicBlockGraphSet(const dx_data& data) noexcept {
             if (owner == ownerByGraph.end()
                 || graph.parentHandle != owner->second
                 || graph.m_nodes.empty())
-                return false;
+                return fail(__LINE__);
             auto& expressionHandles = expressionsByGraph[graph.handle];
             expressionHandles.reserve(graph.m_nodes.size());
             for (const DRW_EvaluationGraphNode& node : graph.m_nodes) {
@@ -654,7 +952,7 @@ bool hasCompleteAc1024DynamicBlockGraphSet(const dx_data& data) noexcept {
                     || object->second->m_nodeId
                         != static_cast<std::uint32_t>(node.m_nextNodeIndex)
                     || !expressionHandles.insert(node.m_expressionHandle).second)
-                    return false;
+                    return fail(__LINE__);
                 ++graphExpressionCount;
             }
         }
@@ -677,11 +975,14 @@ bool hasCompleteAc1024DynamicBlockGraphSet(const dx_data& data) noexcept {
                                         && entry.m_handle == object.handle;
                                 });
                     });
-                if (!rooted || object.m_purgeBlockHandle == 0u
-                    || object.m_purgeBlockHandle == DRW::NoHandle
+                if (!rooted
+                    || (dxfSource
+                        ? object.m_purgeBlockHandle != 0u
+                        : (object.m_purgeBlockHandle == 0u
+                            || object.m_purgeBlockHandle == DRW::NoHandle))
                     || object.parentHandle == 0u
                     || object.parentHandle == DRW::NoHandle)
-                    return false;
+                    return fail(__LINE__);
                 ++purgeCount;
                 continue;
             }
@@ -691,7 +992,7 @@ bool hasCompleteAc1024DynamicBlockGraphSet(const dx_data& data) noexcept {
                 if (owner == associative.end()
                     || owner->second->m_recordName != "ACDBASSOCDEPENDENCY"
                     || owner->second->m_dependencyBodyHandle != object.handle)
-                    return false;
+                    return fail(__LINE__);
                 ++dependencyBodyCount;
                 continue;
             }
@@ -700,20 +1001,23 @@ bool hasCompleteAc1024DynamicBlockGraphSet(const dx_data& data) noexcept {
                 object.parentHandle);
             if (graph == graphs.end() || expressions == expressionsByGraph.end()
                 || expressions->second.count(object.handle) != 1u)
-                return false;
+                return fail(__LINE__);
         }
         return graphExpressionCount + dependencyBodyCount + purgeCount
                 == data.dynamicBlockObjects.size()
             && graphExpressionCount > 0u && purgeCount == ownerCount;
     } catch (...) {
-        return false;
+        return fail(__LINE__);
     }
 }
 
 bool hasClosedDynamicBlockOutputProfile(const dx_data& data) noexcept {
     if (data.dynamicBlockObjects.empty())
         return true;
-    if (data.sourceFormat == dx_source_format::DXF
+    if ((data.sourceFormat == dx_source_format::DXF
+            && !hasCompleteDxfDynamicBlockCarrierPairs(data))
+        || (data.sourceFormat != dx_source_format::DXF
+            && data.sourceFormat != dx_source_format::DWG)
         || data.dynamicBlockObjects.size() > kMaxAdapterDynamicBlockRecords
         || data.dictionaries.size() > kMaxAdapterDynamicBlockRecords
         || data.blockRecords.size() > kMaxAdapterDynamicBlockRecords)
@@ -1545,15 +1849,22 @@ bool tableStyleCoreFieldsAreRawOnly(const DRW_RawDxfObject& raw,
                 || !std::isfinite(group.d_val()))
                 return false;
             if (group.code() == 40) {
+                // DRW_TableStyle::parseCode accepts the first core margin
+                // value and marks repeated occurrences as an incomplete
+                // typed profile without replacing that value. Match that
+                // baseline here; the raw carrier still preserves every
+                // repeated group for exact same-version replay.
                 malformedCore = malformedCore || sawHorizontalMargin
                     || group.d_val() < 0.0;
+                if (!sawHorizontalMargin)
+                    horizontalMargin = group.d_val();
                 sawHorizontalMargin = true;
-                horizontalMargin = group.d_val();
             } else {
                 malformedCore = malformedCore || sawVerticalMargin
                     || group.d_val() < 0.0;
+                if (!sawVerticalMargin)
+                    verticalMargin = group.d_val();
                 sawVerticalMargin = true;
-                verticalMargin = group.d_val();
             }
             sawBody = true;
             break;
@@ -7898,7 +8209,11 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
     m_extensionGraphFailure = ExtensionGraphFailure::None;
     m_extensionGraphFailureDetail.clear();
     std::string inventoryFamily = "extension graph";
-    const auto reject = [this, &inventoryFamily](
+    std::uint32_t activeGraphHandle = 0u;
+    std::uint32_t activeGraphSourceHandle = 0u;
+    const char* activeGraphPhase = "inventory";
+    const auto reject = [this, &inventoryFamily, &activeGraphHandle,
+                         &activeGraphSourceHandle, &activeGraphPhase](
             ExtensionGraphFailure reason = ExtensionGraphFailure::InvalidGraph,
             const std::string& detail = std::string()) {
         // No partial traversal result may leak into a later export attempt.
@@ -7979,8 +8294,25 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         m_extensionRenderSettingsHandles.clear();
         if (m_extensionGraphFailure == ExtensionGraphFailure::None) {
             m_extensionGraphFailure = reason;
-            m_extensionGraphFailureDetail = detail.empty()
-                ? inventoryFamily : detail;
+            if (!detail.empty()) {
+                m_extensionGraphFailureDetail = detail;
+            } else {
+                m_extensionGraphFailureDetail = inventoryFamily;
+                if (activeGraphHandle != 0u
+                    && activeGraphHandle != DRW::NoHandle) {
+                    m_extensionGraphFailureDetail += " at handle ";
+                    m_extensionGraphFailureDetail +=
+                        std::to_string(activeGraphHandle);
+                    m_extensionGraphFailureDetail += " during ";
+                    m_extensionGraphFailureDetail += activeGraphPhase;
+                    if (activeGraphSourceHandle != 0u
+                        && activeGraphSourceHandle != DRW::NoHandle) {
+                        m_extensionGraphFailureDetail += " from handle ";
+                        m_extensionGraphFailureDetail +=
+                            std::to_string(activeGraphSourceHandle);
+                    }
+                }
+            }
         }
         return false;
     };
@@ -8156,6 +8488,11 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         + std::to_string(object.handle));
             }
         }
+        const bool allowDxfAssociativeTraversal =
+            data->sourceFormat == dx_source_format::DXF
+            && data->sourceVersion == DRW::AC1024
+            && hasCompleteDxfAssociativeCarrierPairs(*data)
+            && hasCompleteDxfDynamicBlockCarrierPairs(*data);
         const bool hasGeometryDependencies = associativeObjects != nullptr
             && std::any_of(associativeObjects->begin(),
                            associativeObjects->end(),
@@ -8163,8 +8500,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     return layoutSymbolKey(object.m_recordName)
                         == "ACDBASSOCGEOMDEPENDENCY";
                 });
-        if (data->sourceFormat == dx_source_format::DWG
-            && hasGeometryDependencies) {
+        if (hasGeometryDependencies
+            && (data->sourceFormat == dx_source_format::DWG
+                || allowDxfAssociativeTraversal)) {
             inventoryFamily = "associative geometry-dependent entity targets";
             const auto indexEntityTargets = [&](const dx_ifaceBlock* block) {
                 if (block == nullptr)
@@ -9261,6 +9599,13 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         };
         std::vector<Frame> frames;
         const auto queueTarget = [&](std::uint32_t handle, bool requireDictionary) {
+            if (activeGraphHandle != 0u
+                && activeGraphHandle != DRW::NoHandle
+                && activeGraphHandle != handle)
+                activeGraphSourceHandle = activeGraphHandle;
+            activeGraphHandle = handle;
+            activeGraphPhase = requireDictionary
+                ? "required dictionary lookup" : "reactor target lookup";
             const auto material = materials.find(handle);
             if (!requireDictionary && material != materials.end()) {
                 Frame frame{handle}; frame.material = material->second;
@@ -9269,7 +9614,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             }
             const auto associative = associativeRecords.find(handle);
             if (!requireDictionary
-                && data->sourceFormat == dx_source_format::DWG
+                && (data->sourceFormat == dx_source_format::DWG
+                    || allowDxfAssociativeTraversal)
                 && associative != associativeRecords.end()) {
                 Frame frame{handle};
                 frame.associative = associative->second;
@@ -9412,10 +9758,35 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 return owner;
             };
         const auto visit = [&](std::uint32_t handle, bool requireDictionary) {
+            activeGraphPhase = "target queueing";
             if (!queueTarget(handle, requireDictionary))
                 return false;
             while (!frames.empty()) {
                 Frame& frame = frames.back();
+                activeGraphHandle = frame.handle;
+                switch (frame.phase) {
+                case Phase::Enter:
+                    activeGraphPhase = "record entry";
+                    break;
+                case Phase::ExtensionDictionary:
+                    activeGraphPhase = "extension dictionary edge";
+                    break;
+                case Phase::Reactors:
+                    activeGraphPhase = "reactor edge";
+                    break;
+                case Phase::AssociativeActions:
+                    activeGraphPhase = "associative action edge";
+                    break;
+                case Phase::DefaultEntry:
+                    activeGraphPhase = "default dictionary entry";
+                    break;
+                case Phase::Entries:
+                    activeGraphPhase = "dictionary entry";
+                    break;
+                case Phase::Leave:
+                    activeGraphPhase = "record completion";
+                    break;
+                }
                 const DRW_TableEntry* entryPointer = nullptr;
                 if (frame.dictionaryWithDefault != nullptr)
                     entryPointer = frame.dictionaryWithDefault;
@@ -9514,7 +9885,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                         && status.m_decodedCountValue == count;
                                 }) == 1;
                         };
-                        const auto completeValueDependency = [](
+                        const auto completeValueDependency = [data](
                                 const DRW_AssociativeObject& candidate) {
                             const bool valueKindMatches =
                                 candidate.m_valueDependencyValueCode == 40
@@ -9528,22 +9899,24 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                             return candidate.m_valueDependencyFieldsParsed
                                 && candidate.m_valueDependencyClassVersion == 0
                                 && valueKindMatches
-                                && candidate.m_prefixStatuses.size() == 2u
-                                && std::count_if(
-                                    candidate.m_prefixStatuses.begin(),
-                                    candidate.m_prefixStatuses.end(),
-                                    [&candidate](
-                                            const DRW_AssociativePrefixStatus& status) {
-                                        return status.m_kind
-                                                == DRW_AssociativePrefixStatus::Kind::AcDbAssocValueDependency
-                                            && status.m_status
-                                                == DRW_AssociativePrefixStatus::ParseStatus::Complete
-                                            && status.m_classVersion == 0u
-                                            && status.m_decodedHandleCount == 0u
-                                            && status.m_decodedValueCount == 3u
-                                            && status.m_decodedCountValue
-                                                == candidate.m_valueDependencyValueCode;
-                                    }) == 1;
+                                && (data->sourceFormat == dx_source_format::DXF
+                                    ? candidate.m_dependencyFieldsParsed
+                                    : candidate.m_prefixStatuses.size() == 2u
+                                        && std::count_if(
+                                            candidate.m_prefixStatuses.begin(),
+                                            candidate.m_prefixStatuses.end(),
+                                            [&candidate](
+                                                    const DRW_AssociativePrefixStatus& status) {
+                                                return status.m_kind
+                                                        == DRW_AssociativePrefixStatus::Kind::AcDbAssocValueDependency
+                                                    && status.m_status
+                                                        == DRW_AssociativePrefixStatus::ParseStatus::Complete
+                                                    && status.m_classVersion == 0u
+                                                    && status.m_decodedHandleCount == 0u
+                                                    && status.m_decodedValueCount == 3u
+                                                    && status.m_decodedCountValue
+                                                        == candidate.m_valueDependencyValueCode;
+                                            }) == 1);
                         };
                         const auto variableOwnsDependency = [](
                                 const DRW_AssociativeObject& variable,
@@ -9593,16 +9966,32 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 }
                                 return true;
                             };
+                        const bool commonMetadataAdmitted =
+                            data->sourceFormat == dx_source_format::DXF
+                            ? hasConsistentDxfCommonAppData(object)
+                            : object.appData.empty()
+                                && object.xDictHandle == 0u;
                         if (data->sourceVersion != DRW::AC1024
-                            || !object.appData.empty()
-                            || object.xDictHandle != 0u
+                            || !commonMetadataAdmitted
                             || object.extData.size()
                                 > DRW::kMaxDxfBinaryPayloadBytes)
                             return reject(ExtensionGraphFailure::InvalidGraph,
-                                "associative graph output requires the bounded AC1024 typed profile without XDICTIONARY or APPDATA");
+                                "associative graph output requires the bounded AC1024 typed profile with source-consistent common metadata");
 
                         if (layoutSymbolKey(object.m_recordName)
                             == "ACDBASSOCNETWORK") {
+                            const bool completeNetworkPrefixes =
+                                data->sourceFormat == dx_source_format::DXF
+                                ? object.m_networkFieldsParsed
+                                : object.m_prefixStatuses.size() == 2u
+                                    && completePrefix(
+                                        DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
+                                        1u, 2u, 0u, 0)
+                                    && completePrefix(
+                                        DRW_AssociativePrefixStatus::Kind::AcDbAssocNetwork,
+                                        1u, object.m_actions.size(), 0u,
+                                        static_cast<std::int32_t>(
+                                            object.m_actions.size()));
                             const bool rootNetwork =
                                 object.m_owningNetworkHandle == 0u;
                             const bool sortDictionaryOwnedNetwork =
@@ -9628,18 +10017,33 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 || object.m_compoundActionParamParsed
                                 || object.m_actions.size()
                                     > m_extensionGraphLimits.maxEdges
-                                || object.m_prefixStatuses.size() != 2u
-                                || !completePrefix(
-                                    DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
-                                    1u, 2u, 0u, 0)
-                                || !completePrefix(
-                                    DRW_AssociativePrefixStatus::Kind::AcDbAssocNetwork,
-                                    1u, object.m_actions.size(), 0u,
-                                    static_cast<std::int32_t>(
-                                        object.m_actions.size())))
+                                || !completeNetworkPrefixes)
                                 return reject(
                                     ExtensionGraphFailure::InvalidGraph,
-                                    "ACDBASSOCNETWORK is outside the source-bound AC1024 root-network profile");
+                                    "ACDBASSOCNETWORK source profile mismatch: parsed="
+                                    + std::to_string(object.m_networkFieldsParsed)
+                                    + " classVersion="
+                                    + std::to_string(object.m_classVersion)
+                                    + " networkVersion="
+                                    + std::to_string(object.m_networkVersion)
+                                    + " owningNetwork="
+                                    + std::to_string(object.m_owningNetworkHandle)
+                                    + " parent="
+                                    + std::to_string(object.parentHandle)
+                                    + " actionBody="
+                                    + std::to_string(object.m_actionBodyHandle)
+                                    + " maxDependencyIndex="
+                                    + std::to_string(object.m_maxDependencyIndex)
+                                    + " dependencies="
+                                    + std::to_string(object.m_dependencies.size())
+                                    + " ownedParams="
+                                    + std::to_string(object.m_ownedParams.size())
+                                    + " ownedActions="
+                                    + std::to_string(object.m_ownedActions.size())
+                                    + " actions="
+                                    + std::to_string(object.m_actions.size())
+                                    + " prefixStatuses="
+                                    + std::to_string(object.m_prefixStatuses.size()));
                             std::unordered_set<std::uint32_t> actionHandles;
                             actionHandles.reserve(object.m_actions.size());
                             for (const DRW_AssociativeHandleRef& action :
@@ -9738,6 +10142,21 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                         ExtensionGraphFailure::EdgeLimit);
                                 expectedGroupHandleCount += nodeHandleCount;
                             }
+                            const bool completeConstraintGroupPrefixes =
+                                data->sourceFormat == dx_source_format::DXF
+                                ? object.m_actionPrefixParsed
+                                    && object.m_constraintGroupBodyParsed
+                                    && object.m_constraintActionsParsed
+                                    && object.m_constraintNodesParsed
+                                : object.m_prefixStatuses.size() == 2u
+                                    && completePrefix(
+                                        DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
+                                        1u, 2u, 0u, 0)
+                                    && completePrefix(
+                                        DRW_AssociativePrefixStatus::Kind::AcDbAssoc2dConstraintGroup,
+                                        1u, expectedGroupHandleCount,
+                                        object.m_constraintNodes.size(),
+                                        object.m_constraintNodeCount);
                             const auto classIs = [](
                                     const DRW_AssociativeConstraintNode& node,
                                     const char* className) {
@@ -9788,7 +10207,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 "AcSymmetricConstraint",
                                 "AcTangentConstraint"};
                             if (!object.m_constraintGroupBodyParsed
-                                || object.m_constraintGroupVersion != 0
+                                || object.m_constraintGroupVersion
+                                    != (data->sourceFormat
+                                            == dx_source_format::DXF
+                                        ? 2 : 0)
                                 || !object.m_constraintActionsParsed
                                 || !object.m_constraintNextNodeIdRead
                                 || !object.m_constraintNodesParsed
@@ -9824,16 +10246,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 || object.m_singleDependencyActionParamParsed
                                 || object.m_compoundActionParamParsed
                                 || !object.m_actions.empty()
-                                || object.m_prefixStatuses.size() != 2u
-                                || !completePrefix(
-                                    DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
-                                    1u, 2u, 0u, 0)
-                                || !completePrefix(
-                                    DRW_AssociativePrefixStatus::Kind::AcDbAssoc2dConstraintGroup,
-                                    1u,
-                                    expectedGroupHandleCount,
-                                    object.m_constraintNodes.size(),
-                                    object.m_constraintNodeCount))
+                                || !completeConstraintGroupPrefixes)
                                 return reject(
                                     ExtensionGraphFailure::InvalidGraph,
                                     "ACDBASSOC2DCONSTRAINTGROUP is outside the fully consumed AC1024 inline constraint-node profile");
@@ -10209,29 +10622,44 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 && object.appData.empty()
                                 && object.extData.empty()
                                 && object.reactorHandles.empty()
-                                && object.m_prefixStatuses.size() == 1u
-                                && completePrefix(
-                                    DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency,
-                                    1u, 4u, 0u, 0)
+                                && (data->sourceFormat
+                                        == dx_source_format::DXF
+                                    ? object.m_dependencyFieldsParsed
+                                        && object.m_dependencyWireComplete
+                                    : object.m_prefixStatuses.size() == 1u
+                                        && completePrefix(
+                                            DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency,
+                                            1u, 4u, 0u, 0))
                                 && parameterTargetProfile
                                 && dependencyBodyProfile
                                 && bodyOwners == 1u
                                 && dynamicDependencyOwnerProfile;
                             const bool completeDimensionBodyPrefix =
                                 bodyObject != nullptr
-                                && std::count_if(
-                                    bodyObject->m_prefixStatuses.begin(),
-                                    bodyObject->m_prefixStatuses.end(),
-                                    [](const DRW_AssociativePrefixStatus& status) {
-                                        return status.m_kind
-                                                == DRW_AssociativePrefixStatus::Kind::AcDbAssocDependencyBody
-                                            && status.m_status
-                                                == DRW_AssociativePrefixStatus::ParseStatus::Complete
-                                            && status.m_classVersion == 1u
-                                            && status.m_decodedHandleCount == 0u
-                                            && status.m_decodedValueCount == 4u
-                                            && status.m_decodedCountValue == 0;
-                                    }) == 1;
+                                && (data->sourceFormat
+                                        == dx_source_format::DXF
+                                    ? bodyObject->m_dimensionDependencyBodyParsed
+                                    : std::count_if(
+                                        bodyObject->m_prefixStatuses.begin(),
+                                        bodyObject->m_prefixStatuses.end(),
+                                        [](const DRW_AssociativePrefixStatus& status) {
+                                            return status.m_kind
+                                                    == DRW_AssociativePrefixStatus::Kind::AcDbAssocDependencyBody
+                                                && status.m_status
+                                                    == DRW_AssociativePrefixStatus::ParseStatus::Complete
+                                                && status.m_classVersion == 1u
+                                                && status.m_decodedHandleCount == 0u
+                                                && status.m_decodedValueCount == 4u
+                                                && status.m_decodedCountValue == 0;
+                                        }) == 1);
+                            const bool completeDependencyObjectPrefix =
+                                data->sourceFormat == dx_source_format::DXF
+                                ? object.m_dependencyFieldsParsed
+                                    && object.m_dependencyWireComplete
+                                : object.m_prefixStatuses.size() == 1u
+                                    && completePrefix(
+                                        DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency,
+                                        1u, 4u, 0u, 0);
                             if (!dynamicDependencyProfile
                                 && (!object.m_dependencyFieldsParsed
                                 || !object.m_dependencyWireComplete
@@ -10253,10 +10681,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 || !object.appData.empty()
                                 || !object.extData.empty()
                                 || object.reactorHandles.size() != 0u
-                                || object.m_prefixStatuses.size() != 1u
-                                || !completePrefix(
-                                    DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency,
-                                    1u, 4u, 0u, 0)
+                                || !completeDependencyObjectPrefix
                                 || ownerGroup == nullptr
                                 || layoutSymbolKey(ownerGroup->m_recordName)
                                     != "ACDBASSOC2DCONSTRAINTGROUP"
@@ -10278,7 +10703,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 || !bodyObject->appData.empty()
                                 || !bodyObject->extData.empty()
                                 || !bodyObject->reactorHandles.empty()
-                                || bodyObject->m_prefixStatuses.size() != 1u
+                                || (data->sourceFormat
+                                        != dx_source_format::DXF
+                                    && bodyObject->m_prefixStatuses.size() != 1u)
                                 || !completeDimensionBodyPrefix))
                                 return reject(
                                     ExtensionGraphFailure::InvalidGraph,
@@ -10331,6 +10758,17 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                         dependentEntity->second->reactorHandles.begin(),
                                         dependentEntity->second->reactorHandles.end(),
                                         object.handle));
+                            const bool completeGeometryPrefixes =
+                                data->sourceFormat == dx_source_format::DXF
+                                ? object.m_dependencyFieldsParsed
+                                    && object.m_geomDependencyFieldsParsed
+                                : object.m_prefixStatuses.size() == 2u
+                                    && completePrefix(
+                                        DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency,
+                                        1u, 4u, 0u, 0)
+                                    && completePrefix(
+                                        DRW_AssociativePrefixStatus::Kind::AcDbAssocGeomDependency,
+                                        0u, 0u, 4u, 0);
                             if (!object.m_dependencyFieldsParsed
                                 || !object.m_dependencyWireComplete
                                 || object.m_classVersion != 1u
@@ -10350,13 +10788,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 || object.m_geomPersistentSubentityClassName
                                     != "AcDbAssocSingleEdgePersSubentId"
                                 || object.m_geomDependentOnCompoundObject
-                                || object.m_prefixStatuses.size() != 2u
-                                || !completePrefix(
-                                    DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency,
-                                    1u, 4u, 0u, 0)
-                                || !completePrefix(
-                                    DRW_AssociativePrefixStatus::Kind::AcDbAssocGeomDependency,
-                                    0u, 0u, 4u, 0)
+                                || !completeGeometryPrefixes
                                 || ownerGroup == nullptr
                                 || layoutSymbolKey(ownerGroup->m_recordName)
                                     != "ACDBASSOC2DCONSTRAINTGROUP"
@@ -10367,7 +10799,39 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 || dependentEntityBacklinks != 1u)
                                 return reject(
                                     ExtensionGraphFailure::InvalidGraph,
-                                    "ACDBASSOCGEOMDEPENDENCY is outside the fully consumed AC1024 SingleEdge group-owned profile");
+                                    "ACDBASSOCGEOMDEPENDENCY profile mismatch: handle="
+                                    + std::to_string(object.handle)
+                                    + " dependencyParsed="
+                                    + std::to_string(object.m_dependencyFieldsParsed)
+                                    + " dependencyWire="
+                                    + std::to_string(object.m_dependencyWireComplete)
+                                    + " dependencyClass="
+                                    + std::to_string(object.m_classVersion)
+                                    + " order="
+                                    + std::to_string(object.m_dependencyOrder)
+                                    + " dependencyTarget="
+                                    + std::to_string(object.m_dependencyHandle)
+                                    + " geomParsed="
+                                    + std::to_string(object.m_geomDependencyFieldsParsed)
+                                    + " geomClass="
+                                    + std::to_string(object.m_geomClassVersion)
+                                    + " enabled="
+                                    + std::to_string(object.m_geomEnabled)
+                                    + " subentity="
+                                    + object.m_geomPersistentSubentityClassName
+                                    + " compound="
+                                    + std::to_string(object.m_geomDependentOnCompoundObject)
+                                    + " group="
+                                    + std::to_string(object.parentHandle)
+                                    + " groupActions="
+                                    + std::to_string(groupActionCount)
+                                    + " nodeRefs="
+                                    + std::to_string(groupNodeReferenceCount)
+                                    + " entityTarget="
+                                    + std::to_string(dependentEntity
+                                        != associativeEntityTargets.end())
+                                    + " backlinks="
+                                    + std::to_string(dependentEntityBacklinks));
                         } else if (layoutSymbolKey(object.m_recordName)
                                    == "ACDBASSOCVARIABLE") {
                             const auto network = associativeRecords.find(
@@ -10389,8 +10853,30 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 || (object.m_variableValueCode == 90
                                     && object.m_variableValueKind
                                         == DRW_AssociativeObject::EvalVariantKind::Int32);
+                            const bool completeVariablePrefixes =
+                                data->sourceFormat == dx_source_format::DXF
+                                ? object.m_actionPrefixParsed
+                                    && object.m_associativeVariableFieldsParsed
+                                : object.m_prefixStatuses.size() == 2u
+                                    && completePrefix(
+                                        DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
+                                        1u, 2u, 0u, 0)
+                                    && completePrefix(
+                                        DRW_AssociativePrefixStatus::Kind::AcDbAssocVariable,
+                                        2u,
+                                        object.m_variableOwnedDependencies.size(),
+                                        10u,
+                                        static_cast<std::int32_t>(
+                                            object.m_variableOwnedDependencies.size()));
+                            const bool completeVariableDependencies =
+                                data->sourceFormat == dx_source_format::DXF
+                                ? object.m_variableOwnedDependencies.empty()
+                                : object.m_variableOwnedDependenciesParsed
+                                    && validVariableOwnedDependencies(object);
                             if (!object.m_associativeVariableFieldsParsed
-                                || !object.m_associativeVariableWireComplete
+                                || (data->sourceFormat
+                                        != dx_source_format::DXF
+                                    && !object.m_associativeVariableWireComplete)
                                 || !object.m_variableValueParsed
                                 || object.m_variableClassVersion != 2
                                 || object.m_classVersion != 1u
@@ -10416,20 +10902,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 || object.m_singleDependencyActionParamParsed
                                 || object.m_compoundActionParamParsed
                                 || !object.m_actions.empty()
-                                || !object.m_variableOwnedDependenciesParsed
                                 || object.m_variableOwnedDependencies.size() > 1u
-                                || object.m_prefixStatuses.size() != 2u
-                                || !completePrefix(
-                                    DRW_AssociativePrefixStatus::Kind::AcDbAssocAction,
-                                    1u, 2u, 0u, 0)
-                                || !completePrefix(
-                                    DRW_AssociativePrefixStatus::Kind::AcDbAssocVariable,
-                                    2u,
-                                    object.m_variableOwnedDependencies.size(),
-                                    10u,
-                                    static_cast<std::int32_t>(
-                                        object.m_variableOwnedDependencies.size()))
-                                || !validVariableOwnedDependencies(object)
+                                || !completeVariablePrefixes
+                                || !completeVariableDependencies
                                 || !validValue)
                                 return reject(
                                     ExtensionGraphFailure::InvalidGraph,
@@ -10515,8 +10990,12 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 return isVariable(candidate)
                                     && candidate->m_owningNetworkHandle
                                         == ownerNetworkHandle
-                                    && variableOwnsDependency(
-                                        *candidate, dependencyHandle);
+                                    && (data->sourceFormat
+                                            == dx_source_format::DXF
+                                        ? candidate->m_actionPrefixParsed
+                                            && candidate->m_associativeVariableFieldsParsed
+                                        : variableOwnsDependency(
+                                            *candidate, dependencyHandle));
                             };
                             const auto validDependencyPeer =
                                 [&](std::uint32_t peerHandle,
@@ -10533,7 +11012,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 if (layoutSymbolKey(peer.m_recordName)
                                         != "ACDBASSOCVALUEDEPENDENCY"
                                     || !peer.m_dependencyFieldsParsed
-                                    || !peer.m_dependencyWireComplete
+                                    || (data->sourceFormat
+                                            != dx_source_format::DXF
+                                        && !peer.m_dependencyWireComplete)
                                     || !completeValueDependency(peer)
                                     || peer.m_classVersion != 1u
                                     || peer.m_dependencyHandle
@@ -10575,8 +11056,16 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                     object.m_readDependencyHandle, true)
                                 && validDependencyPeer(
                                     object.m_dependencyNodeHandle, false);
+                            const bool completeDependencyPrefix =
+                                data->sourceFormat == dx_source_format::DXF
+                                ? object.m_dependencyFieldsParsed
+                                : completePrefix(
+                                    DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency,
+                                    1u, 4u, 0u, 0);
                             if (!object.m_dependencyFieldsParsed
-                                || !object.m_dependencyWireComplete
+                                || (data->sourceFormat
+                                        != dx_source_format::DXF
+                                    && !object.m_dependencyWireComplete)
                                 || object.m_classVersion != 1u
                                 || object.m_dependencyOrder != 0
                                 || object.m_dependencyHandle == 0u
@@ -10585,9 +11074,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 || object.m_dependencyNamePresent
                                 || !object.m_dependencyName.empty()
                                 || !completeValueDependency(object)
-                                || !completePrefix(
-                                    DRW_AssociativePrefixStatus::Kind::AcDbAssocDependency,
-                                    1u, 4u, 0u, 0)
+                                || !completeDependencyPrefix
                                 || (!ownerIsVariable && !ownerIsGroup)
                                 || !validActionOwner(ownerAction,
                                                      object.handle)
@@ -10595,7 +11082,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                     && ownerAction->m_maxDependencyIndex <= 0)
                                 || !isVariable(targetVariable)
                                 || !targetVariable->m_associativeVariableFieldsParsed
-                                || !targetVariable->m_associativeVariableWireComplete
+                                || (data->sourceFormat
+                                        != dx_source_format::DXF
+                                    && !targetVariable->m_associativeVariableWireComplete)
                                 || owningNetwork == nullptr
                                 || layoutSymbolKey(owningNetwork->m_recordName)
                                     != "ACDBASSOCNETWORK"
@@ -10616,8 +11105,53 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 || !validPeerLinks)
                                 return reject(
                                     ExtensionGraphFailure::InvalidGraph,
-                                    "ACDBASSOCVALUEDEPENDENCY is outside the fully consumed AC1024 group/variable-owned profile (handle "
-                                        + std::to_string(object.handle) + ")");
+                                    "ACDBASSOCVALUEDEPENDENCY profile mismatch: handle="
+                                    + std::to_string(object.handle)
+                                    + " dependencyParsed="
+                                    + std::to_string(object.m_dependencyFieldsParsed)
+                                    + " dependencyWire="
+                                    + std::to_string(object.m_dependencyWireComplete)
+                                    + " actionPrefix="
+                                    + std::to_string(object.m_actionPrefixParsed)
+                                    + " dependencyClass="
+                                    + std::to_string(object.m_classVersion)
+                                    + " order="
+                                    + std::to_string(object.m_dependencyOrder)
+                                    + " target="
+                                    + std::to_string(object.m_dependencyHandle)
+                                    + " valueParsed="
+                                    + std::to_string(object.m_valueDependencyFieldsParsed)
+                                    + " ownerVariable="
+                                    + std::to_string(ownerIsVariable)
+                                    + " ownerGroup="
+                                    + std::to_string(ownerIsGroup)
+                                    + " ownerValid="
+                                    + std::to_string(validActionOwner(
+                                        ownerAction, object.handle))
+                                    + " targetVariable="
+                                    + std::to_string(isVariable(targetVariable))
+                                    + " targetParsed="
+                                    + std::to_string(targetVariable != nullptr
+                                        && targetVariable->m_associativeVariableFieldsParsed)
+                                    + " network="
+                                    + std::to_string(ownerNetworkHandle)
+                                    + " networkParsed="
+                                    + std::to_string(owningNetwork != nullptr
+                                        && owningNetwork->m_networkFieldsParsed)
+                                    + " ownerMember="
+                                    + std::to_string(owningNetwork != nullptr
+                                        && ownerAction != nullptr
+                                        ? countOwnedAction(*owningNetwork,
+                                            ownerAction->handle) : 0)
+                                    + " targetMember="
+                                    + std::to_string(owningNetwork != nullptr
+                                        && targetVariable != nullptr
+                                        ? countOwnedAction(*owningNetwork,
+                                            targetVariable->handle) : 0)
+                                    + " backlinks="
+                                    + std::to_string(targetBacklinks)
+                                    + " peers="
+                                    + std::to_string(validPeerLinks));
                         } else {
                             return reject(ExtensionGraphFailure::InvalidGraph,
                                 "associative record has no admitted AC1024 writer profile");
@@ -11272,13 +11806,41 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                         && entry.m_entityFlagRaw == 0x1F3u;
                                 }
                             }
-                            if (data->sourceFormat != dx_source_format::DWG
+                            const bool dxfBlockRepresentationSource =
+                                data->sourceFormat == dx_source_format::DXF
+                                && data->sourceVersion == DRW::AC1024
+                                && hasCompleteDxfDynamicBlockCarrierPairs(
+                                    *data)
+                                && hasConsistentDxfCommonAppData(object);
+                            const bool dwgBlockRepresentationSource =
+                                data->sourceFormat == dx_source_format::DWG
+                                && rawSource
+                                    != data->m_opaqueDwgSourceFrames.end()
+                                && data->dwgClassCoverage.m_complete
+                                && data->dwgClassCoverage.m_status
+                                    == DRW_DwgClassCoverageStatus::FinalizedComplete
+                                && sourceClassMatches == 1u
+                                && sourceClassPublished
+                                && rawSource->second.m_version
+                                    == DRW::AC1024
+                                && rawSource->second.m_isCustomClass
+                                && rawSource->second.m_recordName
+                                    == "ACDB_BLOCKREPRESENTATION_DATA"
+                                && rawSource->second.m_className
+                                    == "AcDbBlockRepresentationData";
+                            if ((!dxfBlockRepresentationSource
+                                    && !dwgBlockRepresentationSource)
                                 || data->sourceVersion != DRW::AC1024
                                 || dictionaryKey != "ACDBREPDATA"
                                 || !object.bodyFullyDecoded()
                                 || object.parentHandle != frame.handle
                                 || object.xDictHandle != 0u
-                                || !object.appData.empty()
+                                || (data->sourceFormat
+                                        != dx_source_format::DXF
+                                    && !object.appData.empty())
+                                || (data->sourceFormat
+                                        == dx_source_format::DXF
+                                    && !hasConsistentDxfCommonAppData(object))
                                 || !object.extData.empty()
                                 || object.hasDataStorageBinaryData()
                                 || object.reactorHandles
@@ -11288,20 +11850,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 || blockRecordMatches != 1u
                                 || blockRecord == nullptr
                                 || blockDefinitionMatches != 1u
-                                || rawSource
-                                    == data->m_opaqueDwgSourceFrames.end()
-                                || !data->dwgClassCoverage.m_complete
-                                || data->dwgClassCoverage.m_status
-                                    != DRW_DwgClassCoverageStatus::FinalizedComplete
-                                || sourceClassMatches != 1u
-                                || !sourceClassPublished
-                                || rawSource->second.m_version
-                                    != DRW::AC1024
-                                || !rawSource->second.m_isCustomClass
-                                || rawSource->second.m_recordName
-                                    != "ACDB_BLOCKREPRESENTATION_DATA"
-                                || rawSource->second.m_className
-                                    != "AcDbBlockRepresentationData")
+                                || (!dxfBlockRepresentationSource
+                                    && !dwgBlockRepresentationSource))
                                 return reject(
                                     ExtensionGraphFailure::InvalidGraph,
                                     "BLOCKREPRESENTATIONDATA is outside the complete AC1024 AcDbRepData source profile (body="
@@ -11625,6 +12175,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         const auto visitOwnerExtension = [&](
                 ExtensionDictionaryOwnerSource::Kind kind,
                 const auto& owner) {
+            activeGraphHandle = owner.handle;
+            activeGraphPhase = "owner extension lookup";
             if (owner.xDictHandle == 0u)
                 return true;
             if (!examineSourceRecord() || !examineEdge())
@@ -12006,7 +12558,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             return std::any_of(data->blocks.begin(), data->blocks.end(),
                 contains);
         };
-        if (data->sourceFormat == dx_source_format::DWG
+        if ((data->sourceFormat == dx_source_format::DWG
+                || data->sourceFormat == dx_source_format::DXF)
             && data->sourceVersion == DRW::AC1024
             && data->hasNamedObjectDictionary) {
             for (const std::uint32_t handle : m_extensionXRecordHandles) {
@@ -12128,6 +12681,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                  &visitedSectionViewStyles, &visitedScales,
                  &visitedMLineStyles, &visitedMLeaderStyles,
                  &visitedRenderSettings, &visitedMaterials,
+                 &sourceContainsEntityHandle,
                  &unresolvedHandleTargetDetail,
                  &preservedAseHierarchyIndexDanglingTargets, data](
                     int code, std::uint64_t target) {
@@ -12157,7 +12711,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         || visitedDetailViewStyles.count(targetHandle) != 0
                         || visitedSectionViewStyles.count(targetHandle) != 0
                         || visitedRenderSettings.count(targetHandle) != 0
-                        || visitedMaterials.count(targetHandle) != 0;
+                        || visitedMaterials.count(targetHandle) != 0
+                        || (data->sourceFormat == dx_source_format::DXF
+                            && sourceContainsEntityHandle(targetHandle));
                     if (resolved
                         || preservedAseHierarchyIndexDanglingTargets.count(
                             targetHandle) != 0u)
@@ -15517,6 +16073,58 @@ void retainXRecordTyped(dx_data* data, const DRW_XRecord& record) {
     data->xRecordRetainedBytes += estimatedBytes;
 }
 
+void retainDxfXRecordCompatibilitySource(
+        dx_data* data, const DRW_XRecord& record) noexcept {
+    if (data == nullptr || data->sourceFormat != dx_source_format::DXF
+        || data->dxfXRecordCompatibilitySourceCaptureFailed)
+        return;
+    const auto& values = record.m_dataEntries.empty()
+        ? record.m_values : record.m_dataEntries;
+    const bool hasCompatibilityCode = std::any_of(
+        values.cbegin(), values.cend(), [](const DRW_Variant& value) {
+            return isDxfXRecordDwgCompatibilityCode(value.code());
+        }) || std::any_of(record.m_handleValues.cbegin(),
+                          record.m_handleValues.cend(),
+            [](const std::pair<int, std::uint32_t>& value) {
+                return isDxfXRecordDwgCompatibilityCode(value.first);
+            });
+    if (!hasCompatibilityCode)
+        return;
+
+    constexpr std::size_t listNodeLinkBytes = 2u * sizeof(void*);
+    std::size_t modelBytes = 0u;
+    std::size_t itemCount = 0u;
+    const auto reject = [data]() {
+        data->dxfXRecordCompatibilitySourceCaptureFailed = true;
+    };
+    if (data->importGeneration == 0u
+        || data->dxfXRecordCompatibilitySources.size()
+            >= kMaxAdapterXRecordRecords
+        || !estimateXRecordTypedBytes(record, modelBytes, itemCount)
+        || modelBytes < sizeof(DRW_XRecord)) {
+        reject();
+        return;
+    }
+    const std::size_t retainedBytes =
+        modelBytes - sizeof(DRW_XRecord)
+        + sizeof(dx_dxfXRecordCompatibilitySource) + listNodeLinkBytes;
+    if (data->dxfXRecordCompatibilitySourceBytes
+            > kMaxAdapterXRecordRetainedBytes
+        || retainedBytes > kMaxAdapterXRecordRetainedBytes
+                - data->dxfXRecordCompatibilitySourceBytes) {
+        reject();
+        return;
+    }
+    try {
+        data->dxfXRecordCompatibilitySources.push_back(
+            dx_dxfXRecordCompatibilitySource{
+                data->importGeneration, record});
+        data->dxfXRecordCompatibilitySourceBytes += retainedBytes;
+    } catch (...) {
+        reject();
+    }
+}
+
 void retainMaterialTyped(dx_data* data, const DRW_Material& material) {
     constexpr std::size_t listNodeLinkBytes = 2u * sizeof(void*);
     if (data == nullptr || data->materialCaptureFailed)
@@ -16850,6 +17458,30 @@ bool associativeDimensionDependencyBodySourceModelEqual(
         && left.m_classVersion == right.m_classVersion
         && retainedAssociativePrefixStatusesEqual(
             left.m_prefixStatuses, right.m_prefixStatuses);
+}
+
+bool associativeDxfReplayModelEqual(
+        const DRW_AssociativeObject& left,
+        const DRW_AssociativeObject& right) noexcept {
+    if (left.m_recordName != right.m_recordName)
+        return false;
+    if (left.m_recordName == "ACDBASSOCNETWORK")
+        return associativeNetworkSourceModelEqual(left, right);
+    if (left.m_recordName == "ACDBASSOC2DCONSTRAINTGROUP")
+        return associativeConstraintGroupSourceModelEqual(left, right);
+    if (left.m_recordName == "ACDBASSOCVARIABLE")
+        return associativeVariableSourceModelEqual(left, right);
+    if (left.m_recordName == "ACDBASSOCGEOMDEPENDENCY")
+        return retainedAssociativeGeometrySourceEqual(left, right);
+    if (left.m_recordName == "ACDBASSOCVALUEDEPENDENCY")
+        return retainedAssociativeValueSourceEqual(left, right);
+    if (left.m_recordName == "ACDBASSOCDEPENDENCY")
+        return associativeDimensionDependencySourceModelEqual(left, right);
+    if (left.m_recordName == "ASSOCDIMDEPENDENCYBODY"
+        || left.m_recordName == "ACDBASSOCDIMDEPENDENCYBODY")
+        return associativeDimensionDependencyBodySourceModelEqual(
+            left, right);
+    return false;
 }
 
 bool visualStyleModelEqual(const DRW_VisualStyle& lhs,
@@ -22312,6 +22944,61 @@ bool dx_iface::hasUnchangedXrecordWriteSources() const noexcept {
             || !standardDwgModelsEqual(m_xrecordWriteDictionaries[next++],dictionary,m_xrecordWriteSourceVersion,dwgObjType::DICTIONARY)) return false;
     }
     return next == m_xrecordWriteDictionaries.size();
+}
+
+bool dx_iface::isDxfXRecordCompatibilityReplaySource(
+        const DRW_XRecord& record) const noexcept {
+    const auto reject = [&record](const char* reason) {
+        std::cerr << "DXF XRECORD compatibility replay refused: handle="
+                  << record.handle << " reason=" << reason << '\n';
+        return false;
+    };
+    if (cData == nullptr || dxfW == nullptr
+        || cData->sourceFormat != dx_source_format::DXF
+        || cData->sourceVersion < DRW::AC1021
+        || cData->sourceVersion != dxfW->getVersion()
+        || !cData->dxfReadOutcome.attempted
+        || !cData->dxfReadOutcome.operationSucceeded
+        || cData->dxfReadOutcome.sourceVersion != cData->sourceVersion
+        || cData->dxfXRecordCompatibilitySourceCaptureFailed)
+        return reject("source version or parse-time capture");
+    const auto& values = record.m_dataEntries.empty()
+        ? record.m_values : record.m_dataEntries;
+    bool hasCompatibilityCode = false;
+    for (const DRW_Variant& value : values) {
+        if (!isDxfXRecordDwgCompatibilityCode(value.code()))
+            continue;
+        if (value.type() != DRW_Variant::INTEGER)
+            return reject("compatibility value is not an integer");
+        if (value.code() == 1070
+            && (value.i_val() < std::numeric_limits<std::int16_t>::min()
+                || value.i_val()
+                    > std::numeric_limits<std::int16_t>::max()))
+            return reject("1070 value is outside Int16 range");
+        hasCompatibilityCode = true;
+    }
+    for (const auto& value : record.m_handleValues)
+        if (isDxfXRecordDwgCompatibilityCode(value.first))
+            return reject("compatibility group is stored as a handle");
+    if (!hasCompatibilityCode)
+        return reject("record has no compatibility values");
+
+    const dx_dxfXRecordCompatibilitySource* selected = nullptr;
+    std::size_t matches = 0u;
+    for (const dx_dxfXRecordCompatibilitySource& source :
+         cData->dxfXRecordCompatibilitySources) {
+        if (source.generation != cData->importGeneration
+            || source.model.handle != record.handle)
+            continue;
+        selected = &source;
+        ++matches;
+    }
+    if (matches != 1u || selected == nullptr)
+        return reject("no unique parse-time source snapshot");
+    if (!standardDwgModelsEqual(selected->model, record,
+            cData->sourceVersion, dwgObjType::XRECORD))
+        return reject("current model differs from parse-time source");
+    return true;
 }
 
 bool dx_iface::prepareDxfMaterialSources(DRW::Version version,bool binary) {
@@ -37246,7 +37933,471 @@ bool sameDwgDynamicSourceFrame(const DRW_UnsupportedObject& a,
         && a.m_classUnknown2 == b.m_classUnknown2;
 }
 
+bool dxfDynamicReplayModelEqual(const DRW_DynamicBlockObject& left,
+                                const DRW_DynamicBlockObject& right) noexcept {
+    return standardDwgCommonEqual(left, right, DRW::AC1024)
+        && left.m_recordName == right.m_recordName
+        && left.m_kind == right.m_kind
+        && left.m_evalExprParsed == right.m_evalExprParsed
+        && left.m_parentId == right.m_parentId
+        && left.m_major == right.m_major
+        && left.m_minor == right.m_minor
+        && left.m_valueCode == right.m_valueCode
+        && retainedDoubleEqual(left.m_valueDouble, right.m_valueDouble)
+        && left.m_hasValueDouble == right.m_hasValueDouble
+        && left.m_valueHandle == right.m_valueHandle
+        && left.m_nodeId == right.m_nodeId
+        && left.m_purgeFlag == right.m_purgeFlag
+        && left.m_purgeBlockHandle == right.m_purgeBlockHandle
+        && left.m_bodyFullyDecoded == right.m_bodyFullyDecoded;
+}
+
 } // namespace
+
+bool dx_iface::prepareDxfDynamicBlockReplaySources(
+        DRW::Version version, bool debug) noexcept {
+    const auto reject = [debug](const char* reason) {
+        if (debug)
+            std::cerr << "DXF dynamic-block replay preparation rejected: "
+                      << reason << '\n';
+        return false;
+    };
+    if (cData == nullptr || cData->sourceFormat != dx_source_format::DXF
+        || cData->dynamicBlockObjects.empty()) {
+        m_dxfDynamicBlockReplaySources.clear();
+        m_dxfDynamicReplayOwner = nullptr;
+        m_dxfDynamicReplayGeneration = 0u;
+        m_dxfDynamicReplayVersion = DRW::UNKNOWNV;
+        m_dxfDynamicReplayPrepared = false;
+        m_dxfDynamicReplayInspected = false;
+        return true;
+    }
+    if (m_dxfDynamicReplayPrepared
+        && m_dxfDynamicReplayOwner == cData
+        && m_dxfDynamicReplayGeneration == cData->importGeneration
+        && m_dxfDynamicReplayVersion == version
+        && hasUnchangedDxfDynamicBlockReplaySources())
+        return true;
+
+    m_dxfDynamicBlockReplaySources.clear();
+    m_dxfDynamicReplayOwner = nullptr;
+    m_dxfDynamicReplayGeneration = 0u;
+    m_dxfDynamicReplayVersion = DRW::UNKNOWNV;
+    m_dxfDynamicReplayPrepared = false;
+    m_dxfDynamicReplayInspected = false;
+    if (version != cData->sourceVersion)
+        return reject("target version differs from imported DXF version");
+    if (!hasCompleteDxfDynamicBlockCarrierPairs(*cData)) {
+        if (debug)
+            std::cerr << "  dynamic carriers typed="
+                      << cData->dynamicBlockObjects.size()
+                      << " raw=" << cData->rawDynamicBlockObjects.size()
+                      << " typed-failed="
+                      << (cData->dynamicBlockCaptureFailed ? 1 : 0)
+                      << " raw-failed="
+                      << (cData->rawDynamicBlockCaptureFailed ? 1 : 0)
+                      << " version="
+                      << static_cast<int>(cData->sourceVersion) << '\n';
+        return reject("dynamic typed/raw carrier identity");
+    }
+    if (!hasClosedDynamicBlockOutputProfile(*cData)) {
+        if (debug) {
+            std::size_t incompleteTypedBodies = 0u;
+            for (const DRW_DynamicBlockObject& object :
+                 cData->dynamicBlockObjects) {
+                if (object.m_bodyFullyDecoded)
+                    continue;
+                ++incompleteTypedBodies;
+                std::cerr << "  incomplete typed dynamic body handle="
+                          << object.handle << " name=" << object.m_recordName
+                          << " kind=" << static_cast<int>(object.m_kind)
+                          << '\n';
+            }
+            std::cerr << "  dynamic output profile details: graph-set="
+                      << (hasCompleteAc1024DynamicBlockGraphSet(
+                              *cData, true)
+                            ? 1 : 0)
+                      << " title-block="
+                      << (hasCompleteAc1024TitleBlockVisibilityProfile(
+                              *cData) ? 1 : 0)
+                      << " incomplete-typed-bodies=" << incompleteTypedBodies
+                      << " dictionaries=" << cData->dictionaries.size()
+                      << " graphs=" << cData->evaluationGraphs.size()
+                      << " associative="
+                      << cData->associativeObjects.size() << '\n';
+        }
+        return reject("closed dynamic-block output profile");
+    }
+    try {
+        std::size_t retainedBytes = 0u;
+        std::unordered_map<std::uint32_t,
+            const DRW_DynamicBlockObject*> typedByHandle;
+        typedByHandle.reserve(cData->dynamicBlockObjects.size());
+        for (const DRW_DynamicBlockObject& model :
+             cData->dynamicBlockObjects)
+            if (!typedByHandle.emplace(model.handle, &model).second)
+                return reject("duplicate typed dynamic-block handle");
+        std::unordered_set<std::uint32_t> blockRepresentationHandles;
+        blockRepresentationHandles.reserve(
+            cData->blockRepresentationData.size());
+        for (const DRW_BlockRepresentationData& object :
+             cData->blockRepresentationData)
+            if (!blockRepresentationHandles.insert(object.handle).second)
+                return reject("duplicate typed block-representation handle");
+        m_dxfDynamicBlockReplaySources.reserve(
+            cData->rawDynamicBlockObjects.size());
+        for (const DRW_RawDxfObject& raw :
+             cData->rawDynamicBlockObjects) {
+            const auto typed = typedByHandle.find(raw.handle);
+            const bool hasTypedModel = typed != typedByHandle.end();
+            const bool hasBlockRepresentationModel =
+                blockRepresentationHandles.count(raw.handle) != 0u;
+            if (hasTypedModel && hasBlockRepresentationModel)
+                return reject("ambiguous typed dynamic/block-representation identity");
+            std::size_t typedBytes = 0u;
+            std::size_t rawBytes = 0u;
+            if ((hasTypedModel
+                    && !estimateDynamicBlockTypedBytes(
+                        *typed->second, typedBytes))
+                || !estimateRawDxfObjectListNodeBytes(raw, rawBytes)
+                || typedBytes > kMaxAdapterDynamicBlockRetainedBytes
+                    - retainedBytes
+                || rawBytes > kMaxAdapterDynamicBlockRetainedBytes
+                    - retainedBytes - typedBytes)
+                return reject("bounded dynamic typed/raw source snapshot");
+            retainedBytes += typedBytes + rawBytes;
+            m_dxfDynamicBlockReplaySources.push_back(
+                DxfDynamicBlockReplaySource{
+                    hasTypedModel,
+                    hasBlockRepresentationModel,
+                    hasTypedModel ? *typed->second
+                                  : DRW_DynamicBlockObject{},
+                    raw});
+            if (debug && !hasTypedModel
+                && !hasBlockRepresentationModel) {
+                std::cerr << "  raw-only dynamic carrier handle="
+                          << raw.handle << " name=" << raw.name
+                          << " translated-codes=";
+                bool first = true;
+                for (const DRW_Variant& group : raw.groups) {
+                    if (!isDxfTranslatedHandleCode(group.code()))
+                        continue;
+                    std::cerr << (first ? "" : ",") << group.code();
+                    first = false;
+                }
+                std::cerr << '\n';
+            }
+        }
+        if (typedByHandle.size() != cData->dynamicBlockObjects.size())
+            return reject("typed dynamic-block handle inventory");
+        m_dxfDynamicReplayOwner = cData;
+        m_dxfDynamicReplayGeneration = cData->importGeneration;
+        m_dxfDynamicReplayVersion = version;
+        m_dxfDynamicReplayPrepared = true;
+        return true;
+    } catch (...) {
+        m_dxfDynamicBlockReplaySources.clear();
+        m_dxfDynamicReplayOwner = nullptr;
+        m_dxfDynamicReplayGeneration = 0u;
+        m_dxfDynamicReplayVersion = DRW::UNKNOWNV;
+        m_dxfDynamicReplayPrepared = false;
+        return reject("bounded source snapshot allocation");
+    }
+}
+
+bool dx_iface::hasUnchangedDxfDynamicBlockReplaySources() const noexcept {
+    if (!m_dxfDynamicReplayPrepared)
+        return m_dxfDynamicBlockReplaySources.empty();
+    if (cData == nullptr || cData != m_dxfDynamicReplayOwner
+        || cData->sourceFormat != dx_source_format::DXF
+        || cData->importGeneration != m_dxfDynamicReplayGeneration
+        || cData->sourceVersion != m_dxfDynamicReplayVersion
+        || cData->rawDynamicBlockObjects.size()
+            != m_dxfDynamicBlockReplaySources.size())
+        return false;
+    try {
+        std::unordered_map<std::uint32_t,
+            const DRW_DynamicBlockObject*> typedByHandle;
+        typedByHandle.reserve(cData->dynamicBlockObjects.size());
+        for (const DRW_DynamicBlockObject& model :
+             cData->dynamicBlockObjects)
+            if (!typedByHandle.emplace(model.handle, &model).second)
+                return false;
+        std::size_t typedSnapshots = 0u;
+        for (std::size_t index = 0u;
+             index < m_dxfDynamicBlockReplaySources.size(); ++index) {
+            const DxfDynamicBlockReplaySource& source =
+                m_dxfDynamicBlockReplaySources[index];
+            if (!retainedRawDxfObjectsEqual(
+                    source.raw, cData->rawDynamicBlockObjects[index]))
+                return false;
+            const auto typed = typedByHandle.find(source.raw.handle);
+            if (source.hasTypedModel) {
+                if (typed == typedByHandle.end()
+                    || !dxfDynamicReplayModelEqual(
+                        source.model, *typed->second))
+                    return false;
+                ++typedSnapshots;
+            } else if (typed != typedByHandle.end()) {
+                return false;
+            }
+        }
+        std::size_t blockRepresentationSnapshots = 0u;
+        std::unordered_set<std::uint32_t> blockRepresentationHandles;
+        blockRepresentationHandles.reserve(
+            cData->blockRepresentationData.size());
+        for (const DRW_BlockRepresentationData& object :
+             cData->blockRepresentationData)
+            if (!blockRepresentationHandles.insert(object.handle).second)
+                return false;
+        for (const DxfDynamicBlockReplaySource& source :
+             m_dxfDynamicBlockReplaySources) {
+            const bool hasBlockRepresentationModel =
+                blockRepresentationHandles.count(source.raw.handle) != 0u;
+            if (hasBlockRepresentationModel
+                != source.hasBlockRepresentationModel)
+                return false;
+            if (hasBlockRepresentationModel)
+                ++blockRepresentationSnapshots;
+        }
+        return typedSnapshots == cData->dynamicBlockObjects.size()
+            && blockRepresentationSnapshots
+                == cData->blockRepresentationData.size();
+    } catch (...) {
+        return false;
+    }
+}
+
+bool dx_iface::prepareDxfAssociativeReplaySources(
+        DRW::Version version, bool debug) noexcept {
+    const auto reject = [debug](const char* reason) {
+        if (debug)
+            std::cerr << "DXF associative replay preparation rejected: "
+                      << reason << '\n';
+        return false;
+    };
+    if (cData == nullptr || cData->sourceFormat != dx_source_format::DXF
+        || cData->dynamicBlockObjects.empty()
+        || cData->associativeObjects.empty()) {
+        m_dxfAssociativeReplaySources.clear();
+        m_dxfAssociativeReplayOwner = nullptr;
+        m_dxfAssociativeReplayGeneration = 0u;
+        m_dxfAssociativeReplayVersion = DRW::UNKNOWNV;
+        m_dxfAssociativeReplayPreparedRecords = 0u;
+        m_dxfAssociativeReplayPrepared = false;
+        m_dxfAssociativeReplayInspected = false;
+        return true;
+    }
+    if (m_dxfAssociativeReplayPrepared
+        && m_dxfAssociativeReplayOwner == cData
+        && m_dxfAssociativeReplayGeneration == cData->importGeneration
+        && m_dxfAssociativeReplayVersion == version
+        && hasUnchangedDxfAssociativeReplaySources())
+        return true;
+
+    m_dxfAssociativeReplaySources.clear();
+    m_dxfAssociativeReplayOwner = nullptr;
+    m_dxfAssociativeReplayGeneration = 0u;
+    m_dxfAssociativeReplayVersion = DRW::UNKNOWNV;
+    m_dxfAssociativeReplayPreparedRecords = 0u;
+    m_dxfAssociativeReplayPrepared = false;
+    m_dxfAssociativeReplayInspected = false;
+    if (version != cData->sourceVersion
+        || !hasCompleteDxfAssociativeCarrierPairs(*cData)
+        || !m_dxfDynamicReplayPrepared
+        || !hasCompleteAc1024DynamicBlockGraphSet(*cData))
+        return reject("same-version typed/raw identity or complete dynamic graph");
+    try {
+        std::size_t retainedBytes = 0u;
+        m_dxfAssociativeReplaySources.reserve(
+            cData->associativeObjects.size());
+        for (std::size_t index = 0u;
+             index < cData->associativeObjects.size(); ++index) {
+            const DRW_AssociativeObject& model =
+                cData->associativeObjects[index];
+            const DRW_RawDxfObject& raw =
+                cData->rawAssociativeObjects[index];
+            if (!associativeDxfReplayModelEqual(model, model))
+                return reject("unsupported associative typed profile");
+            std::size_t typedBytes = 0u;
+            std::size_t rawBytes = 0u;
+            if (!estimateAssociativeTypedBytes(model, typedBytes)
+                || !estimateRawDxfObjectListNodeBytes(raw, rawBytes)
+                || typedBytes > kMaxAssociativeDxfRetainedBytes
+                    - retainedBytes
+                || rawBytes > kMaxAssociativeDxfRetainedBytes
+                    - retainedBytes - typedBytes)
+                return reject("bounded associative typed/raw source snapshot");
+            retainedBytes += typedBytes + rawBytes;
+            m_dxfAssociativeReplaySources.push_back(
+                DxfAssociativeReplaySource{model, raw});
+        }
+        m_dxfAssociativeReplayOwner = cData;
+        m_dxfAssociativeReplayGeneration = cData->importGeneration;
+        m_dxfAssociativeReplayVersion = version;
+        m_dxfAssociativeReplayPreparedRecords =
+            m_dxfAssociativeReplaySources.size();
+        m_dxfAssociativeReplayPrepared = true;
+        return true;
+    } catch (...) {
+        m_dxfAssociativeReplaySources.clear();
+        m_dxfAssociativeReplayOwner = nullptr;
+        m_dxfAssociativeReplayGeneration = 0u;
+        m_dxfAssociativeReplayVersion = DRW::UNKNOWNV;
+        m_dxfAssociativeReplayPreparedRecords = 0u;
+        m_dxfAssociativeReplayPrepared = false;
+        return reject("bounded source snapshot allocation");
+    }
+}
+
+bool dx_iface::hasUnchangedDxfAssociativeReplaySources() const noexcept {
+    if (!m_dxfAssociativeReplayPrepared)
+        return m_dxfAssociativeReplaySources.empty();
+    if (cData == nullptr || cData != m_dxfAssociativeReplayOwner
+        || cData->sourceFormat != dx_source_format::DXF
+        || cData->importGeneration != m_dxfAssociativeReplayGeneration
+        || cData->sourceVersion != m_dxfAssociativeReplayVersion
+        || cData->associativeObjects.size()
+            != m_dxfAssociativeReplaySources.size()
+        || cData->rawAssociativeObjects.size()
+            != m_dxfAssociativeReplaySources.size())
+        return false;
+    for (std::size_t index = 0u;
+         index < m_dxfAssociativeReplaySources.size(); ++index) {
+        const DxfAssociativeReplaySource& source =
+            m_dxfAssociativeReplaySources[index];
+        if (!associativeDxfReplayModelEqual(
+                source.model, cData->associativeObjects[index])
+            || !retainedRawDxfObjectsEqual(
+                source.raw, cData->rawAssociativeObjects[index]))
+            return false;
+    }
+    return true;
+}
+
+bool dx_iface::inspectDxfDynamicBlockReplay(
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept {
+    m_dxfDynamicReplayInspected = false;
+    if (!m_dxfDynamicReplayPrepared)
+        return true;
+    const auto reject = [debug](const char* reason) {
+        if (debug)
+            std::cerr << "DXF dynamic-block replay output rejected: "
+                      << reason << '\n';
+        return false;
+    };
+    if (dxfW == nullptr || cData == nullptr
+        || view.version != m_dxfDynamicReplayVersion
+        || !hasUnchangedDxfDynamicBlockReplaySources())
+        return reject("source snapshot/version");
+    try {
+        std::unordered_map<std::uint32_t,
+            const DxfDynamicBlockReplaySource*> expected;
+        expected.reserve(m_dxfDynamicBlockReplaySources.size());
+        for (const DxfDynamicBlockReplaySource& source :
+             m_dxfDynamicBlockReplaySources)
+            if (!expected.emplace(source.raw.handle, &source).second)
+                return reject("duplicate source identity");
+        std::unordered_set<std::uint32_t> seen;
+        seen.reserve(expected.size());
+        std::string_view selectedName;
+        const auto mapHandle = [this](std::uint32_t source,
+                                      std::uint32_t& emitted) {
+            emitted = source == 0u || source == DRW::NoHandle
+                ? source : dxfW->remapHandle(source);
+            if (emitted == 0u || emitted == DRW::NoHandle)
+                return source == emitted;
+            return dxfW->dxfWriteRecordHandleCount(emitted) == 1u;
+        };
+        const auto inspectRecord = [&](const dx_standard_output::Shape& shape,
+                                       std::string_view body) {
+            const auto found = expected.find(shape.handle);
+            if (found == expected.end()
+                || found->second->raw.name != selectedName
+                || !seen.insert(shape.handle).second
+                || !dx_standard_output::rawScalarTransportEqual(
+                    found->second->raw.groups, body, view, mapHandle,
+                    false, DRW::kMaxDxfBinaryPayloadBytes, false,
+                    dx_standard_output::RawHandleTransport::ObjectScopes))
+                return false;
+            return true;
+        };
+        if (!dx_standard_output::inspectSelected(view,
+                [&selectedName](std::string_view name, std::uint32_t) {
+                    selectedName = name;
+                    const UTF8STRING recordName(name.data(), name.size());
+                    return DRW_DynamicBlockObject::isDynamicBlockRecName(
+                        recordName);
+                }, inspectRecord)
+            || seen.size() != expected.size())
+            return reject("exact staged dynamic bodies and references");
+        m_dxfDynamicReplayInspected = true;
+        return true;
+    } catch (...) {
+        return reject("bounded staged inspection");
+    }
+}
+
+bool dx_iface::inspectDxfAssociativeReplay(
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept {
+    m_dxfAssociativeReplayInspected = false;
+    if (!m_dxfAssociativeReplayPrepared)
+        return true;
+    const auto reject = [debug](const char* reason) {
+        if (debug)
+            std::cerr << "DXF associative replay output rejected: "
+                      << reason << '\n';
+        return false;
+    };
+    if (dxfW == nullptr || cData == nullptr
+        || view.version != m_dxfAssociativeReplayVersion
+        || !hasUnchangedDxfAssociativeReplaySources())
+        return reject("source snapshot/version");
+    try {
+        std::unordered_map<std::uint32_t,
+            const DxfAssociativeReplaySource*> expected;
+        expected.reserve(m_dxfAssociativeReplaySources.size());
+        for (const DxfAssociativeReplaySource& source :
+             m_dxfAssociativeReplaySources)
+            if (!expected.emplace(source.raw.handle, &source).second)
+                return reject("duplicate source identity");
+        std::unordered_set<std::uint32_t> seen;
+        seen.reserve(expected.size());
+        std::string_view selectedName;
+        const auto mapHandle = [this](std::uint32_t source,
+                                      std::uint32_t& emitted) {
+            emitted = source == 0u || source == DRW::NoHandle
+                ? source : dxfW->remapHandle(source);
+            if (emitted == 0u || emitted == DRW::NoHandle)
+                return source == emitted;
+            return dxfW->dxfWriteRecordHandleCount(emitted) == 1u;
+        };
+        const auto inspectRecord = [&](const dx_standard_output::Shape& shape,
+                                       std::string_view body) {
+            const auto found = expected.find(shape.handle);
+            if (found == expected.end()
+                || found->second->raw.name != selectedName
+                || !seen.insert(shape.handle).second
+                || !dx_standard_output::rawScalarTransportEqual(
+                    found->second->raw.groups, body, view, mapHandle,
+                    false, DRW::kMaxDxfBinaryPayloadBytes, false,
+                    dx_standard_output::RawHandleTransport::ObjectScopes))
+                return false;
+            return true;
+        };
+        if (!dx_standard_output::inspectSelected(view,
+                [&selectedName](std::string_view name, std::uint32_t) {
+                    selectedName = name;
+                    return isDxfDynamicReplayAssociativeName(name);
+                }, inspectRecord)
+            || seen.size() != expected.size())
+            return reject("exact staged associative bodies and references");
+        m_dxfAssociativeReplayInspected = true;
+        return true;
+    } catch (...) {
+        return reject("bounded staged inspection");
+    }
+}
 
 bool dx_iface::prepareDwgDynamicBlockOutputSources(bool debug) noexcept {
     m_dwgDynamicBlockOutputSources.clear();
@@ -40133,8 +41284,12 @@ bool dx_iface::inspectDwgBlockRepresentationDataOutput(
     if (m_extensionBlockRepresentationDataHandles.empty())
         return m_extensionBlockRepresentationDataSources.empty()
             || reject("empty selected handles with nonempty snapshots");
+    const bool dwgSource = cData != nullptr
+        && cData->sourceFormat == dx_source_format::DWG;
+    const bool dxfSource = cData != nullptr
+        && cData->sourceFormat == dx_source_format::DXF;
     if (dxfW == nullptr || cData == nullptr
-        || cData->sourceFormat != dx_source_format::DWG
+        || (!dwgSource && !dxfSource)
         || cData->sourceVersion != DRW::AC1024
         || view.version != DRW::AC1024
         || m_extensionBlockRepresentationDataHandles.size()
@@ -40217,30 +41372,40 @@ bool dx_iface::inspectDwgBlockRepresentationDataOutput(
                 || current->parentHandle == 0u
                 || current->parentHandle == DRW::NoHandle
                 || current->xDictHandle != 0u
-                || !current->appData.empty() || !current->extData.empty()
+                || (dwgSource && !current->appData.empty())
+                || (dxfSource
+                    && !hasConsistentDxfCommonAppData(*current))
+                || !current->extData.empty()
                 || current->hasDataStorageBinaryData()
                 || current->reactorHandles
                     != std::vector<std::uint32_t>{
                         static_cast<std::uint32_t>(current->parentHandle)})
                 return reject("typed callback changed or has invalid common/body fields");
 
-            const dx_data::StandardDwgFrameKey sourceKey{
-                cData->importGeneration, source.handle};
-            const auto raw = cData->m_opaqueDwgSourceFrames.find(sourceKey);
-            if (raw == cData->m_opaqueDwgSourceFrames.end()
-                || raw->second.m_handle != source.handle
-                || raw->second.m_version != DRW::AC1024
-                || !raw->second.m_isCustomClass
-                || raw->second.m_recordName
-                    != "ACDB_BLOCKREPRESENTATION_DATA"
-                || raw->second.m_className
-                    != "AcDbBlockRepresentationData"
-                || raw->second.m_objectType < 500
-                || raw->second.m_objectType
-                    > std::numeric_limits<std::uint16_t>::max()
-                || !matchesSourceClassTable(raw->second)
-                || raw->second.m_parentHandle != current->parentHandle)
-                return reject("captured source class/frame identity changed");
+            if (dwgSource) {
+                const dx_data::StandardDwgFrameKey sourceKey{
+                    cData->importGeneration, source.handle};
+                const auto raw = cData->m_opaqueDwgSourceFrames.find(
+                    sourceKey);
+                if (raw == cData->m_opaqueDwgSourceFrames.end()
+                    || raw->second.m_handle != source.handle
+                    || raw->second.m_version != DRW::AC1024
+                    || !raw->second.m_isCustomClass
+                    || raw->second.m_recordName
+                        != "ACDB_BLOCKREPRESENTATION_DATA"
+                    || raw->second.m_className
+                        != "AcDbBlockRepresentationData"
+                    || raw->second.m_objectType < 500
+                    || raw->second.m_objectType
+                        > std::numeric_limits<std::uint16_t>::max()
+                    || !matchesSourceClassTable(raw->second)
+                    || raw->second.m_parentHandle
+                        != current->parentHandle)
+                    return reject(
+                        "captured source class/frame identity changed");
+            } else if (!hasCompleteDxfDynamicBlockCarrierPairs(*cData)) {
+                return reject("captured DXF source carrier identity changed");
+            }
         }
 
         std::size_t outputRecords = 0u;
@@ -40422,10 +41587,12 @@ bool dx_iface::inspectDwgBlockRepresentationDataOutput(
                 != m_extensionBlockRepresentationDataSources.size())
             return reject("staged record fields, source identity, owner, or BLOCK_RECORD target did not match");
 
-        for (const DRW_BlockRepresentationData& source :
-             m_extensionBlockRepresentationDataSources) {
-            if (!recordOpaqueDwgOutputQualification(source.handle))
-                return reject("opaque source-frame output qualification could not be recorded");
+        if (dwgSource) {
+            for (const DRW_BlockRepresentationData& source :
+                 m_extensionBlockRepresentationDataSources) {
+                if (!recordOpaqueDwgOutputQualification(source.handle))
+                    return reject("opaque source-frame output qualification could not be recorded");
+            }
         }
         m_extensionBlockRepresentationDataOutputInspected = true;
         return true;
@@ -40444,7 +41611,9 @@ bool dx_iface::finalizeDwgBlockRepresentationDataOutput() const noexcept {
     if (m_extensionBlockRepresentationDataHandles.empty())
         return m_extensionBlockRepresentationDataSources.empty();
     if (!m_extensionBlockRepresentationDataOutputInspected || dxfW == nullptr
-        || cData == nullptr || cData->sourceFormat != dx_source_format::DWG
+        || cData == nullptr
+        || (cData->sourceFormat != dx_source_format::DWG
+            && cData->sourceFormat != dx_source_format::DXF)
         || cData->sourceVersion != DRW::AC1024
         || m_extensionBlockRepresentationDataHandles.size()
             != m_extensionBlockRepresentationDataSources.size())
@@ -53094,6 +54263,7 @@ void dx_iface::addXRecord(const DRW_XRecord& data) {
     retainTableResource(dx_tableResourceFamily::XRecord,data);
     observeResourceOrigin(&data,nullptr);
     retainTableSourceXRecord(data);
+    retainDxfXRecordCompatibilitySource(cData, data);
     retainXRecordTyped(cData, data);
 }
 
@@ -54395,7 +55565,7 @@ void dx_iface::addRawDxfEntity(const DRW_RawDxfObject& data) {
     }
 }
 
-bool dx_iface::validateSortEntsGraph(const dx_data& data) {
+bool dx_iface::validateSortEntsGraph(const dx_data& data, bool debug) {
     constexpr std::size_t kMaxSourceRecords = 1000000u;
     constexpr std::size_t kMaxSortPairs = 1000000u;
     constexpr std::size_t kMaxRawGroups = 4000000u;
@@ -54407,9 +55577,10 @@ bool dx_iface::validateSortEntsGraph(const dx_data& data) {
     m_dwgSortEntsOutputGeneration = 0u;
     m_dwgSortEntsOutputInspected = false;
     std::string validationStage = "preconditions";
-    const auto reject = [this, &validationStage]() {
-        DRW_DBG("SORTENTSTABLE graph validation rejected at: "
-                + validationStage);
+    const auto reject = [this, &validationStage, debug]() {
+        if (debug)
+            std::cerr << "SORTENTSTABLE graph validation rejected at: "
+                      << validationStage << '\n';
         m_sortDictionaryHandles.clear();
         m_sortOwnerHandles.clear();
         m_sortEmissionTables.clear();
@@ -54468,9 +55639,59 @@ bool dx_iface::validateSortEntsGraph(const dx_data& data) {
         bool sawObjectClass = false;
         bool sawBlockOwner = false;
         bool pendingEntity = false;
+        bool sawReactors = false;
+        bool sawXDictionary = false;
         std::uint32_t pendingHandle = 0;
         std::size_t pairIndex = 0;
-        for (const DRW_Variant& group : raw.groups) {
+        for (std::size_t groupIndex = 0u;
+             groupIndex < raw.groups.size(); ++groupIndex) {
+            const DRW_Variant& group = raw.groups[groupIndex];
+            if (group.code() == 102) {
+                if (body || group.type() != DRW_Variant::STRING
+                    || group.content.s == nullptr)
+                    return false;
+                const std::string& marker = *group.content.s;
+                const bool reactors = marker == "{ACAD_REACTORS";
+                const bool xDictionary = marker == "{ACAD_XDICTIONARY";
+                if ((!reactors && !xDictionary)
+                    || (reactors && sawReactors)
+                    || (xDictionary && sawXDictionary))
+                    return false;
+                const int referenceCode = reactors ? 330 : 360;
+                std::vector<std::uint32_t> references;
+                bool closed = false;
+                for (++groupIndex; groupIndex < raw.groups.size();
+                     ++groupIndex) {
+                    const DRW_Variant& value = raw.groups[groupIndex];
+                    if (value.code() == 102) {
+                        if (value.type() != DRW_Variant::STRING
+                            || value.content.s == nullptr
+                            || *value.content.s != "}")
+                            return false;
+                        closed = true;
+                        break;
+                    }
+                    std::uint32_t handle = 0u;
+                    if (value.code() != referenceCode
+                        || !parseHandle(value, handle))
+                        return false;
+                    references.push_back(handle);
+                }
+                if (!closed)
+                    return false;
+                if (reactors) {
+                    if (references.empty()
+                        || references != table.reactorHandles)
+                        return false;
+                    sawReactors = true;
+                } else {
+                    if (references.size() != 1u
+                        || references.front() != table.xDictHandle)
+                        return false;
+                    sawXDictionary = true;
+                }
+                continue;
+            }
             if (group.code() == 100) {
                 if (group.type() != DRW_Variant::STRING
                     || group.c_str() == nullptr)
@@ -54784,10 +56005,38 @@ bool dx_iface::validateSortEntsGraph(const dx_data& data) {
                 || !sortHandles.insert(table.handle).second
                 || !sortOwners.insert(table.m_blockOwnerHandle).second
                 || entities.count(table.handle) != 0
-                || !table.appData.empty() || !table.extData.empty()
+                || (dwgSource && !table.appData.empty())
+                || (!dwgSource
+                    && !hasConsistentDxfCommonAppData(table))
+                || !table.extData.empty()
                 || table.reactorHandles.size() > 1u
-                || table.xDictHandle != 0)
+                || table.xDictHandle != 0) {
+                if (debug) {
+                    std::cerr << "  SORTENTSTABLE header details: handle="
+                              << table.handle << " parent="
+                              << table.parentHandle << " owner="
+                              << table.m_blockOwnerHandle << " pairs="
+                              << table.m_entityHandles.size() << '/'
+                              << table.m_sortHandles.size() << " appdata="
+                              << table.appData.size() << " extdata="
+                              << table.extData.size() << " reactors="
+                              << table.reactorHandles.size() << " xdict="
+                              << table.xDictHandle << '\n';
+                    for (const auto& group : table.appData) {
+                        std::cerr << "    appdata-group:";
+                        for (const DRW_Variant& value : group) {
+                            std::cerr << ' ' << value.code() << '=';
+                            if (value.type() == DRW_Variant::STRING
+                                && value.content.s)
+                                std::cerr << *value.content.s;
+                            else
+                                std::cerr << "<non-string>";
+                        }
+                        std::cerr << '\n';
+                    }
+                }
                 return reject();
+            }
             const DRW_DwgSortEntsMembership* dwgReceipt = nullptr;
             if (dwgSource) {
                 validationStage = "DWG table/receipt pair agreement";
@@ -54813,8 +56062,26 @@ bool dx_iface::validateSortEntsGraph(const dx_data& data) {
             validationStage = "DXF raw table companion agreement";
             const auto raw = rawByHandle.find(table.handle);
             if (raw != rawByHandle.end()) {
-                if (!rawMatchesTyped(*raw->second, table))
+                if (!rawMatchesTyped(*raw->second, table)) {
+                    if (debug) {
+                        std::cerr << "  SORTENTSTABLE raw mismatch handle="
+                                  << table.handle << " name="
+                                  << raw->second->name << " groups=";
+                        for (const DRW_Variant& group :
+                             raw->second->groups) {
+                            std::cerr << ' ' << group.code() << '=';
+                            if (group.type() == DRW_Variant::STRING
+                                && group.content.s)
+                                std::cerr << *group.content.s;
+                            else if (group.type() == DRW_Variant::INTEGER)
+                                std::cerr << group.i_val();
+                            else
+                                std::cerr << "<value>";
+                        }
+                        std::cerr << '\n';
+                    }
                     return reject();
+                }
                 rawByHandle.erase(raw);
             } else if (data.sourceFormat == dx_source_format::DXF) {
                 return reject();
@@ -54958,7 +56225,9 @@ bool dx_iface::validateSortEntsGraph(const dx_data& data) {
                     || nested->xDictHandle != 0
                     || nested->reactorHandles.size() != 1u
                     || nested->reactorHandles.front() != extension.handle
-                    || !nested->appData.empty()
+                    || (dwgSource && !nested->appData.empty())
+                    || (!dwgSource
+                        && !hasConsistentDxfCommonAppData(*nested))
                     || !nested->extData.empty()
                     || nested->m_entries.size() != 1u
                     || (dwgSource
@@ -54985,12 +56254,16 @@ bool dx_iface::validateSortEntsGraph(const dx_data& data) {
                         + std::to_string(nested->reactorHandles.front()));
                 validationStage =
                     "SORTENTSTABLE ACAD_ASSOCNETWORK typed nested-network route";
+                const std::vector<DRW_AssociativeObject>&
+                    associativeObjects = dwgSource
+                        ? data.dwgAssociativeObjects
+                        : data.associativeObjects;
                 const auto findAssociativeNetwork =
-                    [&data](std::uint32_t handle)
+                    [&associativeObjects](std::uint32_t handle)
                         -> const DRW_AssociativeObject* {
                     const DRW_AssociativeObject* result = nullptr;
                     for (const DRW_AssociativeObject& candidate :
-                         data.dwgAssociativeObjects) {
+                         associativeObjects) {
                         if (candidate.handle != handle
                             || layoutSymbolKey(candidate.m_recordName)
                                 != "ACDBASSOCNETWORK")
@@ -58698,6 +59971,12 @@ bool dx_iface::finalizeDxfWrite() {
         || !hasUnchangedDwgMLeaderStyleOutputSources()
         || !hasUnchangedDwgMLineStyleOutputSources()
         || !hasUnchangedDwgLayoutOutputSources()
+        || !hasUnchangedDxfDynamicBlockReplaySources()
+        || !hasUnchangedDxfAssociativeReplaySources()
+        || (m_dxfDynamicReplayPrepared
+            && !m_dxfDynamicReplayInspected)
+        || (m_dxfAssociativeReplayPrepared
+            && !m_dxfAssociativeReplayInspected)
         || !hasUnchangedDwgDynamicBlockOutputSources()
         || !finalizeDwgDynamicBlockOutput()
         || !finalizeDwgBlockRepresentationDataOutput()
@@ -60588,6 +61867,15 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         && cData->sourceFormat == dx_source_format::DWG;
     if (requireResolvedOwners
         && cData->sourceFormat == dx_source_format::DXF) {
+        if (!cData->dynamicBlockObjects.empty()
+            && (!prepareDxfDynamicBlockReplaySources(
+                    v, debug || requireResolvedOwners)
+                || !prepareDxfAssociativeReplaySources(
+                    v, debug || requireResolvedOwners))) {
+            reportPreflightFailure(
+                "same-version DXF dynamic/associative raw replay profile");
+            return false;
+        }
         const dx_associativeDxfImportReceipt& receipt =
             cData->associativeDxfImport;
         const std::size_t observed = std::max(
@@ -60608,7 +61896,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 && storedTyped == observed && storedRaw == observed;
             if (!receiptMatchesImport
                 || receipt.retainedRecords < observed
-                || receipt.qualifiedRecords < observed
+                || m_dxfAssociativeReplayPreparedRecords < observed
                 || receipt.resourceLimitExceeded || receipt.captureFailed) {
                 try {
                     std::cerr
@@ -61370,7 +62658,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         reportPreflightFailure(viewportProjectionFailure);
         return false;
     }
-    if (!validateSortEntsGraph(*cData)) {
+    if (!validateSortEntsGraph(*cData, debug || requireResolvedOwners)) {
         reportPreflightFailure("SORTENTSTABLE ownership/target graph validation");
         return false;
     }
@@ -61397,6 +62685,16 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         || cData->blockRepresentationDataCaptureFailed) {
         reportPreflightFailure(
             "typed named-object callback capture exceeded its bounded retention budget");
+        return false;
+    }
+    if (cData->sourceFormat == dx_source_format::DXF
+        && !cData->dynamicBlockObjects.empty()
+        && (!prepareDxfDynamicBlockReplaySources(
+                v, debug || requireResolvedOwners)
+            || !prepareDxfAssociativeReplaySources(
+                v, debug || requireResolvedOwners))) {
+        reportPreflightFailure(
+            "same-version DXF dynamic/associative raw replay profile");
         return false;
     }
     if (!hasClosedDynamicBlockOutputProfile(*cData)) {
@@ -61498,9 +62796,15 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     const bool hasDwgAssociativeObjects =
         cData->sourceFormat == dx_source_format::DWG
         && !cData->dwgAssociativeObjects.empty();
-    if (cData->sourceFormat == dx_source_format::DXF
+    const bool hasDxfAssociativeObjects =
+        cData->sourceFormat == dx_source_format::DXF
         && (!cData->associativeObjects.empty()
-            || !cData->rawAssociativeObjects.empty())) {
+            || !cData->rawAssociativeObjects.empty());
+    if (hasDxfAssociativeObjects
+        && (!m_dxfAssociativeReplayPrepared
+            || !hasUnchangedDxfAssociativeReplaySources()
+            || !hasCompleteDxfAssociativeCarrierPairs(*cData)
+            || !hasCompleteAc1024DynamicBlockGraphSet(*cData))) {
         reportPreflightFailure(
             "DXF-origin associative records have no admitted output graph route");
         return false;
@@ -61553,7 +62857,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     if (!prepareExtensionObjectGraph(cData, includeNamedObjectRoot)) {
         reportPreflightFailure("extension-object graph validation");
-        if (debug) {
+        if (debug || requireResolvedOwners) {
             std::cerr << "Extension graph diagnostic: " << extensionGraphFailureName()
                       << " nodes=" << m_extensionGraphStats.visitedNodes
                       << " edges=" << m_extensionGraphStats.examinedEdges
@@ -61643,14 +62947,38 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                     == DRW_DynamicBlockObject::Kind::PurgePreventer) {
                 blockHandle = object.m_purgeBlockHandle;
                 dictionaryHandle = object.parentHandle;
+                if (cData->sourceFormat == dx_source_format::DXF
+                    && blockHandle == 0u) {
+                    const DRW_Dictionary* owner = nullptr;
+                    std::size_t ownerCount = 0u;
+                    for (const DRW_Dictionary& candidate :
+                         cData->dictionaries) {
+                        if (candidate.handle != dictionaryHandle)
+                            continue;
+                        owner = &candidate;
+                        ++ownerCount;
+                    }
+                    if (ownerCount != 1u || owner == nullptr
+                        || owner->parentHandle == 0u
+                        || owner->parentHandle == DRW::NoHandle) {
+                        reportPreflightFailure(
+                            "DXF dynamic-block purge preventer has no unique dictionary-to-block projection during staging");
+                        return false;
+                    }
+                    blockHandle = owner->parentHandle;
+                }
             } else {
                 std::uint32_t graphHandle = object.parentHandle;
                 if (object.m_kind
                         == DRW_DynamicBlockObject::Kind::ParameterDependencyBody) {
+                    const auto& sourceAssociativeObjects =
+                        cData->sourceFormat == dx_source_format::DXF
+                        ? cData->associativeObjects
+                        : cData->dwgAssociativeObjects;
                     const DRW_AssociativeObject* dependency = nullptr;
                     std::size_t dependencyCount = 0u;
                     for (const DRW_AssociativeObject& candidate :
-                         cData->dwgAssociativeObjects) {
+                         sourceAssociativeObjects) {
                         if (candidate.handle != object.parentHandle)
                             continue;
                         dependency = &candidate;
@@ -62796,12 +64124,16 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             &associativeClassFailureDetail](
             std::vector<DRW_Class>& classes) {
         associativeClassFailureDetail.clear();
+        const auto& associativeRecords =
+            cData->sourceFormat == dx_source_format::DXF
+            ? cData->associativeObjects
+            : cData->dwgAssociativeObjects;
         std::map<std::string, std::size_t> counts;
         for (const std::uint32_t handle : m_extensionAssociativeHandles) {
             const DRW_AssociativeObject* selected = nullptr;
             std::size_t matches = 0u;
             for (const DRW_AssociativeObject& object :
-                 cData->dwgAssociativeObjects) {
+                 associativeRecords) {
                 if (object.handle != handle)
                     continue;
                 ++matches;
@@ -62845,7 +64177,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
 
         for (const auto& count : counts) {
             DRW_Class canonical;
-            if (count.first == "ASSOCDIMDEPENDENCYBODY") {
+            if (count.first == "ASSOCDIMDEPENDENCYBODY"
+                && cData->sourceFormat == dx_source_format::DWG) {
                 const DRW_DwgClassCoverageEntry* sourceClass = nullptr;
                 std::size_t sourceClassMatches = 0u;
                 for (const DRW_DwgClassCoverageEntry& entry :
@@ -62882,6 +64215,31 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 canonical.wasaProxyFlag = sourceClass->m_wasAProxyFlag;
                 canonical.entityFlag = sourceClass->m_entityFlag;
                 canonical.entityFlagRaw = sourceClass->m_entityFlagRaw;
+            } else if (count.first == "ASSOCDIMDEPENDENCYBODY"
+                && cData->sourceFormat == dx_source_format::DXF) {
+                const DRW_Class* sourceClass = nullptr;
+                std::size_t sourceClassMatches = 0u;
+                for (const DRW_Class& candidate : cData->dxfClasses) {
+                    if (candidate.recName != count.first)
+                        continue;
+                    sourceClass = &candidate;
+                    ++sourceClassMatches;
+                }
+                if (sourceClassMatches != 1u || sourceClass == nullptr
+                    || sourceClass->className
+                        != "AcDbAssocDimDependencyBody"
+                    || sourceClass->proxyFlag < 0
+                    || sourceClass->proxyFlag
+                        > std::numeric_limits<std::uint16_t>::max()
+                    || sourceClass->wasaProxyFlag < 0
+                    || sourceClass->wasaProxyFlag > 1
+                    || sourceClass->entityFlag < 0
+                    || sourceClass->entityFlag > 1) {
+                    associativeClassFailureDetail =
+                        "ASSOCDIMDEPENDENCYBODY lacks one complete source DXF CLASS row";
+                    return false;
+                }
+                canonical = *sourceClass;
             } else if (!dxfRW::dxfClassForRecordName(
                            count.first, canonical)) {
                 associativeClassFailureDetail =
@@ -64082,6 +65440,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         || !cData->m_standardDwgObjectFrames.empty()
         || !m_dwgLayoutOutputSources.empty()
         || m_dwgDynamicBlockOutputPrepared
+        || m_dxfDynamicReplayPrepared
+        || m_dxfAssociativeReplayPrepared
         || sourceImageDictionary != nullptr || !cData->imageDefinitions.empty()
         || cData->hasNamedObjectDictionary || needsShadeOutput || !m_dxfFullStyleState.sources.empty() || m_dxfLayerMaterialState.active
         || !m_dxfMLineLinetypes.empty()
@@ -64148,6 +65508,9 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         !m_extensionBlockRepresentationDataHandles.empty();
     const bool needsDwgDynamicBlockOutput =
         m_dwgDynamicBlockOutputPrepared;
+    const bool needsDxfDynamicReplay = m_dxfDynamicReplayPrepared;
+    const bool needsDxfAssociativeReplay =
+        m_dxfAssociativeReplayPrepared;
     if ((!cData->m_standardDwgObjectFrames.empty() || needsRasterOutput || needsGeneratedRoots || needsRenderingOutput || needsShadeOutput || !m_extensionDictionaryHandles.empty() || !m_acdsDxfHistoryObjects.empty()
             || !m_dxfScales.empty() || !m_dxfDictionaryVars.empty()
             || needsDwgDictionaryVarOutput
@@ -64167,8 +65530,9 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             || !m_dxfAssociativeGeometrySources.empty()
             || !m_dxfAssociativeValueSources.empty()
             || needsDwgBlockRepresentationDataOutput
-            || needsDwgDynamicBlockOutput)
-        && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput, needsVisualStyleOutput, needsDwgDictionaryVarOutput, needsDwgScaleOutput, needsDwgMLeaderStyleOutput, needsDwgMLineStyleOutput, needsDwgLayoutsOutput, needsDwgAssociativeVariableOutput, needsDwgAssociativeDimensionDependencyOutput, needsDwgBlockRepresentationDataOutput, needsDwgDynamicBlockOutput, debug, requireResolvedOwners](const auto& view) {
+            || needsDwgDynamicBlockOutput
+            || needsDxfDynamicReplay || needsDxfAssociativeReplay)
+        && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput, needsVisualStyleOutput, needsDwgDictionaryVarOutput, needsDwgScaleOutput, needsDwgMLeaderStyleOutput, needsDwgMLineStyleOutput, needsDwgLayoutsOutput, needsDwgAssociativeVariableOutput, needsDwgAssociativeDimensionDependencyOutput, needsDwgBlockRepresentationDataOutput, needsDwgDynamicBlockOutput, needsDxfDynamicReplay, needsDxfAssociativeReplay, debug, requireResolvedOwners](const auto& view) {
             const auto reject = [debug, requireResolvedOwners](
                     const char* stage) {
                 if (debug || requireResolvedOwners)
@@ -64239,6 +65603,14 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 return reject("VISUALSTYLE physical source identity/field binding");
             if (!inspectAcdsDxfHistory(view))
                 return reject("ACDS history");
+            if (needsDxfDynamicReplay
+                && !inspectDxfDynamicBlockReplay(
+                    view, debug || requireResolvedOwners))
+                return reject("DXF dynamic typed/raw staged-body replay");
+            if (needsDxfAssociativeReplay
+                && !inspectDxfAssociativeReplay(
+                    view, debug || requireResolvedOwners))
+                return reject("DXF associative typed/raw staged-body replay");
             if (!cData->m_standardDwgObjectFrames.empty()
                 && !inspectStandardDwgOutput(view))
                 return reject("standard DWG object frame");
@@ -64589,7 +65961,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     if (!success && (debug || requireResolvedOwners)) {
         const DRW_OperationDiagnostic diagnostic = dxfW->getLastDiagnostic();
         std::cerr << "DXF export failed: " << diagnostic.code << ": "
-                  << diagnostic.message << '\n';
+                  << diagnostic.message;
+        if (diagnostic.hasHandle)
+            std::cerr << " handle=" << diagnostic.handle;
+        std::cerr << '\n';
         for (const auto& omission : dxfW->leftOut()) {
             std::cerr << "DXF export omission detail: " << omission.first
                       << " count=" << omission.second << '\n';
@@ -64608,6 +65983,14 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         m_rasterOutputPublished = true;
     if (success && m_generatedRootOutputInspected && m_generatedRootOutputFinalized)
         m_generatedRootOutputPublished = true;
+    if (success && m_dxfDynamicReplayPrepared
+        && m_dxfAssociativeReplayPrepared
+        && m_dxfDynamicReplayInspected
+        && m_dxfAssociativeReplayInspected
+        && cData != nullptr) {
+        cData->associativeDxfImport.qualifiedRecords =
+            m_dxfAssociativeReplayPreparedRecords;
+    }
     delete dxfW;
     dxfW = nullptr;
     exportComplete = success;

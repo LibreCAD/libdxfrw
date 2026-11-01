@@ -121,6 +121,14 @@ struct dx_dxfReadOutcome {
     DRW::DxfCodePagePolicy requestedCodePagePolicy{DRW::DxfCodePagePolicy::Compatible};
 };
 
+// Immutable parse-time model for a DXF XRECORD carrying the explicit
+// AC1021+ 1070/1071 compatibility codes. This is an adapter replay witness,
+// not evidence that those codes are part of standard DXF XRECORD syntax.
+struct dx_dxfXRecordCompatibilitySource {
+    std::uint64_t generation{0u};
+    DRW_XRecord model;
+};
+
 // Read result and observations have separate meanings. This envelope belongs
 // to one CLI import, not a support claim or an output-completeness verdict.
 struct dx_dwgReadOutcome {
@@ -764,6 +772,10 @@ public:
     std::size_t xRecordRetainedItems{0};
     std::size_t xRecordRetainedBytes{0};
     bool xRecordCaptureFailed{false};
+    std::list<dx_dxfXRecordCompatibilitySource>
+        dxfXRecordCompatibilitySources;
+    std::size_t dxfXRecordCompatibilitySourceBytes{0u};
+    bool dxfXRecordCompatibilitySourceCaptureFailed{false};
     std::list<DRW_Material>materials;    //typed MATERIAL objects
     // Aggregate admission for adapter-owned MATERIAL callback copies. The
     // per-import raw-carrier receipt remains separate from this typed budget.
