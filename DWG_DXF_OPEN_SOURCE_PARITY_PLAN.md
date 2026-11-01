@@ -138,10 +138,10 @@ reproduced missing provider, remap, collision or composed output failure.
 
 **TABLE:**
 
-1. **Nested FIELD graphs:** close nested FIELD child/value/object graphs,
-   additional source/version FIELD body profiles, standalone 1x1 multiple-FIELD
-   reference composition and other linked-cell payloads only where an
-   independent source or consumer witness identifies missing behavior. Reuse
+1. **Nested FIELD graphs:** close nested FIELD child/value/object graphs.
+   Admit additional source/version FIELD body profiles and other linked-cell
+   payloads only where an independent source or consumer witness identifies
+   missing behavior. Reuse
    existing rooted reference planning and handle remapping. Preserve unsupported
    compositions with explicit refusal. Native expression evaluation and TABLE
    rendering remain separate semantic qualifications.
