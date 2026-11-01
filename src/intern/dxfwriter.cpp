@@ -47,6 +47,17 @@ bool isSafeAsciiDxfString(std::string_view value) {
         && value.find('\0') == std::string_view::npos;
 }
 
+bool writeAsciiDxfNewline(std::ostream* stream) {
+    if (stream == nullptr)
+        return false;
+#if defined(_WIN32)
+    stream->write("\r\n", 2);
+#else
+    stream->put('\n');
+#endif
+    return stream->good();
+}
+
 bool isSafeBinaryDxfString(std::string_view value) {
     return value.find('\0') == std::string_view::npos;
 }
@@ -131,7 +142,8 @@ bool writeAsciiDxfIntegerValue(std::ostream* stream, std::int64_t value,
     if (length < width)
         stream->write("     ", static_cast<std::streamsize>(width - length));
     stream->write(buffer, static_cast<std::streamsize>(length));
-    stream->put('\n');
+    if (!writeAsciiDxfNewline(stream))
+        return false;
     return stream->good();
 }
 
@@ -1256,7 +1268,8 @@ bool dxfWriterAscii::writeStringImpl(
         return recordWriteResult(false);
     if (!text.empty())
         filestr->write(text.data(), static_cast<std::streamsize>(text.size()));
-    filestr->put('\n');
+    if (!writeAsciiDxfNewline(filestr))
+        return recordWriteResult(false);
     if (!recordWriteResult(filestr->good()))
         return false;
     return recordWriteResult(observeRecordString(code, text));
@@ -1289,7 +1302,8 @@ bool dxfWriterAscii::writeDouble(int code, double data) {
         return recordWriteResult(false);
     const std::string text = DxfNumeric::formatDouble(data);
     filestr->write(text.data(), static_cast<std::streamsize>(text.size()));
-    filestr->put('\n');
+    if (!writeAsciiDxfNewline(filestr))
+        return recordWriteResult(false);
     return recordWriteResult(filestr->good());
 }
 

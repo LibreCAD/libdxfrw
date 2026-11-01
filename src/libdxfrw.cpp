@@ -4311,8 +4311,12 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
             "source dictionary metadata requires an OBJECTS-capable DXF target");
         return setError(DRW::BAD_VERSION);
     }
-    DwgDxfOutputTransaction output(
-        fileName, binFile ? std::ios::binary : std::ios::openmode(0));
+    // Keep every output byte-addressable. In particular, Windows text-mode
+    // newline translation makes stream positions unsuitable for staged-section
+    // verification and the later $HANDSEED backpatch. The ASCII writer emits
+    // the platform's customary line ending explicitly while the file remains
+    // in binary mode.
+    DwgDxfOutputTransaction output(fileName, std::ios::binary);
     if (!output.open()) {
         m_writeError = true;
         return setError(DRW::BAD_OPEN);

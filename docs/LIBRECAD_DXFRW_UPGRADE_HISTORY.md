@@ -141,7 +141,15 @@ active S20 work list; their parent H0.4/H0.5 qualification items remain open.
   showed the scanner still did not observe HEADER `ENDSEC`: it counted 1,148
   pairs and its tail had shifted into ACDSDATA. The diagnostic now also records
   the first nonnumeric group-code rows with four preceding rows. The local
-  round-trip CTest passes; the actual ACDS replay read failure is unresolved.
+  round-trip CTest passes. A subsequent Windows artifact, `13092431896` for
+  digest `f005a1f42c9718204787660132883ed84cd487804e0a025c4f465bcb4c2d7b5e`,
+  exposed the exact first drift at HEADER pair 238: `00000214UPDATE=40`. The
+  final `$HANDSEED` value `00000214` overwrote `$TDUPDATE` because staged
+  stringstream-relative offsets were combined with a text-mode Windows stream
+  position. DXF output now uses binary mode with explicit platform line endings
+  (retaining Windows CRLF); the local `libdxfrw_dwg_local_roundtrip` CTest
+  passes after the fix. Fresh Windows focused qualification remains open for
+  digest `9a9b5d52c5477857fe6651af7970d49cab000887b9512b0a908a6205ad9fe102`.
 - H0.5: adapter tests use explicit `std::int64_t`/`uint32_t` values and the
   independent scalar walker includes `<filesystem>`. Hosted run `41319773161`
   passed its GCC 13 warnings-as-errors build and fixture/inventory checks, then
