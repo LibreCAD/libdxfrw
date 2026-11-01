@@ -3349,6 +3349,7 @@ private:
     std::map<std::uint32_t, DwgDictionaryDefaultOutputSource>
         m_dwgDictionaryDefaultOutputSources;
     const dx_data* m_dwgDictionaryDefaultOutputSourceOwner{nullptr};
+    DRW::Version m_dwgDictionaryDefaultOutputSourceVersion{DRW::UNKNOWNV};
     std::uint64_t m_dwgDictionaryDefaultOutputGeneration{0u};
     bool m_dwgDictionaryDefaultOutputInspected{false};
     bool hasUnchangedDwgDictionaryDefaultOutputSources() const noexcept;

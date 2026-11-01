@@ -8198,6 +8198,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
     m_dwgTableStylesInspected = false;
     m_dwgDictionaryDefaultOutputSources.clear();
     m_dwgDictionaryDefaultOutputSourceOwner = nullptr;
+    m_dwgDictionaryDefaultOutputSourceVersion = DRW::UNKNOWNV;
     m_dwgDictionaryDefaultOutputGeneration = 0u;
     m_dwgDictionaryDefaultOutputInspected = false;
     m_extensionCellStyleMapHandles.clear();
@@ -8286,6 +8287,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         m_dwgTableStylesInspected = false;
         m_dwgDictionaryDefaultOutputSources.clear();
         m_dwgDictionaryDefaultOutputSourceOwner = nullptr;
+        m_dwgDictionaryDefaultOutputSourceVersion = DRW::UNKNOWNV;
         m_dwgDictionaryDefaultOutputGeneration = 0u;
         m_dwgDictionaryDefaultOutputInspected = false;
         m_extensionCellStyleMapHandles.clear();
@@ -13427,11 +13429,12 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 m_dwgTableStyleOutputSourceGeneration = 0u;
             }
         }
-        // Bind the physical AC1024 ACDBDICTIONARYWDFLT callback to its
+        // Bind the physical AC1018/AC1024 ACDBDICTIONARYWDFLT callback to its
         // typed dictionary/default pair and NOD root. This is deliberately
         // limited to the independently read-back Normal/PLACEHOLDER profile.
         if (data->sourceFormat == dx_source_format::DWG
-            && data->sourceVersion == DRW::AC1024
+            && (data->sourceVersion == DRW::AC1018
+                || data->sourceVersion == DRW::AC1024)
             && data->dwgReadOutcome.attempted
             && data->hasSingleSuccessfulDictionaryDefaultImport()
             && data->hasNamedObjectDictionary
@@ -13464,7 +13467,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 && frame != data->m_opaqueDwgSourceFrames.end()
                 && frame->second.m_objectType == 500
                 && frame->second.m_handle == dictionaryHandle
-                && frame->second.m_version == DRW::AC1024
+                && frame->second.m_version == data->sourceVersion
+                && frame->second.m_isCustomClass
+                && !frame->second.m_isEntity
                 && frame->second.m_className
                     == "AcDbDictionaryWithDefault"
                 && asciiIdentifierEquals(frame->second.m_recordName,
@@ -13473,7 +13478,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     != data->m_opaqueDwgSourceFrames.end()
                 && placeholderFrame->second.m_objectType == 80
                 && placeholderFrame->second.m_handle == placeholderHandle
-                && placeholderFrame->second.m_version == DRW::AC1024
+                && placeholderFrame->second.m_version == data->sourceVersion
+                && !placeholderFrame->second.m_isCustomClass
+                && !placeholderFrame->second.m_isEntity
                 && placeholderFrame->second.m_recordName.empty()
                 && placeholderFrame->second.m_className.empty()
                 && rootMatches == 1u && rootEntry != nullptr
@@ -13518,6 +13525,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 if (m_dwgDictionaryDefaultOutputSources.emplace(
                         dictionaryHandle, std::move(source)).second) {
                     m_dwgDictionaryDefaultOutputSourceOwner = data;
+                    m_dwgDictionaryDefaultOutputSourceVersion =
+                        data->sourceVersion;
                     m_dwgDictionaryDefaultOutputGeneration =
                         data->importGeneration;
                 }
@@ -41350,13 +41359,17 @@ bool dx_iface::inspectDwgSortEntsOutput(
 bool dx_iface::hasUnchangedDwgDictionaryDefaultOutputSources() const noexcept {
     if (m_dwgDictionaryDefaultOutputSources.empty())
         return m_dwgDictionaryDefaultOutputSourceOwner == nullptr
+            && m_dwgDictionaryDefaultOutputSourceVersion == DRW::UNKNOWNV
             && m_dwgDictionaryDefaultOutputGeneration == 0u;
     if (cData == nullptr
         || cData != m_dwgDictionaryDefaultOutputSourceOwner
         || cData->importGeneration
             != m_dwgDictionaryDefaultOutputGeneration
         || cData->sourceFormat != dx_source_format::DWG
-        || cData->sourceVersion != DRW::AC1024
+        || cData->sourceVersion
+            != m_dwgDictionaryDefaultOutputSourceVersion
+        || (m_dwgDictionaryDefaultOutputSourceVersion != DRW::AC1018
+            && m_dwgDictionaryDefaultOutputSourceVersion != DRW::AC1024)
         || !cData->hasSingleSuccessfulDictionaryDefaultImport()
         || !cData->hasNamedObjectDictionary
         || m_dwgDictionaryDefaultOutputSources.size() != 1u
@@ -41378,16 +41391,18 @@ bool dx_iface::hasUnchangedDwgDictionaryDefaultOutputSources() const noexcept {
                 != proof.placeholder.handle
             || !standardDwgModelsEqual(
                 proof.dictionary, cData->dictionaryWithDefaults.front(),
-                DRW::AC1024, dwgObjType::DICTIONARY)
+                m_dwgDictionaryDefaultOutputSourceVersion,
+                dwgObjType::DICTIONARY)
             || proof.dictionary.m_defaultEntryHandle
                 != cData->dictionaryWithDefaults.front()
                     .m_defaultEntryHandle
             || !standardDwgCommonEqual(
                 proof.placeholder, cData->placeholders.front(),
-                DRW::AC1024)
+                m_dwgDictionaryDefaultOutputSourceVersion)
             || !standardDwgModelsEqual(
                 proof.namedObjectDictionary,
-                cData->namedObjectDictionary, DRW::AC1024,
+                cData->namedObjectDictionary,
+                m_dwgDictionaryDefaultOutputSourceVersion,
                 dwgObjType::DICTIONARY))
             return false;
 
@@ -41417,13 +41432,16 @@ bool dx_iface::hasUnchangedDwgDictionaryDefaultOutputSources() const noexcept {
         const auto frameMatches = [this](
                 std::uint32_t handle, int objectType,
                 const std::string& recordName,
-                const std::string& className) {
+                const std::string& className, bool customClass) {
             const auto found = cData->m_opaqueDwgSourceFrames.find(
                 {cData->importGeneration, handle});
             return found != cData->m_opaqueDwgSourceFrames.end()
                 && found->second.m_handle == handle
                 && found->second.m_objectType == objectType
-                && found->second.m_version == DRW::AC1024
+                && found->second.m_version
+                    == m_dwgDictionaryDefaultOutputSourceVersion
+                && found->second.m_isCustomClass == customClass
+                && !found->second.m_isEntity
                 && found->second.m_recordName == recordName
                 && found->second.m_className == className;
         };
@@ -41432,14 +41450,14 @@ bool dx_iface::hasUnchangedDwgDictionaryDefaultOutputSources() const noexcept {
                                      "ACDBDICTIONARYWDFLT")
             && proof.className == "AcDbDictionaryWithDefault"
             && frameMatches(proof.dictionary.handle, proof.objectType,
-                            proof.recordName, proof.className)
+                            proof.recordName, proof.className, true)
             && proof.placeholderObjectType == 80
             && proof.placeholderRecordName.empty()
             && proof.placeholderClassName.empty()
             && frameMatches(proof.placeholder.handle,
                             proof.placeholderObjectType,
                             proof.placeholderRecordName,
-                            proof.placeholderClassName);
+                            proof.placeholderClassName, false);
     } catch (...) {
         return false;
     }
@@ -61740,6 +61758,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     m_dwgTableStylesInspected = false;
     m_dwgDictionaryDefaultOutputSources.clear();
     m_dwgDictionaryDefaultOutputSourceOwner = nullptr;
+    m_dwgDictionaryDefaultOutputSourceVersion = DRW::UNKNOWNV;
     m_dwgDictionaryDefaultOutputGeneration = 0u;
     m_dwgDictionaryDefaultOutputInspected = false;
     m_sortDictionaryHandles.clear();

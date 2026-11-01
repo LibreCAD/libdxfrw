@@ -114,20 +114,25 @@ public:
                 || data.m_opaqueDwgOutputQualifiedFrameIdentities.count(key)
                     != 0u)
                 continue;
-            const auto frame = data.m_opaqueDwgSourceFrames.find(key);
-            if (frame == data.m_opaqueDwgSourceFrames.end()) {
+            const DRW_UnsupportedObject* frame =
+                opaqueSourceFrame(data, key.first, key.second);
+            const bool standard = frame == nullptr;
+            if (standard)
+                frame = standardSourceFrame(data, key.first, key.second);
+            if (frame == nullptr) {
                 std::cerr << "unqualified handle=" << key.second
                           << " frame=missing\n";
                 continue;
             }
             std::cerr << "unqualified handle=0x" << std::hex
-                      << frame->second.m_handle << std::dec
-                      << " type=" << frame->second.m_objectType
-                      << " record=" << frame->second.m_recordName
-                      << " class=" << frame->second.m_className
-                      << " custom=" << frame->second.m_isCustomClass
+                      << frame->m_handle << std::dec
+                      << " frame=" << (standard ? "standard" : "opaque")
+                      << " type=" << frame->m_objectType
+                      << " record=" << frame->m_recordName
+                      << " class=" << frame->m_className
+                      << " custom=" << frame->m_isCustomClass
                       << " common=" << static_cast<unsigned>(
-                            frame->second.m_commonLinkEvidence) << '\n';
+                            frame->m_commonLinkEvidence) << '\n';
         }
     }
     static bool opaqueSourceIsEntityType(const dx_data& data,
@@ -37265,12 +37270,15 @@ bool physicalSortEntsOutputReadback(
 }
 
 bool physicalDictionaryDefaultOutputReadback(
-        const std::filesystem::path& sourcePath) {
+        const std::filesystem::path& sourcePath,
+        bool requireAc1018 = false) {
     dx_iface sourceReader;
     dx_data source;
     if (!sourceReader.fileImport(sourcePath.string(), &source, false)
         || source.sourceFormat != dx_source_format::DWG
-        || source.sourceVersion != DRW::AC1024
+        || (source.sourceVersion != DRW::AC1024
+            && source.sourceVersion != DRW::AC1018)
+        || (requireAc1018 && source.sourceVersion != DRW::AC1018)
         || !source.hasSingleSuccessfulDictionaryDefaultImport()
         || !source.hasNamedObjectDictionary
         || source.dictionaryWithDefaults.size() != 1u
@@ -37279,7 +37287,51 @@ bool physicalDictionaryDefaultOutputReadback(
         || !source.rawPlaceholders.empty()
         || source.dictionaryWithDefaults.front().handle != 0x0eu
         || source.placeholders.front().handle != 0x0fu)
-        return fail("physical dictionary-default source is not the admitted AC1024 typed pair");
+        return fail("physical dictionary-default source is not the admitted AC1018/AC1024 typed pair");
+
+    const std::uint32_t sourceDictionaryHandle =
+        source.dictionaryWithDefaults.front().handle;
+    const std::uint32_t sourcePlaceholderHandle =
+        source.placeholders.front().handle;
+    const DRW_UnsupportedObject* dictionaryFrame =
+        DxIfaceStandardDwgCaptureTestAccess::opaqueSourceFrame(
+            source, source.importGeneration, sourceDictionaryHandle);
+    const DRW_UnsupportedObject* placeholderFrame =
+        DxIfaceStandardDwgCaptureTestAccess::opaqueSourceFrame(
+            source, source.importGeneration, sourcePlaceholderHandle);
+    if (sourceDictionaryHandle != 0x0eu
+        || sourcePlaceholderHandle != 0x0fu
+        || dictionaryFrame == nullptr || placeholderFrame == nullptr
+        || dictionaryFrame->m_objectType != 500
+        || dictionaryFrame->m_handle != sourceDictionaryHandle
+        || dictionaryFrame->m_version != source.sourceVersion
+        || dictionaryFrame->m_recordName != "ACDBDICTIONARYWDFLT"
+        || dictionaryFrame->m_className != "AcDbDictionaryWithDefault"
+        || !dictionaryFrame->m_isCustomClass
+        || dictionaryFrame->m_isEntity
+        || placeholderFrame->m_objectType != 80
+        || placeholderFrame->m_handle != sourcePlaceholderHandle
+        || placeholderFrame->m_version != source.sourceVersion
+        || !placeholderFrame->m_recordName.empty()
+        || !placeholderFrame->m_className.empty()
+        || placeholderFrame->m_isCustomClass
+        || placeholderFrame->m_isEntity)
+        return fail("physical dictionary-default callbacks do not match their source-bound object identities");
+
+    if (source.sourceVersion == DRW::AC1018) {
+        if (source.dwgReadOutcome.opaqueViewCallbacks != 23u)
+            return fail("physical AC1018 dictionary-default source callback census changed");
+        auto invalidTextStyle = std::find_if(
+            source.textStyles.begin(), source.textStyles.end(),
+            [](const DRW_Textstyle& style) { return style.name.empty(); });
+        if (invalidTextStyle == source.textStyles.end()
+            || invalidTextStyle->handle != 0xDFu
+            || invalidTextStyle->font != "ltypeshp.shx"
+            || (invalidTextStyle->flags & 0x01) != 0)
+            return fail("physical AC1018 dictionary-default STYLE isolation profile changed");
+        // Keep the existing malformed STYLE row from masking OBJECTS output.
+        invalidTextStyle->name = "ET_DICTIONARY_DEFAULT_PROFILE_ISOLATION";
+    }
 
     const DRW_DictionaryWithDefault& sourceDictionary =
         source.dictionaryWithDefaults.front();
@@ -37300,6 +37352,8 @@ bool physicalDictionaryDefaultOutputReadback(
         || sourceDictionary.parentHandle
             != source.namedObjectDictionary.handle
         || !sourceDictionary.hasCompleteDwgEntries()
+        || sourceDictionary.cloning != 1
+        || sourceDictionary.hardOwner != 0
         || sourceDictionary.m_entries.size() != 1u
         || sourceDictionary.m_entries.front().m_name != "Normal"
         || sourceDictionary.m_entries.front().m_handle
@@ -37316,7 +37370,7 @@ bool physicalDictionaryDefaultOutputReadback(
             != std::vector<std::uint32_t>{sourceDictionary.handle}
         || !sourcePlaceholder.appData.empty()
         || !sourcePlaceholder.extData.empty())
-        return fail("physical AC1024 plot-style dictionary/default/owner roles are not uniquely closed");
+        return fail("physical plot-style dictionary/default/owner roles are not uniquely closed");
 
     const auto parseHandle = [](const DRW_Variant& value,
                                 std::uint32_t& result) {
@@ -37412,6 +37466,15 @@ bool physicalDictionaryDefaultOutputReadback(
                 dx_dwgReadCompletenessPolicy::AllowPartial);
         };
         DRW_AcDbPlaceholder& mutablePlaceholder = source.placeholders.front();
+        const std::size_t qualificationsBeforeFailure =
+            DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                source);
+        const bool dictionaryQualifiedBeforeFailure =
+            DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourceDictionaryHandle);
+        const bool placeholderQualifiedBeforeFailure =
+            DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourcePlaceholderHandle);
         const std::vector<std::uint32_t> sourceReactors =
             mutablePlaceholder.reactorHandles;
         mutablePlaceholder.reactorHandles = {DRW::NoHandle};
@@ -37420,10 +37483,23 @@ bool physicalDictionaryDefaultOutputReadback(
         const std::string invalidDestination{
             std::istreambuf_iterator<char>{invalidOutput}, {}};
         mutablePlaceholder.reactorHandles = sourceReactors;
-        if (!invalidGraphRejected || invalidDestination != sentinel)
+        if (!invalidGraphRejected || invalidDestination != sentinel
+            || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                source) != qualificationsBeforeFailure
+            || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourceDictionaryHandle)
+                != dictionaryQualifiedBeforeFailure
+            || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourcePlaceholderHandle)
+                != placeholderQualifiedBeforeFailure)
             return fail("invalid physical PLACEHOLDER owner-reactor edge was not refused atomically");
         if (!exportPartial())
             return fail("corrected physical dictionary-default graph could not retry on the same adapter");
+        if (!DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourceDictionaryHandle)
+            || !DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourcePlaceholderHandle))
+            return fail("successful physical dictionary-default output did not qualify both source callbacks");
 
         dx_iface outputReader;
         dx_data output;
@@ -37536,6 +37612,12 @@ bool physicalDictionaryDefaultOutputReadback(
             || placeholderReactors
                 != std::vector<std::uint32_t>{outputDictionary.handle})
             return fail("physical PLACEHOLDER owner and reactor roles changed on readback");
+
+        if (source.sourceVersion == DRW::AC1018
+            && (DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                    source) != 9u
+                || source.dwgReadOutcome.opaqueViewCallbacks != 23u))
+            return fail("AC1018 dictionary-default output did not add exactly two identities to the nine-profile callback census");
 
     }
     std::cerr << "Physical DICTIONARYWDFLT/PLACEHOLDER ASCII and binary output, "
@@ -40511,9 +40593,9 @@ bool physicalAc1018DictionaryVarOutputReadback(
             return fail("AC1018 DICTIONARYVAR/owner source identities lack output qualification");
         if (!isQualified(0x18u)
             || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
-                source) != 7u
+                source) != 9u
             || source.dwgReadOutcome.opaqueViewCallbacks != 23u)
-            return fail("AC1018 MLINESTYLE/TABLESTYLE source/output profiles did not join the seven qualified identities in the 23-callback source graph");
+            return fail("AC1018 DICTIONARYVAR, MLINESTYLE, TABLESTYLE and dictionary-default output profiles did not join the nine qualified identities in the 23-callback source graph");
         if (binary)
             DxIfaceStandardDwgCaptureTestAccess::reportOpaqueOutputGaps(source);
 
@@ -58362,6 +58444,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--dictionary-default-physical-output-readback")
         return physicalDictionaryDefaultOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--dictionary-default-physical-ac1018-output-readback")
+        return physicalDictionaryDefaultOutputReadback(argv[2], true) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--dictionaryvar-physical-output-readback")
         return physicalDictionaryVarOutputReadback(argv[2]) ? 0 : 1;
