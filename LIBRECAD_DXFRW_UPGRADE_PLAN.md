@@ -6,26 +6,26 @@ Updated 2026-11-01. This section is the concise active-work view; the live
 execution ledger below remains the source of truth for states, dependencies,
 commits, and gate evidence.
 
-### Remaining work only
+### Active implementation work only
 
 - **S15 / C2.2 — VERIFYING:** obtain immutable native Windows, Linux x64, and
   macOS qualification receipts, then run LibreCAD ON/OFF consumer checks at the
   updated pin. Existing Mac and ARM Linux evidence is partial and does not close
   this gate.
-- **External semantic/platform qualification — DEFERRED:** J256, J260, J268,
-  J284, J293, and J295 remain `DEFERRED_EXTERNAL`. Independent semantic or
-  platform evidence is still required; none of these dispositions promotes a
-  support claim. Native FreeCAD 3D and independent ACIS/ACDS semantic evidence
-  also remain open.
 
-Completed slices are removed from this active-work view. Their committed rows
-remain in the append-only execution ledger below because the plan requires
-stable IDs, dependency history, and commit evidence. A `COMMITTED` or
-`SUPERSEDED` ledger row is historical evidence, not an open task; the older WP
-and Phase sections are requirements/reference material, not a second backlog.
-The executable backlog is the work listed above plus nonterminal ledger rows.
-S19/E1R.1 is complete and removed from this view; its exact profile and gates
-are recorded in the receipt and committed ledger row.
+There are no other unfinished in-repository implementation slices. The six
+external-only evidence items J256, J260, J268, J284, J293, and J295 remain
+`DEFERRED_EXTERNAL`; they are qualification dispositions, not implementation
+tasks, and cannot promote support claims. Native FreeCAD 3D and independent
+ACIS/ACDS semantic qualification are also external evidence gates, not
+completed or active code items.
+
+Completed slices are omitted from this active-work view. Their `COMMITTED` or
+`SUPERSEDED` rows remain in the append-only execution ledger below only to
+preserve stable IDs, dependency history, and commit evidence; they are not open
+tasks. The older WP and Phase sections are requirements/reference material,
+not a second backlog. The executable backlog is the unfinished work above plus
+any nonterminal ledger rows.
 
 ### Independent open-source route and 3D evidence refresh (2026-10-19)
 
@@ -1672,8 +1672,9 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Current checkpoint: S19 closed the exact locally authored AC1015 five-key
-  NOD and rooted Model/Layout1 output graph. ASCII/binary readback, callback
+- Latest completed checkpoint (history, not backlog): S19 closed the exact
+  locally authored AC1015 five-key NOD and rooted Model/Layout1 output graph.
+  ASCII/binary readback, callback
   refusal/rollback/retry, AC1018/AC1024 compatibility controls, and strict
   whole-file conversion pass; all ten callbacks qualify for this control.
   Platform/LibreCAD, FreeCAD 3D, and independent ACIS/ACDS qualification remain
