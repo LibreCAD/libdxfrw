@@ -1692,8 +1692,11 @@ edit this block or commit the same slice concurrently.
   `d78472e5da435b450a35a3a9b56a680dc57764a89af103847d4d07d1717a557a`; focused
   local build and CTest pass for the current candidate under Apple Clang 21,
   not GNU GCC. Plan, workflow-contract, and fixture-admission checks also pass.
-  Fresh Linux/GCC, Windows/MSVC, macOS/Apple Clang, and `parity-fast` hosted
-  receipts for the current candidate remain the S20 closure gates.
+  The `5ae1b159` fast job found the newly added history file missing from
+  `source-release-files.am`; the 636-file source-release inventory is now
+  regenerated. Fresh Linux/GCC, Windows/MSVC, macOS/Apple Clang, and
+  `parity-fast` hosted receipts for the updated candidate remain the S20
+  closure gates.
 - Authorized run horizon: active implementation objective; continue through the
   next dependency-ready slice until the user stops or the terminal release gate
   is satisfied.
@@ -1719,7 +1722,7 @@ edit this block or commit the same slice concurrently.
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
 | S15 | C2: UTF-8/native input and atomic-output paths | S11, S14 | VERIFYING | focused native suite on Linux/macOS/Windows; Unicode parent/basename/non-BMP DXF ASCII+binary/DWG; transaction commit/rollback/cleanup; existing hardening and writer controls; LibreCAD ON/OFF consumers | Implementation and portable Mac/Ubuntu ARM controls are verified in C2.1. Remaining gates are immutable native receipts on Windows, Linux x64, and macOS ARM64 plus LibreCAD consumers at the updated pin; no support claim is promoted. | native qualification and LibreCAD consumer pin |
-| S20 | H0: hosted build and fast-workflow repair closure | S19 | VERIFYING | canonical inventories; clean focused build and `libdxfrw_dwg_local_roundtrip`; focused Linux x64, Windows x64, and macOS ARM64 receipts; `parity-fast`; fixture-admission guard | Prior inventory, scratch-input, GCC warning, and first MSVC portability failures are repaired. The current candidate fixes the two additional lambda-capture errors found at PR head `3b3f8d9f` and quotes the policy argument. The focused target and CTest pass locally under Apple Clang 21; plan/workflow/fixture checks pass. Hosted confirmation remains pending. No DWG/DXF payload files were added. | S15, final release |
+| S20 | H0: hosted build and fast-workflow repair closure | S19 | VERIFYING | canonical inventories; clean focused build and `libdxfrw_dwg_local_roundtrip`; focused Linux x64, Windows x64, and macOS ARM64 receipts; `parity-fast`; fixture-admission guard | Prior inventory, scratch-input, GCC warning, and first MSVC portability failures are repaired. The current candidate fixes the two additional lambda-capture errors found at PR head `3b3f8d9f` and quotes the policy argument. The focused target and CTest pass locally under Apple Clang 21; plan/workflow/fixture checks pass. The `5ae1b159` fast run found the history archive missing from the source-release inventory; `source-release-files.am` is regenerated with 636 files and must pass the fast job. No DWG/DXF payload files were added. | S15, final release |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -1730,7 +1733,7 @@ edit this block or commit the same slice concurrently.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | C2.1 | C2 / S15 | WP3/WP7/WP8; Phase 8 follow-up | F0.3, G1.4 | VERIFIED | NOT_EVALUATED | input/output/native-basename implementation and portable real-filesystem controls | Frozen97+c60d7ea8 passes focused7/controls3 on native Mac and Ubuntu26/aarch64; actual Unicode DWG/ASCII+binary DXF, exclusive temporary basename, precommit visibility, commit/rollback/cleanup pass. Logs under /private/tmp/librecad-windows-path.WXbCZP/utf8-candidate-*; no Windows or immutable receipt claim |
 | C2.2 | C2 / S15 | WP3/WP8; Phase 8 follow-up | C2.1 | VERIFYING | NOT_EVALUATED | own three-platform immutable hosted receipts and LibreCAD ON/OFF consumers | Obtain native Windows/Linux x64/macOS ARM64 receipts, then run LibreCAD Unicode/persistence/full consumers at the updated pin. Prior Mac/ARM Linux and pre-fix receipts do not close this gate |
-| H0.1 | H0 / S20 | WP1/WP8; Phase 2/8 follow-up | S19 | VERIFYING | NOT_EVALUATED | canonical source/header and source-release inventories; frozen broad CTest inventory matches the exact hosted profile | Local manifests and the 775-name digest are frozen; confirm the same inventory on hosted Linux and Windows. No drawing payloads were added |
+| H0.1 | H0 / S20 | WP1/WP8; Phase 2/8 follow-up | S19 | VERIFYING | NOT_EVALUATED | canonical source/header and source-release inventories; frozen broad CTest inventory matches the exact hosted profile | Local source-release inventory now includes the history archive (636 files); frozen CTest inventory contains 775 names. Confirm both manifests on hosted Linux/Windows and pass the fast-job inventory check. No drawing payloads were added |
 | H0.2 | H0 / S20 | WP1/WP2; Phase 2 follow-up | S19 | VERIFYING | NOT_EVALUATED | GCC/MSVC/Apple Clang compile portability under default warnings-as-errors | Latest MSVC lambda fixes and the focused local target build pass under Apple Clang 21; require clean hosted Linux/GCC, Windows/MSVC, and macOS/Apple Clang builds |
 | H0.3 | H0 / S20 | WP4/WP6; focused qualification | S19 | VERIFYING | NOT_EVALUATED | focused SPLINE/read-outcome/modeler failure controls | Focused target and CTest pass locally under Apple Clang 21; require post-repair hosted native and `parity-fast` receipts. The fast/native candidate workflow remains the closure gate |
 
