@@ -1,6 +1,17 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #ifndef INDEPENDENT_DXF_SCALAR_WALKER_H
 #define INDEPENDENT_DXF_SCALAR_WALKER_H
+
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <iterator>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
 // Included inside the owning probe's anonymous namespace. This independent
 // original-file observer uses neither dxfReader nor the production audit.
 struct AttdefWireTag {

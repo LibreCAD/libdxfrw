@@ -3805,7 +3805,7 @@ bool standardOutputFramingControls() {
         if (writer->hasWriteError()) return fail("standard framing scratch writer rejected a requested profile field");
         const auto bytes = stream.str();
         DRW_XRecord expected; expected.handle = 0xF010u; expected.parentHandle = 0xCu;
-        expected.m_dataEntries = {{102,std::string("{ordinary-application-text")},{280,7},{330,static_cast<dint64>(0xF222u)},
+        expected.m_dataEntries = {{102,std::string("{ordinary-application-text")},{280,7},{330,static_cast<std::int64_t>(0xF222u)},
             {100,std::string("ordinary-application-subclass")},{1,std::string("application-string1")}};
         expected.extData.push_back(new DRW_Variant(1001,std::string("APP_FRAME")));
         expected.extData.push_back(new DRW_Variant(1004,std::vector<std::uint8_t>{0x13u,0xA5u}));
@@ -4506,7 +4506,7 @@ bool multipleSelectedXrecords(bool faultsOnly = false, bool branches = false) {
                 record.m_dataEntries = {{1,label},{102,std::string("{application-literal")},{100,std::string("AcDbXrecord")},{280,7},
                     {18,DRW_Coord(-0.0,std::numeric_limits<double>::denorm_min(),3.75)},{38,4.25},
                     {310,std::vector<std::uint8_t>(128u,handle == 0xD020u ? 0xA1u : 0xB2u)}};
-                if (handle != 0xD040u) record.m_dataEntries.emplace_back(330,static_cast<dint64>(handle == 0xD020u ? 0xD030u : 0xD020u));
+                if (handle != 0xD040u) record.m_dataEntries.emplace_back(330,static_cast<std::int64_t>(handle == 0xD020u ? 0xD030u : 0xD020u));
                 record.m_dataEntries.emplace_back(1,std::string("after-reference"));
                 ok = (native ? native->writeXRecord(&record) : dxfW->writeXRecord(&record)) && ok;
             }
@@ -4872,7 +4872,7 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false) {
                 record.xDictHandle = n == 0u ? inner.handle : 0u; record.m_cloning = 2; common(record);
                 if (!native && n == 0u) record.appData.push_back({{102,std::string("EXTENSION_APP_META")},
                     {1,std::string("literal {metadata}")},{330,std::string("E040")},{102,std::string("}")}});
-                record.m_dataEntries = {{1,std::string(labels[n])},{330,static_cast<dint64>(references[n])},{40,1.25 * (n + 1u)}};
+                record.m_dataEntries = {{1,std::string(labels[n])},{330,static_cast<std::int64_t>(references[n])},{40,1.25 * (n + 1u)}};
                 ok = (native ? native->writeXRecord(&record) : dxfW->writeXRecord(&record)) && ok;
             }
         }
@@ -5189,8 +5189,8 @@ bool rasterXrecordScopeFramingControls() {
 }
 
 bool xrecordApplicationChunkControls() {
-    std::vector<DRW_Variant> source{{1,std::string("before-chunks")},{330,static_cast<dint64>(0xD000u)}};
-    std::vector<DRW_Variant> actual{{1,std::string("before-chunks")},{330,static_cast<dint64>(0xD100u)}};
+    std::vector<DRW_Variant> source{{1,std::string("before-chunks")},{330,static_cast<std::int64_t>(0xD000u)}};
+    std::vector<DRW_Variant> actual{{1,std::string("before-chunks")},{330,static_cast<std::int64_t>(0xD100u)}};
     std::vector<std::size_t> binaryFields;
     std::vector<std::pair<std::size_t,std::size_t>> boundaries;
     for (int code = 310; code <= 319; ++code) {
@@ -5210,7 +5210,7 @@ bool xrecordApplicationChunkControls() {
         }
         source.emplace_back(40,4.25); actual.emplace_back(40,4.25);
     }
-    source.emplace_back(330,static_cast<dint64>(0xD001u)); actual.emplace_back(330,static_cast<dint64>(0xD101u));
+    source.emplace_back(330,static_cast<std::int64_t>(0xD001u)); actual.emplace_back(330,static_cast<std::int64_t>(0xD101u));
     const auto compare = [&](const auto& input, const auto& output, bool checkReferences = true) {
         auto map = [](std::uint32_t value, std::uint32_t& mapped) { mapped = value + 0x100u; return true; };
         std::vector<std::uint32_t> references;
@@ -5458,14 +5458,14 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
             value.extData.push_back(new DRW_Variant(1004,payload));
         }
         static std::vector<DRW_Variant> application(unsigned scope, std::uint32_t group) {
-            std::vector<DRW_Variant> values{{1,std::string("standard-payload")},{330,static_cast<dint64>(group)},
-                {160,static_cast<dint64>(1234567890123LL)}};
+            std::vector<DRW_Variant> values{{1,std::string("standard-payload")},{330,static_cast<std::int64_t>(group)},
+                {160,static_cast<std::int64_t>(1234567890123LL)}};
             if (scope == 13u) {
                 values.emplace_back(18,DRW_Coord(1.25,-2.5,3.75));
                 values.emplace_back(38,4.25); values.emplace_back(39,-8.5);
                 values.emplace_back(18,DRW_Coord(-0.0,(std::numeric_limits<double>::min)(),(std::numeric_limits<double>::max)()));
                 values.emplace_back(18,DRW_Coord(std::numeric_limits<double>::denorm_min(),-2.5,0.0));
-                values.emplace_back(330,static_cast<dint64>(group));
+                values.emplace_back(330,static_cast<std::int64_t>(group));
                 values.emplace_back(1,std::string("after-point18"));
                 return values;
             }
@@ -5477,7 +5477,7 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
                 values.emplace_back(319,std::vector<std::uint8_t>(126u,0x31u));
                 values.emplace_back(319,std::vector<std::uint8_t>(127u,0xE7u));
                 values.emplace_back(40,4.25); values.emplace_back(70,7); values.emplace_back(90,1234567);
-                values.emplace_back(330,static_cast<dint64>(group));
+                values.emplace_back(330,static_cast<std::int64_t>(group));
                 values.emplace_back(1,std::string("after-binary-application"));
                 return values;
             }
@@ -5487,7 +5487,7 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
                 values.emplace_back(102,std::string(marker));
                 values.emplace_back(100,std::string("AcDbXrecord"));
                 values.emplace_back(280,7);
-                values.emplace_back(330,static_cast<dint64>(group));
+                values.emplace_back(330,static_cast<std::int64_t>(group));
                 if (scope == 5u) values.emplace_back(102,std::string("}"));
                 values.emplace_back(1,std::string("after-application-scope"));
             }
@@ -5762,7 +5762,7 @@ bool generatedDictionaryScalarTransport(bool faultsOnly = false) {
         root->cloning = 2; root->hardOwner = 1;
         root->extData.push_back(new DRW_Variant(1001,std::string("SCALAR_APP")));
         root->extData.push_back(new DRW_Variant(1000,std::string("before-scalar")));
-        root->extData.push_back(wide ? new DRW_Variant(1071,static_cast<dint64>(scalar)) : new DRW_Variant(1071,static_cast<std::int32_t>(scalar)));
+        root->extData.push_back(wide ? new DRW_Variant(1071,static_cast<std::int64_t>(scalar)) : new DRW_Variant(1071,static_cast<std::int32_t>(scalar)));
         root->extData.push_back(new DRW_Variant(1000,std::string("after-scalar")));
         std::ostringstream self; self << std::uppercase << std::hex << root->handle;
         root->extData.push_back(new DRW_Variant(1005,self.str()));
@@ -5903,23 +5903,23 @@ bool generatedDictionaryScalarTransport(bool faultsOnly = false) {
         std::vector<std::uint32_t> references;
         unsigned exact = 0u, refused = 0u;
         for (const auto value : std::array<std::int64_t,5>{{minimum,-1,0,1,maximum}}) {
-            const DRW_Variant source(1071,static_cast<dint64>(value)), actual(1071,static_cast<std::int32_t>(value));
+            const DRW_Variant source(1071,static_cast<std::int64_t>(value)), actual(1071,static_cast<std::int32_t>(value));
             if (!dx_standard_output::valueEqual(source,actual,noMap,references)) return fail("dictionary scalar exact pure transport comparison failed");
             ++exact;
             for (const auto& wrong : {DRW_Variant(1071,static_cast<std::int32_t>(value == maximum ? value - 1 : value + 1)),
                     DRW_Variant(1070,static_cast<std::int32_t>(value)),DRW_Variant(1071,static_cast<double>(value)),DRW_Variant(1071,std::to_string(value)),
-                    DRW_Variant(160,static_cast<dint64>(value))}) {
+                    DRW_Variant(160,static_cast<std::int64_t>(value))}) {
                 if (dx_standard_output::valueEqual(source,wrong,noMap,references)) return fail("dictionary scalar pure comparison accepted wrong value/type/code");
                 ++refused;
             }
         }
         for (const auto value : {minimum - 1,maximum + 1,(std::numeric_limits<std::int64_t>::min)(),(std::numeric_limits<std::int64_t>::max)()}) {
-            const DRW_Variant source(1071,static_cast<dint64>(value)), actual(1071,static_cast<std::int32_t>(value));
+            const DRW_Variant source(1071,static_cast<std::int64_t>(value)), actual(1071,static_cast<std::int32_t>(value));
             if (dx_standard_output::valueEqual(source,actual,noMap,references)) return fail("dictionary scalar pure comparison truncated an out-of-range source");
             ++refused;
         }
         for (const auto code : {90,160,1070}) {
-            const DRW_Variant source(code,static_cast<dint64>(1)), actual(code,static_cast<std::int32_t>(1));
+            const DRW_Variant source(code,static_cast<std::int64_t>(1)), actual(code,static_cast<std::int32_t>(1));
             if (dx_standard_output::valueEqual(source,actual,noMap,references)) return fail("dictionary scalar bridge leaked to another group code");
             ++refused;
         }
@@ -6243,7 +6243,7 @@ bool generatedRootCommonReferenceClosure() {
             dictionary.hardOwner = 1; dictionary.m_entries = {{"ROOT_VALUE", extension + 1u}};
             data.dictionaries.push_back(dictionary);
             DRW_XRecord record; record.handle = extension + 1u; record.parentHandle = extension;
-            record.m_values = {{1, std::string("root-child")}, {330, static_cast<dint64>(root.handle)}};
+            record.m_values = {{1, std::string("root-child")}, {330, static_cast<std::int64_t>(root.handle)}};
             record.m_dataEntries = record.m_values; data.xRecords.push_back(record);
         };
         if (mode != 1u) common(nod, 0xA100u, groups.handle);
@@ -6566,7 +6566,7 @@ bool rootedImageDictionaryUnselectedControls(bool importedCommonOnly = false) {
             DRW_Dictionary dictionary; dictionary.handle = handle; dictionary.parentHandle = owner; dictionary.hardOwner = 1;
             dictionary.m_entries = {{"VALUE", handle + 1u}};
             DRW_XRecord record; record.handle = handle + 1u; record.parentHandle = handle;
-            record.m_values = {{1, std::string("closure-child")}, {330, static_cast<dint64>(owner)}}; record.m_dataEntries = record.m_values;
+            record.m_values = {{1, std::string("closure-child")}, {330, static_cast<std::int64_t>(owner)}}; record.m_dataEntries = record.m_values;
             return output.writeDictionary(&dictionary) && output.writeXRecord(&record);
         }
         void writeObjects() override {
@@ -7002,7 +7002,7 @@ bool selectedRasterReactorMetadata() {
     DRW_Dictionary extension; extension.handle = reactor.xDictHandle; extension.parentHandle = reactor.handle;
     extension.hardOwner = 1; extension.m_entries = {{"REACTOR_VALUE", 0xE131u}}; data.dictionaries.push_back(extension);
     DRW_XRecord child; child.handle = 0xE131u; child.parentHandle = extension.handle;
-    child.m_values = {{1, std::string("reactor-child")}, {330, static_cast<dint64>(reactor.handle)}};
+    child.m_values = {{1, std::string("reactor-child")}, {330, static_cast<std::int64_t>(reactor.handle)}};
     child.m_dataEntries = child.m_values; data.xRecords.push_back(child);
     class Exporter final : public dx_iface {
     public:
@@ -7331,7 +7331,7 @@ bool generatedImageDefinitionExtensions() {
     DRW_XRecord record;
     record.handle = 0xB631u; record.parentHandle = extension.handle;
     record.m_values.emplace_back(1, std::string("IMAGE_EXTENSION_CHILD"));
-    record.m_values.emplace_back(330, static_cast<dint64>(definition.handle));
+    record.m_values.emplace_back(330, static_cast<std::int64_t>(definition.handle));
     record.m_dataEntries = record.m_values;
     data.xRecords.push_back(record);
     DRW_ImageDef unselected = definition;
@@ -7481,7 +7481,7 @@ bool generatedImageDefinitionExtensions() {
             DRW_XRecord child;
             child.handle = 0xB631u; child.parentHandle = extension.handle;
             child.m_values.emplace_back(1, std::string("IMAGE_EXTENSION_CHILD"));
-            child.m_values.emplace_back(330, static_cast<dint64>(definitionHandle));
+            child.m_values.emplace_back(330, static_cast<std::int64_t>(definitionHandle));
             child.m_dataEntries = child.m_values;
             wrote = output.writeDictionary(&images) && output.writeDictionary(&extension)
                 && output.writeXRecord(&child);
@@ -38528,7 +38528,8 @@ bool physicalDictionaryDefaultOutputReadback(
             || outputClassCount(output, "ACDBPLACEHOLDER") != 1)
             return fail("physical dictionary-default readback mismatch: root="
                 + std::to_string(outputRootEntry == output.namedObjectDictionary.m_entries.end()
-                    ? DRW::NoHandle : outputRootEntry->m_handle)
+                    ? static_cast<std::uint32_t>(DRW::NoHandle)
+                    : outputRootEntry->m_handle)
                 + "/" + std::to_string(outputDictionary.handle)
                 + " parent=" + std::to_string(outputDictionary.parentHandle)
                 + "/" + std::to_string(output.namedObjectDictionary.handle)
@@ -38545,7 +38546,8 @@ bool physicalDictionaryDefaultOutputReadback(
                     ? "<empty>" : outputDictionary.m_entries.front().m_name.c_str())
                 + "/" + std::string(sourceDictionary.m_entries.front().m_name.c_str())
                 + " entryTarget=" + std::to_string(outputDictionary.m_entries.empty()
-                    ? DRW::NoHandle : outputDictionary.m_entries.front().m_handle)
+                    ? static_cast<std::uint32_t>(DRW::NoHandle)
+                    : outputDictionary.m_entries.front().m_handle)
                 + "/" + std::to_string(outputPlaceholder.handle)
                 + " nodParent=" + std::to_string(output.namedObjectDictionary.parentHandle)
                 + " xdict=" + std::to_string(outputDictionary.xDictHandle)
@@ -45391,7 +45393,8 @@ bool physicalAssociativeVariableOutputReadback(
             expected.m_owningNetworkHandle);
         const std::uint32_t mappedParent = expected.m_owningNetworkHandle == 0u
             ? 0u : (expectedParent == networkHandleMap.end()
-                ? DRW::NoHandle : expectedParent->second);
+                ? static_cast<std::uint32_t>(DRW::NoHandle)
+                : expectedParent->second);
         if (actual == nullptr || !actual->m_networkFieldsParsed
             || actual->m_classVersion != expected.m_classVersion
             || actual->m_geometryStatus != expected.m_geometryStatus

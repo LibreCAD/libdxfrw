@@ -8,19 +8,18 @@ preserved in `docs/LIBRECAD_DXFRW_UPGRADE_HISTORY.md`.
 
 ### Active implementation work only
 
-- **S15 / C2.2 — VERIFYING:** rerun immutable Windows, Linux x64, and macOS
-  native qualification on the current digest, then run LibreCAD filter and
-  LibreCAD_3 compatibility runtime checks at the updated pin.
-- **S20 / H0 — VERIFYING:** close the compiler-portability and focused-test
-  failures from hosted run `41316104740` and fast run `41316104932`. Candidate
-  `c237d094` passed Linux and macOS native suites but MSVC rejected missing
-  test-lambda captures. The worktree now fixes those captures; its changed test
-  input refreshes the digest, so all hosted receipts must bind the new digest.
-  Linux/macOS source fixes and focused controls pass locally.
+- **S15 / C2.2 — VERIFYING:** requalify the latest implementation digest on
+  Linux, macOS, and Windows, then finish the remaining LibreCAD filter and
+  LibreCAD_3 compatibility runtime/persistence checks.
+- **S20 / H0 — VERIFYING:** close the Windows native-test and `parity-fast`
+  failures found after the compiler fixes. The latest local repairs cover
+  platform-native dependency paths, MSVC STL allocation accounting and retry,
+  shared CTest temporary files, and GCC adapter-test type errors. Focused local
+  CTests pass; the refreshed digest still needs hosted receipts.
 
 No other unfinished in-repository implementation slices remain beyond S15 and
 S20. The six
-external-only evidence items J256, J260, J268, J284, J293, and J295 remain
+  external-only evidence items J256, J260, J268, J284, J293, and J295 remain
 `DEFERRED_EXTERNAL`; they are qualification dispositions, not implementation
 tasks, and cannot promote support claims. Native FreeCAD 3D and independent
 ACIS/ACDS semantic qualification are also external evidence gates, not
@@ -1677,85 +1676,65 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Latest completed checkpoint (history, not backlog): S19 closed the exact
-  locally authored AC1015 five-key NOD and rooted Model/Layout1 output graph.
-  ASCII/binary readback, callback
-  refusal/rollback/retry, AC1018/AC1024 compatibility controls, and strict
-  whole-file conversion pass; all ten callbacks qualify for this control.
-  Platform/LibreCAD, FreeCAD 3D, and independent ACIS/ACDS qualification remain
-  open with claims bounded.
-- Current verification: candidate `c237d094` passed all 7 focused native tests
-  on Linux/GCC 13 and macOS/Apple Clang, with immutable receipt hashes recorded
-  below. Its Windows job fixed the earlier helper-link issue but then found
-  missing explicit captures in `dwg_reader_matrix_tests.cpp` (C3493); dependent
-  C2064/C2737 messages are compile cascades. The `parity-fast` run also failed:
-  GCC 13 rejected an enum/non-enum conditional in `dx_iface.cpp` and an
-  ambiguous `DRW_Variant` initializer in `dxf_fixture_tests.cpp`. The current
-  worktree adds explicit captures to the three POLYLINE source-frame builders,
-  R2004 page lambdas, attribute-count helper, and associative-object lookup
-  predicates; casts the `NoHandle` branch to its underlying `uint32_t` type;
-  and uses an exact `int64_t` variant constructor argument. The reader-matrix
-  target builds and passes 1/1 under local Apple Clang 21 and GCC 16/libstdc++.
-  The `libdxfrw_debug_state_tests` target rebuilds and links under local GCC 16;
-  a separate `-Werror -fsyntax-only` probe under GCC 16 exercises both corrected
-  GCC expressions. The full DXF fixture test translation unit remains covered
-  by the hosted fast run. The previous
-  candidate's Linux/macOS receipts remain baseline evidence only: the selected
-  implementation digest now reads
-  `b042eca3771f789446004c3eafcaa32909303083ad685fef4b53944d6247221a` across
-  456 inputs, so fresh receipts are required. Neither hosted failure nor the
-  worktree fixes are qualified until a new candidate completes the platform and
-  fast workflows. Candidate `7d1a6f06` is in native run `41317674256` and fast
-  run `41317674246`; both are pending. Local Apple Clang 21 and GCC 16/libstdc++ focused controls
-  pass; the two previously reproduced CTests pass 2/2 under each, and the
-  Point18 fixture control passes. Run round-trip tests serially across local
-  build trees because generated temporary DXF names are shared. Do not count
-  macOS GCC as Linux qualification. The separate local `dwg2dxf` GCC 16 target
-  still encounters Apple SDK framework warnings. Claims, support status, and
-  drawing payload files are unchanged.
-- Authorized run horizon: active implementation objective; continue through the
-  next dependency-ready slice until the user stops or the terminal release gate
-  is satisfied.
-- Completion target: S14/G is already complete and is no longer the terminal
-  target. Continue the newly discovered consumer follow-ups and the still-open
-  acceptance gates; record a new terminal slice only after the current DWG/DXF
-  parity, LibreCAD/LibreCAD_3 compatibility, platform qualification, and
-  evidence dispositions are all reconciled. A PR boundary cannot shorten it.
-- Last committed full slice: S19 (AC1015 rooted LAYOUT/NOD output qualification);
-  latest completed S20 child: H0.3 (focused Linux baseline; current digest rerun pending).
+- Latest completed checkpoint: S19 remains the last completed full slice.
+  H0.2 is now closed and archived: GCC 13, MSVC, and Apple Clang all compile
+  the focused native targets with warnings-as-errors. Its implementation is in
+  `7d1a6f06`; the prior-digest hosted build step succeeded on all three systems.
+- S20 remains `VERIFYING`. The previous digest `b042eca3771f789446004c3eafcaa32909303083ad685fef4b53944d6247221a`
+  passed Linux/macOS native suites and all three compiler build steps, but its
+  Windows tests exposed host-native path assumptions, MSVC STL allocation
+  accounting/retry assumptions, and a shared temporary-file race. The previous
+  `parity-fast` build exposed ambiguous 64-bit `DRW_Variant` expressions,
+  enum/integer conditionals, and missing standard includes in the independent
+  wire-walker header. These findings are split into H0.4 and H0.5 below.
+- The current implementation digest is
+  `eef48bfb5f09317c894b86156cfded40f4666e546d4d9223d2955ebb06b96533` across
+  456 inputs. Local Apple Clang 21 builds of the reader matrix and local
+  round-trip target pass; the two CTests pass 2/2 under `--parallel 2`, with the
+  resource lock serializing the shared-path tests. The qualification Python
+  self-test and a GCC 16 `-Werror` portability probe pass. The full 50,000-line
+  GCC adapter-test compile was stopped after it remained in one translation
+  unit; the hosted fast build is the required broad compile gate.
+- The latest native receipts are bound to the earlier digest and are retained
+  as baseline only. The refreshed digest needs new Linux, Windows, and macOS
+  receipts plus a passing `parity-fast` run. No support claims changed and no
+  drawing payload was added.
+- Authorized run horizon: continue the active implementation objective through
+  the next dependency-ready slice; commits and checkpoints are not stopping
+  points.
+- Completion target: do not close the upgrade until current DWG/DXF parity,
+  LibreCAD/LibreCAD_3 compatibility, platform qualification, and evidence
+  dispositions are reconciled. External FreeCAD 3D and ACIS/ACDS qualification
+  remain evidence gates and cannot promote claims.
 - Active slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 2 VERIFYING / 0 VERIFIED /
   0 BLOCKED_HARD / 0 SUPERSEDED.
 - Active parent states: 0 READY / 0 PLANNED / 0 ACTIVE / 2 VERIFYING /
   0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED.
-- Active child states: 0 VERIFIED / 2 VERIFYING / 0 ACTIVE / 0 READY / 0 PLANNED.
-- Active parent and child evidence dispositions are all `NOT_EVALUATED`; no
-  active row promotes a DWG/DXF support claim. Archived totals and dispositions
-  remain available in the history file.
-- No implementation slice is currently READY. S15 remains in VERIFYING for
-  fresh three-platform receipts and LibreCAD filter/LibreCAD_3 runtime consumer
-  evidence; S20 remains in VERIFYING for fresh hosted receipts and `parity-fast`. External
-  semantic and FreeCAD/ACIS gates remain open and cannot promote claims.
+- Active child states: 0 VERIFIED / 3 VERIFYING / 0 ACTIVE / 0 READY / 0 PLANNED.
+- Active evidence dispositions are `NOT_EVALUATED` or `NOT_APPLICABLE`; no row
+  promotes a DWG/DXF support claim. Completed rows are kept in the history file.
+- S15 remains in VERIFYING for current-digest platform receipts and LibreCAD
+  filter/LibreCAD_3 runtime and persistence checks. S20 remains in VERIFYING
+  for H0.4 Windows native qualification, H0.5 fast GCC qualification, and
+  current-digest hosted receipts. The six `DEFERRED_EXTERNAL` evidence items
+  J256, J260, J268, J284, J293, and J295 remain advisory and cannot promote
+  support claims.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
-| S15 | C2: UTF-8/native input and atomic-output paths | S11, S14 | VERIFYING | focused native suite on Linux/macOS/Windows; Unicode parent/basename/non-BMP DXF ASCII+binary/DWG; transaction commit/rollback/cleanup; existing hardening and writer controls; LibreCAD filter and LibreCAD_3 compatibility consumers | C2.1 implementation and portable Mac/Ubuntu ARM controls are complete and archived. Linux/GCC 13 and macOS/Apple Clang baseline receipts pass on `c237d094`; regenerate Windows/Linux/macOS receipts for the current digest. LibreCAD runtime/persistence consumers remain; local filter/parser and LibreCAD_3 compatibility compiles pass at their locked revisions. No support claim is promoted. | current-digest platform receipts and runtime consumers |
-| S20 | H0: hosted build and fast-workflow repair closure | S19 | VERIFYING | clean focused build and `libdxfrw_dwg_local_roundtrip`; focused Linux x64, Windows x64, and macOS ARM64 receipts; `parity-fast`; fixture-admission guard | Candidate `c237d094` passes Linux/macOS native suites but fails MSVC on test-lambda captures; its fast workflow also finds two GCC-only compile diagnostics. Commit `7d1a6f06` fixes all three sources and records digest `b042eca3771f789446004c3eafcaa32909303083ad685fef4b53944d6247221a` across 456 inputs. The reader-matrix test passes under local Apple Clang 21/GCC 16; GCC 16 also links the debug-state target and compiles a `-Werror` probe covering the corrected expressions. Fresh native run `41317674256` and fast run `41317674246` are pending. No support claims or drawing payload files changed. | S15, final release |
+| S15 | C2: UTF-8/native input and atomic-output paths | S11, S14 | VERIFYING | current-digest Linux/macOS/Windows focused receipts; Unicode parent/basename/non-BMP DXF ASCII+binary/DWG; transaction commit/rollback/cleanup; writer controls; LibreCAD filter and LibreCAD_3 runtime/persistence consumers | C2.1 implementation and portable Mac/Ubuntu ARM controls are archived. The prior-digest Linux/GCC 13 and macOS/Apple Clang run `41317674256` passed 7/7 with receipts `f5148aef64cb976a36ff3e2736884901da903375629d301480cf9ee205ea4973` and `2cb3d473d9bf60425ba8dcfc1ebc7905166c2b4c37ab80e697766dc75e0eafbc`; both are baseline only after digest refresh. Windows then compiled but its prior-digest CTests exposed H0.4 failures. Locked LibreCAD filter/parser and LibreCAD_3 compatibility compiles pass; runtime/persistence checks remain. No support claim is promoted. | current-digest three-platform receipts and consumer runtime checks |
+| S20 | H0: hosted build and fast-workflow repair closure | S19 | VERIFYING | focused Linux x64, Windows x64, macOS ARM64 receipts; local round-trip and reader matrix; `parity-fast`; fixture-admission guard | `7d1a6f06` closed compiler portability (H0.2). On prior digest `b042eca3771f789446004c3eafcaa32909303083ad685fef4b53944d6247221a`, native Linux/macOS passed 7/7, all three compiler build steps succeeded, Windows CTests exposed H0.4, and `parity-fast` exposed H0.5. Current digest `eef48bfb5f09317c894b86156cfded40f4666e546d4d9223d2955ebb06b96533`: local focused Apple Clang build and CTests pass 2/2; Python self-test and GCC 16 exact-expression/header probe pass. Hosted requalification remains pending. No support claims or drawing payload files changed. | S15, final release |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
-| C2 | S15 | F0, G1 | VERIFYING | NOT_EVALUATED | Compact UTF-8/native filename contract; local source-overlay/API compiles pass, current-digest platform receipts and runtime/persistence consumers pending |
-| H0 | S20 | none | VERIFYING | NOT_APPLICABLE | Close source inventory, compiler-portability, and focused qualification failures surfaced by hosted CI; Linux and macOS native gates pass, Windows/MSVC and fast workflow pending |
+| C2 | S15 | F0, G1 | VERIFYING | NOT_EVALUATED | UTF-8/native filename and atomic-output contract; local source-overlay/API compiles pass, current-digest receipts and consumer runtime/persistence checks pending |
+| H0 | S20 | none | VERIFYING | NOT_APPLICABLE | Close only the remaining Windows native-test and fast-workflow failures; previous three-platform compiler build gate is archived as H0.2 |
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| C2.2 | C2 / S15 | WP3/WP8; Phase 8 follow-up | C2.1 | VERIFYING | NOT_EVALUATED | own current-digest three-platform immutable hosted receipts and LibreCAD filter/LibreCAD_3 compatibility consumers | The first hosted macOS CTest failure was fixture setup coupling; ASCII/binary path readback now uses fresh drawings. On locked LibreCAD commit `2043e525`, the `c237d094` source overlay builds `librecad_filter_compile_check` and `libdxfrw_test_core` under Apple Clang 21. The separate `lc3_compat_check` compiles under Apple Clang 21 and GCC 16 without `DWGSUPPORT`. Linux/GCC 13 and macOS/Apple Clang receipts on `c237d094` pass 7/7, but the MSVC-driven explicit-capture test fix changes the selected implementation digest; those receipts are baseline only. Windows and fresh Linux/macOS receipts plus LibreCAD runtime Unicode/persistence/full-consumer checks remain. No support claims are promoted. |
-| H0.2 | H0 / S20 | WP1/WP2; Phase 2 follow-up | H0.1 | VERIFYING | NOT_EVALUATED | GCC/MSVC/Apple Clang compile portability under default warnings-as-errors | `c237d094` fixed GCC 13 warnings and earlier MSVC helper links. Its Windows job then rejected no-capture lambdas in `dwg_reader_matrix_tests.cpp` with C3493; C2064/C2737 errors cascade from them. The `parity-fast` build also rejected the `NoHandle` conditional and an ambiguous `DRW_Variant` test value. Commit `7d1a6f06` adds explicit lambda captures, an exact `uint32_t` sentinel branch, and an exact `int64_t` variant input. The reader-matrix test passes under local Apple Clang 21/GCC 16; GCC 16 also links the debug-state target and compiles a `-Werror` probe covering both corrected expressions. Native run `41317674256` and fast run `41317674246` are pending. Current digest: `b042eca3771f789446004c3eafcaa32909303083ad685fef4b53944d6247221a` (456 inputs). |
-
-
-
-
-
-
+| C2.2 | C2 / S15 | WP3/WP8; Phase 8 follow-up | C2.1 | VERIFYING | NOT_EVALUATED | current-digest three-platform receipts and LibreCAD filter/LibreCAD_3 runtime/persistence consumers | Locked LibreCAD commit `2043e525` source overlay builds `librecad_filter_compile_check` and `libdxfrw_test_core` under Apple Clang 21; `lc3_compat_check` compiles under Apple Clang 21 and GCC 16 without `DWGSUPPORT`. Prior-digest Linux/macOS passed 7/7; current digest changed in focused test/build inputs, so fresh receipts are required. Runtime/persistence checks remain; no claim is promoted. |
+| H0.4 | H0 / S20 | WP4/WP6; Windows portability follow-up | H0.2 | VERIFYING | NOT_APPLICABLE | Windows native focused tests pass with native absolute dependency paths, bounded STL allocation estimates, atomic failure/retry, and shared-temp serialization | The prior Windows run compiled, then failed 3/7 CTests: Python self-test rejected POSIX-rooted fake paths; MSVC set/map accounting expected zero control nodes and omitted nested set sentinels; map retry did not reach a growth boundary; round-trip/matrix tests raced on shared temp paths. The self-test now derives absolute paths from `Path.cwd()`. The reader ledger accounts fixed STL controls and nested sentinels; retry fills to the next growth allocation. CTest resource locking serializes the colliding executables. Local Apple Clang focused build passes and the two tests pass 2/2 under `--parallel 2`; current-digest Windows receipt is pending. |
+| H0.5 | H0 / S20 | WP1/WP2; fast GCC follow-up | H0.2 | VERIFYING | NOT_APPLICABLE | GCC 13 `parity-fast` compiles the adapter target with warnings-as-errors and completes required fast vectors/CLI checks | The prior fast run failed while compiling `tests/dwg2dxf_adapter_tests.cpp`: ambiguous `dint64`/`DRW_Variant` overloads, enum/non-enum handle fallbacks, and the independent scalar walker used `std::filesystem::path` before including `<filesystem>`. Test data now uses exact `std::int64_t`, fallback handles use `uint32_t`, and the independent header includes its standard dependencies. A GCC 16 `-Werror -fsyntax-only` probe for these expressions/header passes; a full local compile of the large adapter translation unit was stopped before completion to avoid repeating the hosted build delay. Current hosted `parity-fast` result is pending. |
 
 <!-- UPGRADE_PROGRESS_END -->
 

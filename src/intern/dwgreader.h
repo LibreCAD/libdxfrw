@@ -219,7 +219,10 @@ constexpr std::size_t PolylineClaimOwnerNodeChargeBytes =
     sizeof(std::uint32_t) + PolylineTreeNodeLinkChargeBytes;
 constexpr std::size_t PolylineClaimHandleNodeChargeBytes =
     sizeof(std::pair<const std::uint32_t, std::set<std::uint32_t>>) +
-    PolylineTreeNodeLinkChargeBytes;
+    PolylineTreeNodeLinkChargeBytes +
+    // The mapped set may allocate its own head/sentinel node independently
+    // of the map node, notably with the MSVC standard library.
+    PolylineClaimOwnerNodeChargeBytes;
 constexpr std::size_t PolylineOwnershipClaimNodeChargeBytes =
     sizeof(std::pair<const std::uint32_t, std::uint32_t>) +
     PolylineTreeNodeLinkChargeBytes;

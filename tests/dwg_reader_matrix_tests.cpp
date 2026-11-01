@@ -915,11 +915,13 @@ void testPolylineStagingAllocationRequestEstimates(TestContext& t) {
 
     AllocationAccounting treeAccounting;
     std::size_t ownerCount = 0u;
+    std::size_t claimMapBaselineBytes = 0u;
     bool treePopulationSucceeded = true;
     {
         TrackedClaimMap claims(
             std::less<Handle>{},
             AllocationAccountingAllocator<TrackedClaimValue>(&treeAccounting));
+        claimMapBaselineBytes = treeAccounting.liveBytes;
         for (Handle handle = 1u; handle <= 3u; ++handle) {
             TrackedOwnerSet owners(
                 std::less<Handle>{},
@@ -935,23 +937,29 @@ void testPolylineStagingAllocationRequestEstimates(TestContext& t) {
                 ++ownerCount;
             }
         }
-        const std::size_t modeledTreeBytes =
-            claims.size()
+        const std::size_t modeledTreeLiveBytes = claimMapBaselineBytes
+            + claims.size()
                 * dwgReaderDetail::PolylineClaimHandleNodeChargeBytes
             + ownerCount
                 * dwgReaderDetail::PolylineClaimOwnerNodeChargeBytes;
+        const std::size_t modeledTreePeakBytes = modeledTreeLiveBytes
+            + claims.size()
+                * dwgReaderDetail::PolylineClaimOwnerNodeChargeBytes;
         t.expect(treePopulationSucceeded && claims.size() == 3u
                      && ownerCount == 8u
-                     && treeAccounting.peakBytes <= modeledTreeBytes
-                     && treeAccounting.liveBytes <= modeledTreeBytes
+                     && treeAccounting.peakBytes <= modeledTreePeakBytes
+                     && treeAccounting.liveBytes <= modeledTreeLiveBytes
                      && treeAccounting.allocationCalls != 0u
                      && !treeAccounting.deallocationUnderflow,
                  "POLYLINE tree-node estimate covers requested map/set node bytes on this STL");
         claims.clear();
-        t.expect(treeAccounting.liveBytes == 0u
+        t.expect(treeAccounting.liveBytes <= claimMapBaselineBytes
                      && !treeAccounting.deallocationUnderflow,
-                 "POLYLINE tracked tree nodes release their requested bytes on clear");
+                 "POLYLINE tracked tree nodes release requested bytes while retaining only map control storage on clear");
     }
+    t.expect(treeAccounting.liveBytes == 0u
+                 && !treeAccounting.deallocationUnderflow,
+             "POLYLINE map control storage releases when the map is destroyed");
 
     using PendingState = PolylineStageTestReader::PendingStateForAccounting;
     using OrphanState = PolylineStageTestReader::OrphanStateForAccounting;
@@ -966,6 +974,7 @@ void testPolylineStagingAllocationRequestEstimates(TestContext& t) {
     AllocationAccounting ownerMapAccounting;
     bool ownerMapPopulationSucceeded = true;
     std::size_t retainedBucketBytes = 0u;
+    std::size_t fixedOwnerMapBytes = 0u;
     {
         TrackedPendingMap pending(
             0u, std::hash<Handle>{}, std::equal_to<Handle>{},
@@ -973,6 +982,9 @@ void testPolylineStagingAllocationRequestEstimates(TestContext& t) {
         TrackedOrphanMap orphans(
             0u, std::hash<Handle>{}, std::equal_to<Handle>{},
             AllocationAccountingAllocator<OrphanPair>(&ownerMapAccounting));
+        const std::size_t initialBucketsBytes =
+            (pending.bucket_count() + orphans.bucket_count()) * sizeof(void *);
+        fixedOwnerMapBytes = ownerMapAccounting.liveBytes - initialBucketsBytes;
         pending.reserve(8u);
         orphans.reserve(8u);
         const std::size_t pendingBuckets = pending.bucket_count();
@@ -983,16 +995,25 @@ void testPolylineStagingAllocationRequestEstimates(TestContext& t) {
         for (Handle handle = 101u; handle <= 108u; ++handle)
             ownerMapPopulationSucceeded = orphans.emplace(handle, OrphanState{}).second
                 && ownerMapPopulationSucceeded;
-        const std::size_t modeledOwnerMapPeak =
-            (pendingBuckets + orphanBuckets) * sizeof(void *)
-            + pending.size() * (sizeof(PendingPair) + 3u * sizeof(void *))
-            + orphans.size() * (sizeof(OrphanPair) + 3u * sizeof(void *));
+        const std::size_t retainedBucketBytesAfterReserve =
+            (pendingBuckets + orphanBuckets) * sizeof(void *);
+        const std::size_t ownerMapNodeBytes =
+            pending.size() * (sizeof(PendingPair) + 5u * sizeof(void *))
+            + orphans.size() * (sizeof(OrphanPair) + 5u * sizeof(void *));
+        // Include both the original and replacement bucket arrays in the
+        // transient rehash ceiling. Control/sentinel allocations are a fixed
+        // STL baseline measured above, not part of the per-entry model.
+        const std::size_t modeledOwnerMapLive = fixedOwnerMapBytes
+            + retainedBucketBytesAfterReserve + ownerMapNodeBytes;
+        const std::size_t modeledOwnerMapPeak = fixedOwnerMapBytes
+            + initialBucketsBytes + retainedBucketBytesAfterReserve
+            + ownerMapNodeBytes;
         t.expect(ownerMapPopulationSucceeded && pending.size() == 8u
                      && orphans.size() == 8u
                      && pending.bucket_count() == pendingBuckets
                      && orphans.bucket_count() == orphanBuckets
                      && ownerMapAccounting.peakBytes <= modeledOwnerMapPeak
-                     && ownerMapAccounting.liveBytes <= modeledOwnerMapPeak
+                     && ownerMapAccounting.liveBytes <= modeledOwnerMapLive
                      && ownerMapAccounting.allocationCalls != 0u
                      && !ownerMapAccounting.deallocationUnderflow,
                  "POLYLINE pending/orphan node and bucket estimates cover allocator requests without rehash");
@@ -1000,7 +1021,8 @@ void testPolylineStagingAllocationRequestEstimates(TestContext& t) {
         orphans.clear();
         retainedBucketBytes =
             (pending.bucket_count() + orphans.bucket_count()) * sizeof(void *);
-        t.expect(ownerMapAccounting.liveBytes <= retainedBucketBytes
+        t.expect(ownerMapAccounting.liveBytes
+                     <= fixedOwnerMapBytes + retainedBucketBytes
                      && !ownerMapAccounting.deallocationUnderflow,
                  "POLYLINE pending/orphan clear retains no tracked node bytes beyond bucket estimates");
     }
@@ -1483,17 +1505,48 @@ void testBoundedPolylineStagingGrowth(TestContext& t) {
         std::equal_to<std::uint32_t>,
         ThrowOnceAllocator<std::pair<const std::uint32_t, std::uint32_t>>>;
     FailingMap failingOwners;
+    std::uint32_t nextFailingOwner = 1u;
+    std::size_t failingMapGrowthTarget = 0u;
+    bool failingMapPrepared = true;
+    while (failingMapPrepared) {
+        if (!dwgReaderDetail::planUnorderedMapForOneMore(
+                failingOwners, childLimit, failingMapGrowthTarget)) {
+            failingMapPrepared = false;
+            break;
+        }
+        if (failingMapGrowthTarget != 0u && !failingOwners.empty())
+            break;
+        failingMapPrepared =
+            dwgReaderDetail::reserveUnorderedMapForOneMore(
+                failingOwners, childLimit) &&
+            failingOwners.emplace(nextFailingOwner, nextFailingOwner).second;
+        ++nextFailingOwner;
+    }
+    const std::size_t failingMapSizeBefore = failingOwners.size();
+    const std::size_t failingMapBucketsBefore = failingOwners.bucket_count();
+    const bool growthWasRequired = failingMapPrepared
+        && !failingOwners.empty() && failingMapGrowthTarget != 0u;
     RangeAllocationFailure::failNext = true;
-    const bool mapAllocationFailureRejected =
-        !dwgReaderDetail::reserveUnorderedMapForOneMore(failingOwners,
-                                                        childLimit);
+    const bool mapAllocationFailureRejected = growthWasRequired
+        && !dwgReaderDetail::reserveUnorderedMapForOneMore(failingOwners,
+                                                           childLimit);
+    bool mapStatePreserved = failingOwners.size() == failingMapSizeBefore
+        && failingOwners.bucket_count() == failingMapBucketsBefore
+        && failingOwners.find(nextFailingOwner) == failingOwners.end();
+    for (std::uint32_t owner = 1u;
+         owner < nextFailingOwner && mapStatePreserved; ++owner) {
+        const auto found = failingOwners.find(owner);
+        mapStatePreserved = found != failingOwners.end()
+            && found->second == owner;
+    }
     RangeAllocationFailure::failNext = false;
-    const bool mapReservationRecovered =
-        dwgReaderDetail::reserveUnorderedMapForOneMore(failingOwners,
-                                                       childLimit) &&
-        failingOwners.emplace(1u, 1u).second;
-    t.expect(mapAllocationFailureRejected && failingOwners.size() == 1u &&
-                 mapReservationRecovered,
+    const bool mapReservationRecovered = growthWasRequired
+        && dwgReaderDetail::reserveUnorderedMapForOneMore(failingOwners,
+                                                          childLimit)
+        && failingOwners.emplace(nextFailingOwner, nextFailingOwner).second;
+    t.expect(mapAllocationFailureRejected && mapStatePreserved
+                 && failingOwners.size() == failingMapSizeBefore + 1u
+                 && mapReservationRecovered,
              "POLYLINE owner-map reservation failure is rejected and same map can retry");
 
     struct StagedVertexProbe {

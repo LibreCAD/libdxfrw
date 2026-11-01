@@ -6733,8 +6733,15 @@ def self_test() -> None:
     )
 
     config_digest = _digest_text("manifest-v2")
+    # Path.is_absolute() is host-specific. Rooted POSIX paths have no drive
+    # letter and are not absolute according to pathlib on Windows, so build
+    # these synthetic dependency paths from the native working directory.
+    toolchain_include = Path.cwd() / "toolchain" / "include"
+    standard_header_path = str(toolchain_include / "standard-header.h")
+    target_only_header_path = str(toolchain_include / "target-only.h")
+    standalone_only_header_path = str(toolchain_include / "standalone-only.h")
     dependency_inputs = [{
-        "path": "/toolchain/include/standard-header.h",
+        "path": standard_header_path,
         "size": 23,
         "digest": _digest_text("standard-header"),
     }]
@@ -7865,7 +7872,7 @@ def self_test() -> None:
     ] = {
         **dependency_profile,
         "externalInputs": dependency_inputs + [{
-            "path": "/toolchain/include/target-only.h",
+            "path": target_only_header_path,
             "size": 8,
             "digest": _digest_text("target-only"),
         }],
@@ -7887,7 +7894,7 @@ def self_test() -> None:
     ] = {
         **dependency_profile,
         "externalInputs": dependency_inputs + [{
-            "path": "/toolchain/include/standalone-only.h",
+            "path": standalone_only_header_path,
             "size": 13,
             "digest": _digest_text("standalone-only"),
         }],
@@ -7911,7 +7918,7 @@ def self_test() -> None:
     shared = next(
         row for row in changed_shared_dependency["build"]["buildParityIdentity"][
             "compilerDependencies"]["externalInputs"]
-        if row["path"] == "/toolchain/include/standard-header.h"
+        if row["path"] == standard_header_path
     )
     shared["digest"] = _digest_text("changed-shared-header")
     changed_dependency_inputs = changed_shared_dependency["build"][
