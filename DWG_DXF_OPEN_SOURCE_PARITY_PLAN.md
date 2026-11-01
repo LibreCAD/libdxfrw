@@ -49,7 +49,7 @@ Implementation history and evidence stay in Git and `docs/research/`.
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
 | P4 | OPEN — source/graph closure | Close source-backed bodies, owner edges and dependencies still missing from existing inputs. | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN — broader rendering/TABLE and dynamic-block work | Close remaining rendering metadata/native rendering profiles; qualify native semantics and the parentId projection boundary for the two-root AC1024 dynamic graph; qualify adapter-level DXF-origin typed/raw replay; close FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
+| P5 | OPEN — broader rendering/TABLE and dynamic-block work | Close remaining rendering metadata/native rendering profiles; qualify adapter-level DXF-origin typed/raw replay; qualify native semantics and resolve the parentId projection boundary for the two-root AC1024 dynamic graph; close FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -58,7 +58,7 @@ Implementation history and evidence stay in Git and `docs/research/`.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next implementation packet — native dynamic semantics and DXF projection.**
+**Next implementation packet — DXF-origin dynamic-block replay.**
 The completed ASCII/Binary failure, retry and fresh-readback controls are in the
 [dynamic graph readback receipt](docs/research/p5-ac1024-dynamic-graph-failure-readback-2026-10-31.json).
 Strict output for the AC1024 architectural source passes all 490 captured
@@ -70,23 +70,35 @@ The source census and earlier writer/staged-output proofs remain in the
 and [dynamic-writer progress receipt](docs/research/p5-ac1024-architectural-dynamic-writer-progress-2026-10-31.json).
 These receipts prove output transport and graph readback, not native semantics
 or support claims.
+The installed FreeCAD 1.1.4 importer is not an eligible dynamic-block evaluator:
+its documented DXF scope imports block geometry and does not qualify parameter
+or action behavior. The ODA converter and LibreDWG reader are not evaluators
+either. Keep FreeCAD in P8's open/insert workflow qualification and consult the
+[consumer-admission receipt](docs/research/p5-dynamic-block-consumer-admission-2026-10-31.json)
+for the exact evidence and limits; continue locally actionable replay work
+without waiting for an unavailable native evaluator.
 
 Remaining implementation order, using the current object/graph models and
 retained source frames rather than adding another graph engine:
 
-1. **Resolve the parentId projection boundary and qualify native meaning.** The
+1. **Qualify same-version adapter-level DXF-origin typed/raw replay.** Bind
+   every custom record to its exact typed/raw source identity, class, owner and
+   reachable graph role; resolve and remap every known handle target. Preserve
+   raw-only record bodies exactly when they are unchanged, and refuse unknown
+   translated-reference roles, mismatched typed/raw pairs, unsupported version
+   projections and incomplete closures. Inspect staged OBJECTS bytes against
+   the source carriers, then prove destination rollback, corrected retry and
+   fresh ASCII/Binary readback. Use the locally generated output of an existing
+   AC1024 DWG as the source; do not add a drawing fixture.
+2. **Resolve the parentId projection boundary and qualify native meaning.** The
    fresh readback records source `EvalExpr.parentId=0xFFFFFFFF` as DXF model
    default `0` for `BLOCKLINEARGRIP` handle `0x1111`; the current projection
-   omits that field. Establish from authoritative DXF field documentation or an
-   independent native consumer whether this is semantics-neutral. If not, add
-   the required projection with source-backed fields and focused refusal/retry
-   controls. Then qualify both roots, visibility, parameter/action behavior and
-   representative reachable geometry using an independent consumer bound to
-   exact input/output bytes, executable and configuration. Keep claims closed
-   until meaning is established.
-2. **Qualify adapter-level DXF-origin typed/raw replay** with the same graph
-   identity, role, field, failure and destination-atomicity expectations. Keep
-   unrelated raw profiles refused.
+   omits that field. Establish authoritative field semantics or verify with an
+   independent dynamic-block evaluator; if the field is required, implement a
+   source-backed projection with focused refusal/retry controls. Qualify both
+   roots, visibility, parameter/action behavior and representative reachable
+   geometry using a consumer bound to exact input/output bytes, executable and
+   configuration. Keep claims closed until meaning is established.
 
 The sweep also reproduced separate unresolved gates: AC1021 proxy-graphics
 refusal and AC1018 `ET-Drawing-with-Border.dwg` with 23 opaque callbacks but no
@@ -137,10 +149,10 @@ output gates are met.
 
 ## P5 — rendering and TABLE
 
-**Dynamic blocks:** resolve the parentId projection boundary and qualify native
-semantics for the two-root AC1024 profile; qualify adapter-level DXF-origin
-typed/raw replay. Admit other physical subclasses only when an existing source
-identifies a required field, role, or output mismatch.
+**Dynamic blocks:** qualify same-version adapter-level DXF-origin typed/raw
+replay, then resolve the parentId projection boundary and qualify native
+semantics for the two-root AC1024 profile. Admit other physical subclasses only
+when an existing source identifies a required field, role, or output mismatch.
 
 **Rendering:** close remaining engine/class-revision/schema and optional-presence
 profiles; active/global/environment and background/live-section relations; and

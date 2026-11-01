@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw-p5-dynamic-block-consumer-admission-v1",
+  "date": "2026-10-31",
+  "scope": "Determine whether locally available open-source consumers can independently qualify native dynamic-block evaluation for the AC1024 two-root profile.",
+  "localEnvironment": {
+    "host": "macOS ARM64",
+    "installedCandidates": [
+      {
+        "product": "FreeCAD",
+        "bundle": "/Applications/FreeCAD.app",
+        "version": "1.1.4",
+        "qualification": "Useful for the separate FreeCAD DWG-to-DXF open/import workflow and static geometry inspection, but not admitted as an oracle for dynamic-block parameter/action evaluation."
+      },
+      {
+        "product": "ODA File Converter",
+        "bundle": "/Applications/ODAFileConverter.app",
+        "version": "27.1.0.0",
+        "architecture": "arm64",
+        "qualification": "Format converter; no dynamic-block editing or evaluator observed. It cannot independently establish evaluated visibility/action meaning."
+      },
+      {
+        "product": "LibreDWG dwgread",
+        "path": "/opt/homebrew/bin/dwgread",
+        "version": "0.14",
+        "qualification": "Independent DWG parser/field observation only; no dynamic-block evaluator qualification."
+      }
+    ],
+    "nativeCadCandidates": {
+      "AutoCAD": "not installed under /Applications",
+      "BricsCAD": "not installed under /Applications",
+      "QCAD": "not installed under /Applications"
+    },
+    "execution": "No FreeCAD document was opened and no dynamic action was evaluated in this research pass. Bundle/version inventory and official source/documentation inspection only."
+  },
+  "officialEvidence": [
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/Draft_DXF.md",
+      "finding": "FreeCAD documents its C++ DXF importer as importing block geometry while skipping text, dimensions and attributes inside blocks; its listed import objects contain no dynamic-block evaluation path. The legacy importer list likewise does not describe dynamic-block evaluation.",
+      "use": "FreeCAD import is not an independent semantic oracle for parameter/action-driven dynamic-block behavior."
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/main/src/Mod/Draft/importDXF.py",
+      "finding": "The current official importDXF module contains no AcDbEvalExpr, BLOCKVISIBILITYPARAMETER or dynamic-block evaluator implementation in the searched source.",
+      "use": "Source inspection corroborates the documented importer scope; absence alone is not treated as universal proof about every FreeCAD extension."
+    },
+    {
+      "url": "https://github.com/FreeCAD/FreeCAD-documentation/blob/main/wiki/FreeCAD_and_DWG_Import.md",
+      "finding": "FreeCAD imports DWG through an external converter to DXF and then uses its standard DXF importer.",
+      "use": "FreeCAD remains relevant to the separate end-to-end dwg2dxf/open workflow, but the converter-plus-import route does not supply a dynamic-block evaluator."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbEvalGraph.html",
+      "finding": "Autodesk describes AcDbEvalGraph as the network implementing dynamic-block behavior and evaluates dependent expressions in graph order.",
+      "use": "The remaining semantic gate must exercise an evaluator and observe behavior, not only compare transported node/edge fields."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-81D407FB-5C58-4197-A8DE-83A10F13091E.htm",
+      "finding": "Autodesk's Dynamic Block API Overview describes dynamic block instances as independently adjustable and the graph classes as defining, storing and evaluating relationships between authoring elements.",
+      "use": "The consumer witness should change a parameter/action and verify the resulting instance geometry/visibility."
+    }
+  ],
+  "parentIdBoundary": {
+    "sourceObservation": "The fresh ASCII/Binary DXF readback receipt records source EvalExpr.parentId 0xFFFFFFFF becoming model default 0 for BLOCKLINEARGRIP handle 0x1111 because the current DXF projection omits that field.",
+    "documentationSearch": "The searched public Autodesk DXF pages did not provide a group-code mapping for this custom AcDbEvalExpr parentId field.",
+    "disposition": "UNRESOLVED. Do not call the normalization semantics-neutral. Resolve with authoritative field/profile evidence or a native evaluator roundtrip."
+  },
+  "remaining": [
+    "Use an independently implemented dynamic-block evaluator, with exact product/version and operation bound to the exact source/output bytes, to test both roots, visibility, parameter/action behavior and reachable geometry.",
+    "Resolve the parentId projection boundary before promoting dynamic-block semantics.",
+    "Continue locally actionable DXF-origin typed/raw adapter replay work without waiting for a native consumer."
+  ],
+  "limitations": [
+    "FreeCAD's documentation describes supported importer scope but does not prove behavior of every future importer, extension or application version.",
+    "No native CAD application was executed in this pass; no product was installed or purchased.",
+    "Public docs/source are mutable and are not bound to a local release artifact."
+  ]
+}
