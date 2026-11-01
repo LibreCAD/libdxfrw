@@ -8382,6 +8382,8 @@ bool dynamicBlockPurgePreventerOutputProfile() {
     const auto populate = [](dx_data& data, dx_iface& iface,
                              std::uint16_t flag,
                              std::uint32_t blockHandle) {
+        data.sourceFormat = dx_source_format::DWG;
+        data.sourceVersion = DRW::AC1024;
         iface.cData = &data;
         DRW_Block_Record block;
         block.handle = blockHandle;

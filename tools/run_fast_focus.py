@@ -49,7 +49,7 @@ CTEST_REGRESSIONS = (
     "dwg2dxf_numeric_locale_binary_cli",
     "dwg2dxf_3dline_adapter_cli",
     "dwg2dxf_3dline_binary_adapter_cli",
-    "dwg2dxf_dynamic_block_fail_closed",
+    "dwg2dxf_dynamic_block_purge_preventer",
     "libdxfrw_dimstyle_optional_handles",
     "dwg2dxf_dimstyle_optional_handles_ascii_cli",
     "dwg2dxf_dimstyle_optional_handles_binary_cli",

@@ -260,4 +260,18 @@ Candidate digest `bb8bc53404402e31d5310032d54855370ef3695b9d9e4e0d4ad4031ca6f8fc
 still needs fresh Windows/Linux/macOS and `parity-fast` receipts. No fixture
 payload or support claim changed.
 
+S20 fast-workflow follow-up: run `41330244120` on the `bb8bc534...` candidate
+passed its inventory checks, built all 81 bounded targets, and passed all seven
+fast executables. It then stopped before CTest execution because
+`tools/run_fast_focus.py` required the retired name
+`dwg2dxf_dynamic_block_fail_closed`; CMake had replaced that registration with
+`dwg2dxf_dynamic_block_purge_preventer` in `feab8a8f`. The runner now selects
+the registered CTest. The newly selected local test revealed that its
+synthetic PurgePreventer model omitted the source identity required by the
+closed AC1024 output profile. Marking that runtime-authored model as DWG/AC1024
+makes the targeted CTest pass (1/1); no drawing fixture was used. The runner and
+test change the digest to
+`087456dce91e58e8f497d13df750316a50eb7d980a8c79b2b40c6eaa8f630294`; the
+three native receipts and `parity-fast` must be refreshed on this candidate.
+
 <!-- UPGRADE_PROGRESS_END -->
