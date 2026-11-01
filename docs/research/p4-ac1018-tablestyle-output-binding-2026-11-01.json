@@ -51,19 +51,19 @@
     "target": "AC1024 DXF",
     "encodings": ["ASCII", "Binary"],
     "source_profile": "One Standard TABLESTYLE with three legacy rows, six ordered borders per row, 0.06 margins, row heights 0.18/0.25/0.18, alignments 2/5/5, paired CMC colors, and a unique text-style dependency.",
-    "graph": "The staged-output inspector verifies the emitted NOD ACAD_TABLESTYLE edge, root dictionary owner and Standard entry, TABLESTYLE identity and owner, and emitted STYLE dependency. Test readback verifies the new source callback identity is published as output-qualified only after successful staged inspection.",
+    "graph": "The staged-output inspector verifies the emitted NOD ACAD_TABLESTYLE edge, root dictionary owner and complete Standard entry, the entire owner DICTIONARY body and its links, TABLESTYLE identity/owner, and emitted STYLE dependency. Both the TABLESTYLE and fully compared owner DICTIONARY callback identities are published as output-qualified only after successful staged inspection; the broader NOD is not qualified from a single-key check.",
     "field_readback": "Fresh import checks TABLESTYLE identity/key/owner; row style names (DXF group 7); margins/flow/flags/suppression; heights/alignment; text/fill/background and R2007+ type/unit groups; all 18 ordered border weights, visibility values and colors; and typed row values.",
-    "opaque_callback_count": "This profile adds TABLESTYLE handle 0x87 to the five identities qualified by the preceding AC1018 MLINESTYLE profile: 6 of 23 qualified and 17 remain unqualified. The source still fails strict whole-source conversion."
+    "opaque_callback_count": "This profile adds TABLESTYLE handle 0x87 and its fully compared owner DICTIONARY 0x86 to the five identities qualified by the preceding AC1018 MLINESTYLE profile: 7 of 23 qualified and 16 remain unqualified. The source still fails strict whole-source conversion."
   },
   "failure_and_retry": {
     "test_isolation": "The test-only source model assigns a valid temporary name to unrelated empty-name STYLE 0xDF so TABLES emission can reach the TABLESTYLE OBJECTS profile. It does not establish whole-source conversion or a production STYLE omission/replay disposition.",
     "invalid_row": "A NaN row text height is refused without replacing a pre-existing destination and without publishing this callback's qualification.",
     "invalid_border": "A lineweight of 40000 is refused without replacing the destination or publishing new qualification.",
-    "retry": "After restoring the source fields, the same adapter emits ASCII and Binary output, freshly imports the rows and dependency, and publishes output qualification for source callback 0x87."
+    "retry": "After restoring the source fields, the same adapter emits ASCII and Binary output, freshly imports the rows and dependency, and publishes output qualification for source callbacks 0x87 and 0x86 only after the selected emitted records pass inspection."
   },
   "implementation": {
     "files": ["dwg2dxf/dx_iface.cpp", "dwg2dxf/dx_iface.h", "tests/dwg2dxf_adapter_tests.cpp"],
-    "behavior": "The existing single-Standard TABLESTYLE graph proof now admits the exact AC1018 legacy row profile for AC1024 DXF output while retaining the AC1024 R24 gate. The source version is frozen with the source model; owner/key/dependency checks and staged output inspection remain required."
+    "behavior": "The existing single-Standard TABLESTYLE graph proof now admits the exact AC1018 legacy row profile for AC1024 DXF output while retaining the AC1024 R24 gate. The source version is frozen with the source model. Successful inspection qualifies the TABLESTYLE and its owner DICTIONARY only after the complete dictionary source body, key roles, emitted target mapping, and owner are compared; the NOD remains unqualified by this narrow root-key proof."
   },
   "validation": {
     "build": {
@@ -73,7 +73,7 @@
     "focused_selectors": [
       {
         "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --tablestyle-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
-        "result": "PASS for ASCII/Binary output, exact raw/typed fields, graph binding, qualification, atomic refusal and same-adapter retry"
+        "result": "PASS for ASCII/Binary output, exact raw/typed fields, graph binding, TABLESTYLE plus owner-DICTIONARY qualification, atomic refusal and same-adapter retry"
       },
       {
         "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --tablestyle-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
@@ -95,9 +95,9 @@
     "diff_check": "PASS"
   },
   "limits": [
-    "This qualifies one source-bound AC1018 Standard TABLESTYLE profile for AC1024 ASCII/Binary DXF output.",
+    "This qualifies one source-bound AC1018 Standard TABLESTYLE and its exact owner-DICTIONARY profile for AC1024 ASCII/Binary DXF output.",
     "The test changes unrelated empty-name STYLE 0xDF only in its in-memory model; that STYLE remains refused in production.",
-    "Seventeen of the source's 23 opaque callback identities remain unqualified; strict whole-source conversion remains refused.",
+    "Sixteen of the source's 23 opaque callback identities remain unqualified; strict whole-source conversion remains refused.",
     "No native CAD rendering, LibreCAD/LibreCAD_3, FreeCAD, 3D semantics, other TABLESTYLE profile, or public support claim is established."
   ],
   "next_action": "Continue with the next AC1018 source-required callback whose typed body and rooted dependency graph can be tied to actual output. Keep all remaining callbacks and strict whole-source conversion refused."

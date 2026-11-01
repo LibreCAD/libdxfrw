@@ -108,6 +108,28 @@ public:
     static std::size_t opaqueOutputQualificationCount(const dx_data& data) {
         return data.m_opaqueDwgOutputQualifiedFrameIdentities.size();
     }
+    static void reportOpaqueOutputGaps(const dx_data& data) {
+        for (const auto& key : data.m_opaqueDwgSourceFrameIdentities) {
+            if (key.first != data.importGeneration
+                || data.m_opaqueDwgOutputQualifiedFrameIdentities.count(key)
+                    != 0u)
+                continue;
+            const auto frame = data.m_opaqueDwgSourceFrames.find(key);
+            if (frame == data.m_opaqueDwgSourceFrames.end()) {
+                std::cerr << "unqualified handle=" << key.second
+                          << " frame=missing\n";
+                continue;
+            }
+            std::cerr << "unqualified handle=0x" << std::hex
+                      << frame->second.m_handle << std::dec
+                      << " type=" << frame->second.m_objectType
+                      << " record=" << frame->second.m_recordName
+                      << " class=" << frame->second.m_className
+                      << " custom=" << frame->second.m_isCustomClass
+                      << " common=" << static_cast<unsigned>(
+                            frame->second.m_commonLinkEvidence) << '\n';
+        }
+    }
     static bool opaqueSourceIsEntityType(const dx_data& data,
             std::uint64_t generation, std::uint32_t handle, int type) {
         const auto key = std::make_pair(generation, handle);
@@ -39487,6 +39509,9 @@ bool physicalAc1018TableStyleOutputReadback(
         const bool alreadyQualified =
             DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
                 source, source.importGeneration, style.handle);
+        const bool dictionaryAlreadyQualified =
+            DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, styleDictionary->handle);
         const auto exportPartial = [&]() {
             return writer.fileExport(
                 outputPath.string(), DRW::AC1024, binary, &source, false, true,
@@ -39510,7 +39535,10 @@ bool physicalAc1018TableStyleOutputReadback(
         if (!malformedRejected || !destinationIsSentinel()
             || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
                 source, source.importGeneration, style.handle)
-                != alreadyQualified) {
+                != alreadyQualified
+            || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, styleDictionary->handle)
+                != dictionaryAlreadyQualified) {
             invalidEmptyStyle->name = originalInvalidName;
             return fail("malformed AC1018 TABLESTYLE did not refuse atomically");
         }
@@ -39522,13 +39550,21 @@ bool physicalAc1018TableStyleOutputReadback(
         if (!outOfRangeRejected || !destinationIsSentinel()
             || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
                 source, source.importGeneration, style.handle)
-                != alreadyQualified) {
+                != alreadyQualified
+            || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, styleDictionary->handle)
+                != dictionaryAlreadyQualified) {
             invalidEmptyStyle->name = originalInvalidName;
             return fail("out-of-range AC1018 TABLESTYLE lineweight did not refuse atomically");
         }
         if (!exportPartial()
             || !DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
-                source, source.importGeneration, style.handle)) {
+                source, source.importGeneration, style.handle)
+            || !DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, styleDictionary->handle)
+            || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration,
+                source.namedObjectDictionary.handle)) {
             invalidEmptyStyle->name = originalInvalidName;
             return fail("corrected physical AC1018 TABLESTYLE could not retry on the same adapter: "
                 + writer.extensionGraphFailureDetail());
@@ -40475,9 +40511,11 @@ bool physicalAc1018DictionaryVarOutputReadback(
             return fail("AC1018 DICTIONARYVAR/owner source identities lack output qualification");
         if (!isQualified(0x18u)
             || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
-                source) != 5u
+                source) != 7u
             || source.dwgReadOutcome.opaqueViewCallbacks != 23u)
-            return fail("AC1018 MLINESTYLE source/output profile did not join the five qualified identities in the 23-callback source graph");
+            return fail("AC1018 MLINESTYLE/TABLESTYLE source/output profiles did not join the seven qualified identities in the 23-callback source graph");
+        if (binary)
+            DxIfaceStandardDwgCaptureTestAccess::reportOpaqueOutputGaps(source);
 
         struct ObjectRow {
             std::string name;

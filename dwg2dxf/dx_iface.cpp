@@ -60590,6 +60590,10 @@ bool dx_iface::finalizeDxfWrite() {
                 if (!qualifyCapturedIdentity(proof.first))
                     return false;
             }
+            for (const auto& proof : m_dwgTableStyleDictionarySources) {
+                if (!qualifyCapturedIdentity(proof.first))
+                    return false;
+            }
         }
         if (m_dwgDictionaryDefaultOutputInspected) {
             for (const auto& proof :

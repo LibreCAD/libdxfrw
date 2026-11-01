@@ -48,7 +48,7 @@ Implementation history and evidence stay in Git and `docs/research/`.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — source/graph closure | Resolve reproduced source-required bodies and dependencies that still lack strict output/readback proof. For AC1018 `ET-Drawing-with-Border.dwg`, 17 of 23 opaque callbacks remain unqualified. The AC1018 MLINESTYLE at `0x18` and legacy TABLESTYLE at `0x87` now have bounded AC1024 output/readback profiles, raising qualification to 6/23; see the [MLINESTYLE receipt](docs/research/p4-ac1018-mlinestyle-output-binding-2026-11-01.json) and [TABLESTYLE receipt](docs/research/p4-ac1018-tablestyle-output-binding-2026-11-01.json). The prior [DICTIONARYVAR receipt](docs/research/p4-ac1018-dictionaryvar-ac1024-output-binding-2026-10-31.json) records the three variables and rooted owner. The empty-name STYLE at `0xDF` was cross-checked against all 23 callback identities in LibreDWG's decoded object view; no callback body refers to it. The writer fails closed on this invalid non-shape STYLE row, but no source-qualified omission/replay disposition or strict whole-source conversion is established. See the [bounded STYLE safety receipt](docs/research/p4-ac1018-empty-style-output-safety-2026-11-01.json). | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — source/graph closure | Close the reproduced source-required bodies and dependencies that still lack strict output/readback proof. For AC1018 `ET-Drawing-with-Border.dwg`, 16 of 23 opaque callback identities remain unqualified. Resolve source-qualified handling for invalid empty-name STYLE `0xDF`, which currently blocks the tested TABLES output path; the source-specific safety findings are in the [STYLE receipt](docs/research/p4-ac1018-empty-style-output-safety-2026-11-01.json). | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN — broader rendering/TABLE and dynamic-block semantics | Resolve native dynamic-block semantics and the parentId projection boundary for the two-root AC1024 graph; finish remaining rendering metadata/native rendering profiles, nested FIELDLIST/child graphs and source-backed FIELD profiles, independently evidenced block-cell geometry, remaining source- or consumer-backed CONTENTFORMAT/CELLSTYLEMAP profiles, source-backed semantics for overlapping TABLECONTENT edge masks, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -74,9 +74,8 @@ behavior and reachable geometry. The available FreeCAD, ODA converter and
 LibreDWG paths do not currently supply that evaluator.
 
 Separate unresolved gates remain: AC1021 proxy-graphics refusal belongs to P6;
-AC1018 `ET-Drawing-with-Border.dwg` has 18 opaque callbacks without output
-qualification and belongs to P4. Strict refusal remains until each document's
-required graph is covered.
+AC1018 `ET-Drawing-with-Border.dwg` strict refusal belongs to P4 until its
+remaining callbacks and required graph have output qualification.
 
 ## P4 — original bodies and complete document closure
 
