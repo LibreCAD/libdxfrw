@@ -2004,11 +2004,16 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
         int propertyFlags;
         int color;
         int invisibility;
+        int borderType;
+        int lineWeight;
     };
     const std::array<std::vector<BorderExpectation>, 2> borderProfiles{{
-        {{1, 0x10, 0, 1}, {2, 0x08, 7, 0}, {4, 0x18, 3, 1},
-         {8, 0x10, 0, 0}, {0x10, 0x08, 10, 0}, {0x20, 0x18, 12, 0}},
-        {{0x03, 0x18, 7, 1}, {0x0C, 0x08, 3, 0}, {0x30, 0x10, 0, 1}}
+        {{1, 0x10, 0, 1, 0, 0}, {2, 0x08, 7, 0, 0, 0},
+         {4, 0x18, 3, 1, 0, 0}, {8, 0x01, 0, 0, 1, 0},
+         {0x10, 0x02, 0, 0, 0, 25},
+         {0x20, 0x1B, 12, 1, 1, 50}},
+        {{0x03, 0x0A, 7, 0, 0, -2}, {0x0C, 0x11, 0, 1, 1, 0},
+         {0x30, 0x1B, 3, 1, 1, 25}}
     }};
     for (std::size_t run = 0; run < borderProfiles.size() * 2u; ++run) {
         const std::size_t profile = run % borderProfiles.size();
@@ -2049,6 +2054,8 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
             border.m_propertyOverrideFlags = expected.propertyFlags;
             border.m_color = expected.color;
             border.m_visible = expected.invisibility;
+            border.m_borderType = expected.borderType;
+            border.m_lineWeight = expected.lineWeight;
             cellStyle.m_borders.push_back(border);
         }
         table.m_dxfMetadata = metadata;
@@ -2135,8 +2142,10 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
             const BorderExpectation& expected = expectedBorders[index];
             if (border.edge != expected.edge
                 || border.propertyFlags != expected.propertyFlags
-                || border.borderType != 0 || border.color != expected.color
-                || border.lineWeight != 0 || border.lineType != "0"
+                || border.borderType != expected.borderType
+                || border.color != expected.color
+                || border.lineWeight != expected.lineWeight
+                || border.lineType != "0"
                 || border.invisibility != expected.invisibility
                 || border.doubleLineSpacing != 0.0)
                 return fail("physical border edge fields changed");
@@ -2157,15 +2166,43 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
             const BorderExpectation& expected = expectedBorders[index];
             if (border.m_edgeFlags != expected.edge
                 || border.m_propertyOverrideFlags != expected.propertyFlags
-                || border.m_borderType != 0 || border.m_color != expected.color
-                || border.m_lineWeight != 0 || border.m_lineTypeHandle != 0u
+                || border.m_borderType != expected.borderType
+                || border.m_color != expected.color
+                || border.m_lineWeight != expected.lineWeight
+                || border.m_lineTypeHandle != 0u
                 || border.m_visible != expected.invisibility
                 || border.m_doubleLineSpacing != 0.0)
                 return fail("typed border edge fields changed");
         }
 
-        DRW_TableStyleBorder& invalidBorder = metadata->m_rows[0]
-            .m_cells[0].m_scope.m_style.m_borders.front();
+        auto& styleBorders = metadata->m_rows[0].m_cells[0].m_scope.m_style
+            .m_borders;
+        const auto lineWeightBorder = std::find_if(
+            styleBorders.begin(), styleBorders.end(),
+            [](const DRW_TableStyleBorder& border) {
+                return (static_cast<std::uint32_t>(
+                    border.m_propertyOverrideFlags) & 0x02u) != 0u;
+            });
+        if (lineWeightBorder == styleBorders.end())
+            return fail("test profile has no selected lineweight border");
+        const int originalLineWeight = lineWeightBorder->m_lineWeight;
+        lineWeightBorder->m_lineWeight = 26;
+        const std::string lineWeightSentinel =
+            "PRESERVE_TABLECONTENT_LINEWEIGHT_DESTINATION";
+        { std::ofstream out(path, std::ios::binary);
+          out << lineWeightSentinel; }
+        if (exporter.fileExport(path.string(), DRW::AC1027, binary,
+                                &data, false))
+            return fail("unsupported lineweight value was accepted");
+        { std::ifstream in(path, std::ios::binary);
+          if (std::string(std::istreambuf_iterator<char>(in), {})
+              != lineWeightSentinel)
+              return fail("lineweight refusal changed the existing destination"); }
+        if (lineWeightBorder->m_lineWeight != 26)
+            return fail("lineweight refusal changed the caller model");
+        lineWeightBorder->m_lineWeight = originalLineWeight;
+
+        DRW_TableStyleBorder& invalidBorder = styleBorders.front();
         const int originalBorderProperties =
             invalidBorder.m_propertyOverrideFlags;
         invalidBorder.m_propertyOverrideFlags = 0x40;
@@ -2194,8 +2231,8 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
             return fail("corrected border retry readback differs");
     }
     std::cout << "TABLECONTENT cell border transport: one-hot/grouped edges, "
-                 "indexed color and visibility, ASCII/binary readback, refusal "
-                 "and retry passed\n";
+                 "indexed color, visibility, single type and lineweight, "
+                 "ASCII/binary readback, refusal and retry passed\n";
     return true;
 }
 

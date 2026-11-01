@@ -29409,18 +29409,24 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             && style.m_marginVerticalSpacing == 0.0;
         const auto isSelectedSimpleBorder = [](
                 const DRW_TableStyleBorder& border) {
+            static constexpr std::array<int, 27> lineWeights{{
+                -3, -2, -1, 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40,
+                50, 53, 60, 70, 80, 90, 100, 106, 120, 140, 158, 200,
+                211
+            }};
             const std::uint32_t edgeFlags =
                 static_cast<std::uint32_t>(border.m_edgeFlags);
             const bool supportedEdges = edgeFlags != 0u
                 && (edgeFlags & ~std::uint32_t{0x3Fu}) == 0u;
-            const bool colorOverride =
-                (border.m_propertyOverrideFlags & 0x08u) != 0u;
-            const bool visibilityOverride =
-                (border.m_propertyOverrideFlags & 0x10u) != 0u;
-            const bool supportedProperties =
-                border.m_propertyOverrideFlags == 0x08u
-                || border.m_propertyOverrideFlags == 0x10u
-                || border.m_propertyOverrideFlags == 0x18u;
+            const std::uint32_t propertyFlags =
+                static_cast<std::uint32_t>(border.m_propertyOverrideFlags);
+            constexpr std::uint32_t supportedPropertyMask = 0x1Bu;
+            const bool supportedProperties = propertyFlags != 0u
+                && (propertyFlags & ~supportedPropertyMask) == 0u;
+            const bool colorOverride = (propertyFlags & 0x08u) != 0u;
+            const bool visibilityOverride = (propertyFlags & 0x10u) != 0u;
+            const bool typeOverride = (propertyFlags & 0x01u) != 0u;
+            const bool lineWeightOverride = (propertyFlags & 0x02u) != 0u;
             const bool supportedColor = colorOverride
                 ? border.m_color >= 1 && border.m_color <= 255
                 : border.m_color == 0;
@@ -29429,14 +29435,18 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 : border.m_visible == 0;
             return supportedEdges && supportedProperties
                 && supportedColor && supportedVisibility
-                && border.m_borderType == 0
+                && (typeOverride ? border.m_borderType == 1
+                                 : border.m_borderType == 0)
                 && border.m_colorCmc.m_rgb == -1
                 && border.m_colorCmc.m_name.empty()
                 && border.m_colorCmc.m_bookName.empty()
                 && border.m_colorCmc.m_method == 0u
                 && border.m_colorCmc.m_flags == 0u
                 && border.m_colorCmc.m_reservedIndex == 0u
-                && border.m_lineWeight == 0
+                && (lineWeightOverride
+                    ? std::find(lineWeights.begin(), lineWeights.end(),
+                                border.m_lineWeight) != lineWeights.end()
+                    : border.m_lineWeight == 0)
                 && border.m_lineTypeHandle == 0u
                 && border.m_doubleLineSpacing == 0.0;
         };
