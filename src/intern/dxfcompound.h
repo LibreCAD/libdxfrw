@@ -30,7 +30,11 @@ public:
     void reset(DRW_Attrib& v) noexcept {value=&v;kind=Kind::Attribute;fields=0u;definition.reset();}
     static bool parseEntity(DRW_Entity& value,int code,const std::unique_ptr<dxfReader>& reader) {return value.parseCode(code,reader);}
     bool parseCode(int code,const std::unique_ptr<dxfReader>& reader) {
-        if(kind==Kind::Definition)return code==102?definition->parseApplication(reader):definition->parseCode(code,reader);
+        if(kind==Kind::Definition) {
+            if(!definition.has_value())return false;
+            auto& decoder=definition.value();
+            return code==102?decoder.parseApplication(reader):decoder.parseCode(code,reader);
+        }
         if(kind==Kind::Viewport){
             if(code==100){const auto name=reader->getStringView();
                 viewportScope=name=="AcDbEntity"?ViewportScope::Common:name=="AcDbViewport"?ViewportScope::Viewport:ViewportScope::Other;
@@ -73,7 +77,7 @@ public:
         case Kind::SequenceEnd:return true;
         case Kind::Point:return (fields&(X|Y))==(X|Y);
         case Kind::Line:return (fields&(X|Y|EndX|EndY))==(X|Y|EndX|EndY);
-        case Kind::Definition:return definition->finish(false);
+        case Kind::Definition:return definition.has_value()&&definition.value().finish(false);
         case Kind::Viewport:return static_cast<const DRW_Viewport*>(value)->validateDxf();
         }
         return false;

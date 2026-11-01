@@ -49,6 +49,12 @@ endif()
 if (MSVC)
     set(LIBDXFRW_WARNING_FLAGS /W3)
     set(LIBDXFRW_ADAPTER_WARNING_FLAGS /W3 /WX /bigobj)
+    # The adapter is compiled into several test targets and also as a shared
+    # object-library source. Keep the large-object option attached to the
+    # source so every MSVC compilation path gets it.
+    set_source_files_properties(
+        ${CMAKE_CURRENT_SOURCE_DIR}/dwg2dxf/dx_iface.cpp
+        PROPERTIES COMPILE_OPTIONS /bigobj)
 else()
     set(LIBDXFRW_WARNING_FLAGS -Wall -Wextra -pedantic -Werror)
     set(LIBDXFRW_ADAPTER_WARNING_FLAGS ${LIBDXFRW_WARNING_FLAGS})

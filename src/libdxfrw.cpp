@@ -4667,7 +4667,7 @@ catch (const std::exception& exception) {
     m_writeError = true;
     char failureMessage[128];
     snprintf(failureMessage, sizeof(failureMessage),
-             "exception during %.64s: %.56s", outputStage,
+             "exception during %.48s: %.56s", outputStage,
              exception.what());
     recordOperationDiagnostic(DRW::OperationPhase::Callback,
                               DRW::OperationCause::CallbackException,
