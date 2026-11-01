@@ -1683,13 +1683,12 @@ edit this block or commit the same slice concurrently.
   `ad267afa6a06060f6dcb0091a6f2fc7a524c576f4cb564626d080abdc5f5e213` across
   456 inputs. No drawing payload or support claim changed.
 - Current hosted qualification is still running on that candidate:
-  native run `41325782125` (workflow contract passed; Linux, Windows, and macOS
-  focused jobs are building) and fast run `41325782168` (fixture/inventory
-  checks passed; bounded build is running). These are pending receipts, not
-  completed gates.
-- Remaining S15 gate: current-digest focused receipts plus LibreCAD filter and
-  LibreCAD_3 runtime/persistence checks. Compatibility compiles alone do not
-  close this item.
+  macOS ARM64 passed in native run `41325782125` and uploaded receipt artifact
+  `13091019534`. Linux and Windows are still building; fast run `41325782168`
+  passed fixture/inventory checks and its bounded build is still running.
+- Remaining S15 gates: current-digest Linux and Windows focused receipts plus
+  LibreCAD filter and LibreCAD_3 runtime/persistence checks. Compatibility
+  compiles alone do not close this item.
 - Remaining S20 gates: current-digest Windows focused qualification and
   `parity-fast`/fixture-policy completion. The Windows replay diagnostics now
   report the failing stage and bounded HEADER rows for the default ASCII ACDS
@@ -1718,8 +1717,8 @@ edit this block or commit the same slice concurrently.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
-| S15 | C2: UTF-8/native input and atomic-output paths | S11, S14 | VERIFYING | current-digest Linux/macOS/Windows focused receipts; Unicode parent/basename/non-BMP DXF ASCII+binary/DWG; transaction commit/rollback/cleanup; writer controls; LibreCAD filter and LibreCAD_3 runtime/persistence consumers | C2.1 implementation and portable controls are archived. Current-digest hosted receipts are pending in run `41325782125`. Locked LibreCAD filter/parser and LibreCAD_3 compatibility compiles pass; runtime/persistence checks remain. No support claim is promoted. | current-digest three-platform receipts and consumer runtime checks |
-| S20 | H0: hosted build and fast-workflow repair closure | S19 | VERIFYING | focused Linux x64, Windows x64, macOS ARM64 receipts; local round-trip and reader matrix; `parity-fast`; fixture-admission guard | H0.1–H0.3 and completed implementation fixes are archived. Candidate `2c8b2e99` / digest `ad267afa6a06060f6dcb0091a6f2fc7a524c576f4cb564626d080abdc5f5e213`: native run `41325782125` has a passing workflow contract and three focused jobs still building; fast run `41325782168` has passed fixture/inventory checks and is still building. Review final Windows readback output and require all current-digest gates before closing. No support claim or drawing payload changed. | S15, final release |
+| S15 | C2: UTF-8/native input and atomic-output paths | S11, S14 | VERIFYING | current-digest Linux/Windows focused receipts; Unicode parent/basename/non-BMP DXF ASCII+binary/DWG; transaction commit/rollback/cleanup; writer controls; LibreCAD filter and LibreCAD_3 runtime/persistence consumers | C2.1 implementation and portable controls are archived. Current-digest macOS ARM64 passed in run `41325782125`, artifact `13091019534`; Linux and Windows receipts remain pending. Locked LibreCAD filter/parser and LibreCAD_3 compatibility compiles pass; runtime/persistence checks remain. No support claim is promoted. | Linux/Windows receipts and consumer runtime checks |
+| S20 | H0: hosted build and fast-workflow repair closure | S19 | VERIFYING | focused Linux x64 and Windows x64 receipts; local round-trip and reader matrix; `parity-fast`; fixture-admission guard | H0.1–H0.3 and completed implementation fixes are archived. Candidate `2c8b2e99` / digest `ad267afa6a06060f6dcb0091a6f2fc7a524c576f4cb564626d080abdc5f5e213`: native run `41325782125` has a passing workflow contract and macOS ARM64 receipt; Linux and Windows remain in progress. Fast run `41325782168` passed fixture/inventory checks and is still building. Review final Windows readback output and require the remaining current-digest gates before closing. No support claim or drawing payload changed. | S15, final release |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -1728,7 +1727,7 @@ edit this block or commit the same slice concurrently.
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| C2.2 | C2 / S15 | WP3/WP8; Phase 8 follow-up | C2.1 | VERIFYING | NOT_EVALUATED | current-digest three-platform receipts and LibreCAD filter/LibreCAD_3 runtime/persistence consumers | Native run `41325782125` is running on the current candidate. Locked LibreCAD filter/parser and LibreCAD_3 compatibility compiles pass; consumer runtime/persistence checks remain. No claim is promoted. |
+| C2.2 | C2 / S15 | WP3/WP8; Phase 8 follow-up | C2.1 | VERIFYING | NOT_EVALUATED | current-digest Linux/Windows receipts and LibreCAD filter/LibreCAD_3 runtime/persistence consumers | macOS ARM64 passed native run `41325782125` (artifact `13091019534`); Linux/Windows jobs remain in progress. Locked LibreCAD filter/parser and LibreCAD_3 compatibility compiles pass; consumer runtime/persistence checks remain. No claim is promoted. |
 | H0.4 | H0 / S20 | WP4/WP6; Windows qualification follow-up | H0.2 | VERIFYING | NOT_APPLICABLE | Current-digest Windows qualification self-test and all 7 focused CTests pass | Native run `41325782125` is still running. The harness now captures replay-stage outcomes and bounded HEADER diagnostics for the default ASCII ACDS case; inspect the completed Windows artifact to decide whether the replay failure is resolved. No claim is promoted. |
 | H0.5 | H0 / S20 | WP1/WP2; fast GCC follow-up | H0.2 | VERIFYING | NOT_APPLICABLE | Current-digest `parity-fast` completes its warnings-as-errors build, fast vectors, CLI checks, and fixture guard | Fast run `41325782168` passed fixture/inventory checks and is still building. Review its completed result against the current candidate before closing. |
 
