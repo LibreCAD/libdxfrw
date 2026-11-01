@@ -3186,6 +3186,18 @@ private:
         std::uint32_t nestedNetworkDictionaryHandle{0u};
         std::string blockName;
     };
+    struct DwgDynamicAssociativeDependencySource {
+        DRW_AssociativeObject dependency;
+        DRW_AssociativeObject constraintGroup;
+        std::uint32_t dependencyBodyHandle{0u};
+        std::uint32_t parameterHandle{0u};
+    };
+    struct DwgDynamicAssociativeOutputProof {
+        std::uint32_t sourceDependency{0u}, emittedDependency{0u};
+        std::uint32_t sourceGroup{0u}, emittedGroup{0u};
+        std::uint32_t sourceBody{0u}, emittedBody{0u};
+        std::uint32_t sourceParameter{0u}, emittedParameter{0u};
+    };
     std::map<std::uint32_t, std::uint32_t>
         m_dwgDynamicBlockOutputDictionaries;
     std::map<std::uint32_t, std::string> m_dwgDynamicBlockOutputBlocks;
@@ -3193,6 +3205,12 @@ private:
         m_dwgDynamicBlockOutputOwners;
     std::map<std::uint32_t, DwgDynamicBlockOutputSource>
         m_dwgDynamicBlockOutputSources;
+    std::map<std::uint32_t, DwgDynamicAssociativeDependencySource>
+        m_dwgDynamicAssociativeDependencies;
+    std::map<std::uint32_t, DRW_AssociativeObject>
+        m_dwgDynamicAssociativeGroups;
+    std::vector<DwgDynamicAssociativeOutputProof>
+        m_dwgDynamicAssociativeOutputProofs;
     std::map<std::uint32_t, DRW_UnsupportedObject>
         m_dwgDynamicBlockSourceFrameSnapshots;
     std::vector<DwgDynamicBlockEntityOutputSource>
@@ -3210,6 +3228,9 @@ private:
     bool inspectDwgDynamicBlockOutput(
         const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept;
     bool inspectDwgDynamicBlockOutputGraphSet(
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept;
+    bool hasUnchangedDwgDynamicAssociativeSources() const noexcept;
+    bool inspectDwgDynamicAssociativeOutput(
         const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept;
     bool finalizeDwgDynamicBlockOutput() const noexcept;
     bool finalizeDwgDynamicBlockOutputGraphSet() const noexcept;

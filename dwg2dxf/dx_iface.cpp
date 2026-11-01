@@ -37078,6 +37078,9 @@ bool sameDwgDynamicSourceFrame(const DRW_UnsupportedObject& a,
 
 bool dx_iface::prepareDwgDynamicBlockOutputSources(bool debug) noexcept {
     m_dwgDynamicBlockOutputSources.clear();
+    m_dwgDynamicAssociativeDependencies.clear();
+    m_dwgDynamicAssociativeGroups.clear();
+    m_dwgDynamicAssociativeOutputProofs.clear();
     m_dwgDynamicBlockSourceFrameSnapshots.clear();
     m_dwgDynamicBlockEntityOutputSources.clear();
     m_dwgDynamicBlockOutputDictionaries.clear();
@@ -37326,6 +37329,9 @@ bool dx_iface::prepareDwgDynamicBlockOutputSources(bool debug) noexcept {
         return true;
     } catch (...) {
         m_dwgDynamicBlockOutputSources.clear();
+        m_dwgDynamicAssociativeDependencies.clear();
+        m_dwgDynamicAssociativeGroups.clear();
+        m_dwgDynamicAssociativeOutputProofs.clear();
         m_dwgDynamicBlockSourceFrameSnapshots.clear();
         m_dwgDynamicBlockEntityOutputSources.clear();
         m_dwgDynamicBlockOutputSourceOwner = nullptr;
@@ -37496,6 +37502,106 @@ bool dx_iface::prepareDwgDynamicBlockOutputGraphSet(bool debug) noexcept {
             if (!objects.emplace(object.handle, &object).second)
                 return reject("unique dynamic-block object map");
 
+        // Freeze the dynamic-parameter associative callbacks alongside the
+        // dynamic objects they connect. The dimension-dependency proof below
+        // intentionally covers only dimension bodies; these parameter bodies
+        // use BLOCKPARAMDEPENDENCYBODY and need their own role bindings.
+        std::unordered_map<std::uint32_t,
+                           const DRW_AssociativeObject*> associative;
+        associative.reserve(cData->dwgAssociativeObjects.size());
+        for (const DRW_AssociativeObject& object :
+             cData->dwgAssociativeObjects)
+            if (!associative.emplace(object.handle, &object).second)
+                return reject("unique dynamic associative object map");
+        std::unordered_set<std::uint32_t> dynamicBodyHandles;
+        for (const DRW_AssociativeObject& dependency :
+             cData->dwgAssociativeObjects) {
+            if (!asciiIdentifierEquals(dependency.m_recordName,
+                                       "ACDBASSOCDEPENDENCY"))
+                continue;
+            const auto body = objects.find(
+                dependency.m_dependencyBodyHandle);
+            if (body == objects.end()
+                || body->second->m_kind
+                    != DRW_DynamicBlockObject::Kind::ParameterDependencyBody)
+                continue;
+            const auto parameter = objects.find(
+                dependency.m_dependencyHandle);
+            if (dependency.parentHandle == 0u
+                || dependency.parentHandle >
+                    (std::numeric_limits<std::uint32_t>::max)())
+                return reject("dynamic dependency owning group handle range");
+            const auto owner = associative.find(
+                static_cast<std::uint32_t>(dependency.parentHandle));
+            const DRW_DynamicBlockObject& bodySource = *body->second;
+            const bool parameterProfile = parameter != objects.end()
+                && parameter->second->m_bodyFullyDecoded
+                && parameter->second->m_evalExprParsed
+                && parameter->second->m_elementParsed
+                && (parameter->second->m_kind
+                        == DRW_DynamicBlockObject::Kind::HorizontalConstraintParameter
+                    || parameter->second->m_kind
+                        == DRW_DynamicBlockObject::Kind::VerticalConstraintParameter);
+            const bool bodyProfile = bodySource.m_recordName
+                    == "BLOCKPARAMDEPENDENCYBODY"
+                && bodySource.m_bodyFullyDecoded
+                && bodySource.parentHandle == dependency.handle
+                && bodySource.m_adbVersion == 1
+                && bodySource.m_dimensionBaseVersion == 1
+                && bodySource.m_classVersion == 0
+                && !bodySource.m_dependencyName.empty()
+                && bodySource.xDictHandle == 0u
+                && bodySource.appData.empty()
+                && bodySource.extData.empty()
+                && bodySource.reactorHandles.empty();
+            if (!parameterProfile || !bodyProfile
+                || dependency.tType != DRW::ASSOCIATIVEOBJECT
+                || !dependency.m_dependencyFieldsParsed
+                || !dependency.m_dependencyWireComplete
+                || dependency.m_classVersion != 1u
+                || dependency.m_status != 0
+                || dependency.m_dependencyOrder != 0
+                || dependency.m_dependencyIsRead
+                || !dependency.m_dependencyIsWrite
+                || dependency.m_dependencyIsAttachedToObject
+                || !dependency.m_dependencyIsDelegatingToOwningAction
+                || dependency.m_dependencyNamePresent
+                || !dependency.m_dependencyName.empty()
+                || dependency.xDictHandle != 0u
+                || !dependency.appData.empty()
+                || !dependency.extData.empty()
+                || !dependency.reactorHandles.empty()
+                || owner == associative.end()
+                || !asciiIdentifierEquals(owner->second->m_recordName,
+                    "ACDBASSOC2DCONSTRAINTGROUP")
+                || !owner->second->m_constraintGroupBodyParsed
+                || !owner->second->m_constraintActionsParsed
+                || std::count(owner->second->m_constraintActions.begin(),
+                    owner->second->m_constraintActions.end(),
+                    dependency.handle) != 1
+                || !dynamicBodyHandles.insert(
+                    dependency.m_dependencyBodyHandle).second)
+                return reject("dynamic parameter dependency/body/group profile");
+
+            const auto groupInsert = m_dwgDynamicAssociativeGroups.emplace(
+                owner->first, *owner->second);
+            if (!groupInsert.second
+                && !associativeConstraintGroupSourceModelEqual(
+                    groupInsert.first->second, *owner->second))
+                return reject("consistent dynamic dependency constraint-group source");
+            DwgDynamicAssociativeDependencySource source;
+            source.dependency = dependency;
+            source.constraintGroup = *owner->second;
+            source.dependencyBodyHandle = bodySource.handle;
+            source.parameterHandle = parameter->second->handle;
+            if (!m_dwgDynamicAssociativeDependencies.emplace(
+                    dependency.handle, std::move(source)).second)
+                return reject("unique dynamic dependency source identity");
+        }
+        if (m_dwgDynamicAssociativeDependencies.empty()
+            != m_dwgDynamicAssociativeGroups.empty())
+            return reject("complete dynamic dependency/group source set");
+
         for (const auto& root : m_dwgDynamicBlockOutputOwners) {
             const auto graph = std::find_if(
                 cData->evaluationGraphs.begin(), cData->evaluationGraphs.end(),
@@ -37644,6 +37750,9 @@ bool dx_iface::prepareDwgDynamicBlockOutputGraphSet(bool debug) noexcept {
         return true;
     } catch (...) {
         m_dwgDynamicBlockOutputSources.clear();
+        m_dwgDynamicAssociativeDependencies.clear();
+        m_dwgDynamicAssociativeGroups.clear();
+        m_dwgDynamicAssociativeOutputProofs.clear();
         m_dwgDynamicBlockSourceFrameSnapshots.clear();
         m_dwgDynamicBlockEntityOutputSources.clear();
         m_dwgDynamicBlockOutputDictionaries.clear();
@@ -37654,6 +37763,129 @@ bool dx_iface::prepareDwgDynamicBlockOutputGraphSet(bool debug) noexcept {
         m_dwgDynamicBlockOutputPrepared = false;
         m_dwgDynamicBlockOutputInspected = false;
         return reject("graph-set source-projection exception");
+    }
+}
+
+bool dx_iface::hasUnchangedDwgDynamicAssociativeSources() const noexcept {
+    if (m_dwgDynamicAssociativeDependencies.empty())
+        return m_dwgDynamicAssociativeGroups.empty()
+            && m_dwgDynamicAssociativeOutputProofs.empty();
+    if (cData == nullptr || dxfW == nullptr
+        || cData != m_dwgDynamicBlockOutputSourceOwner
+        || cData->importGeneration != m_dwgDynamicBlockOutputGeneration
+        || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024)
+        return false;
+    try {
+        std::unordered_map<std::uint32_t, const DRW_AssociativeObject*> objects;
+        objects.reserve(cData->dwgAssociativeObjects.size());
+        for (const DRW_AssociativeObject& object :
+             cData->dwgAssociativeObjects)
+            if (!objects.emplace(object.handle, &object).second)
+                return false;
+        std::unordered_map<std::uint32_t, const DRW_DynamicBlockObject*> dynamic;
+        dynamic.reserve(cData->dynamicBlockObjects.size());
+        for (const DRW_DynamicBlockObject& object :
+             cData->dynamicBlockObjects)
+            if (!dynamic.emplace(object.handle, &object).second)
+                return false;
+
+        std::size_t dynamicDependencyCount = 0u;
+        std::unordered_set<std::uint32_t> groups;
+        std::unordered_set<std::uint32_t> bodies;
+        groups.reserve(m_dwgDynamicAssociativeGroups.size());
+        bodies.reserve(m_dwgDynamicAssociativeDependencies.size());
+        for (const DRW_AssociativeObject& dependency :
+             cData->dwgAssociativeObjects) {
+            if (!asciiIdentifierEquals(dependency.m_recordName,
+                                       "ACDBASSOCDEPENDENCY"))
+                continue;
+            const auto body = dynamic.find(
+                dependency.m_dependencyBodyHandle);
+            if (body == dynamic.end()
+                || body->second->m_kind
+                    != DRW_DynamicBlockObject::Kind::ParameterDependencyBody)
+                continue;
+            ++dynamicDependencyCount;
+            const auto snapshot = m_dwgDynamicAssociativeDependencies.find(
+                dependency.handle);
+            const auto parameter = dynamic.find(
+                dependency.m_dependencyHandle);
+            const auto group = objects.find(
+                static_cast<std::uint32_t>(dependency.parentHandle));
+            const auto groupSnapshot = m_dwgDynamicAssociativeGroups.find(
+                group == objects.end() ? 0u : group->first);
+            if (snapshot == m_dwgDynamicAssociativeDependencies.end()
+                || parameter == dynamic.end() || group == objects.end()
+                || groupSnapshot == m_dwgDynamicAssociativeGroups.end()
+                || !associativeDimensionDependencySourceModelEqual(
+                    snapshot->second.dependency, dependency)
+                || !associativeConstraintGroupSourceModelEqual(
+                    groupSnapshot->second, *group->second)
+                || snapshot->second.dependencyBodyHandle
+                    != dependency.m_dependencyBodyHandle
+                || snapshot->second.parameterHandle
+                    != dependency.m_dependencyHandle
+                || body->second->parentHandle != dependency.handle
+                || body->second->m_recordName != "BLOCKPARAMDEPENDENCYBODY"
+                || !body->second->m_bodyFullyDecoded
+                || (parameter->second->m_kind
+                        != DRW_DynamicBlockObject::Kind::HorizontalConstraintParameter
+                    && parameter->second->m_kind
+                        != DRW_DynamicBlockObject::Kind::VerticalConstraintParameter)
+                || !parameter->second->m_bodyFullyDecoded
+                || !parameter->second->m_evalExprParsed
+                || !parameter->second->m_elementParsed
+                || !asciiIdentifierEquals(group->second->m_recordName,
+                    "ACDBASSOC2DCONSTRAINTGROUP")
+                || std::count(group->second->m_constraintActions.begin(),
+                    group->second->m_constraintActions.end(),
+                    dependency.handle) != 1
+                || !bodies.insert(body->first).second)
+                return false;
+            groups.insert(group->first);
+            const auto bodyOutput = m_dwgDynamicBlockOutputSources.find(
+                body->first);
+            const auto parameterOutput = m_dwgDynamicBlockOutputSources.find(
+                parameter->first);
+            if (bodyOutput == m_dwgDynamicBlockOutputSources.end()
+                || bodyOutput->second.recordName
+                    != "BLOCKPARAMDEPENDENCYBODY"
+                || parameterOutput == m_dwgDynamicBlockOutputSources.end()
+                || parameterOutput->second.recordName
+                    != parameter->second->m_recordName)
+                return false;
+            for (const std::uint32_t peerHandle : {
+                    dependency.m_readDependencyHandle,
+                    dependency.m_writeDependencyHandle,
+                    dependency.m_dependencyNodeHandle}) {
+                if (peerHandle == 0u)
+                    continue;
+                const auto peer = objects.find(peerHandle);
+                if (peer == objects.end()
+                    || !asciiIdentifierEquals(
+                        peer->second->m_recordName,
+                        "ACDBASSOCDEPENDENCY")
+                    || peer->second->m_dependencyHandle
+                        != dependency.m_dependencyHandle)
+                    return false;
+            }
+        }
+        if (dynamicDependencyCount
+                != m_dwgDynamicAssociativeDependencies.size()
+            || groups.size() != m_dwgDynamicAssociativeGroups.size()
+            || bodies.size() != dynamicDependencyCount)
+            return false;
+        for (const auto& source : m_dwgDynamicAssociativeGroups) {
+            const auto current = objects.find(source.first);
+            if (current == objects.end()
+                || !associativeConstraintGroupSourceModelEqual(
+                    source.second, *current->second))
+                return false;
+        }
+        return true;
+    } catch (...) {
+        return false;
     }
 }
 
@@ -37835,6 +38067,9 @@ bool dx_iface::hasUnchangedDwgDynamicBlockOutputSources() const noexcept {
 bool dx_iface::hasUnchangedDwgDynamicBlockOutputGraphSet() const noexcept {
     if (!m_dwgDynamicBlockOutputPrepared)
         return m_dwgDynamicBlockOutputSources.empty()
+            && m_dwgDynamicAssociativeDependencies.empty()
+            && m_dwgDynamicAssociativeGroups.empty()
+            && m_dwgDynamicAssociativeOutputProofs.empty()
             && m_dwgDynamicBlockSourceFrameSnapshots.empty()
             && m_dwgDynamicBlockEntityOutputSources.empty()
             && m_dwgDynamicBlockOutputDictionaries.empty()
@@ -38112,7 +38347,7 @@ bool dx_iface::hasUnchangedDwgDynamicBlockOutputGraphSet() const noexcept {
                 || expected->second.recordName != source.recordName)
                 return false;
         }
-        return true;
+        return hasUnchangedDwgDynamicAssociativeSources();
     } catch (...) {
         return false;
     }
@@ -38317,6 +38552,243 @@ bool dx_iface::inspectDwgDynamicBlockOutput(
         return true;
     } catch (...) {
         return reject("bounded staged output inspection");
+    }
+}
+
+bool dx_iface::inspectDwgDynamicAssociativeOutput(
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept {
+    m_dwgDynamicAssociativeOutputProofs.clear();
+    if (m_dwgDynamicAssociativeDependencies.empty())
+        return m_dwgDynamicAssociativeGroups.empty();
+    const auto reject = [debug](const char* reason) {
+        if (debug)
+            std::cerr << "dynamic-block associative output rejected: "
+                      << reason << '\n';
+        return false;
+    };
+    if (dxfW == nullptr || cData == nullptr
+        || view.version != DRW::AC1024
+        || !hasUnchangedDwgDynamicAssociativeSources())
+        return reject("source snapshot/version");
+    try {
+        struct Expected {
+            std::uint32_t source{0u};
+            std::string recordName;
+            bool group{false};
+        };
+        std::map<std::uint32_t, Expected> byEmitted;
+        std::map<std::uint32_t, std::string_view> recordNames;
+        for (const auto& group : m_dwgDynamicAssociativeGroups) {
+            const std::uint32_t emitted = dxfW->remapHandle(group.first);
+            if (emitted == 0u || emitted == DRW::NoHandle
+                || !byEmitted.emplace(emitted, Expected{
+                        group.first, "ACDBASSOC2DCONSTRAINTGROUP", true})
+                        .second)
+                return reject("constraint-group output handle mapping");
+        }
+        for (const auto& dependency : m_dwgDynamicAssociativeDependencies) {
+            const std::uint32_t emitted = dxfW->remapHandle(
+                dependency.first);
+            if (emitted == 0u || emitted == DRW::NoHandle
+                || !byEmitted.emplace(emitted, Expected{
+                        dependency.first, "ACDBASSOCDEPENDENCY", false})
+                        .second)
+                return reject("dependency output handle mapping");
+        }
+        const auto mapHandle = [this](std::uint32_t source,
+                                      std::uint32_t& emitted) {
+            emitted = source == 0u ? 0u : dxfW->remapHandle(source);
+            return source == 0u
+                || (emitted != 0u && emitted != DRW::NoHandle
+                    && dxfW->dxfWriteRecordHandleCount(emitted) == 1u);
+        };
+        bool namesMatch = true;
+        std::unordered_set<std::uint32_t> visited;
+        visited.reserve(byEmitted.size());
+        const bool inspected = dx_standard_output::inspectSelected(
+            view,
+            [&byEmitted, &recordNames, &namesMatch](
+                    std::string_view name, std::uint32_t handle) {
+                const auto expected = byEmitted.find(handle);
+                if (expected == byEmitted.end())
+                    return false;
+                if (!recordNames.emplace(handle, name).second)
+                    namesMatch = false;
+                if (name != expected->second.recordName)
+                    namesMatch = false;
+                return true;
+            },
+            [this, &byEmitted, &recordNames, &mapHandle, &visited,
+             &debug, &view](const auto& shape, std::string_view body) {
+                const auto expected = byEmitted.find(shape.handle);
+                const auto name = recordNames.find(shape.handle);
+                if (expected == byEmitted.end()
+                    || name == recordNames.end()
+                    || name->second != expected->second.recordName
+                    || !visited.insert(shape.handle).second)
+                    return false;
+                dx_standard_output::Decoder decoder(view);
+                if (!decoder.good())
+                    return false;
+                if (expected->second.group) {
+                    const auto source =
+                        m_dwgDynamicAssociativeGroups.find(
+                            expected->second.source);
+                    if (source == m_dwgDynamicAssociativeGroups.end())
+                        return false;
+                    return decoder.decodeAssociativeRecord(
+                        "ACDBASSOC2DCONSTRAINTGROUP", body,
+                        [&source, &mapHandle, &debug](
+                                const DRW_AssociativeObject& actual) {
+                            DRW_AssociativeObject expectedGroup =
+                                source->second;
+                            // The AC1024 writer emits the witnessed DXF
+                            // version 2 after parsing DWG group version 0.
+                            expectedGroup.m_constraintGroupVersion = 2;
+                            std::vector<std::uint32_t> references;
+                            dx_standard_output::NoLayerReferences noLayers;
+                            const bool common =
+                                dx_standard_output::commonEqual(
+                                    source->second, actual,
+                                    dx_standard_output::Family::Other,
+                                    mapHandle, references, noLayers);
+                            const bool typed =
+                                associativeConstraintGroupTypedEqual(
+                                    expectedGroup, actual, mapHandle, false);
+                            if (debug && (!common || !typed))
+                                std::cerr << "dynamic associative constraint group field mismatch: source=0x"
+                                          << std::hex << source->first
+                                          << " output=0x" << actual.handle
+                                          << std::dec << " common=" << common
+                                          << " typed=" << typed << '\n';
+                            return common && typed;
+                        }, debug);
+                }
+                const auto source =
+                    m_dwgDynamicAssociativeDependencies.find(
+                        expected->second.source);
+                if (source == m_dwgDynamicAssociativeDependencies.end())
+                    return false;
+                return decoder.decodeAssociativeRecord(
+                    "ACDBASSOCDEPENDENCY", body,
+                    [&source, &mapHandle, &debug](
+                            const DRW_AssociativeObject& actual) {
+                        const DRW_AssociativeObject& original =
+                            source->second.dependency;
+                        std::vector<std::uint32_t> references;
+                        dx_standard_output::NoLayerReferences noLayers;
+                        const bool common = dx_standard_output::commonEqual(
+                            original, actual,
+                            dx_standard_output::Family::Other,
+                            mapHandle, references, noLayers);
+                        std::uint32_t target = 0u, read = 0u, node = 0u,
+                            dependencyBody = 0u;
+                        const bool mapped =
+                            mapHandle(original.m_dependencyHandle, target)
+                            && mapHandle(original.m_readDependencyHandle, read)
+                            && mapHandle(original.m_dependencyNodeHandle, node)
+                            && mapHandle(original.m_dependencyBodyHandle,
+                                         dependencyBody);
+                        const bool fields = mapped
+                            && actual.m_recordName == "ACDBASSOCDEPENDENCY"
+                            && actual.m_dependencyFieldsParsed
+                            && actual.m_dependencyWireComplete
+                            && actual.m_classVersion == original.m_classVersion
+                            && actual.m_status == original.m_status
+                            && actual.m_dependencyIsRead
+                                == original.m_dependencyIsRead
+                            && actual.m_dependencyIsWrite
+                                == original.m_dependencyIsWrite
+                            && actual.m_dependencyIsAttachedToObject
+                                == original.m_dependencyIsAttachedToObject
+                            && actual.m_dependencyIsDelegatingToOwningAction
+                                == original.m_dependencyIsDelegatingToOwningAction
+                            && actual.m_dependencyOrder
+                                == original.m_dependencyOrder
+                            && actual.m_dependencyNamePresent
+                                == original.m_dependencyNamePresent
+                            && actual.m_dependencyName
+                                == original.m_dependencyName
+                            && actual.m_dependencyHandle == target
+                            && actual.m_readDependencyHandle == read
+                            && actual.m_dependencyNodeHandle == node
+                            && actual.m_writeDependencyHandle == node
+                            && actual.m_dependencyBodyHandle
+                                == dependencyBody
+                            && actual.m_dependencyBodyId
+                                == original.m_dependencyBodyId;
+                        if (debug && (!common || !fields))
+                            std::cerr << "dynamic associative dependency field mismatch: source=0x"
+                                      << std::hex << original.handle
+                                      << " output=0x" << actual.handle
+                                      << std::dec << " common=" << common
+                                      << " fields=" << fields
+                                      << " target=" << actual.m_dependencyHandle
+                                      << "/" << target << " body="
+                                      << actual.m_dependencyBodyHandle << "/"
+                                      << dependencyBody << '\n';
+                        return common && fields;
+                    }, debug);
+            });
+        if (!inspected || !namesMatch
+            || recordNames.size() != byEmitted.size()
+            || visited.size() != byEmitted.size())
+            return reject("exact staged dependency/group record selection");
+
+        std::unordered_set<std::uint32_t> seenGroups;
+        std::unordered_set<std::uint32_t> seenDependencies;
+        for (const auto& identity : byEmitted) {
+            const Expected& expected = identity.second;
+            if (expected.group) {
+                if (!seenGroups.insert(expected.source).second)
+                    return reject("duplicate staged constraint-group identity");
+            } else if (!seenDependencies.insert(expected.source).second) {
+                return reject("duplicate staged dependency identity");
+            }
+        }
+        if (seenGroups.size() != m_dwgDynamicAssociativeGroups.size()
+            || seenDependencies.size()
+                != m_dwgDynamicAssociativeDependencies.size())
+            return reject("staged group/dependency cardinality");
+
+        m_dwgDynamicAssociativeOutputProofs.reserve(
+            m_dwgDynamicAssociativeDependencies.size());
+        for (const auto& entry : m_dwgDynamicAssociativeDependencies) {
+            const DwgDynamicAssociativeDependencySource& source =
+                entry.second;
+            const std::uint32_t sourceGroup =
+                static_cast<std::uint32_t>(source.dependency.parentHandle);
+            DwgDynamicAssociativeOutputProof proof;
+            proof.sourceDependency = source.dependency.handle;
+            proof.emittedDependency = dxfW->remapHandle(
+                source.dependency.handle);
+            proof.sourceGroup = sourceGroup;
+            proof.emittedGroup = dxfW->remapHandle(sourceGroup);
+            proof.sourceBody = source.dependencyBodyHandle;
+            proof.emittedBody = dxfW->remapHandle(source.dependencyBodyHandle);
+            proof.sourceParameter = source.parameterHandle;
+            proof.emittedParameter = dxfW->remapHandle(source.parameterHandle);
+            if (proof.emittedDependency == 0u
+                || proof.emittedGroup == 0u || proof.emittedBody == 0u
+                || proof.emittedParameter == 0u
+                || proof.emittedDependency == DRW::NoHandle
+                || proof.emittedGroup == DRW::NoHandle
+                || proof.emittedBody == DRW::NoHandle
+                || proof.emittedParameter == DRW::NoHandle)
+                return reject("source-to-output associative handle binding");
+            m_dwgDynamicAssociativeOutputProofs.push_back(proof);
+        }
+        if (debug)
+            std::cerr << "dynamic ACDBASSOC physical output proof: source-groups="
+                      << seenGroups.size() << " staged-groups="
+                      << seenGroups.size() << " source-dependencies="
+                      << seenDependencies.size() << " staged-dependencies="
+                      << seenDependencies.size() << " format="
+                      << (view.binary ? "binary" : "ascii") << '\n';
+        return true;
+    } catch (...) {
+        m_dwgDynamicAssociativeOutputProofs.clear();
+        return reject("bounded staged associative inspection");
     }
 }
 
@@ -38675,6 +39147,8 @@ bool dx_iface::inspectDwgDynamicBlockOutputGraphSet(
             });
         if (!inspected || seen.size() != m_dwgDynamicBlockOutputSources.size())
             return reject("exact staged graph/object fields and references");
+        if (!inspectDwgDynamicAssociativeOutput(view, debug))
+            return reject("ACDBASSOC dependency/group source and output binding");
         m_dwgDynamicBlockOutputInspected = true;
         return true;
     } catch (...) {
@@ -38734,6 +39208,76 @@ bool dx_iface::finalizeDwgDynamicBlockOutput() const noexcept {
             || !dxfW->dxfWriteSourceObjectHasIdentity(
                 source.first, emitted, source.second.recordName, "OBJECTS",
                 owner))
+            return false;
+    }
+    if (m_dwgDynamicAssociativeOutputProofs.size()
+            != m_dwgDynamicAssociativeDependencies.size()
+        || m_dwgDynamicAssociativeGroups.empty()
+            != m_dwgDynamicAssociativeDependencies.empty())
+        return false;
+    for (const DwgDynamicAssociativeOutputProof& proof :
+         m_dwgDynamicAssociativeOutputProofs) {
+        const auto dependency = m_dwgDynamicAssociativeDependencies.find(
+            proof.sourceDependency);
+        const auto group = m_dwgDynamicAssociativeGroups.find(
+            proof.sourceGroup);
+        if (dependency == m_dwgDynamicAssociativeDependencies.end()
+            || group == m_dwgDynamicAssociativeGroups.end()
+            || proof.sourceBody
+                != dependency->second.dependencyBodyHandle
+            || proof.sourceParameter
+                != dependency->second.parameterHandle
+            || proof.sourceGroup
+                != static_cast<std::uint32_t>(
+                    dependency->second.dependency.parentHandle))
+            return false;
+        std::uint32_t emittedDependency = 0u, emittedGroup = 0u,
+            emittedGroupOwner = 0u, emittedBody = 0u,
+            emittedParameter = 0u, emittedParameterOwner = 0u;
+        const auto parameterSource = m_dwgDynamicBlockOutputSources.find(
+            proof.sourceParameter);
+        const auto bodySource = m_dwgDynamicBlockOutputSources.find(
+            proof.sourceBody);
+        if (parameterSource == m_dwgDynamicBlockOutputSources.end()
+            || bodySource == m_dwgDynamicBlockOutputSources.end()
+            || !mapObjectHandle(proof.sourceDependency,
+                                emittedDependency)
+            || !mapObjectHandle(proof.sourceGroup, emittedGroup)
+            || !mapObjectHandle(static_cast<std::uint32_t>(
+                    group->second.parentHandle), emittedGroupOwner)
+            || !mapObjectHandle(proof.sourceBody, emittedBody)
+            || !mapObjectHandle(proof.sourceParameter, emittedParameter)
+            || !mapObjectHandle(parameterSource->second.ownerHandle,
+                                emittedParameterOwner)
+            || emittedDependency != proof.emittedDependency
+            || emittedGroup != proof.emittedGroup
+            || emittedBody != proof.emittedBody
+            || emittedParameter != proof.emittedParameter
+            || !dxfW->dxfWriteSourceObjectHasIdentity(
+                proof.sourceDependency, emittedDependency,
+                "ACDBASSOCDEPENDENCY", "OBJECTS", emittedGroup)
+            || !dxfW->dxfWriteSourceObjectHasIdentity(
+                proof.sourceGroup, emittedGroup,
+                "ACDBASSOC2DCONSTRAINTGROUP", "OBJECTS",
+                emittedGroupOwner)
+            || !dxfW->dxfWriteSourceObjectHasIdentity(
+                proof.sourceBody, emittedBody,
+                "BLOCKPARAMDEPENDENCYBODY", "OBJECTS",
+                emittedDependency)
+            || !dxfW->dxfWriteSourceObjectHasIdentity(
+                proof.sourceParameter, emittedParameter,
+                parameterSource->second.recordName, "OBJECTS",
+                emittedParameterOwner)
+            || !dxfW->dxfWriteRecordHasOwner(
+                emittedDependency, emittedGroup)
+            || !dxfW->dxfWriteRecordHasOwner(
+                emittedBody, emittedDependency)
+            || !dxfW->dxfWriteRecordHasOwner(
+                emittedGroup, emittedGroupOwner)
+            || dxfW->dxfWriteRecordHandleCount(emittedDependency) != 1u
+            || dxfW->dxfWriteRecordHandleCount(emittedGroup) != 1u
+            || dxfW->dxfWriteRecordHandleCount(emittedBody) != 1u
+            || dxfW->dxfWriteRecordHandleCount(emittedParameter) != 1u)
             return false;
     }
     for (const DwgDynamicBlockEntityOutputSource& source :
@@ -58437,6 +58981,13 @@ bool dx_iface::finalizeDxfWrite() {
                 if (!qualifyCapturedIdentity(proof.first))
                     return false;
             }
+            for (const auto& proof :
+                 m_dwgDynamicAssociativeDependencies)
+                if (!qualifyCapturedIdentity(proof.first))
+                    return false;
+            for (const auto& proof : m_dwgDynamicAssociativeGroups)
+                if (!qualifyCapturedIdentity(proof.first))
+                    return false;
         }
         // The shared MATERIAL inspector validated these frozen DWG graph
         // sources and their emitted records earlier in this transaction.
@@ -59604,6 +60155,9 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                      m_preserveGraphSourceIdentities};
     cData = fData;
     m_dwgDynamicBlockOutputSources.clear();
+    m_dwgDynamicAssociativeDependencies.clear();
+    m_dwgDynamicAssociativeGroups.clear();
+    m_dwgDynamicAssociativeOutputProofs.clear();
     m_dwgDynamicBlockSourceFrameSnapshots.clear();
     m_dwgDynamicBlockEntityOutputSources.clear();
     m_dwgDynamicBlockOutputDictionaries.clear();
@@ -59619,6 +60173,9 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         dx_iface& owner;
         ~DwgDynamicBlockOutputScope() {
             owner.m_dwgDynamicBlockOutputSources.clear();
+            owner.m_dwgDynamicAssociativeDependencies.clear();
+            owner.m_dwgDynamicAssociativeGroups.clear();
+            owner.m_dwgDynamicAssociativeOutputProofs.clear();
             owner.m_dwgDynamicBlockSourceFrameSnapshots.clear();
             owner.m_dwgDynamicBlockEntityOutputSources.clear();
             owner.m_dwgDynamicBlockOutputDictionaries.clear();

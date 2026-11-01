@@ -58,12 +58,10 @@ Implementation history and evidence stay in Git and `docs/research/`.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next implementation packet — qualify the remaining source-backed callbacks
-after the two-root dynamic-block OBJECTS proof.** The strict conversion now
-serializes OBJECTS and passes the staged output inspection for both AC1024
-dynamic-block roots in `architectural_example-imperial.dwg`; finalization then
-refuses publication because 10 opaque DWG callbacks still lack output
-qualification. The source-edge census is complete in
+**Next implementation packet — resolve the last strict-output callback and
+close dynamic-graph negative controls.** The strict conversion now serializes
+OBJECTS and passes staged output inspection for both AC1024 dynamic-block roots
+in `architectural_example-imperial.dwg`. The source-edge census is complete in
 [the edge-census receipt](docs/research/p5-ac1024-architectural-dynamic-block-edge-census-2026-10-31.json):
 65/65 dynamic objects have fully decoded bodies and retained source frames;
 the Door - Imperial root `0x110F` has 38 nodes/43 edges and the Window - Imperial
@@ -84,39 +82,36 @@ fresh readback, wrong-role/out-of-profile refusal, rollback, and retry. The
 staged whole-document proof now checks the two root BLOCK_RECORDs, nested
 dictionaries, all 65 dynamic objects, both EvaluationGraphs, and reachable
 dynamic-block entities. The 14 separate dimension dependency/body pairs and
-their constraint group also pass physical staged-output proof. These results
-establish serializer and staged-record identity/field transport only; native
-dynamic meaning, fresh whole-document readback, and support claims remain
-unqualified. See [the dynamic writer progress receipt](docs/research/p5-ac1024-architectural-dynamic-writer-progress-2026-10-31.json).
+their constraint group also pass physical staged-output proof. Exact staged
+output proof now also covers the three dynamic-graph constraint groups and six
+dependencies, including field snapshots, output identities, owner/dependency
+roles and translated references. Strict output qualification has advanced to
+489/490; only source frame `0x4229` (type 79) remains. These results establish
+serializer and staged-record identity/field transport only; native dynamic
+meaning, fresh whole-document readback, and support claims remain unqualified.
+See [the dynamic writer progress receipt](docs/research/p5-ac1024-architectural-dynamic-writer-progress-2026-10-31.json).
 
 Remaining implementation order, using the current object/graph models and
 retained source frames rather than adding another graph engine:
 
-1. **Prove the remaining dynamic-graph associative callbacks.** The strict
-   finalizer reports three `ACDBASSOC2DCONSTRAINTGROUP` callbacks (`0x4425`,
-   `0x8230`, `0x8319`) and six `ACDBASSOCDEPENDENCY` callbacks (`0x4427`,
-   `0x4433`, `0x8232`, `0x8238`, `0x8321`, `0x8327`) as unqualified. Bind each
-   source model to its emitted record and owner; verify exact scalar fields,
-   handles, dependency/body/group roles, reactor and dictionary/network edges.
-   Do not count the separate 14-pair dimension proof as evidence for these
-   records. Preserve refusal for unsupported subclasses and unresolved or
-   aliased references.
-2. **Resolve the remaining standard source frame** at handle `0x4229`, object
+1. **Resolve the remaining standard source frame** at handle `0x4229`, object
    type 79. The strict finalizer reports it as `standard-payload=1/0`; trace its
    captured source frame and determine whether an exact bounded typed/raw
    output proof exists. Implement only that source-backed profile, or retain
    strict refusal if any bytes or reference roles cannot be proved.
-3. **Add document-level failure controls** for the now-emitted two-root graph:
+2. **Add document-level failure controls** for the now-emitted two-root graph:
    remove a required edge, substitute a wrong owner/role, and mutate the source
    after staging. Each case must refuse publication and preserve the complete
    destination; a corrected retry must succeed. Add fresh ASCII/Binary
    whole-document readback using generated in-memory inputs, without adding
-   drawing fixtures.
-4. **Repeat strict conversion after each source profile closes.** The current
+   drawing fixtures. Include explicit controls for the three constraint groups
+   and six dynamic dependencies proved in this slice.
+3. **Repeat strict conversion after each source profile closes.** The latest
    run passes serialization and staged OBJECTS proofs, then fails finalization
-   at 480/490 opaque callbacks qualified. Continue until the strict conversion
-   completes, then perform the independent native dynamic-block semantic check.
-   Keep the support ledger closed until that consumer gate passes.
+   at 489/490 opaque callbacks qualified because of `0x4229`. Continue until the
+   strict conversion completes, then perform the independent native
+   dynamic-block semantic check. Keep the support ledger closed until that
+   consumer gate passes.
 
 Both source graph frames were captured as AC1024 `AcDbEvalGraph`, observed oType
 517; keep the separate Title_Block-ARCH oType 511 observation profile-specific.
