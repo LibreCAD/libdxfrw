@@ -44,14 +44,26 @@ inline bool buildIndex(const Source& source,Index& out) {
         if(c.scope!=Source::Scope::Outer&&c.scope!=Source::Scope::Unframed)return false;
         bool valid=c.scope==Source::Scope::Outer&&c.record<source.records.size()&&c.section<source.sections.size();
         if(c.scope==Source::Scope::Outer) {
-            if(!valid)return false;const auto& r=source.records[c.record];
-            if(r.section!=c.section||r.firstCandidate>source.candidates.size()
-                ||r.candidates>source.candidates.size()-r.firstCandidate||i<r.firstCandidate||i-r.firstCandidate>=r.candidates
-                ||!spanInside(c.span,r.marker,r.endMarker))return false;
-            if(r.kind==Source::Kind::TableRecord&&sameName(r.name,"DIMSTYLE")&&c.code==5)continue;
-            if(out.selfCounts[c.record]<2u)++out.selfCounts[c.record];
-            valid=c.admission==Source::Admission::Accepted&&c.repeatedAdmissions<=1u
-                &&c.code==(r.kind==Source::Kind::TableRecord&&sameName(r.name,"DIMSTYLE")?105:5);
+          if (!valid)
+            return false;
+          const auto &r = source.records[c.record];
+          if (r.section != c.section ||
+              r.firstCandidate > source.candidates.size() ||
+              r.candidates > source.candidates.size() - r.firstCandidate ||
+              i < r.firstCandidate || i - r.firstCandidate >= r.candidates ||
+              !spanInside(c.span, r.marker, r.endMarker))
+            return false;
+          if (r.kind == Source::Kind::TableRecord &&
+              sameName(r.name, "DIMSTYLE") && c.code == 5)
+            continue;
+          if (out.selfCounts[c.record] < 2u)
+            ++out.selfCounts[c.record];
+          valid = c.admission == Source::Admission::Accepted &&
+                  c.repeatedAdmissions <= 1u &&
+                  c.code == (r.kind == Source::Kind::TableRecord &&
+                                     sameName(r.name, "DIMSTYLE")
+                                 ? 105
+                                 : 5);
         }
         if(!source.binary&&c.rawValue!=c.lexeme)return false;
         std::uint64_t id=0u;if(!hex(c.lexeme,id)||!id)continue;

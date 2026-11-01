@@ -977,7 +977,18 @@ public:
     /*!< Format a handle as the codec's canonical code-5 hex string (uppercase,
      * no leading zeros), so a caller can build a 350/330 reference string that
      * byte-matches the re-emitted handle (e.g. a remapped root-dict entry). */
-    std::string toHexStrHandle(std::uint32_t h) { return toHexStr(h); }
+    std::string toHexStrHandle(std::uint32_t h) {
+        static constexpr char digits[] = "0123456789ABCDEF";
+        std::string result;
+        do {
+            result.push_back(digits[h & 0x0Fu]);
+            h >>= 4u;
+        } while (h != 0u);
+        for (std::size_t left = 0u, right = result.size() - 1u;
+             left < right; ++left, --right)
+            std::swap(result[left], result[right]);
+        return result;
+    }
     /*!< Register source-handle remaps applied to raw and typed DXF output.
      * Empty by default (source handles are preserved verbatim). With GROUPs,
      * remaps and named dictionaries freeze after writeHeader() returns so
@@ -1660,7 +1671,12 @@ public:
     bool writeRequiredString(int code, const std::string& value);
     bool allocateDxfHandle(std::uint32_t& handle) noexcept;
     bool preflightDxfWrite() noexcept;
-    LIBDXFRW_TEST_SEAM_NOINLINE bool preflightDxfSetup() noexcept;
+    bool preflightDxfSetup() noexcept {
+        if (!m_dxfWriteFinalizing && !m_dxfWriteInspecting)
+            return true;
+        m_writeError = true;
+        return false;
+    }
     void discardDxfWriteResults() noexcept;
     void resetDxfWriteSession();
     class WholeOperationScope;
@@ -1752,8 +1768,8 @@ public:
         std::vector<std::pair<std::size_t, std::string>>& overrides);
     void writePlotSettingsFields(const DRW_PlotSettings *ent);
     /*use version from dwgutil.h*/
-    LIBDXFRW_TEST_SEAM_NOINLINE std::string toHexStr(std::uint32_t n);
-    LIBDXFRW_TEST_SEAM_NOINLINE std::string toHexStr(int n);// compatibility overload for legacy callers
+    std::string toHexStr(std::uint32_t n);
+    std::string toHexStr(int n);// compatibility overload for legacy callers
     bool writeAppData(const std::list<std::list<DRW_Variant>> &appData);
     bool writeTableEntryAppData(const DRW_TableEntry& entry, bool emitReactors = true);
     template <typename Range, typename GetPointer>

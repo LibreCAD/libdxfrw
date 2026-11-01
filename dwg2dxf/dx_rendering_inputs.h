@@ -254,7 +254,14 @@ dx_iface::RenderingInputReport dx_iface::renderingInputReport(const dx_data& dat
             ||in.generation!=s.generation||in.containerId!=data.m_entitiesContainerIdentity.value||!in.context||in.context->sourceVersion!=s.version
             ||in.original.model||in.original.source||in.original.phase!=RenderingView::Phase::None
             ||!in.typedModel||!in.rawModel||!in.typedRaw||!in.rawRaw){report.state=S::ContextMismatch;return report;}
-        if(in.actualPair)++report.pairs;if(in.rawStable)++report.rawStable;if(in.stateStable)++report.stateStable;if(row.originBound)++report.origins;
+        if (in.actualPair)
+          ++report.pairs;
+        if (in.rawStable)
+          ++report.rawStable;
+        if (in.stateStable)
+          ++report.stateStable;
+        if (row.originBound)
+          ++report.origins;
     }
     report.physical=audit->physicalRecords;report.state=audit->state;
     report.publicationInputsCaptured=report.state==S::InputsCaptured&&report.records!=0u

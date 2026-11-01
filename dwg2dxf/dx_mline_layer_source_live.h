@@ -31,7 +31,9 @@ inline bool equal(const Whole& whole,const Census::Record& record,const DRW_RawD
   if(!bounds(whole,f)||f.ordinal!=i+1u||f.code==0||f.begin!=previousEnd||f.end<=f.begin)return false;
   previousEnd=f.end;
   if(f.ignored){if(f.code!=999)return false;continue;}
-  if(group>=raw.groups.size())return false;const auto& v=raw.groups[group];
+  if (group >= raw.groups.size())
+    return false;
+  const auto &v = raw.groups[group];
   if(f.code!=v.code()||v.isLayerRef()||v.rawDwgLayerReference()!=0u||v.dwgCmColorValue())return false;
   if(!whole.binary()&&whole.raw(f)!=raw.rawValues[group])return false;
   if(whole.binary()&&!raw.rawValues[group].empty())return false;
@@ -40,7 +42,10 @@ inline bool equal(const Whole& whole,const Census::Record& record,const DRW_RawD
    case DxfReadRecordView::WideInteger:if(v.type()!=DRW_Variant::INTEGER64||v.i64_val()!=f.wide)return false;break;
    case DxfReadRecordView::Real:if(v.type()!=DRW_Variant::DOUBLE||std::memcmp(&v.content.d,&f.real,sizeof(double)))return false;break;
    case DxfReadRecordView::Text:case DxfReadRecordView::Binary:
-    if(v.type()!=DRW_Variant::STRING||!v.content.s||*v.content.s!=whole.raw(f))return false;break;
+     if (v.type() != DRW_Variant::STRING || !v.content.s ||
+         *v.content.s != whole.raw(f))
+       return false;
+     break;
    default:return false;
   }
   ++group;

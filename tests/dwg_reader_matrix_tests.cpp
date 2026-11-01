@@ -1404,16 +1404,20 @@ void testBoundedPolylineStagingGrowth(TestContext& t) {
              "POLYLINE pending-owner map grows geometrically and respects its count cap");
 
     TestMap budgetedOwners;
-    const long double currentElementCapacity =
-        static_cast<long double>(budgetedOwners.bucket_count()) *
-        static_cast<long double>(budgetedOwners.max_load_factor());
-    const std::size_t elementsToFill =
-        currentElementCapacity >= static_cast<long double>(childLimit)
-            ? childLimit
-            : static_cast<std::size_t>(currentElementCapacity);
-    for (std::size_t index = 0u; index < elementsToFill; ++index)
-        budgetedOwners.emplace(static_cast<std::uint32_t>(index),
-                               static_cast<std::uint32_t>(index));
+    budgetedOwners.reserve(1u);
+    while (budgetedOwners.size() < childLimit) {
+        const long double currentElementCapacity =
+            static_cast<long double>(budgetedOwners.bucket_count()) *
+            static_cast<long double>(budgetedOwners.max_load_factor());
+        const std::size_t elementsToFill =
+            currentElementCapacity >= static_cast<long double>(childLimit)
+                ? childLimit
+                : static_cast<std::size_t>(currentElementCapacity);
+        if (budgetedOwners.size() >= elementsToFill)
+            break;
+        const auto next = static_cast<std::uint32_t>(budgetedOwners.size());
+        budgetedOwners.emplace(next, next);
+    }
     const std::size_t bucketsBeforeBudgetRefusal =
         budgetedOwners.bucket_count();
     std::size_t plannedTarget = 0u;
@@ -1456,9 +1460,10 @@ void testBoundedPolylineStagingGrowth(TestContext& t) {
         bucketsAfterBudgetedReservation <=
             upperTransientBucketBytes / sizeof(void *) &&
         upperRetainedBucketBytes >= addedBucketBytes;
-    const auto budgetedInsert = budgetedOwners.emplace(
-        static_cast<std::uint32_t>(elementsToFill),
-        static_cast<std::uint32_t>(elementsToFill));
+    const auto nextBudgetedOwner =
+        static_cast<std::uint32_t>(budgetedOwners.size());
+    const auto budgetedInsert =
+        budgetedOwners.emplace(nextBudgetedOwner, nextBudgetedOwner);
     t.expect(growthEnvelopeKnown && bucketBudgetRefused &&
                  refusedBucketBytes == 0u && transientPeakBudgetRefused &&
                  refusedPeakBucketBytes == 0u && refusalPreservedBuckets &&
@@ -2171,11 +2176,18 @@ void testPolylineStageRollbackTranscript(TestContext& t) {
         orphanReaderReabandoned && orphanGrowthReader.stagedStateIsEmpty() &&
         orphanGrowthReader.stagingBytes() == orphanBucketCharge &&
         orphanGrowthReader.validateState();
-    t.expect(pendingBucketsCharged && pendingBucketsRetainedAndCharged &&
-                 pendingReaderReuseReleased && orphanBucketsCharged &&
-                 orphanBucketsRetainedAndCharged &&
-                 orphanReaderReuseReleased,
-             "POLYLINE pending and orphan owner-map bucket arrays stay charged through terminalization, abandonment, and same-reader reuse");
+    t.expect(pendingBucketsCharged,
+             "POLYLINE pending owner-map buckets are charged while staged");
+    t.expect(pendingBucketsRetainedAndCharged,
+             "POLYLINE pending owner-map buckets stay charged after terminalization");
+    t.expect(pendingReaderReuseReleased,
+             "POLYLINE pending map reuse retains only its charged buckets");
+    t.expect(orphanBucketsCharged,
+             "POLYLINE orphan owner-map buckets are charged while staged");
+    t.expect(orphanBucketsRetainedAndCharged,
+             "POLYLINE orphan owner-map buckets stay charged after abandonment");
+    t.expect(orphanReaderReuseReleased,
+             "POLYLINE orphan map reuse retains only its charged buckets");
 }
 
 std::uint16_t polylineHandleMapTestCrc(const std::vector<std::uint8_t>& bytes,

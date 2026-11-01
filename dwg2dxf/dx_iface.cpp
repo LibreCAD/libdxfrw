@@ -23023,7 +23023,9 @@ bool dx_iface::hasQualifiedStandardDwgOutputNames(std::uint64_t generation,
         return dxfW->dxfWriteEmittedSourceTableHandle(static_cast<std::uint32_t>(source)) == proof.emitted
             && (!finalizing || (dxfW->dxfWriteSourceTableHasIdentity(static_cast<std::uint32_t>(source),
                 proof.emitted, layer ? "LAYER" : "APPID",
-                !layer && dxfW->getVersion() <= DRW::AC1014 ? DRW::NoHandle : proof.table)
+                !layer && dxfW->getVersion() <= DRW::AC1014
+                    ? static_cast<std::uint32_t>(DRW::NoHandle)
+                    : proof.table)
                 && dxfW->dxfWriteRecordHasIdentity(proof.table, "TABLE", "TABLES")
                 && (dxfW->getVersion() <= DRW::AC1014 || dxfW->dxfWriteRecordHasOwner(proof.table, 0u))));
     };
@@ -26646,7 +26648,9 @@ bool mlineRemovalTuples(const DRW_RawDxfObject& raw,std::size_t expected,
     if (!mlineBodyFields(raw,selected,slots,insertion,&texts,&colors,&offsets)) return false;
     std::array<std::size_t,UINT8_MAX> types{};std::size_t n=0u;
     for (const auto index:texts) if (raw.groups[index].code()==6) {
-        if (n>=expected) return false;types[n++]=index;
+        if (n >= expected)
+          return false;
+        types[n++] = index;
     }
     if (n!=expected) return false;
     for (std::size_t i=0u;i<expected;++i) {
@@ -26657,7 +26661,9 @@ bool mlineRemovalTuples(const DRW_RawDxfObject& raw,std::size_t expected,
     if (tuples[expected-1u][2]+1u!=raw.groups.size()) return false;
     countIndex=noScaleSlot;
     for (std::size_t i=0u;i<raw.groups.size();++i) if (raw.groups[i].code()==71) {
-        if (countIndex!=noScaleSlot) return false;countIndex=i;
+        if (countIndex != noScaleSlot)
+          return false;
+        countIndex = i;
     }
     return countIndex!=noScaleSlot;
 }
@@ -32137,7 +32143,9 @@ bool dx_iface::hasUnchangedDxfMaterialSources() const noexcept {
         for (const auto& frozen : m_dxfMaterialWriteDictionaries) {
             const DRW_Dictionary* current = nullptr;
             for (const auto& dictionary : cData->dictionaries) if (dictionary.handle == frozen.handle) {
-                if (current) return false; current = &dictionary;
+                if (current)
+                  return false;
+                current = &dictionary;
             }
             if (!current || !current->hasCompleteDxfEntries()
                 || !standardDwgModelsEqual(frozen, *current, cData->sourceVersion, dwgObjType::DICTIONARY)) return false;
@@ -32240,9 +32248,19 @@ bool rawCommonReference(const DRW_RawDxfObject& raw,std::uint32_t& target,int& s
     for(const auto& group:raw.groups){const int code=group.code();
         if(code==102){const auto* text=group.content.s;if(group.type()!=DRW_Variant::STRING||!text)return false;
             if(*text=="}"){if(!depth)return false;--depth;}
-            else if(!text->empty()&&text->front()=='{'){if(++depth>DRW::kMaxDxfApplicationGroupNesting)return false;}
-            else return false;continue;}
-        if(depth)continue;if(code>=1000){xdata=true;continue;}if(xdata)return false;
+            else if(!text->empty()&&text->front()=='{'){if(++depth>DRW::kMaxDxfApplicationGroupNesting)return false;
+            } else
+              return false;
+            continue;
+        }
+        if (depth)
+          continue;
+        if (code >= 1000) {
+          xdata = true;
+          continue;
+        }
+        if (xdata)
+          return false;
         if(code==100){if(group.type()!=DRW_Variant::STRING||!group.content.s)return false;common=*group.content.s=="AcDbEntity";}
         else if(common&&code==referenceCode){std::uint64_t handle=0u;if(++fields!=1u||!dx_standard_output::handleValue(group,handle)||handle>UINT32_MAX)return false;target=static_cast<std::uint32_t>(handle);}
         else if(common&&code==67){if(group.type()!=DRW_Variant::INTEGER||group.i_val()<0||group.i_val()>1)return false;space=group.i_val();}
@@ -32262,7 +32280,9 @@ bool dx_iface::prepareDxfHeaderMaterial(DRW::Version targetVersion) noexcept {
         if(state.format!=dx_source_format::DXF)return false;
         unsigned matches=0u;
         for(const auto& source:m_dxfMaterialWriteSources)if(source.raw.handle==state.target) {
-            if(++matches!=1u)return false;state.targetOwner=source.raw.parentHandle;
+            if (++matches != 1u)
+              return false;
+            state.targetOwner = source.raw.parentHandle;
         }
         if(matches!=1u)return false;
     }
@@ -32445,7 +32465,10 @@ bool dx_iface::inspectDxfLayerMaterials(const dxfRW::DxfTablesWriteView& view) n
                         if(!layer||++fields!=1u||token.text.empty()||token.text.size()>16u)return false;
                         for(unsigned char c:token.text) {
                             const unsigned digit=c>='0'&&c<='9'?c-'0':c>='A'&&c<='F'?c-'A'+10u:c>='a'&&c<='f'?c-'a'+10u:16u;
-                            if(digit>15u||target>(UINT32_MAX-digit)/16u)return false;target=target*16u+digit;
+                            if (digit > 15u ||
+                                target > (UINT32_MAX - digit) / 16u)
+                              return false;
+                            target = target * 16u + digit;
                         }
                     }
                 }
@@ -32516,7 +32539,13 @@ bool dx_iface::visitDxfCommonReferences(const dx_data& data,int code,const DxfCo
                 if(providerCount>200000u||!addAssociativeSlotBytes(providerCount,slot,bytes)
                     ||bytes>state.byteLimit)return false;
                 providers.reserve(providerCount);
-                if(!providersEach([&](const auto& value){return providers.emplace(value.handle,value.parentHandle).second;}))return false;indexed=true;}
+                if (!providersEach([&](const auto &value) {
+                      return providers.emplace(value.handle, value.parentHandle)
+                          .second;
+                    }))
+                  return false;
+                indexed = true;
+            }
             const auto found=providers.find(source.target);if(found==providers.end()||!source.target||source.target==DRW::NoHandle)return false;
             source.targetOwner=found->second;return visit(std::move(source));
         };
@@ -32557,7 +32586,12 @@ bool dx_iface::visitDxfCommonReferences(const dx_data& data,int code,const DxfCo
             }
             return block==data.mBlock||!block->hasEndBlockData||typed(&block->endBlockData,nullptr,DxfCommonReferenceSource::BlockEnd,"ENDBLK");
         };
-        if(!container(data.mBlock))return false;for(const auto* block:data.blocks)if(!container(block))return false;return true;
+        if (!container(data.mBlock))
+          return false;
+        for (const auto *block : data.blocks)
+          if (!container(block))
+            return false;
+        return true;
     }catch(...){return false;}
 }
 
@@ -32590,11 +32624,21 @@ bool dx_iface::hasUnchangedDxfCommonReferences(int code,const DxfCommonReference
     if(!state.owner)return true;
     if(cData!=state.owner||cData->importGeneration!=state.generation||cData->sourceFormat!=state.sourceFormat||cData->sourceVersion!=state.sourceVersion)return false;
     std::size_t index=0u;
-    const bool same=visitDxfCommonReferences(*cData,code,state,[&](DxfCommonReferenceSource&& value){
-        if(index==state.sources.size())return false;const auto& row=state.sources[index++];
-        return std::tie(value.kind,value.entity,value.raw,value.parent,value.block,value.handle,value.owner,value.target,value.targetOwner,value.parentHandle,value.space,value.name,value.ownerName,value.parentName,value.blocks)
-            ==std::tie(row.kind,row.entity,row.raw,row.parent,row.block,row.handle,row.owner,row.target,row.targetOwner,row.parentHandle,row.space,row.name,row.ownerName,row.parentName,row.blocks);
-    });
+    const bool same = visitDxfCommonReferences(
+        *cData, code, state, [&](DxfCommonReferenceSource &&value) {
+          if (index == state.sources.size())
+            return false;
+          const auto &row = state.sources[index++];
+          return std::tie(value.kind, value.entity, value.raw, value.parent,
+                          value.block, value.handle, value.owner, value.target,
+                          value.targetOwner, value.parentHandle, value.space,
+                          value.name, value.ownerName, value.parentName,
+                          value.blocks) ==
+                 std::tie(row.kind, row.entity, row.raw, row.parent, row.block,
+                          row.handle, row.owner, row.target, row.targetOwner,
+                          row.parentHandle, row.space, row.name, row.ownerName,
+                          row.parentName, row.blocks);
+        });
     if(!same||index!=state.sources.size())return false;
     if(!state.sources.empty()){
         if(state.providers.size()!=(code==347?cData->materials.size():cData->visualStyles.size()))return false;
@@ -32606,97 +32650,280 @@ bool dx_iface::hasUnchangedDxfCommonReferences(int code,const DxfCommonReference
 }
 
 bool dx_iface::checkDxfCommonEntity(const DRW_Entity* entity,int code,const DxfCommonReferenceState& state) const noexcept {
-    if(!state.owner)return true;if(!entity)return false;
-    const auto check=[&](const DRW_Entity* value){if(!value)return true;const auto found=state.entities.find(value);
-        if(found==state.entities.end())return (code==347?value->material:value->fullVisualStyleHandle)==0u;const auto& row=state.sources[found->second];
-        return (code==347?value->material:value->fullVisualStyleHandle)==row.target&&value->handle==row.handle&&value->parentHandle==row.owner&&value->space==row.space;};
-    if(!check(entity))return false;
-    if(const auto* polyline=dynamic_cast<const DRW_Polyline*>(entity)){
-        for(const auto& child:polyline->vertlist)if(!child||!check(child.get()))return false;if(!check(polyline->seqEndEntity.get()))return false;
-    }
+  if (!state.owner)
+    return true;
+  if (!entity)
+    return false;
+  const auto check =
+      [&](const DRW_Entity *value) {
+        if (!value)
+          return true;
+        const auto found = state.entities.find(value);
+        if (found == state.entities.end())
+          return (code == 347 ? value->material
+                              : value->fullVisualStyleHandle) == 0u;
+        const auto &row = state.sources[found->second];
+        return (code==347?value->material:value->fullVisualStyleHandle)==row.target&&value->handle==row.handle&&value->parentHandle==row.owner&&value->space==row.space;
+      };
+  if (!check(entity))
+    return false;
+  if (const auto *polyline = dynamic_cast<const DRW_Polyline *>(entity)) {
+    for (const auto &child : polyline->vertlist)
+      if (!child || !check(child.get()))
+        return false;
+    if (!check(polyline->seqEndEntity.get()))
+      return false;
+  }
     if(const auto* insert=dynamic_cast<const DRW_Insert*>(entity)){
-        for(const auto& child:insert->attlist)if(!child||!check(child.get()))return false;if(!check(insert->seqEndEntity.get()))return false;
+      for (const auto &child : insert->attlist)
+        if (!child || !check(child.get()))
+          return false;
+      if (!check(insert->seqEndEntity.get()))
+        return false;
     }
     return true;
 }
 
 bool dx_iface::inspectDxfCommonReferences(const dxfRW::DxfObjectsWriteView& view,std::string_view section,int code,DxfCommonReferenceState& state) noexcept {
-    if(!hasUnchangedDxfCommonReferences(code,state)||!dxfW)return false;if(state.sources.empty())return true;
-    const unsigned bit=section=="BLOCKS"?1u:section=="ENTITIES"?2u:0u;if(!bit||(state.sections&bit))return false;state.sections|=bit;
-    try{
-        std::map<std::uint32_t,std::size_t> identified;
-        using Key=std::pair<std::string,std::uint32_t>;std::map<Key,std::vector<std::size_t>> anonymous;std::map<Key,std::size_t> next;
-        const auto blockOwner=[&](const DxfCommonReferenceSource& row){const auto name=layoutSymbolKey(row.ownerName);
-            return name=="*MODEL_SPACE"?DRW::DxfModelSpaceBlockRecordHandle:name=="*PAPER_SPACE"?DRW::DxfPaperSpaceBlockRecordHandle:dxfW->getBlockRecordHandleToWrite(row.ownerName);};
-        for(std::size_t i=0u;i<state.sources.size();++i){const auto& row=state.sources[i];if(row.blocks!=(bit==1u))continue;
-            const auto end=dxfW->getBlockEndHandleToWrite(row.ownerName);
-            auto emitted=row.kind==DxfCommonReferenceSource::BlockBegin?(end&&end!=DRW::NoHandle?end-1u:DRW::NoHandle)
-                :row.kind==DxfCommonReferenceSource::BlockEnd?dxfW->getBlockEndHandleToWrite(row.ownerName)
-                :(row.handle&&row.handle!=DRW::NoHandle)?dxfW->remapEntityHandle(row.handle):0u;
-            if(emitted){if(emitted==DRW::NoHandle||!identified.emplace(emitted,i).second)return false;}
-            else{const auto owner=blockOwner(row);if(!owner||owner==DRW::NoHandle)return false;anonymous[{row.name,owner}].push_back(i);}
-        }
-        struct Parent {std::uint32_t owner;std::string name;};std::unordered_map<std::uint32_t,Parent> parents;
-        std::unordered_map<std::uint32_t,std::uint32_t> targets;
-        for(const auto& source:state.providers){const auto target=dxfW->remapHandle(source.first);if(!target||target==DRW::NoHandle||!targets.emplace(target,source.first).second)return false;}
-        std::string selectedName;
-        const bool good=view.bytes.empty()?identified.empty()&&anonymous.empty():dx_standard_output::inspectSelected(view,
-            [&](std::string_view name,std::uint32_t){selectedName=std::string(name);return true;},
-            [&](const auto& shape,std::string_view body){
-                dx_standard_output::RecordCursor cursor(body,view);dx_standard_output::RecordCursor::Token token;
-                unsigned depth=0u,owners=0u,styles=0u;std::uint32_t owner=0u,target=0u;bool common=false,header=true,xdata=false;
-                const auto handle=[](std::string_view text,std::uint32_t& value){while(!text.empty()&&(text.front()==' '||text.front()=='\t'))text.remove_prefix(1);
-                    while(!text.empty()&&(text.back()==' '||text.back()=='\t'))text.remove_suffix(1);if(text.empty())return false;
-                    const auto parsed=std::from_chars(text.data(),text.data()+text.size(),value,16);return parsed.ec==std::errc{}&&parsed.ptr==text.data()+text.size();};
-                while(!cursor.done()){
-                    if(!cursor.next(token))return false;if(xdata){if(token.code<1000)return false;continue;}
-                    if(token.code==102){if(token.text=="}"){if(!depth)return false;--depth;}else if(!token.text.empty()&&token.text.front()=='{'){if(++depth>DRW::kMaxDxfApplicationGroupNesting)return false;}else return false;continue;}
-                    if(depth)continue;if(token.code>=1000){xdata=true;continue;}
-                    if(token.code==100){common=token.text=="AcDbEntity";header=false;}
-                    else if(header&&token.code==330){if(++owners!=1u||!handle(token.text,owner))return false;}
-                    else if(common&&token.code==code){if(++styles!=1u||!handle(token.text,target))return false;}
-                }
-                if(depth)return false;
-                if(selectedName=="INSERT"||selectedName=="POLYLINE"||selectedName=="ACAD_TABLE"){
-                    if(parents.size()>=200000u||!parents.emplace(shape.handle,Parent{owner,selectedName}).second)return false;
-                }
-                auto found=identified.find(shape.handle);std::size_t index=state.sources.size();
-                if(found!=identified.end())index=found->second;
-                if(!target&&index==state.sources.size())return true;
-                if(styles!=1u||owners!=1u||!target||!shape.handle||shape.handle==DRW::NoHandle||!targets.count(target))return false;
-                if(state.observedFields>=state.recordLimit)return false;
-                ++state.observedFields;state.providers.at(targets.at(target)).observed=true;
-                const auto parent=parents.find(owner);const auto rootOwner=parent==parents.end()?owner:parent->second.owner;
-                if(index==state.sources.size()){
-                    Key key{selectedName,rootOwner};const auto bucket=anonymous.find(key);
-                    if(bucket==anonymous.end())return true; // Generated/direct extra: actual provider binding only, no original-source certificate.
-                    auto& ordinal=next[key];if(ordinal==bucket->second.size())return true;index=bucket->second[ordinal++];
-                }
-                auto& row=state.sources[index];if(row.inspected||row.name!=selectedName||target!=dxfW->remapHandle(row.target))return false;
-                const auto expectedOwner=blockOwner(row);
-                if(row.parent){if(parent==parents.end()||parent->second.owner!=expectedOwner||parent->second.name!=row.parentName
-                        ||(row.parentHandle&&row.parentHandle!=DRW::NoHandle&&owner!=dxfW->remapEntityHandle(row.parentHandle)))return false;}
-                else if(owner!=(row.raw?rawEntityOwnerToWrite(*row.raw,row.block):expectedOwner))return false;
-                row.inspected=true;row.emitted=shape.handle;row.emittedOwner=owner;return true;
-            });
-        if(!good)return false;for(const auto& row:state.sources)if(row.blocks==(bit==1u)&&!row.inspected)return false;return true;
-    }catch(...){return false;}
+  if (!hasUnchangedDxfCommonReferences(code, state) || !dxfW)
+    return false;
+  if (state.sources.empty())
+    return true;
+  const unsigned bit = section == "BLOCKS"     ? 1u
+                       : section == "ENTITIES" ? 2u
+                                               : 0u;
+  if (!bit || (state.sections & bit))
+    return false;
+  state.sections |= bit;
+  try {
+    std::map<std::uint32_t, std::size_t> identified;
+    using Key = std::pair<std::string, std::uint32_t>;
+    std::map<Key, std::vector<std::size_t>> anonymous;
+    std::map<Key, std::size_t> next;
+    const auto blockOwner = [&](const DxfCommonReferenceSource &row) {
+      const auto name = layoutSymbolKey(row.ownerName);
+      return name == "*MODEL_SPACE" ? DRW::DxfModelSpaceBlockRecordHandle
+             : name == "*PAPER_SPACE"
+                 ? DRW::DxfPaperSpaceBlockRecordHandle
+                 : dxfW->getBlockRecordHandleToWrite(row.ownerName);
+    };
+    for (std::size_t i = 0u; i < state.sources.size(); ++i) {
+      const auto &row = state.sources[i];
+      if (row.blocks != (bit == 1u))
+        continue;
+      const auto end = dxfW->getBlockEndHandleToWrite(row.ownerName);
+      auto emitted =
+          row.kind == DxfCommonReferenceSource::BlockBegin
+              ? (end && end != DRW::NoHandle ? end - 1u : DRW::NoHandle)
+          : row.kind == DxfCommonReferenceSource::BlockEnd
+              ? dxfW->getBlockEndHandleToWrite(row.ownerName)
+          : (row.handle && row.handle != DRW::NoHandle)
+              ? dxfW->remapEntityHandle(row.handle)
+              : 0u;
+      if (emitted) {
+        if (emitted == DRW::NoHandle || !identified.emplace(emitted, i).second)
+          return false;
+      } else {
+        const auto owner = blockOwner(row);
+        if (!owner || owner == DRW::NoHandle)
+          return false;
+        anonymous[{row.name, owner}].push_back(i);
+      }
+    }
+    struct Parent {
+      std::uint32_t owner;
+      std::string name;
+    };
+    std::unordered_map<std::uint32_t, Parent> parents;
+    std::unordered_map<std::uint32_t, std::uint32_t> targets;
+    for (const auto &source : state.providers) {
+      const auto target = dxfW->remapHandle(source.first);
+      if (!target || target == DRW::NoHandle ||
+          !targets.emplace(target, source.first).second)
+        return false;
+    }
+    std::string selectedName;
+    const bool good =
+        view.bytes.empty()
+            ? identified.empty() && anonymous.empty()
+            : dx_standard_output::inspectSelected(
+                  view,
+                  [&](std::string_view name, std::uint32_t) {
+                    selectedName = std::string(name);
+                    return true;
+                  },
+                  [&](const auto &shape, std::string_view body) {
+                    dx_standard_output::RecordCursor cursor(body, view);
+                    dx_standard_output::RecordCursor::Token token;
+                    unsigned depth = 0u, owners = 0u, styles = 0u;
+                    std::uint32_t owner = 0u, target = 0u;
+                    bool common = false, header = true, xdata = false;
+                    const auto handle = [](std::string_view text,
+                                           std::uint32_t &value) {
+                      while (!text.empty() &&
+                             (text.front() == ' ' || text.front() == '\t'))
+                        text.remove_prefix(1);
+                      while (!text.empty() &&
+                             (text.back() == ' ' || text.back() == '\t'))
+                        text.remove_suffix(1);
+                      if (text.empty())
+                        return false;
+                      const auto parsed = std::from_chars(
+                          text.data(), text.data() + text.size(), value, 16);
+                      return parsed.ec == std::errc{} &&
+                             parsed.ptr == text.data() + text.size();
+                    };
+                    while (!cursor.done()) {
+                      if (!cursor.next(token))
+                        return false;
+                      if (xdata) {
+                        if (token.code < 1000)
+                          return false;
+                        continue;
+                      }
+                      if (token.code == 102) {
+                        if (token.text == "}") {
+                          if (!depth)
+                            return false;
+                          --depth;
+                        } else if (!token.text.empty() &&
+                                   token.text.front() == '{') {
+                          if (++depth > DRW::kMaxDxfApplicationGroupNesting)
+                            return false;
+                        } else
+                          return false;
+                        continue;
+                      }
+                      if (depth)
+                        continue;
+                      if (token.code >= 1000) {
+                        xdata = true;
+                        continue;
+                      }
+                      if (token.code == 100) {
+                        common = token.text == "AcDbEntity";
+                        header = false;
+                      } else if (header && token.code == 330) {
+                        if (++owners != 1u || !handle(token.text, owner))
+                          return false;
+                      } else if (common && token.code == code) {
+                        if (++styles != 1u || !handle(token.text, target))
+                          return false;
+                      }
+                    }
+                    if (depth)
+                      return false;
+                    if (selectedName == "INSERT" ||
+                        selectedName == "POLYLINE" ||
+                        selectedName == "ACAD_TABLE") {
+                      if (parents.size() >= 200000u ||
+                          !parents
+                               .emplace(shape.handle,
+                                        Parent{owner, selectedName})
+                               .second)
+                        return false;
+                    }
+                    auto found = identified.find(shape.handle);
+                    std::size_t index = state.sources.size();
+                    if (found != identified.end())
+                      index = found->second;
+                    if (!target && index == state.sources.size())
+                      return true;
+                    if (styles != 1u || owners != 1u || !target ||
+                        !shape.handle || shape.handle == DRW::NoHandle ||
+                        !targets.count(target))
+                      return false;
+                    if (state.observedFields >= state.recordLimit)
+                      return false;
+                    ++state.observedFields;
+                    state.providers.at(targets.at(target)).observed = true;
+                    const auto parent = parents.find(owner);
+                    const auto rootOwner =
+                        parent == parents.end() ? owner : parent->second.owner;
+                    if (index == state.sources.size()) {
+                      Key key{selectedName, rootOwner};
+                      const auto bucket = anonymous.find(key);
+                      if (bucket == anonymous.end())
+                        return true; // Generated/direct extra: actual provider
+                                     // binding only, no original-source
+                                     // certificate.
+                      auto &ordinal = next[key];
+                      if (ordinal == bucket->second.size())
+                        return true;
+                      index = bucket->second[ordinal++];
+                    }
+                    auto &row = state.sources[index];
+                    if (row.inspected || row.name != selectedName ||
+                        target != dxfW->remapHandle(row.target))
+                      return false;
+                    const auto expectedOwner = blockOwner(row);
+                    if (row.parent) {
+                      if (parent == parents.end() ||
+                          parent->second.owner != expectedOwner ||
+                          parent->second.name != row.parentName ||
+                          (row.parentHandle &&
+                           row.parentHandle != DRW::NoHandle &&
+                           owner != dxfW->remapEntityHandle(row.parentHandle)))
+                        return false;
+                    } else if (owner != (row.raw ? rawEntityOwnerToWrite(
+                                                       *row.raw, row.block)
+                                                 : expectedOwner))
+                      return false;
+                    row.inspected = true;
+                    row.emitted = shape.handle;
+                    row.emittedOwner = owner;
+                    return true;
+                  });
+    if (!good)
+      return false;
+    for (const auto &row : state.sources)
+      if (row.blocks == (bit == 1u) && !row.inspected)
+        return false;
+    return true;
+  } catch (...) {
+    return false;
+  }
 }
 
 bool dx_iface::finalizeDxfCommonReferences(int code,const DxfCommonReferenceState& state) const noexcept {
-    if(!state.owner)return true;if(!hasUnchangedDxfCommonReferences(code,state)||!dxfW)return false;if(state.sources.empty())return true;
-    if(state.sections!=3u)return false;
-    try{
-        for(const auto& source:state.providers)if(source.second.observed){
-            const auto target=dxfW->remapHandle(source.first);if(!dxfW->dxfWriteRecordHasIdentity(target,code==347?"MATERIAL":"VISUALSTYLE","OBJECTS")||!dxfW->dxfWriteRecordHasOwner(target,dxfW->remapHandle(source.second.owner)))return false;}
-        for(const auto& row:state.sources){const auto section=row.blocks?"BLOCKS":"ENTITIES";
-            if(!row.inspected||!dxfW->dxfWriteRecordHasIdentity(row.emitted,row.name,section)||!dxfW->dxfWriteRecordHasOwner(row.emitted,row.emittedOwner))return false;
-            if(!row.parent&&!dxfW->dxfWriteRecordHasIdentity(row.emittedOwner,"BLOCK_RECORD","TABLES"))return false;
-            if(row.kind!=DxfCommonReferenceSource::BlockBegin&&row.kind!=DxfCommonReferenceSource::BlockEnd&&row.handle&&row.handle!=DRW::NoHandle
-                &&!dxfW->dxfWriteSourceEntityHasIdentity(row.handle,row.emitted,row.name,section,row.emittedOwner))return false;
-        }
-        return true;
-    }catch(...){return false;}
+  if (!state.owner)
+    return true;
+  if (!hasUnchangedDxfCommonReferences(code, state) || !dxfW)
+    return false;
+  if (state.sources.empty())
+    return true;
+  if (state.sections != 3u)
+    return false;
+  try {
+    for (const auto &source : state.providers)
+      if (source.second.observed) {
+        const auto target = dxfW->remapHandle(source.first);
+        if (!dxfW->dxfWriteRecordHasIdentity(
+                target, code == 347 ? "MATERIAL" : "VISUALSTYLE", "OBJECTS") ||
+            !dxfW->dxfWriteRecordHasOwner(
+                target, dxfW->remapHandle(source.second.owner)))
+          return false;
+      }
+    for (const auto &row : state.sources) {
+      const auto section = row.blocks ? "BLOCKS" : "ENTITIES";
+      if (!row.inspected ||
+          !dxfW->dxfWriteRecordHasIdentity(row.emitted, row.name, section) ||
+          !dxfW->dxfWriteRecordHasOwner(row.emitted, row.emittedOwner))
+        return false;
+      if (!row.parent && !dxfW->dxfWriteRecordHasIdentity(
+                             row.emittedOwner, "BLOCK_RECORD", "TABLES"))
+        return false;
+      if (row.kind != DxfCommonReferenceSource::BlockBegin &&
+          row.kind != DxfCommonReferenceSource::BlockEnd && row.handle &&
+          row.handle != DRW::NoHandle &&
+          !dxfW->dxfWriteSourceEntityHasIdentity(
+              row.handle, row.emitted, row.name, section, row.emittedOwner))
+        return false;
+    }
+    return true;
+  } catch (...) {
+    return false;
+  }
 }
 
 bool dx_iface::visitDxfShadeConsumers(
@@ -45690,7 +45917,11 @@ bool namespaceSourceReferences(const DRW_RawDxfObject& raw,bool layer,std::vecto
     unsigned depth=0u,xdepth=0u,stage=0u;int point=0,next=0;bool xdata=false;
     for(std::size_t i=0u;i<raw.groups.size();++i) {
         const auto& v=raw.groups[i];const int code=v.code();const auto text=dx_attdef_source::text(v);
-        if(!dx_compound_source::scalarType(v))return false;R role=R::Unknown;bool reference=false;std::uint64_t handle=0u;
+        if (!dx_compound_source::scalarType(v))
+          return false;
+        R role = R::Unknown;
+        bool reference = false;
+        std::uint64_t handle = 0u;
         if(code==102) {
             if(xdata)return false;
             if(text=="}"){if(!depth)return false;--depth;}
@@ -45700,9 +45931,16 @@ bool namespaceSourceReferences(const DRW_RawDxfObject& raw,bool layer,std::vecto
         }
         if(depth) {
             if(isDxfHandleCode(code)) {
-                if(!dx_standard_output::handleValue(v,handle)||handle>UINT32_MAX)return false;reference=true;
-                if(depth==1u&&applications[0]=="{ACAD_REACTORS"&&code==330)role=R::Reactor;
-                else if(depth==1u&&applications[0]=="{ACAD_XDICTIONARY"&&code==360)role=R::ExtensionDictionary;
+              if (!dx_standard_output::handleValue(v, handle) ||
+                  handle > UINT32_MAX)
+                return false;
+              reference = true;
+              if (depth == 1u && applications[0] == "{ACAD_REACTORS" &&
+                  code == 330)
+                role = R::Reactor;
+              else if (depth == 1u && applications[0] == "{ACAD_XDICTIONARY" &&
+                       code == 360)
+                role = R::ExtensionDictionary;
             }
         }else if(code>=1000) {
             if(stage!=2u)return false;
@@ -45726,7 +45964,9 @@ bool namespaceSourceReferences(const DRW_RawDxfObject& raw,bool layer,std::vecto
                 else return false;
                 continue;
             }
-            if(seen[code])return false;seen[code]=true;
+            if (seen[code])
+              return false;
+            seen[code] = true;
             if(code==5||code==330) {
                 if(stage||!dx_standard_output::handleValue(v,handle)||handle>UINT32_MAX||handle!=(code==5?raw.handle:raw.parentHandle))return false;
                 role=code==5?R::Self:R::Owner;reference=true;
@@ -47042,7 +47282,10 @@ dx_iface::LayoutSourceReport dx_iface::layoutSourceReport(const dx_data& data) n
             ||!a->input->containerId||a->input->containerId!=data.m_entitiesContainerIdentity.value||!a->input->model||!a->input->raw||!a->input->context
             ||a->input->model->handle!=row.first||a->input->raw->handle!=row.first||a->input->context->sourceVersion!=s.version){r.state=S::ContextMismatch;return r;}
         if(input->second.pair==dx_data::TableDxfSourceCapture::LayoutPair::Matched)++r.paired;
-        if(a->modeledMatched)++r.modeledMatched;if(a->profilesMatched)++r.profilesMatched;
+        if (a->modeledMatched)
+          ++r.modeledMatched;
+        if (a->profilesMatched)
+          ++r.profilesMatched;
         if(a->state==A::State::Matched)++r.matched;else if(!r.firstHandle)r.firstHandle=row.first;
     }
     r.state=r.matched==s.layoutInputs.size()?S::ProofsReady:S::Unqualified;return r;
@@ -47084,8 +47327,14 @@ dx_iface::BlockRoleReport dx_iface::blockRoleReport(const dx_data& data) noexcep
     for(const auto& row:a->rows) {
         if(row.selected){++r.selected;if(row.reason==R::Matched)++r.matched;}
         if(row.endpoint)++r.endpoints;else if(!row.primary)++r.children;
-        if(!row.endpoint&&row.paper)++r.paper;if(!row.endpoint&&row.definition)++r.definitions;
-        if(row.spacePresent)++r.spacePresent;if(row.layoutPresent)++r.layoutPresent;
+        if (!row.endpoint && row.paper)
+          ++r.paper;
+        if (!row.endpoint && row.definition)
+          ++r.definitions;
+        if (row.spacePresent)
+          ++r.spacePresent;
+        if (row.layoutPresent)
+          ++r.layoutPresent;
     }
     if(r.selected>r.records){r.state=S::ContextMismatch;return r;}r.unsupported=r.records-r.selected;
     if(a->state==S::RolesReady&&(identity.state!=IdentitySourceState::NamespaceReady
@@ -47112,7 +47361,11 @@ dx_iface::BlockOriginReport dx_iface::blockOriginReport(const dx_data& data) noe
         if(!same(a->original,b.original)||!same(a->effective,b.effective)||!same(a->footer,b.footer)||!same(a->beginRaw,b.beginRaw)||!same(a->endRaw,b.endRaw)
             ||!same(a->children,b.children)||!same(a->delivery,b.delivery)||!same(a->context,b.context)||!same(b.context,b.contextOwner)
             ||!same(a->identity,s.identityInput)||!same(a->identities,s.identityAudit)){r.state=S::ContextMismatch;return r;}
-        if(a->publications)++r.publications;if(a->bound)++r.bound;r.events+=a->events;
+        if (a->publications)
+          ++r.publications;
+        if (a->bound)
+          ++r.bound;
+        r.events += a->events;
     }
     const auto identities=identitySourceReport(data).state;
     if(identities==IdentitySourceState::ContextMismatch){r.state=S::ContextMismatch;return r;}
@@ -47143,7 +47396,10 @@ dx_iface::EntitiesRoleReport dx_iface::entitiesRoleReport(const dx_data& data) n
     r.state=a->state;r.selected=a->selected;r.matched=a->matched;r.unsupported=a->unsupported;
     for(const auto& row:a->rows)if(row.reason==dx_data::TableDxfSourceCapture::EntitiesRoleAudit::Reason::Matched) {
         if(row.primary)++r.primaries;else ++r.children;if(row.paper)++r.paper;else ++r.model;
-        if(row.spacePresent)++r.spacePresent;if(row.layoutPresent)++r.layoutPresent;
+        if (row.spacePresent)
+          ++r.spacePresent;
+        if (row.layoutPresent)
+          ++r.layoutPresent;
     }
     r.selectedRolesMatched=r.selected&&r.selected==r.matched;return r;
 }
@@ -47208,7 +47464,12 @@ dx_iface::StructuralSourceReport dx_iface::structuralSourceReport(const dx_data&
             ||!same(a->identities,s.identityAudit)||(a->bodyMatched&&!resource->second.rawTypedMatched)
             ||resource->second.family!=(a->input->kind==dxfRW::DxfStructuralSourceView::Kind::BlockRecord?
                 dx_tableResourceFamily::BlockRecord:dx_tableResourceFamily::Dictionary)) {r.state=S::ContextMismatch;return r;}
-        if(a->input->paired)++r.paired;if(a->bodyMatched)++r.bodyMatched;if(a->stateComplete)++r.stateComplete;
+        if (a->input->paired)
+          ++r.paired;
+        if (a->bodyMatched)
+          ++r.bodyMatched;
+        if (a->stateComplete)
+          ++r.stateComplete;
         if(a->originBound&&r.namespaceReady)++r.originsBound;
     }
     r.state=r.paired!=r.records||r.bodyMatched!=r.records||r.stateComplete!=r.records?S::Unqualified:
@@ -48377,16 +48638,28 @@ dx_iface::TableContentBindingReport dx_iface::tableContentBindingReport(const dx
     for(std::size_t node=0;node<nodes;++node) {offsets[node]=edge;while(edge<blockEdges.size()&&blockEdges[edge].from==node)++edge;}
     std::vector<std::uint8_t> colors(nodes,0u);std::vector<Frame> stack;stack.reserve(nodes);
     for(std::size_t root=0;root<nodes;++root) {
-        if(colors[root])continue;colors[root]=1u;stack.push_back({root,offsets[root]});
-        while(!stack.empty()) {
-            auto& frame=stack.back();
-            if(frame.next==offsets[frame.node+1u]) {colors[frame.node]=2u;stack.pop_back();continue;}
-            const auto link=blockEdges[frame.next++];
-            if(colors[link.to]==1u) {
-                report.firstSourceBlock=link.block;report.firstSourceMember=link.member;
-                fail(S::BlockReferenceCycle,pendingBlocks[link.to]);return report;
-            }
-            if(!colors[link.to]) {colors[link.to]=1u;stack.push_back({link.to,offsets[link.to]});}
+      if (colors[root])
+        continue;
+      colors[root] = 1u;
+      stack.push_back({root, offsets[root]});
+      while (!stack.empty()) {
+        auto &frame = stack.back();
+        if (frame.next == offsets[frame.node + 1u]) {
+          colors[frame.node] = 2u;
+          stack.pop_back();
+          continue;
+        }
+        const auto link = blockEdges[frame.next++];
+        if (colors[link.to] == 1u) {
+          report.firstSourceBlock = link.block;
+          report.firstSourceMember = link.member;
+          fail(S::BlockReferenceCycle, pendingBlocks[link.to]);
+          return report;
+        }
+        if (!colors[link.to]) {
+          colors[link.to] = 1u;
+          stack.push_back({link.to, offsets[link.to]});
+        }
         }
     }
     report.blockNameGraphAcyclic=true;
@@ -48660,11 +48933,23 @@ void dx_iface::captureDxfBlockReadContext(AttdefOriginBlock& row) noexcept {
 }
 
 void dx_iface::observeDxfBlockReadContext(AttdefOriginBlock& row) noexcept {
-    if(!row.contextMatched)return;const auto& c=row.context;dxfRW::DxfReadContext live;
-    const auto* input=cData->m_tableDxfSource.entitiesReadInput;
-    if(!c||c.get()!=row.contextOwner.get()||c.owner_before(row.contextOwner)||row.contextOwner.owner_before(c)||!input||!input->getDxfReadContext(live)
-        ||std::tie(c->sourceVersion,c->codecVersion,c->codecCodePage,c->declaration,c->hasDeclaration,c->compatibilityProfile,c->textEncoding,c->codePagePolicy,c->applyExtrusion,c->binary)
-          !=std::tie(live.sourceVersion,live.codecVersion,live.codecCodePage,live.declaration,live.hasDeclaration,live.compatibilityProfile,live.textEncoding,live.codePagePolicy,live.applyExtrusion,live.binary))row.contextMatched=false;
+  if (!row.contextMatched)
+    return;
+  const auto &c = row.context;
+  dxfRW::DxfReadContext live;
+  const auto *input = cData->m_tableDxfSource.entitiesReadInput;
+  if (!c || c.get() != row.contextOwner.get() ||
+      c.owner_before(row.contextOwner) || row.contextOwner.owner_before(c) ||
+      !input || !input->getDxfReadContext(live) ||
+      std::tie(c->sourceVersion, c->codecVersion, c->codecCodePage,
+               c->declaration, c->hasDeclaration, c->compatibilityProfile,
+               c->textEncoding, c->codePagePolicy, c->applyExtrusion,
+               c->binary) !=
+          std::tie(live.sourceVersion, live.codecVersion, live.codecCodePage,
+                   live.declaration, live.hasDeclaration,
+                   live.compatibilityProfile, live.textEncoding,
+                   live.codePagePolicy, live.applyExtrusion, live.binary))
+    row.contextMatched = false;
 }
 
 void dx_iface::observeDxfBlockOrigin(AttdefOriginBlock& row,dxfRW::DxfBlockSourceView::Phase phase,const DRW_Entity* model,
@@ -49022,9 +49307,14 @@ bool dx_iface::wantsDxfEntitiesSource() const {
 }
 
 void dx_iface::addDxfEntitiesSource(const DRW_DxfEntitiesSource& value) {
-    if(!cData)return;auto& s=cData->m_tableDxfSource;
-    const auto fail=[&](){s.entitiesCaptureFailed=true;};
-    if(!tableSourceCaptureOpen()) {fail();return;}
+  if (!cData)
+    return;
+  auto &s = cData->m_tableDxfSource;
+  const auto fail = [&]() { s.entitiesCaptureFailed = true; };
+  if (!tableSourceCaptureOpen()) {
+    fail();
+    return;
+  }
     if(s.entitiesCaptureFailed)return;
     if(value.status!=DRW_DxfEntitiesSource::Status::Complete||!value.scopeId||!cData->m_entitiesContainerIdentity.value
         ||s.entitiesSources.size()>=s.maxEntitiesSections||currentBlock!=cData->mBlock
@@ -49174,13 +49464,24 @@ void dx_iface::captureEntitiesCompoundStates(EntitiesObservedValue& observed,con
 }
 
 void dx_iface::beginDxfEntitiesDelivery(std::uint64_t scope,std::size_t index,const DRW_DxfEntitiesDeliveryEvent& event) {
-    if(!cData)return;auto& s=cData->m_tableDxfSource;auto& p=s.entitiesPending;
-    if(s.entitiesDeliveryCaptureFailed)return;
-    const auto fail=[&](){s.entitiesDeliveryCaptureFailed=true;};
-    if(!tableSourceCaptureOpen()||currentBlock!=cData->mBlock||!entitiesEventValid(event)
-        ||!startEntitiesDeliveryScope(scope)||!captureEntitiesReadContext()||p.container!=cData||p.generation!=s.generation||p.containerId!=cData->m_entitiesContainerIdentity.value
-        ||p.section!=s.entitiesSources.size()||p.pending||index!=p.next||index!=p.observed.size()
-        ||s.entitiesDeliveryEvents>=s.maxEntitiesDeliveryEvents){fail();return;}
+  if (!cData)
+    return;
+  auto &s = cData->m_tableDxfSource;
+  auto &p = s.entitiesPending;
+  if (s.entitiesDeliveryCaptureFailed)
+    return;
+  const auto fail = [&]() { s.entitiesDeliveryCaptureFailed = true; };
+  if (!tableSourceCaptureOpen() || currentBlock != cData->mBlock ||
+      !entitiesEventValid(event) || !startEntitiesDeliveryScope(scope) ||
+      !captureEntitiesReadContext() || p.container != cData ||
+      p.generation != s.generation ||
+      p.containerId != cData->m_entitiesContainerIdentity.value ||
+      p.section != s.entitiesSources.size() || p.pending || index != p.next ||
+      index != p.observed.size() ||
+      s.entitiesDeliveryEvents >= s.maxEntitiesDeliveryEvents) {
+    fail();
+    return;
+  }
     constexpr auto bytes=2u*sizeof(EntitiesObservedValue)+8u*sizeof(void*);
     if(!chargeEntitiesDelivery(bytes,bytes+64u))return;
     ++s.entitiesDeliveryEvents;
@@ -49191,7 +49492,10 @@ void dx_iface::beginDxfEntitiesDelivery(std::uint64_t scope,std::size_t index,co
 dx_iface::EntitiesObservedValue* dx_iface::observeDxfEntitiesValue(std::int32_t type,std::uint32_t handle,std::uint32_t owner,
                                                                    DRW_DxfEntitiesCallback route) noexcept {
     using C=DRW_DxfEntitiesCallback;
-    if(!cData)return nullptr;auto& s=cData->m_tableDxfSource;auto& p=s.entitiesPending;
+    if (!cData)
+      return nullptr;
+    auto &s = cData->m_tableDxfSource;
+    auto &p = s.entitiesPending;
     if(s.entitiesDeliveryCaptureFailed||!p.scope)return nullptr;
     const auto fail=[&]()->EntitiesObservedValue*{s.entitiesDeliveryCaptureFailed=true;return nullptr;};
     if(!tableSourceCaptureOpen()||p.container!=cData||p.generation!=s.generation||p.containerId!=cData->m_entitiesContainerIdentity.value||currentBlock!=cData->mBlock
@@ -49207,20 +49511,36 @@ dx_iface::EntitiesObservedValue* dx_iface::observeDxfEntitiesValue(std::int32_t 
 }
 
 void dx_iface::observeDxfEntitiesRaw(const DRW_RawDxfObject& raw,DRW_DxfEntitiesCallback route) noexcept {
-    if(!cData)return;auto& s=cData->m_tableDxfSource;auto& p=s.entitiesPending;
-    if(s.entitiesDeliveryCaptureFailed||!p.scope)return;
-    EntitiesObservedValue* observed=nullptr;
-    if(route==DRW_DxfEntitiesCallback::addRawDxfEntity)observed=observeDxfEntitiesValue(0,raw.handle,raw.parentHandle,route);
-    else if(p.pending&&p.next<p.observed.size()&&p.observed[p.next].valueObserved&&p.observed[p.next].event.callback==route)
-        observed=&p.observed[p.next];
-    if(!observed)return;
-    const auto fail=[&](){s.entitiesDeliveryCaptureFailed=true;};
-    std::size_t bytes=sizeof(raw);
-    if(raw.name.empty()||raw.m_version!=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV)
-        ||raw.groups.size()!=raw.rawValues.size()||!addAssociativeRetainedBytes(raw.name.size()+1u,bytes)
-        ||!addAssociativeSlotBytes(raw.groups.size(),sizeof(DRW_Variant)+sizeof(UTF8STRING),bytes)||bytes>s.maxEntitiesDeliveryBytes
-        ||raw.groups.size()>(std::numeric_limits<std::size_t>::max)()/64u
-        ||!chargeEntitiesDelivery(0u,raw.groups.size()*64u)){fail();return;}
+  if (!cData)
+    return;
+  auto &s = cData->m_tableDxfSource;
+  auto &p = s.entitiesPending;
+  if (s.entitiesDeliveryCaptureFailed || !p.scope)
+    return;
+  EntitiesObservedValue *observed = nullptr;
+  if (route == DRW_DxfEntitiesCallback::addRawDxfEntity)
+    observed = observeDxfEntitiesValue(0, raw.handle, raw.parentHandle, route);
+  else if (p.pending && p.next < p.observed.size() &&
+           p.observed[p.next].valueObserved &&
+           p.observed[p.next].event.callback == route)
+    observed = &p.observed[p.next];
+  if (!observed)
+    return;
+  const auto fail = [&]() { s.entitiesDeliveryCaptureFailed = true; };
+  std::size_t bytes = sizeof(raw);
+  if (raw.name.empty() ||
+      raw.m_version !=
+          sourceVersionFromDxfHeader(cData->headerC, DRW::UNKNOWNV) ||
+      raw.groups.size() != raw.rawValues.size() ||
+      !addAssociativeRetainedBytes(raw.name.size() + 1u, bytes) ||
+      !addAssociativeSlotBytes(
+          raw.groups.size(), sizeof(DRW_Variant) + sizeof(UTF8STRING), bytes) ||
+      bytes > s.maxEntitiesDeliveryBytes ||
+      raw.groups.size() > (std::numeric_limits<std::size_t>::max)() / 64u ||
+      !chargeEntitiesDelivery(0u, raw.groups.size() * 64u)) {
+    fail();
+    return;
+  }
     for(std::size_t i=0;i<raw.groups.size();++i) {
         const auto& field=raw.groups[i];std::size_t payload=0u;
         if(field.code()==0||field.isLayerRef()||field.rawDwgLayerReference()!=0u||field.dwgCmColorValue()
@@ -49239,17 +49559,30 @@ void dx_iface::observeDxfEntitiesRaw(const DRW_RawDxfObject& raw,DRW_DxfEntities
 }
 
 void dx_iface::endDxfEntitiesDelivery(std::uint64_t scope,std::size_t index,const DRW_DxfEntitiesDeliveryEvent& event) {
-    if(!cData)return;auto& s=cData->m_tableDxfSource;auto& p=s.entitiesPending;
-    if(s.entitiesDeliveryCaptureFailed)return;
-    if(!tableSourceCaptureOpen()||currentBlock!=cData->mBlock||p.container!=cData||p.generation!=s.generation||p.containerId!=cData->m_entitiesContainerIdentity.value
-        ||p.scope!=scope||p.section!=s.entitiesSources.size()||!p.pending||index!=p.next||index>=p.observed.size()
-        ||!entitiesEventEqual(event,p.observed[index].event)) {s.entitiesDeliveryCaptureFailed=true;return;}
+  if (!cData)
+    return;
+  auto &s = cData->m_tableDxfSource;
+  auto &p = s.entitiesPending;
+  if (s.entitiesDeliveryCaptureFailed)
+    return;
+  if (!tableSourceCaptureOpen() || currentBlock != cData->mBlock ||
+      p.container != cData || p.generation != s.generation ||
+      p.containerId != cData->m_entitiesContainerIdentity.value ||
+      p.scope != scope || p.section != s.entitiesSources.size() || !p.pending ||
+      index != p.next || index >= p.observed.size() ||
+      !entitiesEventEqual(event, p.observed[index].event)) {
+    s.entitiesDeliveryCaptureFailed = true;
+    return;
+  }
     ++p.next;p.pending=false;
 }
 
 void dx_iface::addDxfEntitiesDeliverySource(const DRW_DxfEntitiesDeliverySource& value) {
     using D=dx_data::TableDxfSourceCapture::EntitiesDelivery;
-    if(!cData)return;auto& s=cData->m_tableDxfSource;auto& p=s.entitiesPending;
+    if (!cData)
+      return;
+    auto &s = cData->m_tableDxfSource;
+    auto &p = s.entitiesPending;
     if(s.entitiesDeliveryCaptureFailed)return;
     const auto fail=[&](){s.entitiesDeliveryCaptureFailed=true;};
     if(!tableSourceCaptureOpen()||currentBlock!=cData->mBlock||s.entitiesCaptureFailed
@@ -49296,7 +49629,10 @@ void dx_iface::addDxfEntitiesDeliverySource(const DRW_DxfEntitiesDeliverySource&
         for(std::size_t j=0;j<dispatch.events;++j,++event) {
             const auto& item=value.events[event];const auto& observed=p.observed[event];
             if(item.dispatch!=i||!entitiesEventValid(item)||!entitiesEventEqual(item,observed.event)){fail();return;}
-            if(observed.valueObserved)++values;if(observed.model)++models;
+            if (observed.valueObserved)
+              ++values;
+            if (observed.model)
+              ++models;
             if(observed.raw) {
                 const auto count=observed.raw->groups.size();
                 if(count>(std::numeric_limits<std::size_t>::max)()/64u||!chargeEntitiesDelivery(0u,count*64u)
@@ -49688,7 +50024,9 @@ bool dx_iface::replayDxfCompoundBody(CompoundBody& body) {
         parsed.vertlist.reserve(range.next-range.first-2u);
         for(auto i=range.first+1u;i+1u<range.next;++i) {
             auto child=std::make_shared<DRW_Vertex>();dxfCompound::Decoder childDecoder(*child);
-            if(!decode(i,childDecoder,*child,true,&parsed))return false;parsed.vertlist.push_back(std::move(child));
+            if (!decode(i, childDecoder, *child, true, &parsed))
+              return false;
+            parsed.vertlist.push_back(std::move(child));
         }
         parsed.seqEndEntity=std::make_shared<DRW_SeqEnd>();dxfCompound::Decoder footer(*parsed.seqEndEntity);
         if(!decode(range.next-1u,footer,*parsed.seqEndEntity,true,nullptr)||!decoder.finish())return false;
@@ -49700,7 +50038,9 @@ bool dx_iface::replayDxfCompoundBody(CompoundBody& body) {
             parsed.attlist.reserve(range.next-range.first-2u);
             for(auto i=range.first+1u;i+1u<range.next;++i) {
                 auto child=std::make_shared<DRW_Attrib>();dxfCompound::Decoder childDecoder(*child);
-                if(!decode(i,childDecoder,*child,true,nullptr))return false;parsed.attlist.push_back(std::move(child));
+                if (!decode(i, childDecoder, *child, true, nullptr))
+                  return false;
+                parsed.attlist.push_back(std::move(child));
             }
             parsed.seqEndEntity=std::make_shared<DRW_SeqEnd>();dxfCompound::Decoder footer(*parsed.seqEndEntity);
             if(!decode(range.next-1u,footer,*parsed.seqEndEntity,true,nullptr))return false;
@@ -49712,7 +50052,9 @@ bool dx_iface::replayDxfCompoundBody(CompoundBody& body) {
 
 bool dx_iface::attdefPinsCurrent(const dx_data& data,const AttdefSourcePins& pins) noexcept {
     if(!pins.model&&!pins.raw&&!pins.origin&&!pins.readContext)return true;
-    if(!pins.model||!pins.raw)return false;const auto& s=data.m_tableDxfSource;
+    if (!pins.model || !pins.raw)
+      return false;
+    const auto &s = data.m_tableDxfSource;
     const auto found=s.resources.find(pins.model->handle);if(found==s.resources.end())return false;const auto& row=found->second;
     const auto same=[](const auto& a,const auto& b){return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);};
     return row.family==dx_tableResourceFamily::AttributeDefinition&&same(pins.model,row.attdefModel)&&same(pins.raw,row.raw)&&same(pins.origin,row.attdefOrigin)&&same(pins.readContext,row.attdefReadContext)
@@ -49737,7 +50079,9 @@ bool dx_iface::attdefPairReady(const dx_data& data,const AttdefSourcePins& pins,
 bool dx_iface::hasMatchedCompoundBody(const dx_data& data,std::uint32_t block,std::size_t dispatch) noexcept {
     if(!hasMatchedBlockMembership(data,block)||data.m_tableDxfSource.compoundBodyCaptureFailed)return false;
     const auto& row=data.m_tableDxfSource.blockSources.at(block);const auto at=row.compoundBodies.find(dispatch);
-    if(at==row.compoundBodies.end()||!at->second)return false;const auto& body=*at->second;
+    if (at == row.compoundBodies.end() || !at->second)
+      return false;
+    const auto &body = *at->second;
     const auto owner=row.compoundBodyOwners.find(dispatch);const auto same=[](const auto& a,const auto& b){return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);};
     if(owner==row.compoundBodyOwners.end()||!same(at->second,owner->second)||!row.contextMatched||!same(row.context,row.contextOwner)||!same(body.context,row.context)
         ||body.membership!=row.membership||body.dispatch!=dispatch||!body.model||dispatch>=row.membership->ranges.size()
@@ -49977,7 +50321,10 @@ bool dx_iface::replayEntitiesCompound(EntitiesCompoundAudit& audit,EntitiesCompo
         DRW_Polyline parsed;dxfCompound::Decoder root(parsed);if(!decode(proof.first,root,parsed,false,nullptr))return false;
         parsed.vertlist.reserve(n-2u);
         for(auto i=proof.first+1u;i+1u<proof.next;++i) {auto vertex=std::make_shared<DRW_Vertex>();dxfCompound::Decoder child(*vertex);
-            if(!decode(i,child,*vertex,true,&parsed))return false;parsed.vertlist.push_back(std::move(vertex));}
+          if (!decode(i, child, *vertex, true, &parsed))
+            return false;
+          parsed.vertlist.push_back(std::move(vertex));
+        }
         parsed.seqEndEntity=std::make_shared<DRW_SeqEnd>();dxfCompound::Decoder footer(*parsed.seqEndEntity);
         if(!decode(proof.next-1u,footer,*parsed.seqEndEntity,true,nullptr)||!root.finish())return false;
         proof.modeledMatched=dxfCompound::Decoder::sameModel(parsed,*observed.model,equal);
@@ -49986,7 +50333,10 @@ bool dx_iface::replayEntitiesCompound(EntitiesCompoundAudit& audit,EntitiesCompo
         if(n>1u) {
             parsed.attlist.reserve(n-2u);
             for(auto i=proof.first+1u;i+1u<proof.next;++i) {auto attribute=std::make_shared<DRW_Attrib>();dxfCompound::Decoder child(*attribute);
-                if(!decode(i,child,*attribute,true,nullptr))return false;parsed.attlist.push_back(std::move(attribute));}
+              if (!decode(i, child, *attribute, true, nullptr))
+                return false;
+              parsed.attlist.push_back(std::move(attribute));
+            }
             parsed.seqEndEntity=std::make_shared<DRW_SeqEnd>();dxfCompound::Decoder footer(*parsed.seqEndEntity);
             if(!decode(proof.next-1u,footer,*parsed.seqEndEntity,true,nullptr))return false;
         }
@@ -50231,7 +50581,9 @@ bool dx_iface::hasMatchedAttdefOrigin(const dx_data& data,std::uint32_t handle) 
     if(!row.attdefOrigin||row.attdefOriginState!=AttdefOriginResource::OriginState::EnclosingMatched
         ||row.awaitingAttdef||!row.attdefPairMatched||!row.attdefFieldsMatched||row.attdefFieldMismatch||!row.attdefProfile.complete())return false;
     const auto block=source.blockSources.find(row.attdefOrigin->block);
-    if(block==source.blockSources.end())return false;const auto& owner=block->second;
+    if (block == source.blockSources.end())
+      return false;
+    const auto &owner = block->second;
     return hasMatchedBlockMembership(data,row.attdefOrigin->block)&&consistentAttdefOrigin(source,row,owner,*row.attdefOrigin)
         &&owner.closed&&owner.beginPaired&&owner.footerPaired
         &&owner.beginFieldsMatched&&owner.footerFieldsMatched&&owner.beginProfile.complete()&&owner.endProfile.complete()
@@ -50354,11 +50706,18 @@ void dx_iface::addDxfRootDictionarySource(const DRW_Dictionary& row,const DRW_Ra
 }
 
 void dx_iface::addDxfDictionarySource(const DRW_Dictionary& row,const DRW_RawDxfObject& raw) {
-    if(!tableSourceCaptureOpen())return;auto& s=cData->m_tableDxfSource;
-    dxfRW::DxfStructuralSourceView view;
-    if(!s.entitiesReadInput||!s.entitiesReadInput->getDxfStructuralSourceView(view)
-        ||view.kind!=dxfRW::DxfStructuralSourceView::Kind::Dictionary||view.phase!=dxfRW::DxfStructuralSourceView::Phase::Source
-        ||view.model!=&row||view.source!=&raw) {s.structuralCaptureFailed=true;return;}
+  if (!tableSourceCaptureOpen())
+    return;
+  auto &s = cData->m_tableDxfSource;
+  dxfRW::DxfStructuralSourceView view;
+  if (!s.entitiesReadInput ||
+      !s.entitiesReadInput->getDxfStructuralSourceView(view) ||
+      view.kind != dxfRW::DxfStructuralSourceView::Kind::Dictionary ||
+      view.phase != dxfRW::DxfStructuralSourceView::Phase::Source ||
+      view.model != &row || view.source != &raw) {
+    s.structuralCaptureFailed = true;
+    return;
+  }
     bool rawDelivered=false;
     if(!s.entitiesReadInput->getDxfDictionaryRawDelivery(rawDelivered)) {s.structuralCaptureFailed=true;return;}
     const auto resource=s.resources.find(row.handle);
@@ -51019,9 +51378,16 @@ bool dx_iface::replayTableBody(dx_data& data,TableBody& body,bool entitiesReady)
         const bool footer=i+1u==body.next;const auto& physical=(*records)[i];
         if(!dx_block_membership::equal(physical.name,footer?"SEQEND":"ATTRIB")){body.state=State::SequenceMismatch;return false;}
         if(footer) {parsed.seqEndEntity=std::make_shared<DRW_SeqEnd>();dxfCompound::Decoder decoder(*parsed.seqEndEntity);
-            if(!decode(i,decoder)||!decoder.finish())return false;body.linked.push_back(dxfCompound::Decoder::observe(*parsed.seqEndEntity));
+          if (!decode(i, decoder) || !decoder.finish())
+            return false;
+          body.linked.push_back(
+              dxfCompound::Decoder::observe(*parsed.seqEndEntity));
         }else {auto attribute=std::make_shared<DRW_Attrib>();dxfCompound::Decoder decoder(*attribute);
-            if(!decode(i,decoder)||!decoder.finish())return false;body.linked.push_back(dxfCompound::Decoder::observe(*attribute));parsed.attlist.push_back(std::move(attribute));}
+          if (!decode(i, decoder) || !decoder.finish())
+            return false;
+          body.linked.push_back(dxfCompound::Decoder::observe(*attribute));
+          parsed.attlist.push_back(std::move(attribute));
+        }
     }
     root.finish();body.replay=dxfTable::Decoder::observe(parsed);
     if(!body.replay.hasNoPendingXdata()||!(body.replay==p.state)||!(body.replay==t.state)||body.linked!=p.linked||body.linked!=t.linked) {
@@ -51136,19 +51502,43 @@ std::shared_ptr<const DRW_TableEntry> symbolOriginSnapshot(const DRW_TableEntry&
 }
 
 void dx_iface::observeResourceOrigin(const DRW_TableEntry* model,const DRW_RawDxfObject* raw) noexcept {
-    if(!tableSourceCaptureOpen())return;auto& s=cData->m_tableDxfSource;if(s.resourceOriginCaptureFailed)return;
-    using V=dxfRW::DxfResourceSourceView;using Input=dx_data::TableDxfSourceCapture::ResourceOriginInput;
-    using Pending=dx_data::TableDxfSourceCapture::ResourceOriginPending;using Context=dx_data::TableDxfSourceCapture::EntitiesReadContext;
-    const auto fail=[&](){s.resourceOriginCaptureFailed=true;};V view;dxfRW::DxfReadContext live;
-    if(!s.entitiesReadInput||!s.entitiesReadInput->getDxfResourceSourceView(view))return;
-    if(view.kind>dxfRW::DxfResourceSourceView::Kind::AppId)return;
-    if(!s.entitiesReadInput->getDxfReadContext(live)||live.sourceVersion<DRW::AC1021||live.sourceVersion>DRW::AC1032)return;
-    const bool symbol=view.kind>=V::Kind::TextStyle;
-    const bool first=symbol?(model&&raw):(model&&!raw);
-    const auto phase=model&&raw?V::Phase::Source:model?V::Phase::Typed:V::Phase::Raw;
-    if(!view.model||!view.source||!view.model->handle||view.source->handle!=view.model->handle||view.source->parentHandle!=view.model->parentHandle
-        ||view.source->m_version!=live.sourceVersion||view.source->hasRawValues==live.binary||!resourceOriginName(view.kind,view.source->name)
-        ||view.phase!=phase||(model&&view.model!=model)||(raw&&view.source!=raw)||(symbol&&phase==V::Phase::Raw)||(!symbol&&phase==V::Phase::Source)) {fail();return;}
+  if (!tableSourceCaptureOpen())
+    return;
+  auto &s = cData->m_tableDxfSource;
+  if (s.resourceOriginCaptureFailed)
+    return;
+  using V = dxfRW::DxfResourceSourceView;
+  using Input = dx_data::TableDxfSourceCapture::ResourceOriginInput;
+  using Pending = dx_data::TableDxfSourceCapture::ResourceOriginPending;
+  using Context = dx_data::TableDxfSourceCapture::EntitiesReadContext;
+  const auto fail = [&]() { s.resourceOriginCaptureFailed = true; };
+  V view;
+  dxfRW::DxfReadContext live;
+  if (!s.entitiesReadInput ||
+      !s.entitiesReadInput->getDxfResourceSourceView(view))
+    return;
+  if (view.kind > dxfRW::DxfResourceSourceView::Kind::AppId)
+    return;
+  if (!s.entitiesReadInput->getDxfReadContext(live) ||
+      live.sourceVersion < DRW::AC1021 || live.sourceVersion > DRW::AC1032)
+    return;
+  const bool symbol = view.kind >= V::Kind::TextStyle;
+  const bool first = symbol ? (model && raw) : (model && !raw);
+  const auto phase = model && raw ? V::Phase::Source
+                     : model      ? V::Phase::Typed
+                                  : V::Phase::Raw;
+  if (!view.model || !view.source || !view.model->handle ||
+      view.source->handle != view.model->handle ||
+      view.source->parentHandle != view.model->parentHandle ||
+      view.source->m_version != live.sourceVersion ||
+      view.source->hasRawValues == live.binary ||
+      !resourceOriginName(view.kind, view.source->name) ||
+      view.phase != phase || (model && view.model != model) ||
+      (raw && view.source != raw) || (symbol && phase == V::Phase::Raw) ||
+      (!symbol && phase == V::Phase::Source)) {
+    fail();
+    return;
+  }
     if(!view.typedAvailable) {
         if(s.resourceOriginRecords>s.maxResourceOriginRecords||s.resourceOriginRawOnly>=s.maxResourceOriginRecords-s.resourceOriginRecords
             ||s.resourceOriginWork>=s.maxResourceOriginWork){fail();return;}
@@ -51243,7 +51633,12 @@ dx_iface::ResourceOriginReport dx_iface::resourceOriginReport(const dx_data& dat
             ||!a->input->context||a->input->context->sourceVersion!=s.version||!same(a->input->model,resource->second.model)||!same(a->input->raw,resource->second.raw)
             ||!same(a->identities,s.identityAudit)||resource->second.family!=resourceOriginFamily(a->input->kind)
             ||(a->bodyMatched&&(!resource->second.rawTypedMatched||resource->second.rawTypedMismatch))){r.state=S::ContextMismatch;return r;}
-        if(a->input->paired)++r.paired;if(a->stateComplete)++r.stateComplete;if(a->bodyMatched)++r.bodyMatched;
+        if (a->input->paired)
+          ++r.paired;
+        if (a->stateComplete)
+          ++r.stateComplete;
+        if (a->bodyMatched)
+          ++r.bodyMatched;
         if(a->originBound&&identity.state==IdentitySourceState::NamespaceReady)++r.originsBound;
     }
     if(!r.records){r.state=S::NoOrigins;return r;}
@@ -51350,7 +51745,9 @@ void dx_iface::finishTableReferences(dx_data& data) noexcept {
                 if(!selected(span.role))continue;
                 A::Row row;row.table=table->source->model->handle;row.target=static_cast<std::uint32_t>(span.handle);row.group=span.groupIndex;row.role=span.role;
                 if(span.groupIndex>=physical.groups.size()){save(S::ContextMismatch);return;}
-                if(span.role==Role::TableCellBlock)cellBlock=row.target;row.cellBlock=cellBlock;
+                if (span.role == Role::TableCellBlock)
+                  cellBlock = row.target;
+                row.cellBlock = cellBlock;
                 if(!row.target)row.reason=span.role==Role::TableValueObject?R::NullValue:R::NullRequired;
                 else {
                     const auto id=audit->identities->identities.find(row.target);
@@ -53447,8 +53844,13 @@ bool dx_iface::wantsWholeSource() const noexcept {
 }
 WholeSourceV2::Limits dx_iface::wholeSourceLimits() const noexcept {return m_wholeLimits;}
 void dx_iface::wholeSourceBegin(const void* reader) noexcept {
-    if(!cData)return;auto& s=cData->m_tableDxfSource;
-    if(!wantsWholeSource()||s.wholeSelected||reader!=s.entitiesReadInput) {s.wholeFailed=true;return;}
+  if (!cData)
+    return;
+  auto &s = cData->m_tableDxfSource;
+  if (!wantsWholeSource() || s.wholeSelected || reader != s.entitiesReadInput) {
+    s.wholeFailed = true;
+    return;
+  }
     s.wholeSelected=true;
 }
 bool dx_iface::wholeSourceSelected(const void* reader) const noexcept {
@@ -53456,9 +53858,20 @@ bool dx_iface::wholeSourceSelected(const void* reader) const noexcept {
         &&!cData->m_tableDxfSource.wholeFailed&&reader==cData->m_tableDxfSource.entitiesReadInput;
 }
 void dx_iface::wholeSourcePending(const void* reader,const WholeSourceV2::Source& source,const WholeSourceV2::Ticket& ticket) noexcept {
-    if(!cData)return;auto& s=cData->m_tableDxfSource;
-    const auto fail=[&]() noexcept {s.wholeFailed=true;s.wholeInput.reset();s.wholeInputOwner.reset();s.wholeSourceOwner.reset();};
-    if(!wholeSourceSelected(reader)||s.wholePending||s.wholeFinished||s.wholeInput) {fail();return;}
+  if (!cData)
+    return;
+  auto &s = cData->m_tableDxfSource;
+  const auto fail = [&]() noexcept {
+    s.wholeFailed = true;
+    s.wholeInput.reset();
+    s.wholeInputOwner.reset();
+    s.wholeSourceOwner.reset();
+  };
+  if (!wholeSourceSelected(reader) || s.wholePending || s.wholeFinished ||
+      s.wholeInput) {
+    fail();
+    return;
+  }
     s.wholePending=true;dxfRW::DxfReadContext live;
     if(!s.entitiesReadInput->getDxfReadContext(live)||!cData->m_entitiesContainerIdentity.value
         ||source.state()!=WholeSourceV2::State::ThroughEof||source.version()!=live.sourceVersion
@@ -53477,17 +53890,25 @@ void dx_iface::wholeSourcePending(const void* reader,const WholeSourceV2::Source
     } catch(...) {fail();}
 }
 void dx_iface::wholeSourceFinished(const void* reader,const WholeSourceV2::FinishToken& token) noexcept {
-    if(!cData)return;auto& s=cData->m_tableDxfSource;
-    dxfRW::DxfReadContext live;
-    bool context=false;
-    if(s.wholeInput&&s.entitiesReadInput&&s.entitiesReadInput->getDxfReadContext(live)) {
-        const auto& saved=s.wholeInput->context;
-        context=saved.captured&&saved.sourceVersion==live.sourceVersion&&saved.codecVersion==live.codecVersion
-            &&std::string_view(saved.codecCodePage)==live.codecCodePage&&std::string_view(saved.declaration)==live.declaration
-            &&saved.hasDeclaration==live.hasDeclaration&&saved.compatibilityProfile==live.compatibilityProfile
-            &&saved.textEncoding==live.textEncoding&&saved.codePagePolicy==live.codePagePolicy
-            &&saved.applyExtrusion==live.applyExtrusion&&saved.binary==live.binary;
-    }
+  if (!cData)
+    return;
+  auto &s = cData->m_tableDxfSource;
+  dxfRW::DxfReadContext live;
+  bool context = false;
+  if (s.wholeInput && s.entitiesReadInput &&
+      s.entitiesReadInput->getDxfReadContext(live)) {
+    const auto &saved = s.wholeInput->context;
+    context = saved.captured && saved.sourceVersion == live.sourceVersion &&
+              saved.codecVersion == live.codecVersion &&
+              std::string_view(saved.codecCodePage) == live.codecCodePage &&
+              std::string_view(saved.declaration) == live.declaration &&
+              saved.hasDeclaration == live.hasDeclaration &&
+              saved.compatibilityProfile == live.compatibilityProfile &&
+              saved.textEncoding == live.textEncoding &&
+              saved.codePagePolicy == live.codePagePolicy &&
+              saved.applyExtrusion == live.applyExtrusion &&
+              saved.binary == live.binary;
+  }
     if(!wholeSourceSelected(reader)||s.wholeFinished||!s.wholePending||!s.wholeInput||!token.validFor(reader)||!context) {
         s.wholeFailed=true;s.wholeInput.reset();s.wholeInputOwner.reset();s.wholeSourceOwner.reset();return;
     }
@@ -53499,19 +53920,27 @@ bool dx_iface::wantsDxfIdentitySource() const {
 }
 
 void dx_iface::addDxfIdentitySource(const DRW_DxfIdentitySource& value) {
-    if(!cData)return;auto& s=cData->m_tableDxfSource;const auto fail=[&](){
-        s.identityCaptureFailed=true;
-        if(s.legacyIdentityObservation) {
-            s.legacyIdentityCaptureFailed=true;
-            s.legacyIdentityObservation.reset();s.legacyIdentityObservationOwner.reset();
-            s.legacyIdentityContextSnapshot.reset();s.legacyIdentitySourceOwner.reset();
-            s.legacyIdentityReadInput=nullptr;
-            s.legacyIdentityBytes=s.legacyIdentityWork=0u;
-        }
-    };
-    dxfRW::DxfReadContext live;
-    if(!tableSourceCaptureOpen()||!s.entitiesReadInput
-        ||!s.entitiesReadInput->getDxfReadContext(live)) {fail();return;}
+  if (!cData)
+    return;
+  auto &s = cData->m_tableDxfSource;
+  const auto fail = [&]() {
+    s.identityCaptureFailed = true;
+    if (s.legacyIdentityObservation) {
+      s.legacyIdentityCaptureFailed = true;
+      s.legacyIdentityObservation.reset();
+      s.legacyIdentityObservationOwner.reset();
+      s.legacyIdentityContextSnapshot.reset();
+      s.legacyIdentitySourceOwner.reset();
+      s.legacyIdentityReadInput = nullptr;
+      s.legacyIdentityBytes = s.legacyIdentityWork = 0u;
+    }
+  };
+  dxfRW::DxfReadContext live;
+  if (!tableSourceCaptureOpen() || !s.entitiesReadInput ||
+      !s.entitiesReadInput->getDxfReadContext(live)) {
+    fail();
+    return;
+  }
     if(live.sourceVersion==DRW::AC1018) {
         if(!m_legacyIdentityObservationEnabled)return;
         const auto legacyFail=[&](){
@@ -53652,13 +54081,21 @@ void dx_iface::finishIdentitySourceAudit(dx_data& data) noexcept {
 
 void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,const DRW_RawDxfObject* raw,
                                        bool legacyBlockOptIn) noexcept {
-    if(!tableSourceCaptureOpen())return;auto& s=cData->m_tableDxfSource;
-    if(s.structuralCaptureFailed)return;
-    const auto fail=[&](){s.structuralCaptureFailed=true;};
-    dxfRW::DxfStructuralSourceView view;dxfRW::DxfReadContext live;using V=dxfRW::DxfStructuralSourceView;
-    if(!s.entitiesReadInput||!s.entitiesReadInput->getDxfStructuralSourceView(view)) {
-        if(source||s.structuralPending.count(value.handle))fail();return;
-    }
+  if (!tableSourceCaptureOpen())
+    return;
+  auto &s = cData->m_tableDxfSource;
+  if (s.structuralCaptureFailed)
+    return;
+  const auto fail = [&]() { s.structuralCaptureFailed = true; };
+  dxfRW::DxfStructuralSourceView view;
+  dxfRW::DxfReadContext live;
+  using V = dxfRW::DxfStructuralSourceView;
+  if (!s.entitiesReadInput ||
+      !s.entitiesReadInput->getDxfStructuralSourceView(view)) {
+    if (source || s.structuralPending.count(value.handle))
+      fail();
+    return;
+  }
     if(!s.entitiesReadInput->getDxfReadContext(live))return;
     const bool block=view.kind==V::Kind::BlockRecord;
     const bool legacyBlock=live.sourceVersion==DRW::AC1018&&block;
@@ -54673,16 +55110,37 @@ bool dx_iface::legacyBlockRefUniqueSourceName(const dx_data& data,std::uint32_t 
   if(!legacyBlockRefSourceRelation(data,blockId,insertId,workLimit,memLimit,relation))return false;
   const auto& s=data.m_tableDxfSource;const auto& census=*s.legacyIdentityObservation->source;
   const auto& whole=*s.wholeInput->source;
-  const auto pay=[&](std::size_t n,std::size_t unit,std::size_t& used,std::size_t cap) noexcept {
-   if(unit&&n>cap/unit)return false;const auto amount=n*unit;if(used>cap||amount>cap-used)return false;used+=amount;return true;};
-  const auto validName=[](std::string_view text) noexcept {
-   if(text.empty()||text.size()>255u)return false;
-   for(unsigned char c:text)if(c<=32u||c>=127u||c=='\\')return false;return true;};
-  const auto parseHandle=[](std::string_view text,std::uint32_t& out) noexcept {
-   if(text.empty()||text.size()>16u)return false;std::uint64_t value=0u;
-   const auto p=std::from_chars(text.data(),text.data()+text.size(),value,16);
-   if(p.ec!=std::errc{}||p.ptr!=text.data()+text.size()||!value||value>UINT32_MAX)return false;
-   out=static_cast<std::uint32_t>(value);return true;};
+  const auto pay = [&](std::size_t n, std::size_t unit, std::size_t &used,
+                       std::size_t cap) noexcept {
+    if (unit && n > cap / unit)
+      return false;
+    const auto amount = n * unit;
+    if (used > cap || amount > cap - used)
+      return false;
+    used += amount;
+    return true;
+  };
+  const auto validName = [](std::string_view text) noexcept {
+    if (text.empty() || text.size() > 255u)
+      return false;
+    for (unsigned char c : text)
+      if (c <= 32u || c >= 127u || c == '\\')
+        return false;
+    return true;
+  };
+  const auto parseHandle = [](std::string_view text,
+                              std::uint32_t &out) noexcept {
+    if (text.empty() || text.size() > 16u)
+      return false;
+    std::uint64_t value = 0u;
+    const auto p =
+        std::from_chars(text.data(), text.data() + text.size(), value, 16);
+    if (p.ec != std::errc{} || p.ptr != text.data() + text.size() || !value ||
+        value > UINT32_MAX)
+      return false;
+    out = static_cast<std::uint32_t>(value);
+    return true;
+  };
   std::size_t work=0u,bytes=0u,depth=8u;for(auto n=census.candidates.size();n;n>>=1u)++depth;
   if(!pay(census.records.size(),256u,work,workLimit)||!pay(census.sections.size(),256u,work,workLimit)
     ||!pay(census.candidates.size(),128u*depth,work,workLimit)
@@ -54695,7 +55153,11 @@ bool dx_iface::legacyBlockRefUniqueSourceName(const dx_data& data,std::uint32_t 
   if(tables!=1u)return false;
   for(std::size_t i=0;i<census.records.size();++i){const auto& r=census.records[i];
    if(r.kind==S::Kind::TableControl&&r.section==tablesSection&&dx_legacy_identity_join::sameName(r.tableName,"BLOCK_RECORD")){
-    if(tableIndex!=S::NoIndex)return false;tableIndex=i;}}
+     if (tableIndex != S::NoIndex)
+       return false;
+     tableIndex = i;
+   }
+  }
   if(tableIndex==S::NoIndex||!relation.name.ordinal||relation.name.ordinal>whole.fieldCount())return false;
   const auto selected=whole.field(relation.name.ordinal-1u);if(selected.code!=2||selected.kind!=DxfReadRecordView::Text
     ||!whole.bounds(selected)||selected.ordinal!=relation.name.ordinal||selected.begin!=relation.name.beginOffset
@@ -54703,7 +55165,10 @@ bool dx_iface::legacyBlockRefUniqueSourceName(const dx_data& data,std::uint32_t 
   const auto target=whole.value(selected);if(!pay(target.size(),2u,work,workLimit)||!validName(target))return false;
   std::uint32_t tableHandle=0u;const auto& table=census.records[tableIndex];
   for(const auto& item:index.ids)if(item.second.record==tableIndex&&!item.second.ambiguous&&item.first<=UINT32_MAX){
-   if(tableHandle)return false;tableHandle=static_cast<std::uint32_t>(item.first);}
+      if (tableHandle)
+        return false;
+      tableHandle = static_cast<std::uint32_t>(item.first);
+    }
   if(!tableHandle||dx_legacy_identity_join::record(census,index,tableHandle,S::Kind::TableControl,S::Section::Tables,"TABLE",0u)!=&table)return false;
   unsigned matches=0u;bool selectedFound=false;
   for(const auto& r:census.records){
@@ -54722,16 +55187,42 @@ bool dx_iface::legacyBlockRefUniqueSourceName(const dx_data& data,std::uint32_t 
    unsigned nesting=0u,selfCount=0u,ownerCount=0u,nameCount=0u;bool body=false,xdata=false;std::uint32_t self=0u,owner=0u;
    std::string_view name;std::size_t priorEnd=opening.end;
    for(std::size_t i=first+1u;i<last;++i){const auto f=whole.field(i);
-    if(!whole.bounds(f)||f.ordinal!=i+1u||f.begin!=priorEnd||f.end<=f.begin||f.code==0)return false;priorEnd=f.end;
-    if(f.ignored){if(f.code!=999) return false;continue;}
+     if (!whole.bounds(f) || f.ordinal != i + 1u || f.begin != priorEnd ||
+         f.end <= f.begin || f.code == 0)
+       return false;
+     priorEnd = f.end;
+     if (f.ignored) {
+       if (f.code != 999)
+         return false;
+       continue;
+     }
     if(f.code==102){if(xdata||f.kind!=DxfReadRecordView::Text)return false;const auto t=whole.value(f);
      if(!pay(t.size(),2u,work,workLimit))return false;
      if(t=="}"){if(!nesting)return false;--nesting;}
-     else if(!t.empty()&&t.front()=='{'){if(++nesting>DRW::kMaxDxfApplicationGroupNesting)return false;}
-     else return false;continue;}
-    if(nesting)continue;if(f.code>=1000){xdata=true;continue;}if(xdata)return false;
+     else if(!t.empty()&&t.front()=='{'){if(++nesting>DRW::kMaxDxfApplicationGroupNesting)return false;
+     } else
+       return false;
+     continue;
+    }
+    if (nesting)
+      continue;
+    if (f.code >= 1000) {
+      xdata = true;
+      continue;
+    }
+    if (xdata)
+      return false;
     if(f.code==100){if(f.kind!=DxfReadRecordView::Text)return false;const auto t=whole.value(f);
-     if(!pay(t.size(),2u,work,workLimit))return false;if(t=="AcDbBlockTableRecord"){if(body)return false;body=true;}else if(body)return false;continue;}
+      if (!pay(t.size(), 2u, work, workLimit))
+        return false;
+      if (t == "AcDbBlockTableRecord") {
+        if (body)
+          return false;
+        body = true;
+      } else if (body)
+        return false;
+      continue;
+    }
     if(f.code==5||f.code==330){if(body||f.kind!=DxfReadRecordView::Text)return false;
      const auto spelling=whole.value(f);std::uint32_t h=0u;
      if(!pay(spelling.size(),2u,work,workLimit)||!parseHandle(spelling,h))return false;
@@ -54758,13 +55249,36 @@ bool dx_iface::legacyBlockTargetSource(const dx_data& data,std::uint32_t blockId
   const auto workLimit=limit/4u,memLimit=bytesLimit/4u;
   if(!legacyBlockRefSourceRelation(data,blockId,insertId,workLimit,memLimit,relation))return false;
   const auto& s=data.m_tableDxfSource;const auto& source=*s.legacyIdentityObservation->source;const auto& whole=*s.wholeInput->source;
-  const auto pay=[](std::size_t n,std::size_t unit,std::size_t& used,std::size_t cap) noexcept {
-   if(unit&&n>cap/unit)return false;const auto amount=n*unit;if(used>cap||amount>cap-used)return false;used+=amount;return true;};
-  const auto validName=[](std::string_view name)noexcept {if(name.empty()||name.size()>255u)return false;
-   for(unsigned char c:name)if(c<=32u||c>=127u||c=='\\')return false;return true;};
-  const auto handle=[](std::string_view text,std::uint32_t& value)noexcept {if(text.empty()||text.size()>16u)return false;
-   std::uint64_t h=0u;const auto p=std::from_chars(text.data(),text.data()+text.size(),h,16);
-   if(p.ec!=std::errc{}||p.ptr!=text.data()+text.size()||!h||h>UINT32_MAX)return false;value=static_cast<std::uint32_t>(h);return true;};
+  const auto pay = [](std::size_t n, std::size_t unit, std::size_t &used,
+                      std::size_t cap) noexcept {
+    if (unit && n > cap / unit)
+      return false;
+    const auto amount = n * unit;
+    if (used > cap || amount > cap - used)
+      return false;
+    used += amount;
+    return true;
+  };
+  const auto validName = [](std::string_view name) noexcept {
+    if (name.empty() || name.size() > 255u)
+      return false;
+    for (unsigned char c : name)
+      if (c <= 32u || c >= 127u || c == '\\')
+        return false;
+    return true;
+  };
+  const auto handle = [](std::string_view text, std::uint32_t &value) noexcept {
+    if (text.empty() || text.size() > 16u)
+      return false;
+    std::uint64_t h = 0u;
+    const auto p =
+        std::from_chars(text.data(), text.data() + text.size(), h, 16);
+    if (p.ec != std::errc{} || p.ptr != text.data() + text.size() || !h ||
+        h > UINT32_MAX)
+      return false;
+    value = static_cast<std::uint32_t>(h);
+    return true;
+  };
   std::size_t work=0u,bytes=0u,depth=8u;for(auto n=source.candidates.size();n;n>>=1u)++depth;
   if(!pay(source.records.size(),256u,work,workLimit)||!pay(source.sections.size(),256u,work,workLimit)
    ||!pay(source.candidates.size(),128u*depth,work,workLimit)
@@ -54791,18 +55305,75 @@ bool dx_iface::legacyBlockTargetSource(const dx_data& data,std::uint32_t blockId
     ||closing.code!=0||closing.ordinal!=record.endMarker.ordinal||closing.begin!=record.endMarker.beginOffset||closing.end!=record.endMarker.endOffset)return false;
    unsigned self=0u,owner=0u,name=0u,alt=0u,nesting=0u;bool body=false,xdata=false;std::size_t prior=opening.end;
    for(std::size_t i=first+1u;i<last;++i){const auto v=whole.field(i);
-    if(!whole.bounds(v)||v.ordinal!=i+1u||v.begin!=prior||v.end<=v.begin||v.code==0)return false;prior=v.end;
-    if(v.ignored){if(v.code!=999)return false;continue;}
+     if (!whole.bounds(v) || v.ordinal != i + 1u || v.begin != prior ||
+         v.end <= v.begin || v.code == 0)
+       return false;
+     prior = v.end;
+     if (v.ignored) {
+       if (v.code != 999)
+         return false;
+       continue;
+     }
     if(v.code==102){if(xdata||v.kind!=DxfReadRecordView::Text)return false;const auto t=whole.value(v);
-     if(!pay(t.size(),2u,work,workLimit))return false;if(t=="}"){if(!nesting)return false;--nesting;}
-     else if(!t.empty()&&t.front()=='{'){if(++nesting>DRW::kMaxDxfApplicationGroupNesting)return false;}else return false;continue;}
-    if(nesting)continue;if(v.code>=1000){xdata=true;continue;}if(xdata)return false;
+      if (!pay(t.size(), 2u, work, workLimit))
+        return false;
+      if (t == "}") {
+        if (!nesting)
+          return false;
+        --nesting;
+      } else if (!t.empty() && t.front() == '{') {
+        if (++nesting > DRW::kMaxDxfApplicationGroupNesting)
+          return false;
+      } else
+        return false;
+      continue;
+    }
+    if (nesting)
+      continue;
+    if (v.code >= 1000) {
+      xdata = true;
+      continue;
+    }
+    if (xdata)
+      return false;
     if(v.code==100){if(v.kind!=DxfReadRecordView::Text)return false;const auto t=whole.value(v);
-     if(!pay(t.size(),2u,work,workLimit))return false;if(t==(begin?"AcDbBlockBegin":"AcDbBlockEnd")){if(body)return false;body=true;}else if(body)return false;continue;}
+      if (!pay(t.size(), 2u, work, workLimit))
+        return false;
+      if (t == (begin ? "AcDbBlockBegin" : "AcDbBlockEnd")) {
+        if (body)
+          return false;
+        body = true;
+      } else if (body)
+        return false;
+      continue;
+    }
     if(v.code==5||v.code==330){if(body||v.kind!=DxfReadRecordView::Text)return false;const auto t=whole.value(v);std::uint32_t h=0u;
-     if(!pay(t.size(),2u,work,workLimit)||!handle(t,h))return false;if(v.code==5){if(++self!=1u)return false;out.self=h;}else{if(++owner!=1u)return false;out.owner=h;}continue;}
+      if (!pay(t.size(), 2u, work, workLimit) || !handle(t, h))
+        return false;
+      if (v.code == 5) {
+        if (++self != 1u)
+          return false;
+        out.self = h;
+      } else {
+        if (++owner != 1u)
+          return false;
+        out.owner = h;
+      }
+      continue;
+    }
     if(begin&&(v.code==2||v.code==3)){if(!body||v.kind!=DxfReadRecordView::Text)return false;const auto t=whole.value(v);
-     if(!pay(t.size(),4u,work,workLimit)||!validName(t))return false;if(v.code==2){if(++name!=1u)return false;out.name=t;}else{if(++alt!=1u)return false;out.alt=t;}}
+      if (!pay(t.size(), 4u, work, workLimit) || !validName(t))
+        return false;
+      if (v.code == 2) {
+        if (++name != 1u)
+          return false;
+        out.name = t;
+      } else {
+        if (++alt != 1u)
+          return false;
+        out.alt = t;
+      }
+    }
    }
    return prior==closing.begin&&!nesting&&body&&self==1u&&owner==1u&&(!begin||(name==1u&&alt==1u))
     &&dx_legacy_identity_join::record(source,index,out.self,S::Kind::Entity,S::Section::Blocks,marker,1u)==&record;
@@ -54814,10 +55385,16 @@ bool dx_iface::legacyBlockTargetSource(const dx_data& data,std::uint32_t blockId
     if(!dx_legacy_block_record_source::sameAsciiName(start.name,start.alt))return false;
     selected=same||start.owner==blockId;if(selected){if(!same||start.owner!=blockId||++matches!=1u)return false;found[0]=start.self;}open=true;
    }else if(dx_legacy_identity_join::sameName(row.name,"ENDBLK")){if(!open)return false;Endpoint end{};if(!readEndpoint(row,false,end)||end.owner!=start.owner)return false;
-    if(selected)found[1]=end.self;open=false;selected=false;
+     if (selected)
+       found[1] = end.self;
+     open = false;
+     selected = false;
    }else if(!open)return false;
   }
-  if(open||matches!=1u||!found[0]||!found[1]||found[0]==found[1])return false;endpoints=found;return true;
+  if (open || matches != 1u || !found[0] || !found[1] || found[0] == found[1])
+    return false;
+  endpoints = found;
+  return true;
  }catch(...){endpoints={};return false;}
 }
 
@@ -54829,13 +55406,36 @@ bool dx_iface::legacyCompoundAttdefSource(const dx_data& data,std::uint32_t bloc
   std::array<std::uint32_t,2> endpoints{};const auto workLimit=limit/2u,memLimit=bytesLimit/2u;
   if(!legacyBlockTargetSource(data,blockId,insertId,workLimit,memLimit,endpoints))return false;
   const auto& s=data.m_tableDxfSource;const auto& source=*s.legacyIdentityObservation->source;const auto& whole=*s.wholeInput->source;
-  const auto pay=[](std::size_t n,std::size_t unit,std::size_t& used,std::size_t cap) noexcept {
-   if(unit&&n>cap/unit)return false;const auto amount=n*unit;if(used>cap||amount>cap-used)return false;used+=amount;return true;};
-  const auto valid=[](std::string_view text)noexcept {if(text.empty()||text.size()>255u)return false;
-   for(unsigned char c:text)if(c<=32u||c>=127u||c=='\\')return false;return true;};
-  const auto handle=[](std::string_view text,std::uint32_t& value)noexcept {if(text.empty()||text.size()>16u)return false;
-   std::uint64_t h=0u;const auto p=std::from_chars(text.data(),text.data()+text.size(),h,16);
-   if(p.ec!=std::errc{}||p.ptr!=text.data()+text.size()||!h||h>UINT32_MAX)return false;value=static_cast<std::uint32_t>(h);return true;};
+  const auto pay = [](std::size_t n, std::size_t unit, std::size_t &used,
+                      std::size_t cap) noexcept {
+    if (unit && n > cap / unit)
+      return false;
+    const auto amount = n * unit;
+    if (used > cap || amount > cap - used)
+      return false;
+    used += amount;
+    return true;
+  };
+  const auto valid = [](std::string_view text) noexcept {
+    if (text.empty() || text.size() > 255u)
+      return false;
+    for (unsigned char c : text)
+      if (c <= 32u || c >= 127u || c == '\\')
+        return false;
+    return true;
+  };
+  const auto handle = [](std::string_view text, std::uint32_t &value) noexcept {
+    if (text.empty() || text.size() > 16u)
+      return false;
+    std::uint64_t h = 0u;
+    const auto p =
+        std::from_chars(text.data(), text.data() + text.size(), h, 16);
+    if (p.ec != std::errc{} || p.ptr != text.data() + text.size() || !h ||
+        h > UINT32_MAX)
+      return false;
+    value = static_cast<std::uint32_t>(h);
+    return true;
+  };
   std::size_t work=0u,bytes=0u,depth=8u;for(auto n=source.candidates.size();n;n>>=1u)++depth;
   if(!pay(source.records.size(),256u,work,workLimit)||!pay(source.candidates.size(),128u*depth,work,workLimit)
    ||!pay(source.candidates.size(),sizeof(std::pair<const std::uint64_t,dx_legacy_identity_join::Hit>)+12u*sizeof(void*),bytes,memLimit)
@@ -54873,16 +55473,62 @@ bool dx_iface::legacyCompoundAttdefSource(const dx_data& data,std::uint32_t bloc
    const auto closing=whole.field(finish);std::size_t prior=opening.end;unsigned selfCount=0u,ownerCount=0u,tagCount=0u,nesting=0u;
    bool body=false,xdata=false;std::uint32_t self=0u,owner=0u;std::string_view tag;
    for(std::size_t j=start+1u;j<finish;++j){const auto f=whole.field(j);
-    if(!whole.bounds(f)||f.ordinal!=j+1u||f.begin!=prior||f.end<=f.begin||f.code==0)return false;prior=f.end;
-    if(f.ignored){if(f.code!=999)return false;continue;}
+     if (!whole.bounds(f) || f.ordinal != j + 1u || f.begin != prior ||
+         f.end <= f.begin || f.code == 0)
+       return false;
+     prior = f.end;
+     if (f.ignored) {
+       if (f.code != 999)
+         return false;
+       continue;
+     }
     if(f.code==102){if(xdata||f.kind!=DxfReadRecordView::Text)return false;const auto t=whole.value(f);
-     if(!pay(t.size(),2u,work,workLimit))return false;if(t=="}"){if(!nesting)return false;--nesting;}
-     else if(!t.empty()&&t.front()=='{'){if(++nesting>DRW::kMaxDxfApplicationGroupNesting)return false;}else return false;continue;}
-    if(nesting)continue;if(f.code>=1000){xdata=true;continue;}if(xdata)return false;
+      if (!pay(t.size(), 2u, work, workLimit))
+        return false;
+      if (t == "}") {
+        if (!nesting)
+          return false;
+        --nesting;
+      } else if (!t.empty() && t.front() == '{') {
+        if (++nesting > DRW::kMaxDxfApplicationGroupNesting)
+          return false;
+      } else
+        return false;
+      continue;
+    }
+    if (nesting)
+      continue;
+    if (f.code >= 1000) {
+      xdata = true;
+      continue;
+    }
+    if (xdata)
+      return false;
     if(f.code==100){if(f.kind!=DxfReadRecordView::Text)return false;const auto t=whole.value(f);
-     if(!pay(t.size(),2u,work,workLimit))return false;if(t=="AcDbAttributeDefinition"){if(body)return false;body=true;}else if(body)return false;continue;}
+      if (!pay(t.size(), 2u, work, workLimit))
+        return false;
+      if (t == "AcDbAttributeDefinition") {
+        if (body)
+          return false;
+        body = true;
+      } else if (body)
+        return false;
+      continue;
+    }
     if(f.code==5||f.code==330){if(body||f.kind!=DxfReadRecordView::Text)return false;const auto t=whole.value(f);std::uint32_t h=0u;
-     if(!pay(t.size(),2u,work,workLimit)||!handle(t,h))return false;if(f.code==5){if(++selfCount!=1u)return false;self=h;}else{if(++ownerCount!=1u)return false;owner=h;}continue;}
+      if (!pay(t.size(), 2u, work, workLimit) || !handle(t, h))
+        return false;
+      if (f.code == 5) {
+        if (++selfCount != 1u)
+          return false;
+        self = h;
+      } else {
+        if (++ownerCount != 1u)
+          return false;
+        owner = h;
+      }
+      continue;
+    }
     if(f.code==2){if(!body||++tagCount!=1u||f.kind!=DxfReadRecordView::Text)return false;tag=whole.value(f);
      if(!pay(tag.size(),4u,work,workLimit)||!valid(tag))return false;}
    }
@@ -54893,7 +55539,10 @@ bool dx_iface::legacyCompoundAttdefSource(const dx_data& data,std::uint32_t bloc
   }
   const auto& previous=source.records[last-1u];if(previous.endMarker.ordinal!=end.marker.ordinal
    ||previous.endMarker.beginOffset!=end.marker.beginOffset||previous.endMarker.endOffset!=end.marker.endOffset)return false;
-  if(matches!=1u||!found)return false;result=found;return true;
+  if (matches != 1u || !found)
+    return false;
+  result = found;
+  return true;
  }catch(...){result=0u;return false;}
 }
 
@@ -54909,16 +55558,37 @@ bool dx_iface::legacyCompoundAppIdSource(const dx_data& data,std::uint32_t block
   if(!legacyBlockRefSourceRelation(data,blockId,insertId,workLimit,memLimit,relation))return false;
   const auto& s=data.m_tableDxfSource;const auto& census=*s.legacyIdentityObservation->source;
   const auto& whole=*s.wholeInput->source;
-  const auto pay=[&](std::size_t n,std::size_t unit,std::size_t& used,std::size_t cap) noexcept {
-   if(unit&&n>cap/unit)return false;const auto amount=n*unit;if(used>cap||amount>cap-used)return false;used+=amount;return true;};
-  const auto validName=[](std::string_view text) noexcept {
-   if(text.empty()||text.size()>255u)return false;
-   for(unsigned char c:text)if(c<=32u||c>=127u||c=='\\')return false;return true;};
-  const auto parseHandle=[](std::string_view text,std::uint32_t& out) noexcept {
-   if(text.empty()||text.size()>16u)return false;std::uint64_t value=0u;
-   const auto p=std::from_chars(text.data(),text.data()+text.size(),value,16);
-   if(p.ec!=std::errc{}||p.ptr!=text.data()+text.size()||!value||value>UINT32_MAX)return false;
-   out=static_cast<std::uint32_t>(value);return true;};
+  const auto pay = [&](std::size_t n, std::size_t unit, std::size_t &used,
+                       std::size_t cap) noexcept {
+    if (unit && n > cap / unit)
+      return false;
+    const auto amount = n * unit;
+    if (used > cap || amount > cap - used)
+      return false;
+    used += amount;
+    return true;
+  };
+  const auto validName = [](std::string_view text) noexcept {
+    if (text.empty() || text.size() > 255u)
+      return false;
+    for (unsigned char c : text)
+      if (c <= 32u || c >= 127u || c == '\\')
+        return false;
+    return true;
+  };
+  const auto parseHandle = [](std::string_view text,
+                              std::uint32_t &out) noexcept {
+    if (text.empty() || text.size() > 16u)
+      return false;
+    std::uint64_t value = 0u;
+    const auto p =
+        std::from_chars(text.data(), text.data() + text.size(), value, 16);
+    if (p.ec != std::errc{} || p.ptr != text.data() + text.size() || !value ||
+        value > UINT32_MAX)
+      return false;
+    out = static_cast<std::uint32_t>(value);
+    return true;
+  };
   std::size_t work=0u,bytes=0u,depth=8u;for(auto n=census.candidates.size();n;n>>=1u)++depth;
   if(!pay(census.records.size(),256u,work,workLimit)||!pay(census.sections.size(),256u,work,workLimit)
     ||!pay(census.candidates.size(),128u*depth,work,workLimit)
@@ -54931,7 +55601,11 @@ bool dx_iface::legacyCompoundAppIdSource(const dx_data& data,std::uint32_t block
   if(tables!=1u)return false;
   for(std::size_t i=0;i<census.records.size();++i){const auto& r=census.records[i];
    if(r.kind==S::Kind::TableControl&&r.section==tablesSection&&dx_legacy_identity_join::sameName(r.tableName,"APPID")){
-    if(tableIndex!=S::NoIndex)return false;tableIndex=i;}}
+     if (tableIndex != S::NoIndex)
+       return false;
+     tableIndex = i;
+   }
+  }
   if(tableIndex==S::NoIndex)return false;
   const auto j=s.legacyEntitiesCompoundJoins.find(insertId);
   if(j==s.legacyEntitiesCompoundJoins.end()||!j->second||!j->second->audit
@@ -54947,7 +55621,10 @@ bool dx_iface::legacyCompoundAppIdSource(const dx_data& data,std::uint32_t block
   const auto target=roles.appId;if(!pay(target.size(),2u,work,workLimit)||!validName(target))return false;
   std::uint32_t tableHandle=0u;const auto& table=census.records[tableIndex];
   for(const auto& item:index.ids)if(item.second.record==tableIndex&&!item.second.ambiguous&&item.first<=UINT32_MAX){
-   if(tableHandle)return false;tableHandle=static_cast<std::uint32_t>(item.first);}
+      if (tableHandle)
+        return false;
+      tableHandle = static_cast<std::uint32_t>(item.first);
+    }
   if(!tableHandle||dx_legacy_identity_join::record(census,index,tableHandle,S::Kind::TableControl,S::Section::Tables,"TABLE",0u)!=&table)return false;
   unsigned matches=0u;std::uint32_t matchedHandle=0u;
   for(const auto& r:census.records){
@@ -54966,16 +55643,42 @@ bool dx_iface::legacyCompoundAppIdSource(const dx_data& data,std::uint32_t block
    unsigned nesting=0u,selfCount=0u,ownerCount=0u,nameCount=0u;bool body=false,xdata=false;std::uint32_t self=0u,owner=0u;
    std::string_view name;std::size_t priorEnd=opening.end;
    for(std::size_t i=first+1u;i<last;++i){const auto f=whole.field(i);
-    if(!whole.bounds(f)||f.ordinal!=i+1u||f.begin!=priorEnd||f.end<=f.begin||f.code==0)return false;priorEnd=f.end;
-    if(f.ignored){if(f.code!=999) return false;continue;}
+     if (!whole.bounds(f) || f.ordinal != i + 1u || f.begin != priorEnd ||
+         f.end <= f.begin || f.code == 0)
+       return false;
+     priorEnd = f.end;
+     if (f.ignored) {
+       if (f.code != 999)
+         return false;
+       continue;
+     }
     if(f.code==102){if(xdata||f.kind!=DxfReadRecordView::Text)return false;const auto t=whole.value(f);
      if(!pay(t.size(),2u,work,workLimit))return false;
      if(t=="}"){if(!nesting)return false;--nesting;}
-     else if(!t.empty()&&t.front()=='{'){if(++nesting>DRW::kMaxDxfApplicationGroupNesting)return false;}
-     else return false;continue;}
-    if(nesting)continue;if(f.code>=1000){xdata=true;continue;}if(xdata)return false;
+     else if(!t.empty()&&t.front()=='{'){if(++nesting>DRW::kMaxDxfApplicationGroupNesting)return false;
+     } else
+       return false;
+     continue;
+    }
+    if (nesting)
+      continue;
+    if (f.code >= 1000) {
+      xdata = true;
+      continue;
+    }
+    if (xdata)
+      return false;
     if(f.code==100){if(f.kind!=DxfReadRecordView::Text)return false;const auto t=whole.value(f);
-     if(!pay(t.size(),2u,work,workLimit))return false;if(t=="AcDbRegAppTableRecord"){if(body)return false;body=true;}else if(body)return false;continue;}
+      if (!pay(t.size(), 2u, work, workLimit))
+        return false;
+      if (t == "AcDbRegAppTableRecord") {
+        if (body)
+          return false;
+        body = true;
+      } else if (body)
+        return false;
+      continue;
+    }
     if(f.code==5||f.code==330){if(body||f.kind!=DxfReadRecordView::Text)return false;
      const auto spelling=whole.value(f);std::uint32_t h=0u;
      if(!pay(spelling.size(),2u,work,workLimit)||!parseHandle(spelling,h))return false;
@@ -54989,7 +55692,10 @@ bool dx_iface::legacyCompoundAppIdSource(const dx_data& data,std::uint32_t block
     ||dx_legacy_identity_join::record(census,index,self,S::Kind::TableRecord,S::Section::Tables,"APPID",1u)!=&r)return false;
    if(dx_legacy_block_record_source::sameAsciiName(name,target)){++matches;matchedHandle=self;}
   }
-  if(matches!=1u||!matchedHandle)return false;provider=matchedHandle;return true;
+  if (matches != 1u || !matchedHandle)
+    return false;
+  provider = matchedHandle;
+  return true;
  }catch(...) {provider=0u;return false;}
 }
 
@@ -55599,16 +56305,37 @@ bool dx_iface::legacyCompoundLayerSources(const dx_data& data,std::uint32_t bloc
   if(!legacyBlockRefSourceRelation(data,blockId,insertId,workLimit,memLimit,relation))return false;
   const auto& s=data.m_tableDxfSource;const auto& census=*s.legacyIdentityObservation->source;
   const auto& whole=*s.wholeInput->source;
-  const auto pay=[&](std::size_t n,std::size_t unit,std::size_t& used,std::size_t cap) noexcept {
-   if(unit&&n>cap/unit)return false;const auto amount=n*unit;if(used>cap||amount>cap-used)return false;used+=amount;return true;};
-  const auto validName=[](std::string_view text) noexcept {
-   if(text.empty()||text.size()>255u)return false;
-   for(unsigned char c:text)if(c<32u||c>=127u||c=='\\')return false;return true;};
-  const auto parseHandle=[](std::string_view text,std::uint32_t& out) noexcept {
-   if(text.empty()||text.size()>16u)return false;std::uint64_t value=0u;
-   const auto p=std::from_chars(text.data(),text.data()+text.size(),value,16);
-   if(p.ec!=std::errc{}||p.ptr!=text.data()+text.size()||!value||value>UINT32_MAX)return false;
-   out=static_cast<std::uint32_t>(value);return true;};
+  const auto pay = [&](std::size_t n, std::size_t unit, std::size_t &used,
+                       std::size_t cap) noexcept {
+    if (unit && n > cap / unit)
+      return false;
+    const auto amount = n * unit;
+    if (used > cap || amount > cap - used)
+      return false;
+    used += amount;
+    return true;
+  };
+  const auto validName = [](std::string_view text) noexcept {
+    if (text.empty() || text.size() > 255u)
+      return false;
+    for (unsigned char c : text)
+      if (c < 32u || c >= 127u || c == '\\')
+        return false;
+    return true;
+  };
+  const auto parseHandle = [](std::string_view text,
+                              std::uint32_t &out) noexcept {
+    if (text.empty() || text.size() > 16u)
+      return false;
+    std::uint64_t value = 0u;
+    const auto p =
+        std::from_chars(text.data(), text.data() + text.size(), value, 16);
+    if (p.ec != std::errc{} || p.ptr != text.data() + text.size() || !value ||
+        value > UINT32_MAX)
+      return false;
+    out = static_cast<std::uint32_t>(value);
+    return true;
+  };
   std::size_t work=0u,bytes=0u,depth=8u;for(auto n=census.candidates.size();n;n>>=1u)++depth;
   if(!pay(census.records.size(),256u,work,workLimit)||!pay(census.sections.size(),256u,work,workLimit)
     ||!pay(census.candidates.size(),128u*depth,work,workLimit)
@@ -55621,7 +56348,11 @@ bool dx_iface::legacyCompoundLayerSources(const dx_data& data,std::uint32_t bloc
   if(tables!=1u)return false;
   for(std::size_t i=0;i<census.records.size();++i){const auto& r=census.records[i];
    if(r.kind==S::Kind::TableControl&&r.section==tablesSection&&dx_legacy_identity_join::sameName(r.tableName,"LAYER")){
-    if(tableIndex!=S::NoIndex)return false;tableIndex=i;}}
+     if (tableIndex != S::NoIndex)
+       return false;
+     tableIndex = i;
+   }
+  }
   if(tableIndex==S::NoIndex)return false;
   const auto j=s.legacyEntitiesCompoundJoins.find(insertId);
   if(j==s.legacyEntitiesCompoundJoins.end()||!j->second||!j->second->audit
@@ -55642,7 +56373,10 @@ bool dx_iface::legacyCompoundLayerSources(const dx_data& data,std::uint32_t bloc
   for(auto target:targets)if(!pay(target.size(),2u,work,workLimit)||!validName(target))return false;
   std::uint32_t tableHandle=0u;const auto& table=census.records[tableIndex];
   for(const auto& item:index.ids)if(item.second.record==tableIndex&&!item.second.ambiguous&&item.first<=UINT32_MAX){
-   if(tableHandle)return false;tableHandle=static_cast<std::uint32_t>(item.first);}
+      if (tableHandle)
+        return false;
+      tableHandle = static_cast<std::uint32_t>(item.first);
+    }
   if(!tableHandle||dx_legacy_identity_join::record(census,index,tableHandle,S::Kind::TableControl,S::Section::Tables,"TABLE",0u)!=&table)return false;
   std::array<unsigned,3> matches{};std::array<std::uint32_t,3> selected{};
   for(const auto& r:census.records){
@@ -55661,16 +56395,42 @@ bool dx_iface::legacyCompoundLayerSources(const dx_data& data,std::uint32_t bloc
    unsigned nesting=0u,selfCount=0u,ownerCount=0u,nameCount=0u;bool body=false,xdata=false;std::uint32_t self=0u,owner=0u;
    std::string_view name;std::size_t priorEnd=opening.end;
    for(std::size_t i=first+1u;i<last;++i){const auto f=whole.field(i);
-    if(!whole.bounds(f)||f.ordinal!=i+1u||f.begin!=priorEnd||f.end<=f.begin||f.code==0)return false;priorEnd=f.end;
-    if(f.ignored){if(f.code!=999) return false;continue;}
+     if (!whole.bounds(f) || f.ordinal != i + 1u || f.begin != priorEnd ||
+         f.end <= f.begin || f.code == 0)
+       return false;
+     priorEnd = f.end;
+     if (f.ignored) {
+       if (f.code != 999)
+         return false;
+       continue;
+     }
     if(f.code==102){if(xdata||f.kind!=DxfReadRecordView::Text)return false;const auto t=whole.value(f);
      if(!pay(t.size(),2u,work,workLimit))return false;
      if(t=="}"){if(!nesting)return false;--nesting;}
-     else if(!t.empty()&&t.front()=='{'){if(++nesting>DRW::kMaxDxfApplicationGroupNesting)return false;}
-     else return false;continue;}
-    if(nesting)continue;if(f.code>=1000){xdata=true;continue;}if(xdata)return false;
+     else if(!t.empty()&&t.front()=='{'){if(++nesting>DRW::kMaxDxfApplicationGroupNesting)return false;
+     } else
+       return false;
+     continue;
+    }
+    if (nesting)
+      continue;
+    if (f.code >= 1000) {
+      xdata = true;
+      continue;
+    }
+    if (xdata)
+      return false;
     if(f.code==100){if(f.kind!=DxfReadRecordView::Text)return false;const auto t=whole.value(f);
-     if(!pay(t.size(),2u,work,workLimit))return false;if(t=="AcDbLayerTableRecord"){if(body)return false;body=true;}else if(body)return false;continue;}
+      if (!pay(t.size(), 2u, work, workLimit))
+        return false;
+      if (t == "AcDbLayerTableRecord") {
+        if (body)
+          return false;
+        body = true;
+      } else if (body)
+        return false;
+      continue;
+    }
     if(f.code==5||f.code==330){if(body||f.kind!=DxfReadRecordView::Text)return false;
      const auto spelling=whole.value(f);std::uint32_t h=0u;
      if(!pay(spelling.size(),2u,work,workLimit)||!parseHandle(spelling,h))return false;
@@ -55684,7 +56444,11 @@ bool dx_iface::legacyCompoundLayerSources(const dx_data& data,std::uint32_t bloc
     ||dx_legacy_identity_join::record(census,index,self,S::Kind::TableRecord,S::Section::Tables,"LAYER",1u)!=&r)return false;
    for(std::size_t i=0u;i<targets.size();++i)if(dx_legacy_block_record_source::sameAsciiName(name,targets[i])){++matches[i];selected[i]=self;}
   }
-  for(std::size_t i=0u;i<matches.size();++i)if(matches[i]!=1u||!selected[i])return false;providers=selected;return true;
+  for (std::size_t i = 0u; i < matches.size(); ++i)
+    if (matches[i] != 1u || !selected[i])
+      return false;
+  providers = selected;
+  return true;
  }catch(...) {providers={};return false;}
 }
 
@@ -55905,7 +56669,9 @@ void dx_iface::finishBlockRoleAudit(dx_data& data) noexcept {
         for(std::size_t i=0u;i<source.records.size();++i) {
             const auto& p=source.records[i];const bool blocks=p.section<source.sections.size()&&source.sections[p.section].kind==I::Section::Blocks;
             if(open!=I::None&&(!blocks||p.section!=source.records[open].section)){scope(open,i-1u,false);open=I::None;}
-            if(!blocks)continue;++result.records;
+            if (!blocks)
+              continue;
+            ++result.records;
             if(p.kind!=I::Kind::Entity){if(open!=I::None){scope(open,i-1u,false);open=I::None;}scope(i,i,false);continue;}
             if(asciiIdentifierEquals(p.name,"BLOCK")){if(open!=I::None)scope(open,i-1u,false);open=i;}
             else if(asciiIdentifierEquals(p.name,"ENDBLK")){if(open==I::None)scope(i,i,false);else {scope(open,i,true);open=I::None;}}
@@ -56112,7 +56878,9 @@ void dx_iface::finishEntitiesRoleAudit(dx_data& data) noexcept {
                             else if(layoutSymbolKey(decoded)!=layoutSymbolKey(layouts.at(layout)->name))row.reason=R::LayoutConflict;
                         }
                     }
-                    if(row.reason==R::Matched)++result.matched;result.rows.push_back(row);
+                    if (row.reason == R::Matched)
+                      ++result.matched;
+                    result.rows.push_back(row);
                 }
             }
         }
@@ -56134,16 +56902,32 @@ bool dx_iface::chargeLayoutSource(std::size_t bytes,std::size_t groups,std::size
 }
 
 void dx_iface::addDxfLayoutSource(const DRW_Layout& value,const DRW_RawDxfObject& raw) {
-    if(!cData)return;auto& s=cData->m_tableDxfSource;const auto fail=[&](){s.layoutCaptureFailed=true;};
-    if(s.layoutCaptureFailed)return;
-    dxfRW::DxfReadContext live;dxfRW::DxfLayoutSourceView publication;
-    if(!tableSourceCaptureOpen()||!s.entitiesReadInput||!s.entitiesReadInput->getDxfReadContext(live)
-        ||!s.entitiesReadInput->getDxfLayoutSourceView(publication)||publication.phase!=dxfRW::DxfLayoutSourceView::Phase::Source
-        ||publication.model!=&value||publication.source!=&raw||s.layoutPendingModel||s.layoutPendingHandle
-        ||s.layoutRecords>=s.maxLayoutRecords||!value.handle||typeid(value)!=typeid(DRW_Layout)||value.tType!=DRW::LAYOUT
-        ||raw.handle!=value.handle||raw.parentHandle!=value.parentHandle||!asciiIdentifierEquals(raw.name,"LAYOUT")||raw.groups.size()!=raw.rawValues.size()
-        ||raw.m_version!=live.sourceVersion||raw.hasRawValues==live.binary||live.sourceVersion<DRW::AC1021||live.sourceVersion>DRW::AC1032
-        ||live.codecVersion!=DRW::AC1021||live.codecCodePage.size()>128u||s.layoutInputs.count(value.handle)){fail();return;}
+  if (!cData)
+    return;
+  auto &s = cData->m_tableDxfSource;
+  const auto fail = [&]() { s.layoutCaptureFailed = true; };
+  if (s.layoutCaptureFailed)
+    return;
+  dxfRW::DxfReadContext live;
+  dxfRW::DxfLayoutSourceView publication;
+  if (!tableSourceCaptureOpen() || !s.entitiesReadInput ||
+      !s.entitiesReadInput->getDxfReadContext(live) ||
+      !s.entitiesReadInput->getDxfLayoutSourceView(publication) ||
+      publication.phase != dxfRW::DxfLayoutSourceView::Phase::Source ||
+      publication.model != &value || publication.source != &raw ||
+      s.layoutPendingModel || s.layoutPendingHandle ||
+      s.layoutRecords >= s.maxLayoutRecords || !value.handle ||
+      typeid(value) != typeid(DRW_Layout) || value.tType != DRW::LAYOUT ||
+      raw.handle != value.handle || raw.parentHandle != value.parentHandle ||
+      !asciiIdentifierEquals(raw.name, "LAYOUT") ||
+      raw.groups.size() != raw.rawValues.size() ||
+      raw.m_version != live.sourceVersion || raw.hasRawValues == live.binary ||
+      live.sourceVersion < DRW::AC1021 || live.sourceVersion > DRW::AC1032 ||
+      live.codecVersion != DRW::AC1021 || live.codecCodePage.size() > 128u ||
+      s.layoutInputs.count(value.handle)) {
+    fail();
+    return;
+  }
     const auto groups=raw.groups.size();std::size_t bytes=sizeof(dx_data::TableDxfSourceCapture::LayoutInput)+sizeof(dx_data::TableDxfSourceCapture::LayoutCaptured)+32u*sizeof(void*);
     std::size_t model=0u,items=0u,rawBytes=sizeof(raw),work=0u;
     if(!addAssociativeSlotBytes(groups,64u,work)||!chargeLayoutSource(0u,0u,work))return;
@@ -56173,13 +56957,21 @@ void dx_iface::addDxfLayoutSource(const DRW_Layout& value,const DRW_RawDxfObject
 }
 
 void dx_iface::pairLayoutSource(const DRW_Layout& value) noexcept {
-    if(!cData)return;auto& s=cData->m_tableDxfSource;if(s.layoutCaptureFailed)return;
-    dxfRW::DxfLayoutSourceView publication;
-    const bool publishing=s.entitiesReadInput&&s.entitiesReadInput->getDxfLayoutSourceView(publication);
-    if(!s.layoutPendingHandle&&!s.layoutPendingModel) {
-        if(publishing&&publication.phase==dxfRW::DxfLayoutSourceView::Phase::Typed)s.layoutCaptureFailed=true;
-        return;
-    }
+  if (!cData)
+    return;
+  auto &s = cData->m_tableDxfSource;
+  if (s.layoutCaptureFailed)
+    return;
+  dxfRW::DxfLayoutSourceView publication;
+  const bool publishing =
+      s.entitiesReadInput &&
+      s.entitiesReadInput->getDxfLayoutSourceView(publication);
+  if (!s.layoutPendingHandle && !s.layoutPendingModel) {
+    if (publishing &&
+        publication.phase == dxfRW::DxfLayoutSourceView::Phase::Typed)
+      s.layoutCaptureFailed = true;
+    return;
+  }
     const auto pending=s.layoutInputs.find(s.layoutPendingHandle);using Pair=dx_data::TableDxfSourceCapture::LayoutPair;
     if(!tableSourceCaptureOpen()||!publishing||publication.phase!=dxfRW::DxfLayoutSourceView::Phase::Typed||publication.model!=&value
         ||s.layoutPendingModel!=&value||pending==s.layoutInputs.end()||pending->second.pair!=Pair::Pending||value.handle!=s.layoutPendingHandle) {
@@ -62229,7 +63021,7 @@ bool dx_iface::finalizeDxfWrite() {
                 ?DRW::DxfModelSpaceBlockRecordHandle
                 :ownerName=="*PAPER_SPACE"
                     ?DRW::DxfPaperSpaceBlockRecordHandle
-                    :sourceOwner==nullptr?DRW::NoHandle
+                    :sourceOwner==nullptr?static_cast<std::uint32_t>(DRW::NoHandle)
                         :dxfW->getBlockRecordHandleToWrite(sourceOwner->name);
             // The source section is retained and revalidated independently.
             // The writer canonicalizes fixed-space BLOCKS children into the

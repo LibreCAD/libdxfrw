@@ -14,7 +14,13 @@ inline DRW_DxfPhysicalRecordSpan span(const WholeSourceV2::Field& f) noexcept{re
 inline bool find(const Whole& whole,const Census::Record& record,std::size_t index,WholeSourceV2::Field& out) noexcept {
  if(!record.marker.ordinal||record.endMarker.ordinal<=record.marker.ordinal||record.endMarker.ordinal>whole.fieldCount())return false;
  std::size_t group=0u;for(std::size_t i=record.marker.ordinal;i<record.endMarker.ordinal-1u;++i){const auto f=whole.field(i);
-  if(f.ignored)continue;if(group++==index){out=f;return true;}}
+   if (f.ignored)
+     continue;
+   if (group++ == index) {
+     out = f;
+     return true;
+   }
+ }
  return false;
 }
 inline bool equalSpan(const DRW_DxfPhysicalRecordSpan& a,const DRW_DxfPhysicalRecordSpan& b)noexcept {

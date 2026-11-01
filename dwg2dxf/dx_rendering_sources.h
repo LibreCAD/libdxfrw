@@ -228,7 +228,10 @@ dx_iface::RenderingSourceReport dx_iface::renderingSourceReport(const dx_data& d
         if(row->presetRoot){const auto found=audit->presetRoots.find(row->presetRoot->dictionary->input->raw->handle);
             if(found==audit->presetRoots.end()||!same(row->presetRoot,found->second)){report.state=S::ContextMismatch;return report;}}
         ++report.records;if(row->bodyMatched){++report.profiles;report.fields+=row->preset.complete()?row->preset.spans.size():row->profile.spans.size();report.references+=row->references.size();}
-        if(row->originBound)++report.origins;if(row->namedTarget)++report.namedTargets;
+        if (row->originBound)
+          ++report.origins;
+        if (row->namedTarget)
+          ++report.namedTargets;
     }
     report.physical=audit->physicalRecords;report.state=audit->state;
     report.originalSourcesMatched=report.state==S::SourcesReady&&report.records&&report.records==report.profiles&&report.records==report.origins&&report.records==report.physical;

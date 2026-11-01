@@ -12,10 +12,14 @@ preserved in `docs/LIBRECAD_DXFRW_UPGRADE_HISTORY.md`.
   macOS qualification receipts, then run LibreCAD ON/OFF consumer checks at the
   updated pin. Existing Mac and ARM Linux evidence is partial and does not close
   this gate.
-- **S20 / H0 — VERIFYING:** re-run the hosted fast and native workflows after
-  repairing source-inventory, compiler-portability, and focused-test failures.
-  The clean local focused target now passes; hosted receipts are still required
-  before this repair slice can close.
+- **S20 / H0 — VERIFYING:** close the compiler-portability and focused-test
+  failures from hosted run `41312852849` and fast run `41312852905`, then rerun
+  those gates on the repaired candidate. The inventory and fixture-policy
+  checks passed; hosted Linux reported two CTest failures, Windows failed to
+  link two private helpers, and GCC 13 rejected compressed statements plus
+  two enum conditionals and one ambiguous `DRW_Variant` initializer. Current
+  local repairs build under Apple Clang 21 and GCC 16/libstdc++; the two
+  reproduced CTests pass under both, while hosted evidence is still required.
 
 No other unfinished in-repository implementation slices remain beyond S15 and
 S20. The six
@@ -1683,27 +1687,44 @@ edit this block or commit the same slice concurrently.
   whole-file conversion pass; all ten callbacks qualify for this control.
   Platform/LibreCAD, FreeCAD 3D, and independent ACIS/ACDS qualification remain
   open with claims bounded.
-- Current verification: PR candidate `d6f48610` (native run 41311460555, fast
-  run 41311461093) passed workflow contracts and macOS/Apple Clang focused
-  native qualification, but exposed the next portability layer. Linux/GCC
-  focused CTest reported failures in `libdxfrw_dwg_reader_matrix` and
-  `libdxfrw_dwg_local_roundtrip`: the cross-STL POLYLINE tree-node estimate
-  undercharged the libstdc++ set/map allocation requests. The current worktree
-  raises the explicit tree-link/alignment allowance from four to five pointer
-  widths; both tests pass locally under GCC. The hosted `parity-fast` build
-  rejected compressed source-profile statements as misleading indentation;
-  only the reported statement ranges were expanded, and the GCC `dwg2dxf`
-  target now builds locally with warnings as errors. Windows/MSVC linked neither
-  `dxfRW::preflightDxfSetup` nor `dxfRW::toHexStr(uint32_t)` from the test
-  static library; both internal test seams now carry the existing conditional
-  export/noinline annotation. Local Apple Clang Wave 1, DWG round-trip, and
-  fixture CTests passed 3/3 at the previous candidate; local GCC reader matrix
-  and DWG round-trip now pass 2/2. Require fresh hosted Linux/GCC,
-  Windows/MSVC, macOS/Apple Clang, and `parity-fast` receipts for the repair
-  candidate before closing S20. The frozen status digest is refreshed to
-  `f7f687c5be2577d537a3f726d46af427d6eba07cc702f7c1db7651d6302c9a6a` for
-  these implementation changes without changing claim dispositions. No
-  drawing payload files were added.
+- Current verification: candidate `6255f927` (native run `41312852849`, fast
+  run `41312852905`) passed the workflow contract and macOS/Apple Clang focused
+  qualification. Linux/GCC built its focused targets but only 5/7 CTests
+  passed; its job summary does not name the failures. Local GCC 16/libstdc++
+  reproduced them in `libdxfrw_dwg_reader_matrix` and
+  `libdxfrw_dwg_local_roundtrip`.
+  Windows/MSVC failed to link `dxfRW::preflightDxfSetup` and
+  `dxfRW::toHexStr(uint32_t)`. The fast Ubuntu/GCC job passed fixture policy
+  and source/build inventory checks, then failed compilation with 141
+  diagnostics: 138 misleading-indentation warnings, two enum/non-enum
+  conditional warnings, and one ambiguous `DRW_Variant` initializer. The
+  worktree formats only GCC-diagnosed source ranges, makes the enum types
+  explicit, disambiguates the initializer, and inlines two small helpers to
+  remove the MSVC cross-object references. The GCC 13 formatting, enum, and
+  initializer repairs also compile under GCC 16 with `-Werror`. The two
+  libstdc++ test failures came from a fresh empty `unordered_map` reporting one
+  implicit bucket while its first `reserve(1)` allocated the real bucket
+  array; the planner had skipped that reservation, so the first staged node
+  caused an uncharged rehash. The planner now admits that first allocation
+  before insertion and does not repeat `reserve(1)` on a cleared map with
+  retained capacity. The owner-map growth test fills to the actual current
+  load capacity, and its staged/terminalized/reused cases report separately.
+  Focused GCC 16/libstdc++ and Apple Clang 21 builds pass; the two reproduced
+  CTests pass 2/2 under each compiler, and the Point18 fixture regression passes
+  under Apple Clang. Run `libdxfrw_dwg_local_roundtrip` serially across local
+  build trees because its generated DXF output names are shared; parallel runs
+  race and produce false readback failures. `libdxfrw_dwg_local_roundtrip` no
+  longer cascades into generated DWG failures. This macOS GCC 16 result does
+  not qualify Linux/GCC 13. The separate local `dwg2dxf` GCC 16 target still
+  encounters warnings in Apple SDK framework headers. Rerun hosted Linux/GCC,
+  Windows/MSVC, macOS/Apple Clang, and `parity-fast` on the repaired candidate.
+  Keep S20 open
+  until hosted gates pass. The frozen implementation digest is refreshed to
+  `dc4aca6047733e953a8c47e77ac9d93bec4b7c6333455a564672e7d2a7837358` across
+  456 tracked inputs; claims and the support matrix are unchanged. No support
+  claims or drawing payload files were added. Rerun hosted Linux/GCC,
+  Windows/MSVC, macOS/Apple Clang, and `parity-fast` against this repair. Keep
+  S20 open until those receipts pass.
 - Authorized run horizon: active implementation objective; continue through the
   next dependency-ready slice until the user stops or the terminal release gate
   is satisfied.
@@ -1717,7 +1738,7 @@ edit this block or commit the same slice concurrently.
   0 BLOCKED_HARD / 0 SUPERSEDED.
 - Active parent states: 0 READY / 0 PLANNED / 0 ACTIVE / 2 VERIFYING /
   0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED.
-- Active child states: 1 VERIFIED / 4 VERIFYING / 0 ACTIVE / 0 READY / 0 PLANNED.
+- Active child states: 0 VERIFIED / 3 VERIFYING / 0 ACTIVE / 0 READY / 0 PLANNED.
 - Active parent and child evidence dispositions are all `NOT_EVALUATED`; no
   active row promotes a DWG/DXF support claim. Archived totals and dispositions
   remain available in the history file.
@@ -1728,8 +1749,8 @@ edit this block or commit the same slice concurrently.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
-| S15 | C2: UTF-8/native input and atomic-output paths | S11, S14 | VERIFYING | focused native suite on Linux/macOS/Windows; Unicode parent/basename/non-BMP DXF ASCII+binary/DWG; transaction commit/rollback/cleanup; existing hardening and writer controls; LibreCAD ON/OFF consumers | Implementation and portable Mac/Ubuntu ARM controls are verified in C2.1. Remaining gates are immutable native receipts on Windows, Linux x64, and macOS ARM64 plus LibreCAD consumers at the updated pin; no support claim is promoted. | native qualification and LibreCAD consumer pin |
-| S20 | H0: hosted build and fast-workflow repair closure | S19 | VERIFYING | canonical inventories; clean focused build and `libdxfrw_dwg_local_roundtrip`; focused Linux x64, Windows x64, and macOS ARM64 receipts; `parity-fast`; fixture-admission guard | Earlier inventory, fixture-admission, PowerShell quoting, source-release manifest, `writeExtData` overload, lambda-capture, ATTDEF warning, and test-coupling failures are repaired. At `d6f48610`, macOS native passed; Linux native exposed two focused tests failing on an STL-undercharged POLYLINE node model, fast GCC flagged misleading indentation in compressed headers, and Windows found two unexported private test seams. The current worktree increases the conservative tree-link estimate and fixes only compiler-reported source ranges; it annotates the two MSVC seams. Local GCC `dwg2dxf` build and reader-matrix/round-trip CTests pass; Windows/MSVC, hosted Linux/macOS and fast workflows must rerun on this candidate. The frozen status digest is refreshed to `f7f687c5be2577d537a3f726d46af427d6eba07cc702f7c1db7651d6302c9a6a` without changing claim dispositions. No drawing payload files were added. | S15, final release |
+| S15 | C2: UTF-8/native input and atomic-output paths | S11, S14 | VERIFYING | focused native suite on Linux/macOS/Windows; Unicode parent/basename/non-BMP DXF ASCII+binary/DWG; transaction commit/rollback/cleanup; existing hardening and writer controls; LibreCAD ON/OFF consumers | C2.1 implementation and portable Mac/Ubuntu ARM controls are complete and archived. Remaining gates are immutable native receipts on Windows, Linux x64, and macOS ARM64 plus LibreCAD consumers at the updated pin; no support claim is promoted. | native qualification and LibreCAD consumer pin |
+| S20 | H0: hosted build and fast-workflow repair closure | S19 | VERIFYING | clean focused build and `libdxfrw_dwg_local_roundtrip`; focused Linux x64, Windows x64, and macOS ARM64 receipts; `parity-fast`; fixture-admission guard | The prior hosted candidate passed inventory/fixture-admission and macOS gates, but exposed Linux CTest, Windows link, and GCC 13 warning failures. The repair worktree now builds the focused targets under Apple Clang 21 and GCC 16; both reproduced libstdc++ CTests pass 2/2, and the Point18 fixture control passes. Digest `dc4aca6047733e953a8c47e77ac9d93bec4b7c6333455a564672e7d2a7837358` covers 456 implementation inputs; hosted reruns remain required. No support claims or drawing payload files changed. | S15, final release |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -1738,11 +1759,9 @@ edit this block or commit the same slice concurrently.
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| C2.1 | C2 / S15 | WP3/WP7/WP8; Phase 8 follow-up | F0.3, G1.4 | VERIFIED | NOT_EVALUATED | input/output/native-basename implementation and portable real-filesystem controls | Frozen97+c60d7ea8 passes focused7/controls3 on native Mac and Ubuntu26/aarch64; actual Unicode DWG/ASCII+binary DXF, exclusive temporary basename, precommit visibility, commit/rollback/cleanup pass. Logs under /private/tmp/librecad-windows-path.WXbCZP/utf8-candidate-*; no Windows or immutable receipt claim |
 | C2.2 | C2 / S15 | WP3/WP8; Phase 8 follow-up | C2.1 | VERIFYING | NOT_EVALUATED | own three-platform immutable hosted receipts and LibreCAD ON/OFF consumers | The first hosted macOS CTest failure was a fixture setup coupling, not a pathname conversion failure: export refused the fixture's unclosed extension dictionary before writing. The test now uses a fresh empty drawing for ASCII/binary path write/readback; local focused CTest passes. Obtain post-fix Windows/Linux x64/macOS ARM64 receipts, then run LibreCAD Unicode/persistence/full consumers at the updated pin. Earlier receipts do not close this gate |
-| H0.1 | H0 / S20 | WP1/WP8; Phase 2/8 follow-up | S19 | VERIFYING | NOT_EVALUATED | canonical source/header and source-release inventories; frozen broad CTest inventory matches the exact hosted profile | Both generated source-release lists now include the history archive (636 files); frozen CTest inventory contains 775 names. Confirm all manifests on hosted Linux/Windows and pass the fast-job inventory check. No drawing payloads were added |
-| H0.2 | H0 / S20 | WP1/WP2; Phase 2 follow-up | S19 | VERIFYING | NOT_EVALUATED | GCC/MSVC/Apple Clang compile portability under default warnings-as-errors | `dx_iface.cpp` MSVC constants are static; `/bigobj` is attached to its source and passed compilation at `eaf6332f`. The concrete nullable-target ATTDEF decoder fixes GCC's optional warning. Candidate `eaf6332f` failed Linux/GCC on the ambiguous `writeExtData({…})` call; Windows/MSVC confirmed missing `layoutDictionaryHandle` captures at three lambdas. Both were fixed by `d6f48610`, but Windows then exposed unresolved private test seams `dxfRW::preflightDxfSetup` and `dxfRW::toHexStr(uint32_t)`. Those declarations now use the conditional test export/noinline annotation. Hosted fast GCC flagged misleading indentation in source-profile headers; only diagnostic ranges were expanded, and local GCC `dwg2dxf` builds with warnings as errors. Require fresh hosted Linux/GCC, Windows/MSVC, and macOS/Apple Clang build receipts |
-| H0.3 | H0 / S20 | WP4/WP6; focused qualification | S19 | VERIFYING | NOT_EVALUATED | focused SPLINE/read-outcome/modeler failure controls | The Unicode path output test uses empty ASCII/binary drawings after DWG fixture export was refused by extension-graph safety; DWG input and read-side coverage remain. Candidate `d6f48610` macOS qualification passed, but Linux reader-matrix and local-roundtrip CTests failed because the STL-independent POLYLINE tree-node model undercharged libstdc++. Increasing the conservative link/alignment component from four to five pointer widths fixes both locally under GCC (focused tests pass 2/2). Fresh hosted Linux/Windows/macOS and `parity-fast` runs remain the closure gate; no claims are promoted |
+| H0.2 | H0 / S20 | WP1/WP2; Phase 2 follow-up | H0.1 | VERIFYING | NOT_EVALUATED | GCC/MSVC/Apple Clang compile portability under default warnings-as-errors | `dx_iface.cpp` MSVC constants are static; `/bigobj` is attached to its source and passed compilation at `eaf6332f`. The nullable-target ATTDEF decoder and previous `writeExtData`/lambda fixes remain. Candidate `6255f927` failed Windows linking for the two helpers and hosted GCC 13 on 141 diagnostics. The current worktree inlines the helpers, makes the two enum-result types explicit, disambiguates the integer variant, and formats the exact GCC diagnostic ranges. Apple Clang 21 and GCC 16 compile the focused targets with warnings as errors; hosted Linux/GCC 13, Windows/MSVC, macOS/Apple Clang, and `parity-fast` reruns remain required. |
+| H0.3 | H0 / S20 | WP4/WP6; focused qualification | H0.1 | VERIFYING | NOT_EVALUATED | focused reader-matrix and local-roundtrip qualification controls | GCC 16/libstdc++ reproduced both failing CTests from the latest hosted Linux summary. The six POLYLINE matrix assertions narrowed to the initial implicit-bucket allocation and subsequent map-reuse reservation; after fixing first-reserve accounting and preserving cleared-map bucket capacity, `libdxfrw_dwg_reader_matrix` and `libdxfrw_dwg_local_roundtrip` pass 2/2 under both GCC 16/libstdc++ and Apple Clang 21. The Point18 fixture regression also passes locally. Hosted Linux rerun is still the closure gate; no support claims are promoted. |
 
 
 

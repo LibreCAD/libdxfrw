@@ -674,8 +674,18 @@ bool planUnorderedMapForOneMore(const UnorderedMap &values,
       available >= static_cast<long double>(maxCount)
           ? maxCount
           : static_cast<std::size_t>(available);
-  if (needed <= elementCapacity)
+  if (needed <= elementCapacity) {
+    if (!values.empty() || values.bucket_count() > 1u)
+      return true;
+
+    // Some standard libraries report one implicit bucket for a freshly
+    // constructed empty map while deferring the actual bucket allocation
+    // until reserve()/first insertion. Explicitly reserve the first element
+    // before insertion so its bucket delta can be charged. Do not repeat this
+    // for a cleared map: that one may retain a much larger allocated array.
+    target = needed;
     return true;
+  }
 
   const std::size_t geometric =
       elementCapacity == 0u

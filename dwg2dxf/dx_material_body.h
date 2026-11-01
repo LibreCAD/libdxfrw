@@ -626,7 +626,9 @@ inline bool reconcile(const DRW_RawDxfObject& baseline,const DRW_RawDxfObject& r
                     // actual value and lexical spelling if its value is unchanged.
                     if(key==1465&&keepStrengthSpelling) {
                         const auto index=physical.find(key)->second.front();changed.push_back(raw.groups[index]);
-                        if(keepSpellings)spellings.push_back(raw.rawValues[index]);continue;
+                        if (keepSpellings)
+                          spellings.push_back(raw.rawValues[index]);
+                        continue;
                     }
                     const auto& fields=typedEdits.count(key)?typedFields:rawFields;
                     const auto& values=typedEdits.count(key)?typedBody:rawBody;

@@ -74,19 +74,40 @@ template<class Input> bool plotSourceProfile(const Input& input,std::vector<dx_t
 }
 
 void dx_iface::observePlotStyleSource(const DRW_TableEntry* model,const DRW_RawDxfObject* raw) noexcept {
-    if(!tableSourceCaptureOpen())return;auto& s=cData->m_tableDxfSource;if(s.plotSourceCaptureFailed)return;
-    using V=dxfRW::DxfPlotStyleSourceView;using Input=dx_data::TableDxfSourceCapture::PlotSourceInput;
-    using Context=dx_data::TableDxfSourceCapture::EntitiesReadContext;
-    V view;dxfRW::DxfReadContext live;
-    if(!s.entitiesReadInput||!s.entitiesReadInput->getDxfPlotStyleSourceView(view)
-        ||(view.kind!=V::Kind::DictionaryWithDefault&&view.kind!=V::Kind::Placeholder))return;
-    const auto fail=[&](){s.plotSourceCaptureFailed=true;};
-    if(!s.entitiesReadInput->getDxfReadContext(live)||live.sourceVersion<DRW::AC1021||live.sourceVersion>DRW::AC1032)return;
-    const bool dictionary=view.kind==V::Kind::DictionaryWithDefault;
-    if(!view.source||!view.source->handle||view.source->m_version!=live.sourceVersion||view.source->hasRawValues==live.binary
-        ||(dictionary?!plotSourceDictionaryName(view.source->name):!asciiIdentifierEquals(view.source->name,"ACDBPLACEHOLDER"))
-        ||view.phase!=(model?V::Phase::Typed:V::Phase::Raw)||(raw&&raw!=view.source)||(model&&model!=view.model)
-        ||(dictionary?(!view.typedAvailable||!view.model||typeid(*view.model)!=typeid(DRW_DictionaryWithDefault)):(model||view.model||view.typedAvailable))) {fail();return;}
+  if (!tableSourceCaptureOpen())
+    return;
+  auto &s = cData->m_tableDxfSource;
+  if (s.plotSourceCaptureFailed)
+    return;
+  using V = dxfRW::DxfPlotStyleSourceView;
+  using Input = dx_data::TableDxfSourceCapture::PlotSourceInput;
+  using Context = dx_data::TableDxfSourceCapture::EntitiesReadContext;
+  V view;
+  dxfRW::DxfReadContext live;
+  if (!s.entitiesReadInput ||
+      !s.entitiesReadInput->getDxfPlotStyleSourceView(view) ||
+      (view.kind != V::Kind::DictionaryWithDefault &&
+       view.kind != V::Kind::Placeholder))
+    return;
+  const auto fail = [&]() { s.plotSourceCaptureFailed = true; };
+  if (!s.entitiesReadInput->getDxfReadContext(live) ||
+      live.sourceVersion < DRW::AC1021 || live.sourceVersion > DRW::AC1032)
+    return;
+  const bool dictionary = view.kind == V::Kind::DictionaryWithDefault;
+  if (!view.source || !view.source->handle ||
+      view.source->m_version != live.sourceVersion ||
+      view.source->hasRawValues == live.binary ||
+      (dictionary
+           ? !plotSourceDictionaryName(view.source->name)
+           : !asciiIdentifierEquals(view.source->name, "ACDBPLACEHOLDER")) ||
+      view.phase != (model ? V::Phase::Typed : V::Phase::Raw) ||
+      (raw && raw != view.source) || (model && model != view.model) ||
+      (dictionary ? (!view.typedAvailable || !view.model ||
+                     typeid(*view.model) != typeid(DRW_DictionaryWithDefault))
+                  : (model || view.model || view.typedAvailable))) {
+    fail();
+    return;
+  }
     try {
         const auto id=view.source->handle;const auto state=std::make_pair(view.originalPendingXdata,view.originalCoordinateMask);
         if(model||!dictionary) {

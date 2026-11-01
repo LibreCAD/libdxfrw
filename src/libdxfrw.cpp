@@ -4749,13 +4749,6 @@ bool dxfRW::preflightDxfWrite() noexcept {
     return true;
 }
 
-bool dxfRW::preflightDxfSetup() noexcept {
-    if (!m_dxfWriteFinalizing && !m_dxfWriteInspecting)
-        return true;
-    m_writeError = true;
-    return false;
-}
-
 bool dxfRW::preflightEntity(const DRW_Entity *ent) {
     if (!preflightDxfWrite() || ent == nullptr) {
         m_writeError = true;

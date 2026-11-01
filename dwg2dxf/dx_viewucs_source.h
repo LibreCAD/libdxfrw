@@ -11,16 +11,37 @@ dx_tableResourceRole viewUcsRole(dx_viewucs_source::Role role) noexcept {
 }
 void dx_iface::addDxfViewUcsSource(const DRW_TableEntry& model,const DRW_RawDxfObject& raw){observeViewUcsSource(&model,&raw);}
 void dx_iface::observeViewUcsSource(const DRW_TableEntry* model,const DRW_RawDxfObject* raw) noexcept {
-    if(!tableSourceCaptureOpen())return;auto& s=cData->m_tableDxfSource;if(s.viewUcsCaptureFailed)return;
-    using V=dxfRW::DxfViewUcsSourceView;using C=dx_data::TableDxfSourceCapture::EntitiesReadContext;using Input=dx_data::TableDxfSourceCapture::ViewUcsInput;
-    V view;dxfRW::DxfReadContext live;if(!s.entitiesReadInput||!s.entitiesReadInput->getDxfViewUcsSourceView(view))return;
-    const auto fail=[&](){s.viewUcsCaptureFailed=true;};
-    if(!s.entitiesReadInput->getDxfReadContext(live)||live.sourceVersion<DRW::AC1021||live.sourceVersion>DRW::AC1032)return;
-    const bool isView=view.kind==V::Kind::View;
-    if(!model||model!=view.model||!view.source||(raw&&raw!=view.source)||view.phase!=(raw?V::Phase::Source:V::Phase::Typed)
-        ||!model->handle||view.source->handle!=model->handle||view.source->parentHandle!=model->parentHandle
-        ||view.source->m_version!=live.sourceVersion||view.source->hasRawValues==live.binary||!asciiIdentifierEquals(view.source->name,isView?"VIEW":"UCS")
-        ||(isView?typeid(*model)!=typeid(DRW_View):typeid(*model)!=typeid(DRW_UCS))){fail();return;}
+  if (!tableSourceCaptureOpen())
+    return;
+  auto &s = cData->m_tableDxfSource;
+  if (s.viewUcsCaptureFailed)
+    return;
+  using V = dxfRW::DxfViewUcsSourceView;
+  using C = dx_data::TableDxfSourceCapture::EntitiesReadContext;
+  using Input = dx_data::TableDxfSourceCapture::ViewUcsInput;
+  V view;
+  dxfRW::DxfReadContext live;
+  if (!s.entitiesReadInput ||
+      !s.entitiesReadInput->getDxfViewUcsSourceView(view))
+    return;
+  const auto fail = [&]() { s.viewUcsCaptureFailed = true; };
+  if (!s.entitiesReadInput->getDxfReadContext(live) ||
+      live.sourceVersion < DRW::AC1021 || live.sourceVersion > DRW::AC1032)
+    return;
+  const bool isView = view.kind == V::Kind::View;
+  if (!model || model != view.model || !view.source ||
+      (raw && raw != view.source) ||
+      view.phase != (raw ? V::Phase::Source : V::Phase::Typed) ||
+      !model->handle || view.source->handle != model->handle ||
+      view.source->parentHandle != model->parentHandle ||
+      view.source->m_version != live.sourceVersion ||
+      view.source->hasRawValues == live.binary ||
+      !asciiIdentifierEquals(view.source->name, isView ? "VIEW" : "UCS") ||
+      (isView ? typeid(*model) != typeid(DRW_View)
+              : typeid(*model) != typeid(DRW_UCS))) {
+    fail();
+    return;
+  }
     const auto state=std::make_pair(view.originalPendingXdata,view.originalCoordinateMask);
     try {
         if(raw){
@@ -88,7 +109,16 @@ void dx_iface::finishViewUcsSources(dx_data& data) noexcept {
 }
 dx_iface::ViewUcsReport dx_iface::viewUcsSourceReport(const dx_data& data) noexcept {
     using A=dx_data::TableDxfSourceCapture::ViewUcsAudit;using S=A::State;ViewUcsReport r;const auto& s=data.m_tableDxfSource;r.records=s.viewUcsRecords;r.bytes=s.viewUcsBytes;r.work=s.viewUcsWork;
-    if(!s.generation||data.sourceFormat!=dx_source_format::DXF)return r;if(!s.closed){r.state=S::Reading;return r;}if(!s.successful){r.state=S::ImportFailed;return r;}
+    if (!s.generation || data.sourceFormat != dx_source_format::DXF)
+      return r;
+    if (!s.closed) {
+      r.state = S::Reading;
+      return r;
+    }
+    if (!s.successful) {
+      r.state = S::ImportFailed;
+      return r;
+    }
     if(s.contextFailed||s.generation!=1u||s.generation!=data.importGeneration||s.reader||s.entitiesReadInput){r.state=S::ContextMismatch;return r;}
     if(s.viewUcsCaptureFailed||!s.viewUcsPending.empty()){r.state=S::CaptureFailed;return r;}
     const auto& a=s.viewUcsAudit;if(!a)return r;const auto same=[](const auto& x,const auto& y){return x.get()==y.get()&&!x.owner_before(y)&&!y.owner_before(x);};
@@ -98,6 +128,12 @@ dx_iface::ViewUcsReport dx_iface::viewUcsSourceReport(const dx_data& data) noexc
     for(const auto& item:a->records){const auto& row=*item.second;const auto& in=*row.input;const auto found=s.viewUcsInputs.find(item.first);
         if(found==s.viewUcsInputs.end()||!same(row.input,found->second)||in.index>=s.viewUcsInputOwners.size()||!same(row.input,s.viewUcsInputOwners[in.index])
             ||in.container!=&data||in.generation!=s.generation||in.containerId!=data.m_entitiesContainerIdentity.value||!in.context||in.context->sourceVersion!=s.version){r.state=S::ContextMismatch;return r;}
-        if(in.paired)++r.paired;if(row.bodyMatched)++r.bodies;if(row.originBound)++r.origins;}
+        if (in.paired)
+          ++r.paired;
+        if (row.bodyMatched)
+          ++r.bodies;
+        if (row.originBound)
+          ++r.origins;
+    }
     r.physical=a->physicalRecords;r.state=a->state;r.originalSourcesMatched=r.state==S::SourcesReady&&r.records&&r.records==r.bodies&&r.records==r.origins;return r;
 }

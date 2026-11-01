@@ -15,7 +15,10 @@ DependencyFamily dependencyPhysicalFamily(std::string_view name) noexcept {
     if(asciiIdentifierEquals(name,"LAYER"))return F::Layer;
     if(asciiIdentifierEquals(name,"APPID"))return F::AppId;
     if(asciiIdentifierEquals(name,"BLOCK_RECORD"))return F::BlockRecord;
-    if(asciiIdentifierEquals(name,"VIEW"))return F::View;if(asciiIdentifierEquals(name,"UCS"))return F::Ucs;
+    if (asciiIdentifierEquals(name, "VIEW"))
+      return F::View;
+    if (asciiIdentifierEquals(name, "UCS"))
+      return F::Ucs;
     return F::Entity;
 }
 bool dependencyNameSpelling(std::string_view a,std::string_view b) noexcept {
@@ -47,9 +50,19 @@ template<class N> const auto& dependencyContext(const N& n) {
     return n.resource?n.resource->input->context:n.structural?n.structural->input->context:n.plot?n.plot->input->context:n.table->source->context;
 }
 template<class N> const DRW_TableEntry* dependencyModel(const N& n) {
-    if(n.resource)return n.resource->input->model.get();if(n.structural)return n.structural->input->model.get();
-    if(n.plot)return n.plot->input->model.get();if(n.layout)return n.layout->input->model.get();if(n.viewUcs)return n.viewUcs->input->model.get();
-    if(n.rendering)return n.rendering->input->typedModel.get();return nullptr;
+  if (n.resource)
+    return n.resource->input->model.get();
+  if (n.structural)
+    return n.structural->input->model.get();
+  if (n.plot)
+    return n.plot->input->model.get();
+  if (n.layout)
+    return n.layout->input->model.get();
+  if (n.viewUcs)
+    return n.viewUcs->input->model.get();
+  if (n.rendering)
+    return n.rendering->input->typedModel.get();
+  return nullptr;
 }
 DependencyRole dependencyLayoutRole(dx_layout_source::Role role) noexcept {
     using L=dx_layout_source::Role;using R=DependencyRole;
@@ -67,7 +80,9 @@ template<class C> bool dependencyNameKey(std::string_view wire,const C& c,std::s
     codec.setDxfTextEncoding(c.textEncoding);codec.setDxfCodePagePolicy(c.codePagePolicy);
     auto name=codec.toUtf8(wire);
     if(codec.lastDecodeObservation().issues||name.empty()||name.find('\0')!=std::string::npos||!dx_symbol_output::nameKey(name,key))return false;
-    if(decoded)*decoded=std::move(name);return true;
+    if (decoded)
+      *decoded = std::move(name);
+    return true;
 }
 DependencyRole dependencyEntityRole(dx_attdef_source::Role role) noexcept {
     using E=dx_attdef_source::Role;using R=DependencyRole;
@@ -107,13 +122,20 @@ template<class N> DependencyDictionaryFlag dependencyDictionaryFlag(const N& n) 
     for(std::size_t i=0u;i<groups.size();++i) {
         const auto& value=groups[i];const int code=value.code();const auto text=dx_attdef_source::text(value);
         if(code==102){if(text=="}"){if(!application)return {};--application;}else ++application;continue;}
-        if(application)continue;if(code==1001)xdata=true;if(xdata)continue;
+        if (application)
+          continue;
+        if (code == 1001)
+          xdata = true;
+        if (xdata)
+          continue;
         if(code==100){if(text=="AcDbDictionary")stage=1u;else if(stage)stage=2u;continue;}
         if(code!=280)continue;
         if(stage!=1u||seen++||value.type()!=DRW_Variant::INTEGER||(value.i_val()!=0&&value.i_val()!=1)||value.i_val()!=model->hardOwner)return {};
         result.known=true;result.hard=value.i_val()==1;result.group=i;
     }
-    if(application)return {};return result;
+    if (application)
+      return {};
+    return result;
 }
 template<class O> bool dependencyEffectiveHardOwner(O ownership) noexcept {
     return ownership==O::PhysicalHard||ownership==O::DictionaryFlagHard;
@@ -281,7 +303,10 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
             for(const auto& v:dependencyGroups(n)) {
                 const auto text=dx_attdef_source::text(v);
                 if(v.code()==102){if(text=="}"){if(!depth){valid=false;break;}--depth;}else ++depth;continue;}
-                if(depth)continue;if(v.code()==1001)xdata=true;
+                if (depth)
+                  continue;
+                if (v.code() == 1001)
+                  xdata = true;
                 if(v.code()==2&&!xdata){++names;emptyNames=emptyNames&&text.empty();valid=valid&&dependencyNameKey(text,*dependencyContext(n),key,&decoded);}
             }
             const auto* style=dynamic_cast<const DRW_Textstyle*>(model);
@@ -434,7 +459,7 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                                     const auto target=a->nodes.find(row.target);const auto* model=target==a->nodes.end()?nullptr:dependencyModel(target->second);
                                     if(!model&&proof->second.layout&&proof->second.layout->input)model=proof->second.layout->input->model.get();
                                     const auto owner=model?model->parentHandle:target!=a->nodes.end()&&target->second.entity?target->second.originalOwner:
-                                        target!=a->nodes.end()&&target->second.plot?target->second.plot->input->raw->parentHandle:DRW::NoHandle;
+                                        target!=a->nodes.end()&&target->second.plot?target->second.plot->input->raw->parentHandle:static_cast<std::uint32_t>(DRW::NoHandle);
                                     if(owner!=n.handle)row.reason=R::WrongOwner;
                                 }
                             }
@@ -454,11 +479,18 @@ void dx_iface::finishDependencies(dx_data& data) noexcept {
                 }
                 const bool resolved=name&&handle&&name->reason==R::Matched&&handle->reason==R::Matched;
                 const bool same=resolved&&name->target&&name->target==handle->target;
-                const auto couple=[&](A::Row* row,const A::Row* other) {
-                    if(!row)return;row->geometryCoupled=true;
-                    if(other){row->coupledGroup=other->group;row->coupledTarget=other->target;}
-                    // Keep an existing missing/wrong-kind/ambiguous refusal.
-                    if(row->reason==R::Matched&&!same)row->reason=resolved?R::CoupledTargetMismatch:R::CoupledTargetUnavailable;
+                const auto couple = [&](A::Row *row, const A::Row *other) {
+                  if (!row)
+                    return;
+                  row->geometryCoupled = true;
+                  if (other) {
+                    row->coupledGroup = other->group;
+                    row->coupledTarget = other->target;
+                  }
+                  // Keep an existing missing/wrong-kind/ambiguous refusal.
+                  if (row->reason == R::Matched && !same)
+                    row->reason = resolved ? R::CoupledTargetMismatch
+                                           : R::CoupledTargetUnavailable;
                 };
                 couple(name,handle);couple(handle,name);
             }
