@@ -35236,6 +35236,108 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
                 find(context->sourceHandleToMintedMap);
             return bindings == 1u && output != 0u;
         };
+        const auto isAseHierarchyIndexCache = [this](
+                const DRW_XRecord& source) {
+            if (cData == nullptr
+                || cData->sourceFormat != dx_source_format::DWG
+                || cData->sourceVersion != DRW::AC1024
+                || !cData->hasNamedObjectDictionary
+                || source.handle == 0u || source.handle == DRW::NoHandle
+                || source.tType != DRW::XRECORD
+                || source.m_cloning != 1
+                || !source.m_values.empty()
+                || source.m_dataEntries.size() != 36u
+                || source.m_handleValues.size() != 36u
+                || source.m_rawDataValid
+                || source.hasDwgRawDataSourceRecord()
+                || !source.hasExactDxfCoordinateTuples()
+                || !source.name.empty() || source.flags != 0
+                || source.xDictHandle != 0u || !source.appData.empty()
+                || !source.extData.empty()
+                || source.reactorHandles.size() != 1u
+                || source.parentHandle == 0u
+                || source.parentHandle == DRW::NoHandle
+                || source.reactorHandles.front() != source.parentHandle
+                || std::find(m_extensionXRecordHandles.begin(),
+                             m_extensionXRecordHandles.end(), source.handle)
+                    == m_extensionXRecordHandles.end())
+                return false;
+
+            const DRW_Dictionary* owner = nullptr;
+            std::size_t ownerCount = 0u;
+            for (const DRW_Dictionary& candidate : cData->dictionaries) {
+                if (candidate.handle != source.parentHandle)
+                    continue;
+                owner = &candidate;
+                ++ownerCount;
+            }
+            if (ownerCount != 1u || owner == nullptr
+                || owner->parentHandle
+                    != cData->namedObjectDictionary.handle
+                || !owner->hasCompleteDwgEntries()
+                || !owner->hasCompleteDxfEntries()
+                || owner->m_entries.size() != 1u
+                || std::find(m_extensionDictionaryHandles.begin(),
+                             m_extensionDictionaryHandles.end(), owner->handle)
+                    == m_extensionDictionaryHandles.end())
+                return false;
+
+            const auto cacheEntry = std::find_if(
+                owner->m_entries.begin(), owner->m_entries.end(),
+                [&source](const DRW_Dictionary::Entry& entry) {
+                    return asciiIdentifierEquals(
+                               entry.m_name,
+                               "ASEBLOCKHIERARCHYINDEXRECORD")
+                        && entry.m_handle == source.handle;
+                });
+            const auto rootEntry = std::find_if(
+                cData->namedObjectDictionary.m_entries.begin(),
+                cData->namedObjectDictionary.m_entries.end(),
+                [owner](const DRW_Dictionary::Entry& entry) {
+                    return asciiIdentifierEquals(
+                               entry.m_name, "ASE_INDEX_DICTIONARY")
+                        && entry.m_handle == owner->handle;
+                });
+            if (cacheEntry == owner->m_entries.end()
+                || std::count_if(owner->m_entries.begin(),
+                    owner->m_entries.end(), [&source](
+                            const DRW_Dictionary::Entry& entry) {
+                        return entry.m_handle == source.handle;
+                    }) != 1
+                || rootEntry
+                    == cData->namedObjectDictionary.m_entries.end()
+                || std::count_if(
+                    cData->namedObjectDictionary.m_entries.begin(),
+                    cData->namedObjectDictionary.m_entries.end(),
+                    [owner](const DRW_Dictionary::Entry& entry) {
+                        return entry.m_handle == owner->handle;
+                    }) != 1)
+                return false;
+
+            std::unordered_set<std::uint32_t> danglingTargets;
+            danglingTargets.reserve(source.m_dataEntries.size());
+            for (std::size_t index = 0u;
+                 index < source.m_dataEntries.size(); ++index) {
+                const DRW_Variant& payload = source.m_dataEntries[index];
+                std::uint64_t target = 0u;
+                const bool payloadCode = payload.code() == 330;
+                const bool payloadHandle =
+                    dx_standard_output::handleValue(payload, target);
+                const bool payloadTarget = target != 0u
+                    && target != DRW::NoHandle
+                    && target <= (std::numeric_limits<std::uint32_t>::max)();
+                const bool compatibilityMatches =
+                    source.m_handleValues[index].first == 330
+                    && source.m_handleValues[index].second == target;
+                const bool uniqueTarget = payloadTarget
+                    && danglingTargets.insert(
+                        static_cast<std::uint32_t>(target)).second;
+                if (!payloadCode || !payloadHandle || !payloadTarget
+                    || !compatibilityMatches || !uniqueTarget)
+                    return false;
+            }
+            return true;
+        };
         std::map<std::uint32_t, const dx_data::StandardDwgObjectFrame*> expected;
         for (const auto& source : cData->m_standardDwgObjectFrames) {
             const auto& frame = source.second;
@@ -35318,7 +35420,77 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
                     outputHandle = dxfW->remapHandle(sourceHandle);
                     return outputHandle != 0u && outputHandle != DRW::NoHandle;
                 };
-                matched = source && dx_standard_output::equal(*source, actual, mapper, proof.references, verifyLayer);
+                if constexpr (std::is_same<Record, DRW_XRecord>::value) {
+                    const auto* cacheSource =
+                        dynamic_cast<const DRW_XRecord*>(source);
+                    if (cacheSource != nullptr
+                        && isAseHierarchyIndexCache(*cacheSource)) {
+                        dx_standard_output::NoLayerReferences noLayers;
+                        const bool common =
+                            dx_standard_output::commonEqual(
+                                *cacheSource, actual,
+                                dx_standard_output::Family::Xrecord,
+                                mapper, proof.references, noLayers);
+                        bool payload = common
+                            && actual.tType == DRW::XRECORD
+                            && actual.m_cloning == cacheSource->m_cloning
+                            && actual.m_values.empty()
+                            && actual.m_dataEntries.size() == 36u
+                            && actual.m_handleValues.size() == 36u
+                            && !actual.m_rawDataValid
+                            && !actual.hasDwgRawDataSourceRecord()
+                            && actual.hasExactDxfCoordinateTuples();
+                        for (std::size_t index = 0u;
+                             payload && index < cacheSource->m_dataEntries.size();
+                             ++index) {
+                            std::uint64_t sourceTarget = 0u;
+                            std::uint64_t emittedTarget = 0u;
+                            const DRW_Variant& sourceValue =
+                                cacheSource->m_dataEntries[index];
+                            const DRW_Variant& emittedValue =
+                                actual.m_dataEntries[index];
+                            const auto& sourceHandle =
+                                cacheSource->m_handleValues[index];
+                            const auto& emittedHandle =
+                                actual.m_handleValues[index];
+                            if (sourceValue.code() != 330
+                                || !dx_standard_output::handleValue(
+                                    sourceValue, sourceTarget)
+                                || sourceHandle.first != 330
+                                || sourceHandle.second != sourceTarget
+                                || emittedValue.code() != 330
+                                || !dx_standard_output::handleValue(
+                                    emittedValue, emittedTarget)
+                                || emittedHandle.first != 330
+                                || emittedHandle.second != emittedTarget
+                                || sourceTarget > (std::numeric_limits<std::uint32_t>::max)()) {
+                                payload = false;
+                                break;
+                            }
+                            const auto expectedTarget = dxfW->remapHandle(
+                                static_cast<std::uint32_t>(sourceTarget));
+                            // These 36 values belong to the witnessed ASE
+                            // hierarchy index cache. Source graph admission
+                            // proved each one dangling; keep them out of
+                            // semantic reference closure and reject any
+                            // accidental alias to an emitted DXF object.
+                            payload = expectedTarget != 0u
+                                && expectedTarget != DRW::NoHandle
+                                && expectedTarget == emittedTarget
+                                && dxfW->dxfWriteRecordHandleCount(
+                                    emittedTarget) == 0u;
+                        }
+                        matched = common && payload;
+                    } else {
+                        matched = source && dx_standard_output::equal(
+                            *source, actual, mapper, proof.references,
+                            verifyLayer);
+                    }
+                } else {
+                    matched = source && dx_standard_output::equal(
+                        *source, actual, mapper, proof.references,
+                        verifyLayer);
+                }
                 proof.owner = actual.parentHandle;
                 proof.extensionDictionary = actual.xDictHandle;
                 proof.identityOnlyDictionary = frame.raw.m_objectType == dwgObjType::DICTIONARY

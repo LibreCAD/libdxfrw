@@ -49,7 +49,7 @@ Implementation history and evidence stay in Git and `docs/research/`.
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
 | P4 | OPEN — source/graph closure | Close source-backed bodies, owner edges and dependencies still missing from existing inputs. | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN — broader rendering/TABLE and dynamic-block work | Close remaining rendering metadata/native rendering profiles; complete source-required dynamic-block object/owner graph output, native semantics and adapter-level DXF-origin typed/raw replay; close FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
+| P5 | OPEN — broader rendering/TABLE and dynamic-block work | Close remaining rendering metadata/native rendering profiles; qualify the current two-root AC1024 dynamic graph with failure controls, fresh readback and native semantics, then close adapter-level DXF-origin typed/raw replay; close FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -58,67 +58,31 @@ Implementation history and evidence stay in Git and `docs/research/`.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next implementation packet — resolve the last strict-output callback and
-close dynamic-graph negative controls.** The strict conversion now serializes
-OBJECTS and passes staged output inspection for both AC1024 dynamic-block roots
-in `architectural_example-imperial.dwg`. The source-edge census is complete in
-[the edge-census receipt](docs/research/p5-ac1024-architectural-dynamic-block-edge-census-2026-10-31.json):
-65/65 dynamic objects have fully decoded bodies and retained source frames;
-the Door - Imperial root `0x110F` has 38 nodes/43 edges and the Window - Imperial
-root `0x1155` has 19 nodes/14 edges. All 57 expression handles and all 26
-action-index-to-object-nodeId links resolve uniquely. The census also binds 75
-action dependencies, 8 action handle references, 11 visibility block handles,
-124 visibility-state block/parameter handles, 2 constraint dependencies, the
-two root SORTENTSTABLE records, the nested ACAD_ASSOCNETWORK dictionary, six
-ACDBASSOCDEPENDENCY records and six BLOCKPARAMDEPENDENCYBODY objects. One
-BLOCKFLIPPARAMETER carries APPID `ACAUTHENVIRON` XDATA and a point; no layer
-XDATA occurs in this input. Focused writer controls pass for the observed
-XRECORD 1070/1071 payload, both witnessed R24 TABLESTYLE prefix values (`0`
-and `8`), and the observed `BLOCKGRIPLOCATIONCOMPONENT` value shapes and grip
-types pass focused ASCII/Binary controls. The `BLOCKVISIBILITYPARAMETER`
-profile at `0x111E` now also emits all 11 flat block handles, five state lists,
-and 21 parameter handles per state; its focused controls pass exact wire,
-fresh readback, wrong-role/out-of-profile refusal, rollback, and retry. The
-staged whole-document proof now checks the two root BLOCK_RECORDs, nested
-dictionaries, all 65 dynamic objects, both EvaluationGraphs, and reachable
-dynamic-block entities. The 14 separate dimension dependency/body pairs and
-their constraint group also pass physical staged-output proof. Exact staged
-output proof now also covers the three dynamic-graph constraint groups and six
-dependencies, including field snapshots, output identities, owner/dependency
-roles and translated references. Strict output qualification has advanced to
-489/490; only source frame `0x4229` (type 79) remains. These results establish
-serializer and staged-record identity/field transport only; native dynamic
-meaning, fresh whole-document readback, and support claims remain unqualified.
-See [the dynamic writer progress receipt](docs/research/p5-ac1024-architectural-dynamic-writer-progress-2026-10-31.json).
+**Next implementation packet — dynamic-graph failure controls and readback.**
+Strict output for the AC1024 architectural source now passes all 490 captured
+opaque callback identities, including the bounded ASE hierarchy-index XRECORD
+profile. Its source, exact staged fields, output identities, build and strict
+conversion evidence are recorded in the [ASE output-proof receipt](docs/research/p5-ac1024-ase-hierarchy-index-output-proof-2026-10-31.json).
+The completed source census and prior writer/staged-output proofs remain in
+the [edge-census receipt](docs/research/p5-ac1024-architectural-dynamic-block-edge-census-2026-10-31.json)
+and [dynamic-writer progress receipt](docs/research/p5-ac1024-architectural-dynamic-writer-progress-2026-10-31.json).
+These results prove output transport and callback closure only; whole-document
+readback, native dynamic meaning and support claims remain unqualified.
 
 Remaining implementation order, using the current object/graph models and
 retained source frames rather than adding another graph engine:
 
-1. **Resolve the remaining standard source frame** at handle `0x4229`, object
-   type 79. The strict finalizer reports it as `standard-payload=1/0`; trace its
-   captured source frame and determine whether an exact bounded typed/raw
-   output proof exists. Implement only that source-backed profile, or retain
-   strict refusal if any bytes or reference roles cannot be proved.
-2. **Add document-level failure controls** for the now-emitted two-root graph:
+1. **Add document-level failure controls** for the now-emitted two-root graph:
    remove a required edge, substitute a wrong owner/role, and mutate the source
    after staging. Each case must refuse publication and preserve the complete
    destination; a corrected retry must succeed. Add fresh ASCII/Binary
    whole-document readback using generated in-memory inputs, without adding
    drawing fixtures. Include explicit controls for the three constraint groups
    and six dynamic dependencies proved in this slice.
-3. **Repeat strict conversion after each source profile closes.** The latest
-   run passes serialization and staged OBJECTS proofs, then fails finalization
-   at 489/490 opaque callbacks qualified because of `0x4229`. Continue until the
-   strict conversion completes, then perform the independent native
-   dynamic-block semantic check. Keep the support ledger closed until that
-   consumer gate passes.
-
-Both source graph frames were captured as AC1024 `AcDbEvalGraph`, observed oType
-517; keep the separate Title_Block-ARCH oType 511 observation profile-specific.
-Source census, reference/role preflight, source BLOCK_RECORD identity binding,
-staged field/output proof, and staged owner/reference proof now pass in the
-current strict run. Fresh whole-document readback and native semantics have not
-passed.
+2. **Qualify native dynamic-block meaning** after fresh output readback passes.
+   Use an independent consumer to verify both roots, evaluated visibility and
+   parameter/action behavior, and representative reachable geometry. Keep the
+   support ledger closed until this consumer gate passes.
 
 The sweep also reproduced separate unresolved gates: AC1021 proxy-graphics
 refusal and AC1018 `ET-Drawing-with-Border.dwg` with 23 opaque callbacks but no
