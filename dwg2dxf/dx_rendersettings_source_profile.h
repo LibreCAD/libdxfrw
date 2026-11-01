@@ -16,7 +16,13 @@ struct Audit {
     bool complete()const noexcept{return reason==Reason::Matched;}
 };
 inline bool codes(const DRW_RawDxfObject& raw,const std::vector<std::size_t>& fields,std::initializer_list<int> expected) noexcept {
-    if(fields.size()!=expected.size())return false;auto at=fields.begin();for(int code:expected)if(raw.groups[*at++].code()!=code)return false;return true;
+  if (fields.size() != expected.size())
+    return false;
+  auto at = fields.begin();
+  for (int code : expected)
+    if (raw.groups[*at++].code() != code)
+      return false;
+  return true;
 }
 inline Audit audit(const DRW_RawDxfObject& raw) {
     Audit a;const auto reject=[&](Reason why,std::size_t at){a.reason=why;a.rejected=at;a.spans.clear();return std::move(a);};

@@ -54,7 +54,11 @@ public:
     // Internal-only groundwork; opting in captures decoded physical scalars,
     // not source bytes, graph completeness or write/semantic eligibility.
     bool enableWholeDxfSourceObservation(bool enabled=true) noexcept {
-        if(m_tableSourceReadData)return false;m_wholeEnabled=enabled;return true;
+        if (m_tableSourceReadData) {
+            return false;
+        }
+        m_wholeEnabled = enabled;
+        return true;
     }
     bool wantsWholeSource() const noexcept override;
     WholeSourceV2::Limits wholeSourceLimits() const noexcept override;

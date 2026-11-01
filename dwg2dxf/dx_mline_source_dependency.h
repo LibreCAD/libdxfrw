@@ -23,16 +23,35 @@ inline bool simpleName(std::string_view s) {
     return true;
 }
 inline bool nameEq(std::string_view a,std::string_view b) {
-    if(a.size()!=b.size())return false;for(std::size_t i=0;i<a.size();++i) {
-        auto up=[](char c){return c>='a'&&c<='z'?static_cast<char>(c-'a'+'A'):c;};if(up(a[i])!=up(b[i]))return false;
-    }return true;
+  if (a.size() != b.size())
+    return false;
+  for (std::size_t i = 0; i < a.size(); ++i) {
+    auto up = [](char c) {
+      return c >= 'a' && c <= 'z' ? static_cast<char>(c - 'a' + 'A') : c;
+    };
+    if (up(a[i]) != up(b[i]))
+      return false;
+  }
+  return true;
 }
 inline bool handle(std::string_view s,std::uint32_t& value,bool allowZero=false) {
-    if(s.empty()||s.size()>8u)return false;std::uint32_t x=0u;
-    for(unsigned char c:s){unsigned n;if(c>='0'&&c<='9')n=c-'0';else if(c>='A'&&c<='F')n=c-'A'+10u;
-        else if(c>='a'&&c<='f')n=c-'a'+10u;else return false;
-        if(x>((std::numeric_limits<std::uint32_t>::max)()-n)/16u)return false;x=x*16u+n;
-    }value=x;return x==0u?allowZero:x!=DRW::NoHandle;
+  if (s.empty() || s.size() > 8u)
+    return false;
+  std::uint32_t x = 0u;
+  for (unsigned char c : s) {
+    unsigned n;
+    if (c >= '0' && c <= '9')
+      n = c - '0';
+    else if (c >= 'A' && c <= 'F')
+      n = c - 'A' + 10u;
+    else if (c >= 'a' && c <= 'f')
+      n = c - 'a' + 10u;
+    else
+      return false;
+    if (x > ((std::numeric_limits<std::uint32_t>::max)() - n) / 16u)
+      return false;
+    x = x * 16u + n;
+  }value=x;return x==0u?allowZero:x!=DRW::NoHandle;
 }
 struct Cursor {
     const Source& src;std::size_t pos=0u;bool ok=true;
@@ -97,7 +116,9 @@ inline Proof classify(const Source* source,std::uint32_t authenticatedRoot,std::
             if(type=="LINE") {
                 c.marker("LINE");auto* n=add(Type::Line);if(!n||!commonEntity(*n,owner))return false;n->entities=entities;
                 n->name=c.text(8);if(!simpleName(n->name)||!c.literal(100,"AcDbLine"))return false;
-                for(int code:{10,20,30,11,21,31})(void)c.real(code);return c.ok;
+                for (int code : {10, 20, 30, 11, 21, 31})
+                  (void)c.real(code);
+                return c.ok;
             }
             return false;
         };
@@ -109,7 +130,10 @@ inline Proof classify(const Source* source,std::uint32_t authenticatedRoot,std::
             c.marker("TABLE");const auto name=c.text(2);auto* table=add(Type::Table);if(!table||!simpleName(name))return p;
             table->name=name;table->self=c.h(5);if(!c.literal(100,"AcDbSymbolTable"))return p;
             const int maximum=c.integer(70);if(maximum<0||maximum>2048||tableCount>=tables.size())return p;
-            for(std::size_t j=0;j<tableCount;++j)if(nameEq(tables[j],name))return p;tables[tableCount++]=name;
+            for (std::size_t j = 0; j < tableCount; ++j)
+              if (nameEq(tables[j], name))
+                return p;
+            tables[tableCount++] = name;
             std::size_t count=0;
             while(c.ok&&markerName()!="ENDTAB") {
                 const auto kind=markerName();Type t;
@@ -119,9 +143,21 @@ inline Proof classify(const Source* source,std::uint32_t authenticatedRoot,std::
                 c.marker(kind);auto* n=add(t);if(!n)return p;n->self=c.h(5);n->owner=c.h(330);
                 if(n->owner!=table->self||!c.literal(100,"AcDbSymbolTableRecord"))return p;
                 if(t==Type::Ltype){if(!c.literal(100,"AcDbLinetypeTableRecord"))return p;n->name=c.text(2);
-                    if(c.integer(70)!=0)return p;(void)c.text(3);if(c.integer(72)!=65||c.integer(73)!=0||c.real(40)!=0.)return p;}
+                  if (c.integer(70) != 0)
+                    return p;
+                  (void)c.text(3);
+                  if (c.integer(72) != 65 || c.integer(73) != 0 ||
+                      c.real(40) != 0.)
+                    return p;
+                }
                 if(t==Type::Layer){if(!c.literal(100,"AcDbLayerTableRecord"))return p;n->name=c.text(2);
-                    if(c.integer(70)!=0)return p;const auto color=c.integer(62);n->ref1=c.text(6);if(color<1||color>255||!simpleName(n->ref1))return p;}
+                  if (c.integer(70) != 0)
+                    return p;
+                  const auto color = c.integer(62);
+                  n->ref1 = c.text(6);
+                  if (color < 1 || color > 255 || !simpleName(n->ref1))
+                    return p;
+                }
                 if(t==Type::BlockRecord){if(!c.literal(100,"AcDbBlockTableRecord"))return p;n->name=c.text(2);if(c.integer(70)!=0)return p;}
                 if(!simpleName(n->name)||!c.ok||++count>static_cast<std::size_t>(maximum))return p;
             }
@@ -133,9 +169,16 @@ inline Proof classify(const Source* source,std::uint32_t authenticatedRoot,std::
             c.marker("BLOCK");auto* block=add(Type::Block);if(!block||!commonEntity(*block,0u))return p;
             block->ref1=c.text(8);if(!simpleName(block->ref1)||!c.literal(100,"AcDbBlockBegin"))return p;
             block->name=c.text(2);if(!simpleName(block->name)||c.integer(70)!=0)return p;
-            for(int code:{10,20,30})(void)c.real(code);if(c.text(3)!=block->name||!c.text(1).empty())return p;
+            for (int code : {10, 20, 30})
+              (void)c.real(code);
+            if (c.text(3) != block->name || !c.text(1).empty())
+              return p;
             while(c.ok&&markerName()!="ENDBLK")if(!readEntity(block->owner,false))return p;
-            if(!c.marker("ENDBLK"))return p;auto* footer=add(Type::EndBlock);if(!footer||!commonEntity(*footer,block->owner))return p;
+            if (!c.marker("ENDBLK"))
+              return p;
+            auto *footer = add(Type::EndBlock);
+            if (!footer || !commonEntity(*footer, block->owner))
+              return p;
             footer->name=c.text(8);if(!simpleName(footer->name)||!c.literal(100,"AcDbBlockEnd"))return p;
         }
         if(!c.marker("ENDSEC")||!c.marker("SECTION")||!c.literal(2,"ENTITIES"))return p;
@@ -145,13 +188,23 @@ inline Proof classify(const Source* source,std::uint32_t authenticatedRoot,std::
             const auto type=markerName();
             if(type=="DICTIONARY") {
                 c.marker("DICTIONARY");auto* n=add(Type::Dict);if(!n)return p;n->self=c.h(5);n->owner=c.h(330,true);
-                if(!c.literal(100,"AcDbDictionary"))return p;const auto hard=c.integer(280),mode=c.integer(281);
+                if (!c.literal(100, "AcDbDictionary"))
+                  return p;
+                const auto hard = c.integer(280), mode = c.integer(281);
                 if(hard!=0||mode<0||mode>5)return p;
                 while(c.ok&&c.peek().code==3){if(n->entries>=n->keys.size())return p;n->keys[n->entries]=c.text(3);
-                    if(!simpleName(n->keys[n->entries]))return p;n->targets[n->entries]=c.h(350);++n->entries;}
+                  if (!simpleName(n->keys[n->entries]))
+                    return p;
+                  n->targets[n->entries] = c.h(350);
+                  ++n->entries;
+                }
             }else if(type=="MLINESTYLE") {
                 c.marker("MLINESTYLE");auto* n=add(Type::Style);if(!n)return p;n->self=c.h(5);
-                if(!c.literal(102,"{ACAD_REACTORS"))return p;const auto reactor=c.h(330);if(!c.literal(102,"}"))return p;
+                if (!c.literal(102, "{ACAD_REACTORS"))
+                  return p;
+                const auto reactor = c.h(330);
+                if (!c.literal(102, "}"))
+                  return p;
                 n->owner=c.h(330);if(reactor!=n->owner||!c.literal(100,"AcDbMlineStyle"))return p;
                 n->name=c.text(2);const auto flags=c.integer(70);auto description=c.text(3);const auto fill=c.integer(62);
                 // Recognize only documented MLINESTYLE flag bits. This
@@ -166,7 +219,11 @@ inline Proof classify(const Source* source,std::uint32_t authenticatedRoot,std::
                 if(color1<0||color1>256||color2<0||color2>256||!simpleName(n->ref1)||!simpleName(n->ref2))return p;
             }else return p;
         }
-        if(!c.marker("ENDSEC")||!c.marker("EOF"))return p;c.skip();if(!c.ok||c.pos!=source->fieldCount())return p;
+        if (!c.marker("ENDSEC") || !c.marker("EOF"))
+          return p;
+        c.skip();
+        if (!c.ok || c.pos != source->fieldCount())
+          return p;
         p.records=used;
         for(std::size_t i=0;i<used;++i)for(std::size_t j=i+1;j<used;++j) {
             if(nodes[i].self==nodes[j].self)return p;

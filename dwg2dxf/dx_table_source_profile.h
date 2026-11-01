@@ -34,22 +34,40 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
         if(!dx_compound_source::scalarType(v))return reject(Reason::InvalidValue,i);
         Field field=Field::Common;Role role=Role::None;std::uint64_t handle=0u;
         if(code==102) {
-            if(xdata||inValue)return reject(Reason::Application,i);field=Field::Application;
-            if(s=="}"){if(!depth)return reject(Reason::Application,i);--depth;}
-            else if(s.size()>1u&&s.front()=='{'&&depth<applications.size()) {
-                if(depth&&(applications[0]=="{ACAD_REACTORS"||applications[0]=="{ACAD_XDICTIONARY"))return reject(Reason::Application,i);
-                if(!depth&&(s=="{ACAD_REACTORS"||s=="{ACAD_XDICTIONARY")) {
-                    const unsigned bit=s=="{ACAD_REACTORS"?1u:2u;if(reserved&bit)return reject(Reason::DuplicateField,i);reserved|=bit;
-                }
-                applications[depth++]=s;
-            }else return reject(Reason::Application,i);
+          if (xdata || inValue)
+            return reject(Reason::Application, i);
+          field = Field::Application;
+          if (s == "}") {
+            if (!depth)
+              return reject(Reason::Application, i);
+            --depth;
+          } else if (s.size() > 1u && s.front() == '{' &&
+                     depth < applications.size()) {
+            if (depth && (applications[0] == "{ACAD_REACTORS" ||
+                          applications[0] == "{ACAD_XDICTIONARY"))
+              return reject(Reason::Application, i);
+            if (!depth && (s == "{ACAD_REACTORS" || s == "{ACAD_XDICTIONARY")) {
+              const unsigned bit = s == "{ACAD_REACTORS" ? 1u : 2u;
+              if (reserved & bit)
+                return reject(Reason::DuplicateField, i);
+              reserved |= bit;
+            }
+            applications[depth++] = s;
+          } else
+            return reject(Reason::Application, i);
         }else if(depth) {
             field=Field::Application;
             if(handleCode(code)){if(!hexHandle(v,handle))return reject(Reason::InvalidValue,i);role=Role::OpaqueHandle;}
             if(applications[0]=="{ACAD_REACTORS") {
-                if(depth!=1u||code!=330||handle>UINT32_MAX)return reject(Reason::Application,i);role=Role::Reactor;
+              if (depth != 1u || code != 330 || handle > UINT32_MAX)
+                return reject(Reason::Application, i);
+              role = Role::Reactor;
             }else if(applications[0]=="{ACAD_XDICTIONARY") {
-                if(depth!=1u||code!=360||common[360]||handle>UINT32_MAX)return reject(Reason::Application,i);common[360]=true;role=Role::ExtensionDictionary;
+              if (depth != 1u || code != 360 || common[360] ||
+                  handle > UINT32_MAX)
+                return reject(Reason::Application, i);
+              common[360] = true;
+              role = Role::ExtensionDictionary;
             }
         }else if(code>=1000) {
             field=Field::Xdata;if(stage!=3||inValue||!finishCell())return reject(Reason::Xdata,i);
@@ -84,7 +102,9 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
                 bool body=false;
                 if(stage==2) {
                     field=Field::Block;body=true;
-                    if(block[code])return reject(Reason::DuplicateField,i);block[code]=true;
+                    if (block[code])
+                      return reject(Reason::DuplicateField, i);
+                    block[code] = true;
                     switch(code) {
                     case 2:if(!name(v))return reject(Reason::InvalidValue,i);role=Role::BlockName;break;
                     case 10:case 20:case 30:case 41:case 42:case 43:case 50:case 210:case 220:case 230:break;
@@ -106,7 +126,9 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
                             if(cell[90])return reject(Reason::DuplicateField,i);
                             // Legacy envelopes have only the string profile;
                             // a typed declaration requires the structured form.
-                            if(!integer(v,4,4))return reject(Reason::UnmodeledSecondary,i);cell[90]=true;
+                            if (!integer(v, 4, 4))
+                              return reject(Reason::UnmodeledSecondary, i);
+                            cell[90] = true;
                         }
                         else return reject(Reason::UnmodeledSecondary,i);
                     }else if(code==171) {
@@ -117,7 +139,10 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
                         field=Field::Table;if(!integer(v,0,65535))return reject(Reason::InvalidValue,i);table[280]=true;
                     }else if(code==70||code==40||code==41||code==280||code==281) {
                         field=Field::TableOverride;
-                        if(inValue||!finishCell()||properties[code])return reject(Reason::DuplicateField,i);properties[code]=true;overrides=true;
+                        if (inValue || !finishCell() || properties[code])
+                          return reject(Reason::DuplicateField, i);
+                        properties[code] = true;
+                        overrides = true;
                         if((code==280||code==281)&&!integer(v,0,1))return reject(Reason::InvalidValue,i);
                         if(code==70&&!integer(v,0,1))return reject(Reason::InvalidValue,i);
                     }else if(overrides&&(code==7||code==140||code==170||code==63||code==64||code==65||code==66||code==68||code==69
@@ -133,8 +158,13 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
                         if((code==141?++rowHeights:++columnWidths)>static_cast<std::size_t>(code==141?rows:columns))return reject(Reason::DuplicateField,i);
                     }else if(code==342||code==343||code==11||code==21||code==31||code==90||code==93||code==94||code==95||code==96) {
                         field=Field::Table;
-                        if(table[code]||overrides)return reject(Reason::DuplicateField,i);table[code]=true;
-                        if(code==342)role=Role::TableStyle;if(code==343)role=Role::TableGeometryBlock;
+                        if (table[code] || overrides)
+                          return reject(Reason::DuplicateField, i);
+                        table[code] = true;
+                        if (code == 342)
+                          role = Role::TableStyle;
+                        if (code == 343)
+                          role = Role::TableGeometryBlock;
                         if((code>=90&&code<=96)&&!integer(v,0,INT32_MAX))return reject(Reason::InvalidValue,i);
                     }else if(cells&&!overrides) {
                         if(code==2||code==303){if(type!=1||cell[1]||valueClosed)return reject(Reason::InvalidValue,i);cellText=true;}
@@ -146,24 +176,81 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
                             if(code==331){if(attributeText||readAttributes>=attributes)return reject(Reason::InvalidValue,i);attributeText=true;++readAttributes;role=Role::TableCellAttributeDefinition;}
                             else {if(!attributeText)return reject(Reason::InvalidValue,i);attributeText=false;}
                         }else {
-                            if(cell[code])return reject(Reason::DuplicateField,i);cell[code]=true;
-                            switch(code) {
-                            case 340:if(type!=2)return reject(Reason::InvalidValue,i);role=Role::TableCellBlock;break;
-                            case 344:if(type!=1)return reject(Reason::InvalidValue,i);role=Role::TableCellField;break;
-                            case 179:if(type!=2||!cell[340]||!integer(v,0,32767))return reject(Reason::InvalidValue,i);attributes=v.i_val();break;
-                            case 7:if(!name(v))return reject(Reason::InvalidValue,i);role=Role::TextStyleName;break;
-                            case 173:case 174:case 283:case 289:case 285:case 286:case 288:if(!integer(v,0,1))return reject(Reason::InvalidValue,i);break;
-                            case 172:case 175:case 176:case 177:case 178:case 91:case 92:case 170:if(!integer(v,0,INT32_MAX))return reject(Reason::InvalidValue,i);break;
-                            case 144:if(type!=2)return reject(Reason::InvalidValue,i);break;
-                            case 145:case 140:case 63:case 64:case 69:case 65:case 66:case 68:case 279:case 275:case 276:case 278:break;
-                            default:body=false;break;
-                            }
+                          if (cell[code])
+                            return reject(Reason::DuplicateField, i);
+                          cell[code] = true;
+                          switch (code) {
+                          case 340:
+                            if (type != 2)
+                              return reject(Reason::InvalidValue, i);
+                            role = Role::TableCellBlock;
+                            break;
+                          case 344:
+                            if (type != 1)
+                              return reject(Reason::InvalidValue, i);
+                            role = Role::TableCellField;
+                            break;
+                          case 179:
+                            if (type != 2 || !cell[340] ||
+                                !integer(v, 0, 32767))
+                              return reject(Reason::InvalidValue, i);
+                            attributes = v.i_val();
+                            break;
+                          case 7:
+                            if (!name(v))
+                              return reject(Reason::InvalidValue, i);
+                            role = Role::TextStyleName;
+                            break;
+                          case 173:
+                          case 174:
+                          case 283:
+                          case 289:
+                          case 285:
+                          case 286:
+                          case 288:
+                            if (!integer(v, 0, 1))
+                              return reject(Reason::InvalidValue, i);
+                            break;
+                          case 172:
+                          case 175:
+                          case 176:
+                          case 177:
+                          case 178:
+                          case 91:
+                          case 92:
+                          case 170:
+                            if (!integer(v, 0, INT32_MAX))
+                              return reject(Reason::InvalidValue, i);
+                            break;
+                          case 144:
+                            if (type != 2)
+                              return reject(Reason::InvalidValue, i);
+                            break;
+                          case 145:
+                          case 140:
+                          case 63:
+                          case 64:
+                          case 69:
+                          case 65:
+                          case 66:
+                          case 68:
+                          case 279:
+                          case 275:
+                          case 276:
+                          case 278:
+                            break;
+                          default:
+                            body = false;
+                            break;
+                          }
                         }
                     }else body=false;
                 }
                 if(!body) {
                     field=Field::Common;
-                    if(common[code]&&code!=310)return reject(Reason::DuplicateField,i);common[code]=true;
+                    if (common[code] && code != 310)
+                      return reject(Reason::DuplicateField, i);
+                    common[code] = true;
                     switch(code) {
                     case 8:if(!name(v))return reject(Reason::InvalidValue,i);role=Role::LayerName;break;
                     case 6:if(!name(v))return reject(Reason::InvalidValue,i);role=Role::LineTypeName;break;
@@ -177,8 +264,13 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
                         if(stage!=1||(code==92)!=(raw.m_version==DRW::AC1021)||proxy!=-1)return reject(Reason::ProxyGraphics,i);
                         proxy=code==92?v.i_val():v.i64_val();if(proxy<0||static_cast<std::uint64_t>(proxy)>DRW::kMaxDxfBinaryPayloadBytes)return reject(Reason::ProxyGraphics,i);break;
                     case 310:
-                        if(stage!=1||proxy<0||!hexBytes(s)||s.size()>254u)return reject(Reason::ProxyGraphics,i);proxyBytes+=s.size()/2u;
-                        if(proxyBytes>static_cast<std::uint64_t>(proxy))return reject(Reason::ProxyGraphics,i);break;
+                      if (stage != 1 || proxy < 0 || !hexBytes(s) ||
+                          s.size() > 254u)
+                        return reject(Reason::ProxyGraphics, i);
+                      proxyBytes += s.size() / 2u;
+                      if (proxyBytes > static_cast<std::uint64_t>(proxy))
+                        return reject(Reason::ProxyGraphics, i);
+                      break;
                     default:return reject(Reason::UnknownField,i);
                     }
                 }
@@ -188,7 +280,12 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
         out.spans.push_back({i,code,Scope::Host,field,role,handle});
     }
     const auto end=raw.groups.size();
-    if(depth)return reject(Reason::Application,end);if(xdepth||inValue)return reject(Reason::Xdata,end);if(point)return reject(Reason::IncompletePoint,end);
+    if (depth)
+      return reject(Reason::Application, end);
+    if (xdepth || inValue)
+      return reject(Reason::Xdata, end);
+    if (point)
+      return reject(Reason::IncompletePoint, end);
     if(stage!=3||!common[5]||!common[330]||!common[8]||!block[2]||!pair(block,10,true)||!pair(block,210,false)||!pair(table,11,false))return reject(Reason::Identity,end);
     if(proxy>=0&&proxyBytes!=static_cast<std::uint64_t>(proxy))return reject(Reason::ProxyGraphics,end);
     if(rows>=0||columns>=0||cells) {

@@ -44,15 +44,49 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool view) {
                 if(code==71){if((option&&optionMask!=7u)||!integer(value,1,6)||++options>DRW_UCS::kMaxOrthographicOptions)return reject(i);option=true;optionMask=0u;}
                 else {const auto bit=code==13?1u:code==23?2u:4u;if(!option||(optionMask&bit))return reject(i);optionMask|=bit;}
             }else {
-                if(code<0||code>=1072||seen[code])return reject(i);seen[code]=true;
-                if(code==5||code==330){if(stage>1||!dx_attdef_source::hexHandle(value,target)||target>UINT32_MAX||target!=(code==5?raw.handle:raw.parentHandle))return reject(i);role=code==5?Role::Self:Role::Owner;}
-                else if(code==2){if(!stage||!dx_attdef_source::name(value))return reject(i);role=Role::Name;}
-                else if(code==70){if(!stage||!integer(value,0,32767)||(value.i_val()&~(view?0x71:0x70)))return reject(i);}
-                else if(stage!=2)return reject(i);
-                else if(!view){switch(code){
-                    case 10:case 20:case 30:case 11:case 21:case 31:case 12:case 22:case 32:case 146:break;
-                    case 79:if(!integer(value,0,6))return reject(i);ortho=value.i_val();break;
-                    case 346:role=Role::BaseUcs;break;default:return reject(i);}}
+              if (code < 0 || code >= 1072 || seen[code])
+                return reject(i);
+              seen[code] = true;
+              if (code == 5 || code == 330) {
+                if (stage > 1 || !dx_attdef_source::hexHandle(value, target) ||
+                    target > UINT32_MAX ||
+                    target != (code == 5 ? raw.handle : raw.parentHandle))
+                  return reject(i);
+                role = code == 5 ? Role::Self : Role::Owner;
+              } else if (code == 2) {
+                if (!stage || !dx_attdef_source::name(value))
+                  return reject(i);
+                role = Role::Name;
+              } else if (code == 70) {
+                if (!stage || !integer(value, 0, 32767) ||
+                    (value.i_val() & ~(view ? 0x71 : 0x70)))
+                  return reject(i);
+              } else if (stage != 2)
+                return reject(i);
+              else if (!view) {
+                switch (code) {
+                case 10:
+                case 20:
+                case 30:
+                case 11:
+                case 21:
+                case 31:
+                case 12:
+                case 22:
+                case 32:
+                case 146:
+                  break;
+                case 79:
+                  if (!integer(value, 0, 6))
+                    return reject(i);
+                  ortho = value.i_val();
+                  break;
+                case 346:
+                  role = Role::BaseUcs;
+                  break;
+                default:
+                  return reject(i);
+                }}
                 else {switch(code){
                     case 10:case 20:case 11:case 21:case 31:case 12:case 22:case 32:case 40:case 41:case 42:case 43:case 44:case 50:
                     case 110:case 120:case 130:case 111:case 121:case 131:case 112:case 122:case 132:case 146:break;
@@ -74,7 +108,11 @@ inline Audit audit(const DRW_RawDxfObject& raw,bool view) {
     if(!seen[10]||!seen[20]||!triple(11)||!triple(12)||(!view&&!seen[30]))return reject(end);
     if(view){if(!seen[40]||!seen[41])return reject(end);
         bool ucs=false;for(int code:{110,120,130,111,121,131,112,122,132,79,146,345,346})ucs=ucs||seen[code];
-        if(ucs&&hasUcs!=1)return reject(end);if(hasUcs==1&&(!triple(110)||!triple(111)||!triple(112)||!seen[79]||!seen[146]))return reject(end);
+        if (ucs && hasUcs != 1)
+          return reject(end);
+        if (hasUcs == 1 && (!triple(110) || !triple(111) || !triple(112) ||
+                            !seen[79] || !seen[146]))
+          return reject(end);
     }
     if(seen[346]&&(ortho<=0))return reject(end);
     a.complete=true;a.rejected=end;return a;

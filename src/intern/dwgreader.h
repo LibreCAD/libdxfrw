@@ -211,9 +211,10 @@ bool findPolylineDeclaredChildSlot(const Index &sortedIndex,
 }
 
 // Charge an explicit, allocator-independent model for red-black tree nodes.
-// Four pointer widths cover the parent/child links plus conservative node
-// linkage overhead; allocator metadata is not represented by this ceiling.
-constexpr std::size_t PolylineTreeNodeLinkChargeBytes = 4u * sizeof(void *);
+// Five pointer widths cover the parent/child links plus conservative node
+// linkage/alignment overhead across the supported standard libraries;
+// allocator metadata is not represented by this ceiling.
+constexpr std::size_t PolylineTreeNodeLinkChargeBytes = 5u * sizeof(void *);
 constexpr std::size_t PolylineClaimOwnerNodeChargeBytes =
     sizeof(std::uint32_t) + PolylineTreeNodeLinkChargeBytes;
 constexpr std::size_t PolylineClaimHandleNodeChargeBytes =

@@ -37,17 +37,23 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
                 if(depth&&(applications[0]=="{ACAD_REACTORS"||applications[0]=="{ACAD_XDICTIONARY"))return reject(Reason::Application,i);
                 if(!depth&&(text=="{ACAD_REACTORS"||text=="{ACAD_XDICTIONARY")) {
                     const unsigned bit=text=="{ACAD_REACTORS"?1u:2u;
-                    if(reserved&bit)return reject(Reason::DuplicateField,i);reserved|=bit;
+                    if (reserved & bit)
+                      return reject(Reason::DuplicateField, i);
+                    reserved |= bit;
                 }
                 applications[depth++]=text;
             }else return reject(Reason::Application,i);
         }else if(depth) {
             scope=Scope::Application;
             if(dx_attdef_source::handleCode(code)) {
-                if(!dx_attdef_source::hexHandle(v,handle))return reject(Reason::InvalidValue,i);role=Role::OpaqueHandle;
+              if (!dx_attdef_source::hexHandle(v, handle))
+                return reject(Reason::InvalidValue, i);
+              role = Role::OpaqueHandle;
             }
             if(applications[0]=="{ACAD_REACTORS") {
-                if(depth!=1u||code!=330||handle>UINT32_MAX)return reject(Reason::Application,i);role=Role::Reactor;
+              if (depth != 1u || code != 330 || handle > UINT32_MAX)
+                return reject(Reason::Application, i);
+              role = Role::Reactor;
             }else if(applications[0]=="{ACAD_XDICTIONARY") {
                 if(depth!=1u||code!=360||seen[0][360]||handle>UINT32_MAX)return reject(Reason::Application,i);
                 seen[0][360]=true;role=Role::ExtensionDictionary;
@@ -78,7 +84,9 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
             }else {
                 if(code<0||code>=1072)return reject(Reason::UnknownField,i);
                 auto& fields=seen[static_cast<unsigned>(stage)];
-                if(fields[code])return reject(Reason::DuplicateField,i);fields[code]=true;
+                if (fields[code])
+                  return reject(Reason::DuplicateField, i);
+                fields[code] = true;
                 if(stage==Scope::Header) {
                     if(code!=5&&code!=330)return reject(Reason::UnknownField,i);
                     if(!dx_attdef_source::hexHandle(v,handle)||handle>UINT32_MAX||handle!=(code==5?raw.handle:raw.parentHandle))return reject(Reason::Identity,i);
@@ -122,7 +130,10 @@ inline Audit audit(const DRW_RawDxfObject& raw) {
         out.spans.push_back({i,code,scope,role,handle});
     }
     const auto end=raw.groups.size();
-    if(depth)return reject(Reason::Application,end);if(point||xdepth)return reject(Reason::Xdata,end);
+    if (depth)
+      return reject(Reason::Application, end);
+    if (point || xdepth)
+      return reject(Reason::Xdata, end);
     if(stage!=Scope::Layout||!seen[0][5]||!seen[0][330]||!seen[2][1]||!seen[2][330])return reject(Reason::Identity,end);
     out.reason=Reason::Complete;out.rejectedGroup=end;return out;
 }

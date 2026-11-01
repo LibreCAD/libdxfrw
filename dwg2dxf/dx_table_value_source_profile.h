@@ -33,12 +33,31 @@ struct ValueProfile {
             flags=v.i_val();phase=1u;return true;
         }
         if(phase==1u) {
-            if(code!=90||v.type()!=DRW_Variant::INTEGER)return false;type=v.i_val();
-            switch(type){case 0:if(!(flags&1))return false;break;
-            case 1:case 2:case 4:case 8:case 16:case 32:case 64:break;default:return false;}
+          if (code != 90 || v.type() != DRW_Variant::INTEGER)
+            return false;
+          type = v.i_val();
+          switch (type) {
+          case 0:
+            if (!(flags & 1))
+              return false;
+            break;
+          case 1:
+          case 2:
+          case 4:
+          case 8:
+          case 16:
+          case 32:
+          case 64:
+            break;
+          default:
+            return false;
+          }
             // The inventoried block-associated Value is specifically an empty
             // string. Other block Value kinds remain unqualified.
-            if(block&&(type!=4||flags!=1))return false;phase=2u;return true;
+            if (block && (type != 4 || flags != 1))
+              return false;
+            phase = 2u;
+            return true;
         }
         if(phase==3u){if(code!=300||(block&&!s.empty()))return false;phase=4u;return true;}
         if(phase==4u){if(code!=302||(block&&!s.empty()))return false;phase=5u;return true;}
@@ -48,7 +67,10 @@ struct ValueProfile {
             if(!payloadComplete()||v.type()!=DRW_Variant::INTEGER)return false;
             const auto unit=v.i_val();
             if(unit!=0&&unit!=1&&unit!=2&&unit!=4&&unit!=8&&unit!=16&&unit!=32)return false;
-            if(block&&unit)return false;phase=3u;return true;
+            if (block && unit)
+              return false;
+            phase = 3u;
+            return true;
         }
         if(flags&1)return false;
         switch(type) {
@@ -58,7 +80,9 @@ struct ValueProfile {
             // Prefix chunks2, then exactly one final1. Tolerant append-only
             // replay also accepts1 followed by2; that is not this profile.
             if((code!=1&&code!=2)||payload)return false;
-            if(code==1)payload=1u;return true;
+            if (code == 1)
+              payload = 1u;
+            return true;
         case 8:
             if(code==92) {
                 if(payload||v.type()!=DRW_Variant::INTEGER||(v.i_val()!=8&&v.i_val()!=16))return false;

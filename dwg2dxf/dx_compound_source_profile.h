@@ -51,21 +51,34 @@ inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullpt
         Field field=Field::Common;Role role=Role::None;std::uint64_t handle=0u;
         if(v.type()==DRW_Variant::DOUBLE&&!std::isfinite(v.d_val()))return reject(Reason::InvalidValue,i);
         if(code==102) {
-            if(xdata)return reject(Reason::Xdata,i);field=Field::Application;
-            if(s=="}"){if(!depth)return reject(Reason::Application,i);--depth;}
-            else if(s.size()>1u&&s.front()=='{'&&depth<applications.size()) {
-                if(depth&&(applications[0]=="{ACAD_REACTORS"||applications[0]=="{ACAD_XDICTIONARY"))return reject(Reason::Application,i);
-                if(!depth&&(s=="{ACAD_REACTORS"||s=="{ACAD_XDICTIONARY")) {
-                    const unsigned bit=s=="{ACAD_REACTORS"?1u:2u;
-                    if(reserved&bit)return reject(Reason::DuplicateField,i);reserved|=bit;
-                }
-                applications[depth++]=s;
-            }else return reject(Reason::Application,i);
+          if (xdata)
+            return reject(Reason::Xdata, i);
+          field = Field::Application;
+          if (s == "}") {
+            if (!depth)
+              return reject(Reason::Application, i);
+            --depth;
+          } else if (s.size() > 1u && s.front() == '{' &&
+                     depth < applications.size()) {
+            if (depth && (applications[0] == "{ACAD_REACTORS" ||
+                          applications[0] == "{ACAD_XDICTIONARY"))
+              return reject(Reason::Application, i);
+            if (!depth && (s == "{ACAD_REACTORS" || s == "{ACAD_XDICTIONARY")) {
+              const unsigned bit = s == "{ACAD_REACTORS" ? 1u : 2u;
+              if (reserved & bit)
+                return reject(Reason::DuplicateField, i);
+              reserved |= bit;
+            }
+            applications[depth++] = s;
+          } else
+            return reject(Reason::Application, i);
         } else if(depth) {
             field=Field::Application;
             if(handleCode(code)){if(!hexHandle(v,handle))return reject(Reason::InvalidValue,i);role=Role::OpaqueHandle;}
             if(applications[0]=="{ACAD_REACTORS") {
-                if(depth!=1u||code!=330||handle>UINT32_MAX)return reject(Reason::Application,i);role=Role::Reactor;
+              if (depth != 1u || code != 330 || handle > UINT32_MAX)
+                return reject(Reason::Application, i);
+              role = Role::Reactor;
             }else if(applications[0]=="{ACAD_XDICTIONARY") {
                 if(depth!=1u||code!=360||seen[360]||handle>UINT32_MAX)return reject(Reason::Application,i);
                 seen[360]=true;role=Role::ExtensionDictionary;
@@ -101,7 +114,10 @@ inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullpt
                     if(lineRoot)known=s=="AcDbLine";
                     if(viewportRoot)known=s=="AcDbViewport";
                     if(vertex)known=vertexMarker?(s=="AcDb2dVertex"||s=="AcDb3dPolylineVertex"||s=="AcDbPolygonMeshVertex"||s=="AcDbPolyFaceMeshVertex"):s=="AcDbFaceRecord";
-                    if(!known)return reject(Reason::Subclass,i);subtype=s;stage=2;
+                    if (!known)
+                      return reject(Reason::Subclass, i);
+                    subtype = s;
+                    stage = 2;
                 }else return reject(Reason::Subclass,i);
             } else if((code==5||code==330)&&stage<=1) {
                 field=Field::Identity;
@@ -109,7 +125,9 @@ inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullpt
                 seen[code]=true;role=code==5?Role::Self:Role::Owner;
             } else {
                 if(stage==0||code<0||code>=static_cast<int>(seen.size()))return reject(Reason::UnknownField,i);
-                if(seen[code])return reject(Reason::DuplicateField,i);seen[code]=true;
+                if (seen[code])
+                  return reject(Reason::DuplicateField, i);
+                seen[code] = true;
                 bool body=false;
                 if(stage==2&&!subtype.empty()) {
                     field=Field::Compound;body=true;
@@ -209,7 +227,12 @@ inline Audit audit(const DRW_RawDxfObject& raw,const DRW_Polyline* parent=nullpt
         out.spans.push_back({i,code,Scope::Host,field,role,handle});
     }
     const auto end=raw.groups.size();
-    if(depth)return reject(Reason::Application,end);if(xdepth)return reject(Reason::Xdata,end);if(point)return reject(Reason::IncompletePoint,end);
+    if (depth)
+      return reject(Reason::Application, end);
+    if (xdepth)
+      return reject(Reason::Xdata, end);
+    if (point)
+      return reject(Reason::IncompletePoint, end);
     if(stage!=(footer?1:2)||!seen[5]||!seen[330]||!seen[8]||(!footer&&subtype.empty()))return reject(Reason::Identity,end);
     if(proxy>=0&&proxyBytes!=static_cast<std::uint64_t>(proxy))return reject(Reason::ProxyGraphics,end);
     if(viewportRoot) {
@@ -263,8 +286,13 @@ inline bool restorePhysicalIndices(Audit& profile,const DRW_DxfPhysicalEntitySou
     for(std::size_t j=n;j-->0u;) {
         if(physical.spans[j].ignoredComment)profile.spans[j]={j,physical.groups[j].code(),Scope::Ignored,Field::IgnoredComment,Role::None,0u};
         else {
-            if(!k)return false;auto span=profile.spans[--k];span.groupIndex=j;
-            if(span.code!=physical.groups[j].code())return false;profile.spans[j]=span;
+          if (!k)
+            return false;
+          auto span = profile.spans[--k];
+          span.groupIndex = j;
+          if (span.code != physical.groups[j].code())
+            return false;
+          profile.spans[j] = span;
         }
     }
     profile.rejectedGroup=n;return k==0u;

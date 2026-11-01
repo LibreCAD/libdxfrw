@@ -33,7 +33,10 @@ inline bool sameAsciiName(std::string_view a,std::string_view b)noexcept {
 inline bool handle(const DRW_Variant& v,std::uint32_t& out)noexcept {
  const auto s=text(v);if(s.empty()||s.size()>16u)return false;std::uint64_t n=0;
  const auto p=std::from_chars(s.data(),s.data()+s.size(),n,16);
- if(p.ec!=std::errc{}||p.ptr!=s.data()+s.size()||n>UINT32_MAX)return false;out=static_cast<std::uint32_t>(n);return true;
+ if (p.ec != std::errc{} || p.ptr != s.data() + s.size() || n > UINT32_MAX)
+   return false;
+ out = static_cast<std::uint32_t>(n);
+ return true;
 }
 inline Audit audit(const DRW_RawDxfObject& raw) {
  Audit out;const auto reject=[&](Reason why,std::size_t i){out.reason=why;out.rejectedGroup=i;out.spans.clear();return std::move(out);};

@@ -1660,7 +1660,7 @@ public:
     bool writeRequiredString(int code, const std::string& value);
     bool allocateDxfHandle(std::uint32_t& handle) noexcept;
     bool preflightDxfWrite() noexcept;
-    bool preflightDxfSetup() noexcept;
+    LIBDXFRW_TEST_SEAM_NOINLINE bool preflightDxfSetup() noexcept;
     void discardDxfWriteResults() noexcept;
     void resetDxfWriteSession();
     class WholeOperationScope;
@@ -1752,8 +1752,8 @@ public:
         std::vector<std::pair<std::size_t, std::string>>& overrides);
     void writePlotSettingsFields(const DRW_PlotSettings *ent);
     /*use version from dwgutil.h*/
-    std::string toHexStr(std::uint32_t n);
-    std::string toHexStr(int n);// compatibility overload for legacy callers
+    LIBDXFRW_TEST_SEAM_NOINLINE std::string toHexStr(std::uint32_t n);
+    LIBDXFRW_TEST_SEAM_NOINLINE std::string toHexStr(int n);// compatibility overload for legacy callers
     bool writeAppData(const std::list<std::list<DRW_Variant>> &appData);
     bool writeTableEntryAppData(const DRW_TableEntry& entry, bool emitReactors = true);
     template <typename Range, typename GetPointer>
