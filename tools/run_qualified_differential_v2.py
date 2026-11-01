@@ -3174,7 +3174,7 @@ def _validate_apple_link_inputs_profile(value: Any, path: str) -> dict[str, Any]
         digest = _digest(row["digest"], f"{row_path}.digest")
         pure_path = PurePosixPath(input_path)
         key = (sdk_root, input_path)
-        if (not Path(sdk_root).is_absolute() or pure_path.is_absolute()
+        if (not PurePosixPath(sdk_root).is_absolute() or pure_path.is_absolute()
                 or ".." in pure_path.parts or key <= previous_external_key):
             raise QualifiedDifferentialError(
                 f"{row_path} is not a sorted SDK-relative input identity"

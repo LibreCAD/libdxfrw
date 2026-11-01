@@ -16859,6 +16859,72 @@ bool runDxfEvaluationGraphRoundTrip(
         && oldVersionRejected;
 }
 
+void printLocalDxfHeaderFailure(const std::filesystem::path& path) {
+    std::ifstream input(path, std::ios::binary);
+    std::string code;
+    std::string value;
+    std::vector<std::string> firstRows;
+    std::vector<std::string> lastHeaderRows;
+    bool sawSection = false;
+    bool inHeader = false;
+    bool endedHeader = false;
+    std::size_t headerPairs = 0u;
+    std::size_t totalPairs = 0u;
+    const auto trimCarriageReturn = [](std::string& row) {
+        while (!row.empty() && row.back() == '\r')
+            row.pop_back();
+    };
+    const auto printableRow = [](const std::string& row) {
+        std::string result;
+        result.reserve(std::min(row.size(), std::size_t{80u}));
+        for (const unsigned char character : row) {
+            if (result.size() == 80u)
+                break;
+            result.push_back(character >= 0x20u && character <= 0x7Eu
+                ? static_cast<char>(character) : '?');
+        }
+        return result;
+    };
+    while (totalPairs < 20000u && std::getline(input, code)
+           && std::getline(input, value)) {
+        ++totalPairs;
+        trimCarriageReturn(code);
+        trimCarriageReturn(value);
+        if (firstRows.size() < 16u)
+            firstRows.push_back(code + "=" + printableRow(value));
+        if (code == "0" && value == "SECTION") {
+            sawSection = true;
+        } else if (sawSection && code == "2") {
+            inHeader = value == "HEADER";
+            sawSection = false;
+        } else if (code == "0") {
+            sawSection = false;
+        }
+        if (inHeader) {
+            ++headerPairs;
+            lastHeaderRows.push_back(code + "=" + printableRow(value));
+            if (lastHeaderRows.size() > 12u)
+                lastHeaderRows.erase(lastHeaderRows.begin());
+            if (code == "0" && value == "ENDSEC") {
+                endedHeader = true;
+                inHeader = false;
+            }
+        }
+        if (endedHeader)
+            break;
+    }
+    std::cerr << "ACDS replay HEADER wire: file=" << path
+              << " exists=" << std::filesystem::exists(path)
+              << " ended=" << endedHeader << " pairs=" << headerPairs
+              << " first=";
+    for (const std::string& row : firstRows)
+        std::cerr << '[' << row << ']';
+    std::cerr << " tail=";
+    for (const std::string& row : lastHeaderRows)
+        std::cerr << '[' << row << ']';
+    std::cerr << '\n';
+}
+
 bool runDxfAcdsDataStorageProjection(
     bool binary, const std::filesystem::path& directory, bool keepOutput,
     bool reverseCallbackCollections = false,
@@ -17219,6 +17285,10 @@ bool runDxfAcdsDataStorageProjection(
                           << " message=" << outcome.diagnostic.message;
             }
             std::cerr << '\n';
+            if (!binary && !reverseCallbackCollections
+                && !reverseEntityOrder && !reassignedClassIds
+                && !paperSpaceModeler && targetVersion == DRW::AC1027)
+                printLocalDxfHeaderFailure(replay);
         }
         result = replayExported && replayImported
             && replayed.dxfClasses.size() == imported.dxfClasses.size()
