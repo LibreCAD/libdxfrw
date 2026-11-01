@@ -51421,7 +51421,7 @@ void testXRecordPoint18(TestContext& t) {
         while (low < high) { const auto middle = low + (high - low) / 2u; if (admitted(middle)) high = middle; else low = middle + 1u; }
         t.expect(low != 0u && !admitted(low - 1u) && admitted(low),"point18 exact/one-node-under same-reader retries preserve tuple atomicity");
         ++budgets;
-        std::vector<DRW_Variant> invalid{{18,std::string("wrong")},{18,static_cast<std::int32_t>(7)},{18,static_cast<dint64>(7)},{18,std::vector<std::uint8_t>{1}}};
+        std::vector<DRW_Variant> invalid{{18,std::string("wrong")},{18,static_cast<std::int32_t>(7)},{18,static_cast<std::int64_t>(7)},{18,std::vector<std::uint8_t>{1}}};
         for (unsigned axis = 0u; axis != 3u; ++axis) for (const double value : {std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::infinity(),-std::numeric_limits<double>::infinity()}) {
             DRW_Coord point(1,2,3); if (axis == 0u) point.x = value; else if (axis == 1u) point.y = value; else point.z = value;
             invalid.emplace_back(18,point);

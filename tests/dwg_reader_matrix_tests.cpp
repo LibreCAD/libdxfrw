@@ -1115,13 +1115,11 @@ void testMappedPolylineCrossBlockOwnership(TestContext& t) {
     constexpr std::uint32_t polylineType =
         static_cast<std::uint32_t>(dwgType::POLYLINE_3D);
 
-    const auto appendPolyline = [](PolylineStageTestReader& reader,
-                                   std::vector<std::uint8_t>& source,
-                                   std::uint32_t blockHandle,
-                                   std::uint32_t parentHandle,
-                                   std::uint32_t childHandle,
-                                   std::uint32_t sequenceEndHandle,
-                                   std::size_t childOccurrences = 1u) {
+    const auto appendPolyline = [polylineType, version](
+        PolylineStageTestReader& reader, std::vector<std::uint8_t>& source,
+        std::uint32_t blockHandle, std::uint32_t parentHandle,
+        std::uint32_t childHandle, std::uint32_t sequenceEndHandle,
+        std::size_t childOccurrences = 1u) {
         DRW_Vertex vertex;
         vertex.handle = childHandle;
         vertex.parentHandle = blockHandle;
@@ -1136,36 +1134,34 @@ void testMappedPolylineCrossBlockOwnership(TestContext& t) {
         polyline.setDwgSeqEndHandle(sequenceEndHandle);
         return reader.addEncodedEntityFrame(
             source, polylineType, parentHandle,
-            [&polyline](dwgBufferW* body, dwgBufferW* handles) {
+            [&polyline, version](dwgBufferW* body, dwgBufferW* handles) {
                 return DrwEntityEncodeTestAccess::encodePolyline(
                     polyline, version, body, handles);
             });
     };
-    const auto appendVertex = [](PolylineStageTestReader& reader,
-                                 std::vector<std::uint8_t>& source,
-                                 std::uint32_t blockHandle,
-                                 std::uint32_t vertexHandle) {
+    const auto appendVertex = [vertexType, version](
+        PolylineStageTestReader& reader, std::vector<std::uint8_t>& source,
+        std::uint32_t blockHandle, std::uint32_t vertexHandle) {
         DRW_Vertex vertex;
         vertex.handle = vertexHandle;
         vertex.parentHandle = blockHandle;
         vertex.setDwgSubtype(DRW_Vertex::DwgSubtype::Vertex3D);
         return reader.addEncodedEntityFrame(
             source, vertexType, vertexHandle,
-            [&vertex](dwgBufferW* body, dwgBufferW* handles) {
+            [&vertex, version](dwgBufferW* body, dwgBufferW* handles) {
                 return DrwEntityEncodeTestAccess::encodeVertex(
                     vertex, version, body, handles);
             });
     };
-    const auto appendSequenceEnd = [](PolylineStageTestReader& reader,
-                                      std::vector<std::uint8_t>& source,
-                                      std::uint32_t blockHandle,
-                                      std::uint32_t sequenceEndHandle) {
+    const auto appendSequenceEnd = [sequenceEndType, version](
+        PolylineStageTestReader& reader, std::vector<std::uint8_t>& source,
+        std::uint32_t blockHandle, std::uint32_t sequenceEndHandle) {
         DRW_SeqEnd sequenceEnd;
         sequenceEnd.handle = sequenceEndHandle;
         sequenceEnd.parentHandle = blockHandle;
         return reader.addEncodedEntityFrame(
             source, sequenceEndType, sequenceEndHandle,
-            [&sequenceEnd](dwgBufferW* body, dwgBufferW* handles) {
+            [&sequenceEnd, version](dwgBufferW* body, dwgBufferW* handles) {
                 return DrwEntityEncodeTestAccess::encodeSequenceEnd(
                     sequenceEnd, version, body, handles);
             });
@@ -2399,7 +2395,7 @@ void testInsertAttributeStagingIndex(TestContext& t) {
     constexpr std::uint32_t parentFirstHandle = 0x21000u;
     constexpr std::uint32_t sequenceHandle = 0x22000u;
     constexpr std::uint32_t lineSentinelHandle = 0x23000u;
-    const auto makeHandles = [] {
+    const auto makeHandles = [attributeCount] {
         std::vector<std::uint32_t> handles;
         handles.reserve(attributeCount);
         for (std::size_t index = 0u; index < attributeCount; ++index) {
@@ -8318,7 +8314,8 @@ void testR2004DataPageLogicalTail(TestContext& t) {
         'W', 'X', 'Y', 'Z', '1', '2', '3'}};
     const auto firstExpected = expectedR2004PageOutput(firstLiterals);
     const auto secondExpected = expectedR2004PageOutput(secondLiterals);
-    const auto makeFile = [&]() {
+    const auto makeFile = [firstPageAddress, secondPageAddress, sectionId,
+                           pageCapacity, firstLiterals, secondLiterals]() {
         std::vector<std::uint8_t> bytes(0x180u, 0xccu);
         const auto first = makeR2004DataPageVector(
             firstPageAddress, sectionId, 0u, firstLiterals);
@@ -8331,7 +8328,8 @@ void testR2004DataPageLogicalTail(TestContext& t) {
                   bytes.begin() + static_cast<std::ptrdiff_t>(secondPageAddress));
         return bytes;
     };
-    const auto makeSection = [](std::uint64_t logicalSize) {
+    const auto makeSection = [sectionId, pageCapacity, firstPageAddress,
+                              secondPageAddress](std::uint64_t logicalSize) {
         dwgSectionInfo section;
         section.Id = static_cast<std::int32_t>(sectionId);
         section.name = "AcDb:AcDbObjects";
@@ -10989,12 +10987,12 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
          {sentinelHandle, sentinelOffset, 1u}}, sink);
     const auto parsed = std::find_if(
         sink.typed.begin(), sink.typed.end(),
-        [](const DRW_AssociativeObject& value) {
+        [sourceHandle](const DRW_AssociativeObject& value) {
             return value.handle == sourceHandle;
         });
     const auto parsedSentinel = std::find_if(
         sink.typed.begin(), sink.typed.end(),
-        [](const DRW_AssociativeObject& value) {
+        [sentinelHandle](const DRW_AssociativeObject& value) {
             return value.handle == sentinelHandle;
         });
     const bool groupMatches = parsed != sink.typed.end()
@@ -11109,12 +11107,12 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             profileSink);
         const auto partialSource = std::find_if(
             profileSink.typed.begin(), profileSink.typed.end(),
-            [](const DRW_AssociativeObject& value) {
+            [sourceHandle](const DRW_AssociativeObject& value) {
                 return value.handle == sourceHandle;
             });
         const auto partialRaw = std::find_if(
             profileSink.raw.begin(), profileSink.raw.end(),
-            [](const DRW_UnsupportedObject& value) {
+            [sourceHandle](const DRW_UnsupportedObject& value) {
                 return value.m_handle == sourceHandle;
             });
         const bool completeProfile = profileMode == 1 || profileMode == 2;
@@ -11195,7 +11193,7 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             && partialRaw != profileSink.raw.end()
             && (completeProfile || !partialRaw->m_typedPayloadValidated)
             && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
-                [](const DRW_AssociativeObject& value) {
+                [sentinelHandle](const DRW_AssociativeObject& value) {
                     return value.handle == sentinelHandle
                         && value.m_constraintGroupBodyParsed;
                 })
@@ -11275,7 +11273,7 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
                 profileSink);
             const auto partialSource = std::find_if(
                 profileSink.typed.begin(), profileSink.typed.end(),
-                [](const DRW_AssociativeObject& value) {
+                [sourceHandle](const DRW_AssociativeObject& value) {
                     return value.handle == sourceHandle;
                 });
             bool nodesMatch = partialSource != profileSink.typed.end()
@@ -11325,7 +11323,7 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
                 && partialSource->m_prefixStatuses.back().m_decodedHandleCount
                        == 1u
                 && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
-                    [](const DRW_AssociativeObject& value) {
+                    [sentinelHandle](const DRW_AssociativeObject& value) {
                         return value.handle == sentinelHandle
                             && value.m_constraintGroupBodyParsed;
                     });
@@ -11383,12 +11381,12 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             profileSink);
         const auto partialSource = std::find_if(
             profileSink.typed.begin(), profileSink.typed.end(),
-            [](const DRW_AssociativeObject& value) {
+            [sourceHandle](const DRW_AssociativeObject& value) {
                 return value.handle == sourceHandle;
             });
         const auto partialRaw = std::find_if(
             profileSink.raw.begin(), profileSink.raw.end(),
-            [](const DRW_UnsupportedObject& value) {
+            [sourceHandle](const DRW_UnsupportedObject& value) {
                 return value.m_handle == sourceHandle;
             });
         const bool expectedComplete = distanceMode == 0 || distanceMode == 3;
@@ -11436,7 +11434,7 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             && partialRaw != profileSink.raw.end()
             && (expectedComplete || !partialRaw->m_typedPayloadValidated)
             && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
-                [](const DRW_AssociativeObject& value) {
+                [sentinelHandle](const DRW_AssociativeObject& value) {
                     return value.handle == sentinelHandle
                         && value.m_constraintGroupBodyParsed;
                 });
@@ -11500,12 +11498,12 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             profileSink);
         const auto partialSource = std::find_if(
             profileSink.typed.begin(), profileSink.typed.end(),
-            [](const DRW_AssociativeObject& value) {
+            [sourceHandle](const DRW_AssociativeObject& value) {
                 return value.handle == sourceHandle;
             });
         const auto partialRaw = std::find_if(
             profileSink.raw.begin(), profileSink.raw.end(),
-            [](const DRW_UnsupportedObject& value) {
+            [sourceHandle](const DRW_UnsupportedObject& value) {
                 return value.m_handle == sourceHandle;
             });
         const bool expectedComplete = implicitPointMode != 2;
@@ -11546,7 +11544,7 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             && partialRaw != profileSink.raw.end()
             && !partialRaw->m_typedPayloadValidated
             && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
-                [](const DRW_AssociativeObject& value) {
+                [sentinelHandle](const DRW_AssociativeObject& value) {
                     return value.handle == sentinelHandle
                         && value.m_constraintGroupBodyParsed;
                 });
@@ -11644,12 +11642,12 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             profileSink);
         const auto partialSource = std::find_if(
             profileSink.typed.begin(), profileSink.typed.end(),
-            [](const DRW_AssociativeObject& value) {
+            [sourceHandle](const DRW_AssociativeObject& value) {
                 return value.handle == sourceHandle;
             });
         const auto partialRaw = std::find_if(
             profileSink.raw.begin(), profileSink.raw.end(),
-            [](const DRW_UnsupportedObject& value) {
+            [sourceHandle](const DRW_UnsupportedObject& value) {
                 return value.m_handle == sourceHandle;
             });
         const bool expectedComplete = boundedLineMode == 0;
@@ -11696,7 +11694,7 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             && partialRaw != profileSink.raw.end()
             && !partialRaw->m_typedPayloadValidated
             && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
-                [](const DRW_AssociativeObject& value) {
+                [sentinelHandle](const DRW_AssociativeObject& value) {
                     return value.handle == sentinelHandle
                         && value.m_constraintGroupBodyParsed;
                 });
@@ -11760,12 +11758,12 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             profileSink);
         const auto partialSource = std::find_if(
             profileSink.typed.begin(), profileSink.typed.end(),
-            [](const DRW_AssociativeObject& value) {
+            [sourceHandle](const DRW_AssociativeObject& value) {
                 return value.handle == sourceHandle;
             });
         const auto partialRaw = std::find_if(
             profileSink.raw.begin(), profileSink.raw.end(),
-            [](const DRW_UnsupportedObject& value) {
+            [sourceHandle](const DRW_UnsupportedObject& value) {
                 return value.m_handle == sourceHandle;
             });
         const bool expectedComplete = arcMode == 0;
@@ -11818,7 +11816,7 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             && partialRaw != profileSink.raw.end()
             && !partialRaw->m_typedPayloadValidated
             && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
-                [](const DRW_AssociativeObject& value) {
+                [sentinelHandle](const DRW_AssociativeObject& value) {
                     return value.handle == sentinelHandle
                         && value.m_constraintGroupBodyParsed;
                 });
@@ -11878,12 +11876,12 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             profileSink);
         const auto partialSource = std::find_if(
             profileSink.typed.begin(), profileSink.typed.end(),
-            [](const DRW_AssociativeObject& value) {
+            [sourceHandle](const DRW_AssociativeObject& value) {
                 return value.handle == sourceHandle;
             });
         const auto partialRaw = std::find_if(
             profileSink.raw.begin(), profileSink.raw.end(),
-            [](const DRW_UnsupportedObject& value) {
+            [sourceHandle](const DRW_UnsupportedObject& value) {
                 return value.m_handle == sourceHandle;
             });
         const bool expectedComplete = circleMode == 0;
@@ -11931,7 +11929,7 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             && partialRaw != profileSink.raw.end()
             && !partialRaw->m_typedPayloadValidated
             && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
-                [](const DRW_AssociativeObject& value) {
+                [sentinelHandle](const DRW_AssociativeObject& value) {
                     return value.handle == sentinelHandle
                         && value.m_constraintGroupBodyParsed;
                 });
@@ -12002,12 +12000,12 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             profileSink);
         const auto partialSource = std::find_if(
             profileSink.typed.begin(), profileSink.typed.end(),
-            [](const DRW_AssociativeObject& value) {
+            [sourceHandle](const DRW_AssociativeObject& value) {
                 return value.handle == sourceHandle;
             });
         const auto partialRaw = std::find_if(
             profileSink.raw.begin(), profileSink.raw.end(),
-            [](const DRW_UnsupportedObject& value) {
+            [sourceHandle](const DRW_UnsupportedObject& value) {
                 return value.m_handle == sourceHandle;
             });
         const bool expectedComplete = horizontalMode == 0;
@@ -12075,7 +12073,7 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             && partialRaw != profileSink.raw.end()
             && !partialRaw->m_typedPayloadValidated
             && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
-                [](const DRW_AssociativeObject& value) {
+                [sentinelHandle](const DRW_AssociativeObject& value) {
                     return value.handle == sentinelHandle
                         && value.m_constraintGroupBodyParsed;
                 });
@@ -12155,12 +12153,12 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             profileSink);
         const auto parsedSource = std::find_if(
             profileSink.typed.begin(), profileSink.typed.end(),
-            [](const DRW_AssociativeObject& value) {
+            [sourceHandle](const DRW_AssociativeObject& value) {
                 return value.handle == sourceHandle;
             });
         const auto rawSource = std::find_if(
             profileSink.raw.begin(), profileSink.raw.end(),
-            [](const DRW_UnsupportedObject& value) {
+            [sourceHandle](const DRW_UnsupportedObject& value) {
                 return value.m_handle == sourceHandle;
             });
         const bool expectedComplete = verticalMode == 0;
@@ -12230,7 +12228,7 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             && rawSource != profileSink.raw.end()
             && !rawSource->m_typedPayloadValidated
             && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
-                [](const DRW_AssociativeObject& value) {
+                [sentinelHandle](const DRW_AssociativeObject& value) {
                     return value.handle == sentinelHandle
                         && value.m_constraintGroupBodyParsed;
                 });
@@ -12319,12 +12317,12 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             profileSink);
         const auto parsedSource = std::find_if(
             profileSink.typed.begin(), profileSink.typed.end(),
-            [](const DRW_AssociativeObject& value) {
+            [sourceHandle](const DRW_AssociativeObject& value) {
                 return value.handle == sourceHandle;
             });
         const auto rawSource = std::find_if(
             profileSink.raw.begin(), profileSink.raw.end(),
-            [](const DRW_UnsupportedObject& value) {
+            [sourceHandle](const DRW_UnsupportedObject& value) {
                 return value.m_handle == sourceHandle;
             });
         const bool expectedComplete = rigidSetMode == 0;
@@ -12395,7 +12393,7 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             && rawSource != profileSink.raw.end()
             && !rawSource->m_typedPayloadValidated
             && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
-                [](const DRW_AssociativeObject& value) {
+                [sentinelHandle](const DRW_AssociativeObject& value) {
                     return value.handle == sentinelHandle
                         && value.m_constraintGroupBodyParsed;
                 });
@@ -12473,12 +12471,12 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             profileSink);
         const auto parsedSource = std::find_if(
             profileSink.typed.begin(), profileSink.typed.end(),
-            [](const DRW_AssociativeObject& value) {
+            [sourceHandle](const DRW_AssociativeObject& value) {
                 return value.handle == sourceHandle;
             });
         const auto rawSource = std::find_if(
             profileSink.raw.begin(), profileSink.raw.end(),
-            [](const DRW_UnsupportedObject& value) {
+            [sourceHandle](const DRW_UnsupportedObject& value) {
                 return value.m_handle == sourceHandle;
             });
         bool nodesMatch = parsedSource != profileSink.typed.end()
@@ -12532,7 +12530,7 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             && rawSource != profileSink.raw.end()
             && !rawSource->m_typedPayloadValidated
             && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
-                [](const DRW_AssociativeObject& value) {
+                [sentinelHandle](const DRW_AssociativeObject& value) {
                     return value.handle == sentinelHandle
                         && value.m_constraintGroupBodyParsed;
                 });
@@ -12590,12 +12588,12 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             profileSink);
         const auto parsedSource = std::find_if(
             profileSink.typed.begin(), profileSink.typed.end(),
-            [](const DRW_AssociativeObject& value) {
+            [sourceHandle](const DRW_AssociativeObject& value) {
                 return value.handle == sourceHandle;
             });
         const auto rawSource = std::find_if(
             profileSink.raw.begin(), profileSink.raw.end(),
-            [](const DRW_UnsupportedObject& value) {
+            [sourceHandle](const DRW_UnsupportedObject& value) {
                 return value.m_handle == sourceHandle;
             });
         const bool untypedRadiusDiameter =
@@ -12623,7 +12621,7 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             && rawSource != profileSink.raw.end()
             && !rawSource->m_typedPayloadValidated
             && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
-                [](const DRW_AssociativeObject& value) {
+                [sentinelHandle](const DRW_AssociativeObject& value) {
                     return value.handle == sentinelHandle
                         && value.m_constraintGroupBodyParsed;
                 });
@@ -12696,12 +12694,12 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
                 profileSink);
             const auto parsedSource = std::find_if(
                 profileSink.typed.begin(), profileSink.typed.end(),
-                [](const DRW_AssociativeObject& value) {
+                [sourceHandle](const DRW_AssociativeObject& value) {
                     return value.handle == sourceHandle;
                 });
             const auto rawSource = std::find_if(
                 profileSink.raw.begin(), profileSink.raw.end(),
-                [](const DRW_UnsupportedObject& value) {
+                [sourceHandle](const DRW_UnsupportedObject& value) {
                     return value.m_handle == sourceHandle;
                 });
             bool nodesMatch = parsedSource != profileSink.typed.end()
@@ -12755,7 +12753,7 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
                 && rawSource != profileSink.raw.end()
                 && !rawSource->m_typedPayloadValidated
                 && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
-                    [](const DRW_AssociativeObject& value) {
+                    [sentinelHandle](const DRW_AssociativeObject& value) {
                         return value.handle == sentinelHandle
                             && value.m_constraintGroupBodyParsed;
                     });
@@ -12814,12 +12812,12 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             profileSink);
         const auto parsedSource = std::find_if(
             profileSink.typed.begin(), profileSink.typed.end(),
-            [](const DRW_AssociativeObject& value) {
+            [sourceHandle](const DRW_AssociativeObject& value) {
                 return value.handle == sourceHandle;
             });
         const auto rawSource = std::find_if(
             profileSink.raw.begin(), profileSink.raw.end(),
-            [](const DRW_UnsupportedObject& value) {
+            [sourceHandle](const DRW_UnsupportedObject& value) {
                 return value.m_handle == sourceHandle;
             });
         const bool untypedDatumLine = parsedSource != profileSink.typed.end()
@@ -12844,7 +12842,7 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
             && rawSource != profileSink.raw.end()
             && !rawSource->m_typedPayloadValidated
             && std::any_of(profileSink.typed.begin(), profileSink.typed.end(),
-                [](const DRW_AssociativeObject& value) {
+                [sentinelHandle](const DRW_AssociativeObject& value) {
                     return value.handle == sentinelHandle
                         && value.m_constraintGroupBodyParsed;
                 });

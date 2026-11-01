@@ -32714,7 +32714,9 @@ bool dx_iface::inspectDxfCommonReferences(const dxfRW::DxfObjectsWriteView& view
       const auto end = dxfW->getBlockEndHandleToWrite(row.ownerName);
       auto emitted =
           row.kind == DxfCommonReferenceSource::BlockBegin
-              ? (end && end != DRW::NoHandle ? end - 1u : DRW::NoHandle)
+              ? (end && end != DRW::NoHandle
+                     ? end - 1u
+                     : static_cast<std::uint32_t>(DRW::NoHandle))
           : row.kind == DxfCommonReferenceSource::BlockEnd
               ? dxfW->getBlockEndHandleToWrite(row.ownerName)
           : (row.handle && row.handle != DRW::NoHandle)
