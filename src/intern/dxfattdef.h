@@ -51,10 +51,19 @@ struct SourceState {
 static_assert(std::is_trivially_copyable<SourceState>::value,"ATTDEF state observation must not allocate");
 
 class Decoder {
-    DRW_Attdef& value;
+    DRW_Attdef* value{nullptr};
     bool hasText=false,hasTag=false,hasX=false,hasY=false,hasHeight=false;
 public:
-    explicit Decoder(DRW_Attdef& target):value(target){}
+    Decoder()=default;
+    explicit Decoder(DRW_Attdef& target):value(&target){}
+    void reset() noexcept {
+        value=nullptr;
+        hasText=hasTag=hasX=hasY=hasHeight=false;
+    }
+    void reset(DRW_Attdef& target) noexcept {
+        value=&target;
+        hasText=hasTag=hasX=hasY=hasHeight=false;
+    }
     // Shared read-only entity inspection for converter source envelopes. These
     // helpers take the real entity type; no forged ATTDEF/table-entry cast.
     static SourceState::Cursor entityCursor(const DRW_Entity& value) noexcept {
@@ -122,24 +131,26 @@ public:
         hasX=hasX||code==10;
         hasY=hasY||code==20;
         hasHeight=hasHeight||code==40;
-        return value.parseCode(code,reader);
+        return value!=nullptr&&value->parseCode(code,reader);
     }
     // The existing host parser delegates application groups to nested MTEXT
     // once present, even after the attribute-definition subclass. Capturing
     // source must preserve that routing, not attach them all to the host.
     DRW_Entity& applicationEntity() const noexcept {
-        return value.mtext ? static_cast<DRW_Entity&>(*value.mtext)
-                           : static_cast<DRW_Entity&>(value);
+        return value->mtext ? static_cast<DRW_Entity&>(*value->mtext)
+                            : static_cast<DRW_Entity&>(*value);
     }
     bool parseApplication(const std::unique_ptr<dxfReader>& reader) {
+        if(value==nullptr)return false;
         auto& entity=applicationEntity();
         entity.clearParserCursor();
         return entity.parseDxfGroups(102,reader);
     }
     bool finish(bool applyExtrusion) {
-        if(value.dxfInAttributeXrecord||!hasText||!hasTag||value.tag.empty()
-            ||!hasX||!hasY||!hasHeight||!finishAttribute(value))return false;
-        if(applyExtrusion)value.applyExtrusion();
+        if(value==nullptr||value->dxfInAttributeXrecord||!hasText||!hasTag
+            ||value->tag.empty()||!hasX||!hasY||!hasHeight
+            ||!finishAttribute(*value))return false;
+        if(applyExtrusion)value->applyExtrusion();
         return true;
     }
 private:

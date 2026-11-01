@@ -2,7 +2,6 @@
 #ifndef DXFCOMPOUND_H
 #define DXFCOMPOUND_H
 #include "dxfattdef.h"
-#include <optional>
 
 // Shared production/replay field admission and exact modeled equality, including
 // selected POINT/LINE/ATTDEF primary roots used beside compound chains. This
@@ -12,7 +11,7 @@ using SourceState=dxfAttdef::SourceState;
 class Decoder {
     enum class Kind {Polyline,Vertex,Insert,Attribute,SequenceEnd,Point,Line,Definition,Viewport};
     DRW_Entity* value;Kind kind;unsigned fields{0u};
-    std::optional<dxfAttdef::Decoder> definition;
+    dxfAttdef::Decoder definition;
     enum class ViewportScope { Markerless, Common, Viewport, Other } viewportScope{ViewportScope::Markerless};
     bool viewportCommonStyleSeen{false};
     enum : unsigned {Text=1u,Tag=2u,X=4u,Y=8u,Height=16u,EndX=32u,EndY=64u};
@@ -24,16 +23,15 @@ public:
     explicit Decoder(DRW_SeqEnd& v):value(&v),kind(Kind::SequenceEnd){}
     explicit Decoder(DRW_Point& v):value(&v),kind(Kind::Point){}
     explicit Decoder(DRW_Line& v):value(&v),kind(Kind::Line){}
-    explicit Decoder(DRW_Attdef& v):value(&v),kind(Kind::Definition),definition(std::in_place,v){}
+    explicit Decoder(DRW_Attdef& v):value(&v),kind(Kind::Definition),definition(v){}
     explicit Decoder(DRW_Viewport& v):value(&v),kind(Kind::Viewport){}
     void reset(DRW_Vertex& v) noexcept {value=&v;kind=Kind::Vertex;fields=0u;definition.reset();}
     void reset(DRW_Attrib& v) noexcept {value=&v;kind=Kind::Attribute;fields=0u;definition.reset();}
     static bool parseEntity(DRW_Entity& value,int code,const std::unique_ptr<dxfReader>& reader) {return value.parseCode(code,reader);}
     bool parseCode(int code,const std::unique_ptr<dxfReader>& reader) {
         if(kind==Kind::Definition) {
-            if(!definition.has_value())return false;
-            auto& decoder=definition.value();
-            return code==102?decoder.parseApplication(reader):decoder.parseCode(code,reader);
+            return code==102?definition.parseApplication(reader)
+                            :definition.parseCode(code,reader);
         }
         if(kind==Kind::Viewport){
             if(code==100){const auto name=reader->getStringView();
@@ -77,7 +75,7 @@ public:
         case Kind::SequenceEnd:return true;
         case Kind::Point:return (fields&(X|Y))==(X|Y);
         case Kind::Line:return (fields&(X|Y|EndX|EndY))==(X|Y|EndX|EndY);
-        case Kind::Definition:return definition.has_value()&&definition.value().finish(false);
+        case Kind::Definition:return definition.finish(false);
         case Kind::Viewport:return static_cast<const DRW_Viewport*>(value)->validateDxf();
         }
         return false;

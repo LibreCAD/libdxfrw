@@ -1687,23 +1687,30 @@ edit this block or commit the same slice concurrently.
   contract. Windows/MSVC found no-capture constants in `dx_iface.cpp`
   (`kMaxRawGroups`, `kMaxFieldGraphEdges`); the current candidate makes them
   static. Linux/GCC then found an optional ATTDEF decoder warning and a
-  diagnostic-format truncation warning; the candidate now checks optional
-  engagement explicitly and bounds the stage text to fit the buffer. The
-  latest macOS run exposed a fixture-test setup error: it tried to export the
-  imported AC1015 sample whose extension dictionary at handle 56 is not
+  diagnostic-format truncation warning. The `289f3d45` run confirmed that an
+  explicit `std::optional` engagement check still triggers GCC 13's
+  maybe-uninitialized warning, while the bounded diagnostic format no longer
+  triggers its truncation warning. The current worktree removes the optional
+  wrapper and stores a concrete decoder with a nullable target. The
+  prior macOS failure came from a fixture-test setup error: it tried to export
+  the imported AC1015 sample whose extension dictionary at handle 56 is not
   reciprocally owned, and the writer correctly refused before touching the
   Unicode output path. The path test now keeps its DWG input assertion and
-  writes/reopens empty ASCII and binary drawings through the Unicode path;
-  focused local CTest passes. Windows/MSVC also reported C1128 compiling
-  `dx_iface.cpp`; `/bigobj` is now attached to that source for all MSVC target
-  forms. The digest checker also rejected ignored generated build directories
+  writes/reopens empty ASCII and binary drawings through the Unicode path; the
+  focused macOS qualification passed at `289f3d45`. Windows/MSVC also reported
+  C1128 compiling `dx_iface.cpp`; `/bigobj` is attached to that source for all
+  MSVC target forms. Its next build passed the library and adapter, then found
+  a missing `layoutDictionaryHandle` capture in the test lambda; the current
+  worktree captures it explicitly. The digest checker also rejected ignored generated build directories
   outside its selected input paths; it now validates only selected untracked
   paths while still rejecting untracked implementation inputs. The run's
-  frozen status overlay also reported a stale implementation digest; it is
-  refreshed to `60eafa0d16635eae7e0214f26c336e7a314b0c9af0c80566fbd945566efdeb0e`
-  without changing claim dispositions. Local checks use Apple Clang 21, not
-  GNU GCC or MSVC.
-  Fresh Linux/GCC, Windows/MSVC, macOS/Apple Clang, and `parity-fast` receipts
+  frozen status overlay also reported a stale implementation digest; it was
+  refreshed to match `289f3d45` and is now recomputed as
+  `f8b0e5a75aa374ad71e0ea3f47263abff1b8144a155854c0ae054541940e31d0` for the
+  decoder and Windows test fixes, with claim dispositions unchanged. Focused local
+  `libdxfrw_dwg_local_roundtrip` and `libdxfrw_dwg_fixtures` pass (2/2) under
+  Apple Clang 21; GNU GCC and MSVC remain hosted-only checks. Fresh Linux/GCC,
+  Windows/MSVC, macOS/Apple Clang, and `parity-fast` receipts
   remain required for closure; no drawing payload files were added.
 - Authorized run horizon: active implementation objective; continue through the
   next dependency-ready slice until the user stops or the terminal release gate
@@ -1730,7 +1737,7 @@ edit this block or commit the same slice concurrently.
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
 | S15 | C2: UTF-8/native input and atomic-output paths | S11, S14 | VERIFYING | focused native suite on Linux/macOS/Windows; Unicode parent/basename/non-BMP DXF ASCII+binary/DWG; transaction commit/rollback/cleanup; existing hardening and writer controls; LibreCAD ON/OFF consumers | Implementation and portable Mac/Ubuntu ARM controls are verified in C2.1. Remaining gates are immutable native receipts on Windows, Linux x64, and macOS ARM64 plus LibreCAD consumers at the updated pin; no support claim is promoted. | native qualification and LibreCAD consumer pin |
-| S20 | H0: hosted build and fast-workflow repair closure | S19 | VERIFYING | canonical inventories; clean focused build and `libdxfrw_dwg_local_roundtrip`; focused Linux x64, Windows x64, and macOS ARM64 receipts; `parity-fast`; fixture-admission guard | Prior inventory, scratch-input, and initial compiler failures are repaired. Candidate commits fix the `libdxfrw.cpp` lambda references, quote the PowerShell policy argument, and include the history archive in both source-release manifests. At PR head `a33aee52`, Linux/GCC found an optional ATTDEF decoder warning and a `snprintf` truncation warning; the current candidate guards the optional decoder and bounds the stage string. Windows/MSVC then found C1128 in the test adapter; `/bigobj` is attached to `dx_iface.cpp` for all MSVC target forms. The macOS CTest failure came from exporting an imported AC1015 sample with an unclosed extension dictionary (handle 56), so the test now isolates Unicode output/readback with a fresh empty drawing while retaining the DWG input check. The focused fixture CTest passes locally under Apple Clang 21. The digest checker now filters out-of-scope untracked paths and preserves rejection of selected untracked inputs. The stale frozen status-overlay implementation digest must be refreshed without changing claim dispositions. Fresh hosted receipts remain required; no drawing payload files were added. | S15, final release |
+| S20 | H0: hosted build and fast-workflow repair closure | S19 | VERIFYING | canonical inventories; clean focused build and `libdxfrw_dwg_local_roundtrip`; focused Linux x64, Windows x64, and macOS ARM64 receipts; `parity-fast`; fixture-admission guard | Prior inventory, scratch-input, and initial compiler failures are repaired. Candidate commits fix the `libdxfrw.cpp` lambda references, quote the PowerShell policy argument, and include the history archive in both source-release manifests. At PR head `289f3d45`, Linux/GCC and `parity-fast` still failed because GCC 13 diagnosed the optional ATTDEF decoder as possibly uninitialized despite an engagement guard; the diagnostic-format truncation warning is fixed. The current worktree replaces optional storage with a concrete nullable-target decoder and passes the focused local roundtrip/fixture tests (2/2) under Apple Clang 21. Windows/MSVC compiled the library and `/bigobj` adapter, then failed on a missing `layoutDictionaryHandle` test-lambda capture; that capture is now explicit. The focused macOS native qualification passed at `289f3d45`; the earlier Unicode path setup failure was fixed by using a fresh empty drawing for output/readback while retaining the DWG input check. The digest checker filters out-of-scope untracked paths and still rejects selected untracked inputs. The frozen status overlay now reflects this candidate without changing claim dispositions. Fresh hosted receipts remain required; no drawing payload files were added. | S15, final release |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -1742,7 +1749,7 @@ edit this block or commit the same slice concurrently.
 | C2.1 | C2 / S15 | WP3/WP7/WP8; Phase 8 follow-up | F0.3, G1.4 | VERIFIED | NOT_EVALUATED | input/output/native-basename implementation and portable real-filesystem controls | Frozen97+c60d7ea8 passes focused7/controls3 on native Mac and Ubuntu26/aarch64; actual Unicode DWG/ASCII+binary DXF, exclusive temporary basename, precommit visibility, commit/rollback/cleanup pass. Logs under /private/tmp/librecad-windows-path.WXbCZP/utf8-candidate-*; no Windows or immutable receipt claim |
 | C2.2 | C2 / S15 | WP3/WP8; Phase 8 follow-up | C2.1 | VERIFYING | NOT_EVALUATED | own three-platform immutable hosted receipts and LibreCAD ON/OFF consumers | The first hosted macOS CTest failure was a fixture setup coupling, not a pathname conversion failure: export refused the fixture's unclosed extension dictionary before writing. The test now uses a fresh empty drawing for ASCII/binary path write/readback; local focused CTest passes. Obtain post-fix Windows/Linux x64/macOS ARM64 receipts, then run LibreCAD Unicode/persistence/full consumers at the updated pin. Earlier receipts do not close this gate |
 | H0.1 | H0 / S20 | WP1/WP8; Phase 2/8 follow-up | S19 | VERIFYING | NOT_EVALUATED | canonical source/header and source-release inventories; frozen broad CTest inventory matches the exact hosted profile | Both generated source-release lists now include the history archive (636 files); frozen CTest inventory contains 775 names. Confirm all manifests on hosted Linux/Windows and pass the fast-job inventory check. No drawing payloads were added |
-| H0.2 | H0 / S20 | WP1/WP2; Phase 2 follow-up | S19 | VERIFYING | NOT_EVALUATED | GCC/MSVC/Apple Clang compile portability under default warnings-as-errors | `dx_iface.cpp` MSVC constants are static; `/bigobj` is attached to its source; the new GCC optional-decoder warning is guarded explicitly and the diagnostic format now fits its buffer. Focused local build passes under Apple Clang 21; require clean hosted Linux/GCC, Windows/MSVC, and macOS/Apple Clang builds on the updated candidate |
+| H0.2 | H0 / S20 | WP1/WP2; Phase 2 follow-up | S19 | VERIFYING | NOT_EVALUATED | GCC/MSVC/Apple Clang compile portability under default warnings-as-errors | `dx_iface.cpp` MSVC constants are static; `/bigobj` is attached to its source and passed compilation at `289f3d45`. GCC 13 still warned through `std::optional<dxfAttdef::Decoder>` after an engagement guard, so the current worktree removes that wrapper and retains a nullable target in a concrete decoder; the diagnostic format is bounded. MSVC also found a missing `layoutDictionaryHandle` capture in `dwg_local_roundtrip_tests.cpp`, now explicit. Focused local roundtrip/fixture tests pass under Apple Clang 21; require clean hosted Linux/GCC, Windows/MSVC, and macOS/Apple Clang builds on the updated candidate |
 | H0.3 | H0 / S20 | WP4/WP6; focused qualification | S19 | VERIFYING | NOT_EVALUATED | focused SPLINE/read-outcome/modeler failure controls | macOS identified an over-coupled UTF-8 path assertion that exported a DWG sample rejected by extension-graph safety; the test now exports/reopens an empty ASCII/binary drawing. The focused fixture CTest passes locally under Apple Clang 21. Refresh the frozen implementation digest without changing claim dispositions, then require post-repair hosted native and `parity-fast` receipts. The fast/native candidate workflow remains the closure gate |
 
 

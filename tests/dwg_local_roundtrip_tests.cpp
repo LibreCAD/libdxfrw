@@ -33523,7 +33523,8 @@ bool independentTwoLayoutViewportFramesMatch(DRW::Version version) {
     using Reference = std::pair<std::uint32_t, std::uint8_t>;
     const std::uint8_t expectedOwnerCode = version <= DRW::AC1015
         ? DRW::DwgSoftPointer : DRW::DwgHardOwnership;
-    const auto validateGroup = [version, expectedOwnerCode](
+    const auto validateGroup = [version, expectedOwnerCode,
+                                layoutDictionaryHandle](
             const DRW_Layout& layout,
             const DwgBlockRecordXrefWireTestAccess::LayoutViewportFrameProbe& group,
             const DwgBlockRecordXrefWireTestAccess::LayoutViewportFrameProbe& other) {
