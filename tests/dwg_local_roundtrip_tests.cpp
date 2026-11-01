@@ -14553,6 +14553,17 @@ bool runDxfAcdsMultipleDataStorageProjection(
         const bool replayImported = replayExported
             && replayImporter.fileImport(replayOutput.string(), &replayed,
                                          false);
+        if (replayExported && !replayImported) {
+            const auto& outcome = replayed.dxfReadOutcome;
+            std::cerr << "ACDS multi-projection replay readback failed: error="
+                      << static_cast<int>(outcome.error);
+            if (outcome.diagnosticAvailable) {
+                std::cerr << " diagnostic=" << outcome.diagnostic.code
+                          << " phase=" << static_cast<int>(outcome.diagnostic.phase)
+                          << " message=" << outcome.diagnostic.message;
+            }
+            std::cerr << '\n';
+        }
         const bool replaySectionPresent = replayImported
             && replayed.rawDxfSections.size() == 1u
             && replayed.rawDxfSections.front().m_name == "ACDSDATA";
@@ -17190,9 +17201,26 @@ bool runDxfAcdsDataStorageProjection(
         dx_iface replayExporter;
         dx_data replayed;
         dx_iface replayImporter;
-        result = replayExporter.fileExport(replay.string(), targetVersion,
-                                           pagedPayload ? !binary : binary, &imported, false)
-            && replayImporter.fileImport(replay.string(), &replayed, false)
+        const bool replayExported = replayExporter.fileExport(
+            replay.string(), targetVersion, pagedPayload ? !binary : binary,
+            &imported, false);
+        const bool replayImported = replayExported
+            && replayImporter.fileImport(replay.string(), &replayed, false);
+        if (replayExported && !replayImported) {
+            const auto& outcome = replayed.dxfReadOutcome;
+            std::cerr << "ACDS projection replay readback failed: target="
+                      << static_cast<int>(targetVersion) << " encoding="
+                      << (pagedPayload ? (binary ? "ascii" : "binary")
+                                       : encoding)
+                      << " error=" << static_cast<int>(outcome.error);
+            if (outcome.diagnosticAvailable) {
+                std::cerr << " diagnostic=" << outcome.diagnostic.code
+                          << " phase=" << static_cast<int>(outcome.diagnostic.phase)
+                          << " message=" << outcome.diagnostic.message;
+            }
+            std::cerr << '\n';
+        }
+        result = replayExported && replayImported
             && replayed.dxfClasses.size() == imported.dxfClasses.size()
             && replayed.rawProxyObjects.size() == 3u
             && replayed.rawDxfSections.size() == 1u
@@ -17748,9 +17776,23 @@ bool runDxfAcdsBlockModelerProjection(
         dx_iface replayExporter;
         dx_data replayed;
         dx_iface replayImporter;
-        result = replayExporter.fileExport(replay.string(), DRW::AC1027,
-                                           binary, &imported, false)
-            && replayImporter.fileImport(replay.string(), &replayed, false)
+        const bool replayExported = replayExporter.fileExport(
+            replay.string(), DRW::AC1027, binary, &imported, false);
+        const bool replayImported = replayExported
+            && replayImporter.fileImport(replay.string(), &replayed, false);
+        if (replayExported && !replayImported) {
+            const auto& outcome = replayed.dxfReadOutcome;
+            std::cerr << "ACDS block projection replay readback failed: encoding="
+                      << encoding << " error="
+                      << static_cast<int>(outcome.error);
+            if (outcome.diagnosticAvailable) {
+                std::cerr << " diagnostic=" << outcome.diagnostic.code
+                          << " phase=" << static_cast<int>(outcome.diagnostic.phase)
+                          << " message=" << outcome.diagnostic.message;
+            }
+            std::cerr << '\n';
+        }
+        result = replayExported && replayImported
             && hasBlockOwnerClosure(replayed);
     }
 

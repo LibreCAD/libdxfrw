@@ -2737,7 +2737,7 @@ def _validate_apple_runtime_profile(value: Any, path: str) -> dict[str, Any]:
             digest = _digest(row["digest"], f"{row_path}.digest")
             pure_input_path = PurePosixPath(input_path)
             if (not install_name.startswith(("/", "@"))
-                    or not Path(sdk_root).is_absolute()
+                    or not PurePosixPath(sdk_root).is_absolute()
                     or pure_input_path.is_absolute()
                     or ".." in pure_input_path.parts
                     or pure_input_path.as_posix() != input_path):
@@ -2803,7 +2803,7 @@ def _validate_apple_runtime_profile(value: Any, path: str) -> dict[str, Any]:
             f"{path} partial Apple runtime profile is inconsistent"
         )
     _digest(executable_digest, f"{path}.executableDigest")
-    if (not tool_path or not Path(tool_path).is_absolute()
+    if (not tool_path or not PurePosixPath(tool_path).is_absolute()
             or not re.fullmatch(r"[0-9a-f]{64}", tool_digest)):
         raise QualifiedDifferentialError(f"{path}.tool identity is malformed")
 
@@ -2863,9 +2863,9 @@ def _validate_apple_runtime_profile(value: Any, path: str) -> dict[str, Any]:
                 stub["compatibilityVersion"],
                 f"{stub_path}.compatibilityVersion", allow_empty=True,
             )
-            if (not Path(sdk_root).is_absolute()
-                    or not Path(path_value).is_absolute()
-                    or not Path(resolved_path).is_absolute()
+            if (not PurePosixPath(sdk_root).is_absolute()
+                    or not PurePosixPath(path_value).is_absolute()
+                    or not PurePosixPath(resolved_path).is_absolute()
                     or size > 64 * 1024 * 1024
                     or stub_install_name != install_name):
                 raise QualifiedDifferentialError(
