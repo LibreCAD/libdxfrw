@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1018-named-block-sortents-dependency-2026-11-01",
+  "date": "2026-11-01",
+  "title": "Bind AC1018 named-block SORTENTSTABLE refusal to its owning dictionary graph",
+  "status": "SOURCE_GRAPH_VERIFIED_OUTPUT_BLOCKED_BY_DXF_OWNER_SCOPE",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+    "version": "AC1018",
+    "committedAsFixture": false,
+    "independentReader": {
+      "project": "GNU LibreDWG",
+      "version": "0.14",
+      "path": "/tmp/et-libre.json",
+      "sha256": "bccee1259568948df2fd0e65c797932965574cc81824781864c3b34b4129d788",
+      "scope": "Corroborates the BLOCK_HEADER, DICTIONARY, SORTENTSTABLE identities and their parent/extension/entry relationships."
+    }
+  },
+  "sourceGraph": {
+    "blockRecord": {
+      "type": "BLOCK_HEADER",
+      "handle": "0x24C",
+      "name": "ET Border block",
+      "extensionDictionary": "0x2CD"
+    },
+    "dictionary": {
+      "type": "DICTIONARY",
+      "handle": "0x2CD",
+      "owner": "0x24C",
+      "hardOwner": 1,
+      "cloning": 1,
+      "entryCount": 1,
+      "entry": {"name": "ACAD_SORTENTS", "role": "hard-owner", "target": "0x2CE"}
+    },
+    "sortEntsTable": {
+      "type": "SORTENTSTABLE",
+      "handle": "0x2CE",
+      "owner": "0x2CD",
+      "reactors": ["0x2CD"]
+    }
+  },
+  "authority": {
+    "title": "Autodesk AutoCAD DXF Reference — SORTENTSTABLE",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-462F4378-F850-4E89-90F2-3C1880F55779.htm",
+    "relevantRule": "The DXF group-code 330 owner is currently only *MODEL_SPACE or *PAPER_SPACE.",
+    "relatedReceipt": "docs/research/p4-ac1024-sortents-owner-scope-qualification-2026-11-01.json"
+  },
+  "decision": {
+    "reason": "SORTENTSTABLE 0x2CE is owned by the named-block extension dictionary 0x2CD, not by *MODEL_SPACE or *PAPER_SPACE. Reassigning or omitting the table would alter the observed owner graph without an eligible semantic mapping.",
+    "outputQualification": "Neither 0x2CD nor 0x2CE is qualified for this source graph. Keep the parent DICTIONARY and its sole child refused together; do not emit a partial parent body.",
+    "unblockCondition": "An authoritative DXF route or independent semantic evidence must establish how this named-block source table is represented while preserving owner meaning. Until then the evidence cannot promote a support claim."
+  },
+  "limitations": [
+    "This receipt is a source-graph and schema-scope decision; it contains no local DXF output or fresh-readback proof.",
+    "No DWG/DXF fixture was added to the repository.",
+    "The whole AC1018 source remains independently blocked by the invalid non-shape empty-name STYLE 0xDF and other open P4 gates."
+  ]
+}
