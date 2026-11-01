@@ -2746,6 +2746,8 @@ private:
     std::map<std::uint32_t,DwgNodDictionaryOutputSource>
         m_dwgNodDictionaryOutputSources;
     DRW_Dictionary m_dwgLayoutOutputDictionary;
+    DRW_Dictionary m_dwgLayoutOutputNod;
+    bool m_dwgLayoutOutputNodComplete{false};
     std::uint32_t m_dwgLayoutOutputNodHandle{0u};
     int m_dwgLayoutOutputNodHardOwner{0};
     DRW_Dictionary::Entry m_dwgLayoutOutputNodEntry;
