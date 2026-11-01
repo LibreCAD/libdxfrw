@@ -89,15 +89,8 @@ public:
     static bool layerStateOutputPrepared(const dx_iface& iface) {
         return iface.m_dwgLayerStateOutputPrepared;
     }
-    static bool layerStateOutputUnchanged(const dx_iface& iface) {
-        return iface.hasUnchangedDwgLayerStateOutputSource();
-    }
     static bool layerStateOutputHasRecord(const dx_iface& iface) {
         return iface.m_dwgLayerStateOutputSource.hasLayerStateRecord;
-    }
-    static std::size_t layerStateCompanionCount(const dx_iface& iface) {
-        return iface.m_dwgLayerStateOutputSource
-            .layerStateCompanionDictionaries.size();
     }
     static bool layerStateDictionaryQueued(const dx_iface& iface,
                                            std::uint32_t handle) {
@@ -110,6 +103,9 @@ public:
         return std::find(iface.m_extensionXRecordHandles.begin(),
                          iface.m_extensionXRecordHandles.end(), handle)
             != iface.m_extensionXRecordHandles.end();
+    }
+    static void attachDxfWriter(dx_iface& iface, dxfRW* writer) {
+        iface.dxfW = writer;
     }
     static const DRW_UnsupportedObject* opaqueSourceFrame(
             const dx_data& data, std::uint64_t generation,
@@ -40422,45 +40418,131 @@ bool physicalLayerStateXrecordSourceAdmission(
         || recordFrame->m_version != DRW::AC1024
         || recordFrame->m_isEntity || recordFrame->m_hasDataStorage)
         return fail("LayerStates XRECORD lacks a typed body or source-bound frame");
+    const bool hasDxfOutOfRangePayloadCode = std::any_of(
+        stateRecord->m_dataEntries.begin(), stateRecord->m_dataEntries.end(),
+        [](const DRW_Variant& value) { return value.code() == 370; });
+    if (!hasDxfOutOfRangePayloadCode)
+        return fail("physical LayerStates XRECORD no longer exercises group-370 output refusal");
 
-    dx_iface writer;
-    writer.cData = &source;
+    dx_iface preflight;
+    preflight.cData = &source;
     if (!DxIfaceStandardDwgCaptureTestAccess::prepareLayerStateOutput(
-            writer, DRW::AC1024)
-        || !DxIfaceStandardDwgCaptureTestAccess::layerStateOutputPrepared(writer)
-        || !DxIfaceStandardDwgCaptureTestAccess::layerStateOutputHasRecord(writer)
-        || !DxIfaceStandardDwgCaptureTestAccess::layerStateOutputUnchanged(writer)
-        || DxIfaceStandardDwgCaptureTestAccess::layerStateCompanionCount(writer)
-            != companions.size())
-        return fail("physical nonempty LayerStates graph was not admitted as a stable output source");
-    if (!DxIfaceStandardDwgCaptureTestAccess::layerStateDictionaryQueued(
-            writer, extension->handle)
-        || !DxIfaceStandardDwgCaptureTestAccess::layerStateDictionaryQueued(
-            writer, states->handle)
-        || !DxIfaceStandardDwgCaptureTestAccess::layerStateXRecordQueued(
-            writer, stateRecord->handle))
-        return fail("LayerStates graph identities were not added to existing output queues");
+            preflight, DRW::AC1024)
+        || DxIfaceStandardDwgCaptureTestAccess::layerStateOutputPrepared(preflight)
+        || DxIfaceStandardDwgCaptureTestAccess::layerStateOutputHasRecord(preflight)
+        || DxIfaceStandardDwgCaptureTestAccess::layerStateDictionaryQueued(
+            preflight, extension->handle)
+        || DxIfaceStandardDwgCaptureTestAccess::layerStateDictionaryQueued(
+            preflight, states->handle)
+        || DxIfaceStandardDwgCaptureTestAccess::layerStateXRecordQueued(
+            preflight, stateRecord->handle))
+        return fail("DXF-incompatible group-370 LayerStates XRECORD was queued for output");
     for (const DRW_Dictionary* companion : companions)
-        if (!DxIfaceStandardDwgCaptureTestAccess::layerStateDictionaryQueued(
-                writer, companion->handle))
-            return fail("LayerStates companion dictionary was not queued for output");
+        if (DxIfaceStandardDwgCaptureTestAccess::layerStateDictionaryQueued(
+                preflight, companion->handle))
+            return fail("DXF-incompatible LayerStates graph queued a companion dictionary");
 
-    DRW_XRecord* mutableRecord = nullptr;
+    class XRecordCodeDomainExporter final : public dx_iface {
+    public:
+        DRW_XRecord* record{nullptr};
+        bool recordRefused{false};
+        unsigned objectAttempts{0u};
+        std::string refusalCode;
+        void writeObjects() override {
+            ++objectAttempts;
+            recordRefused = !dxfW->writeXRecord(record);
+            if (recordRefused)
+                refusalCode = dxfW->getLastDiagnostic().code;
+        }
+        bool finalizeDxfWrite() override { return true; }
+    } exporter;
+    dx_data emptyAdapterData;
+    exporter.cData = &emptyAdapterData;
     for (DRW_XRecord& record : source.xRecords)
         if (record.handle == stateRecord->handle)
-            mutableRecord = &record;
-    if (mutableRecord == nullptr)
-        return fail("LayerStates source record disappeared before mutation control");
-    const std::uint32_t originalOwner = mutableRecord->parentHandle;
-    mutableRecord->parentHandle = DRW::NoHandle;
-    const bool mutationRejected =
-        !DxIfaceStandardDwgCaptureTestAccess::layerStateOutputUnchanged(writer);
-    mutableRecord->parentHandle = originalOwner;
-    if (!mutationRejected
-        || !DxIfaceStandardDwgCaptureTestAccess::layerStateOutputUnchanged(writer))
-        return fail("LayerStates XRECORD late mutation was not rejected or restored");
+            exporter.record = &record;
+    if (exporter.record == nullptr)
+        return fail("LayerStates XRECORD disappeared before DXF code-domain test");
+    const std::vector<DRW_Variant> sourceDataEntries =
+        exporter.record->m_dataEntries;
+    const std::vector<DRW_Variant> sourceValues = exporter.record->m_values;
+    const auto sourceHandleValues = exporter.record->m_handleValues;
+    const auto variantsUnchanged = [](const auto& expected,
+                                      const auto& actual) {
+        if (expected.size() != actual.size())
+            return false;
+        auto identity = [](std::uint32_t source, std::uint32_t& mapped) {
+            mapped = source;
+            return true;
+        };
+        std::vector<std::uint32_t> references;
+        for (std::size_t index = 0u; index < expected.size(); ++index)
+            if (!dx_standard_output::valueEqual(
+                    expected[index], actual[index], identity, references))
+                return false;
+        return true;
+    };
 
-    std::cout << "Physical AC1024 LayerStates source admission passed: three-root LAYER_CONTROL extension, two source-bound companion dictionaries, one typed XRECORD, queued identities, and mutation rejection/restoration. Staged output/readback remains to be qualified.\n";
+    for (const bool binary : {false, true}) {
+        const auto nonce = std::chrono::steady_clock::now()
+                               .time_since_epoch()
+                               .count();
+        const std::filesystem::path outputPath =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-layerstates-group370-"
+               + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{outputPath};
+        const std::string sentinel =
+            "LayerStates group-370 destination sentinel\n";
+        {
+            std::ofstream existing(outputPath,
+                                   std::ios::binary | std::ios::trunc);
+            if (!existing || !(existing << sentinel))
+                return fail("could not seed LayerStates group-370 sentinel");
+        }
+        dxfRW codec(outputPath.string().c_str());
+        DxIfaceStandardDwgCaptureTestAccess::attachDxfWriter(exporter, &codec);
+        unsigned previousObjectAttempts = exporter.objectAttempts;
+        for (unsigned attempt = 0u; attempt < 2u; ++attempt) {
+            exporter.recordRefused = false;
+            exporter.refusalCode.clear();
+            const bool wrote = codec.write(&exporter, DRW::AC1024, binary);
+            if (wrote || !exporter.recordRefused
+                || exporter.refusalCode != "xrecord-application-code-domain"
+                || exporter.objectAttempts <= previousObjectAttempts) {
+                const DRW_OperationDiagnostic diagnostic =
+                    codec.getLastDiagnostic();
+                std::cerr << "LayerStates group-370 writer detail: wrote="
+                          << wrote << " refused=" << exporter.recordRefused
+                          << " code=" << exporter.refusalCode
+                          << " objects=" << exporter.objectAttempts
+                          << " diagnostic=" << diagnostic.code << ':'
+                          << diagnostic.message << '\n';
+                return fail("DXF XRECORD writer did not deterministically refuse group 370");
+            }
+            previousObjectAttempts = exporter.objectAttempts;
+            std::ifstream input(outputPath, std::ios::binary);
+            const std::string retained{
+                std::istreambuf_iterator<char>(input), {}};
+            if (retained != sentinel)
+                return fail("group-370 refusal changed the existing DXF destination");
+            if (!variantsUnchanged(sourceDataEntries,
+                                   exporter.record->m_dataEntries)
+                || !variantsUnchanged(sourceValues,
+                                      exporter.record->m_values)
+                || sourceHandleValues != exporter.record->m_handleValues)
+                return fail("group-370 refusal changed retained source XRECORD fields");
+        }
+    }
+
+    std::cout << "Physical AC1024 LayerStates source evidence confirms group 370 is outside the Autodesk DXF XRECORD payload domain; output preflight refuses the graph, and ASCII/Binary writer refusal preserves the destination and source fields across retries.\n";
     return true;
 }
 

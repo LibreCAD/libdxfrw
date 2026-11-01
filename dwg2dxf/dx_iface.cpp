@@ -27809,6 +27809,22 @@ bool dx_iface::prepareDwgLayerStateOutput(
                         || value.second == DRW::NoHandle;
                 }))
             return skip("AC1024 ACAD_LAYERSTATES entry is not one completely typed, owned XRECORD");
+        const std::vector<DRW_Variant>& payload =
+            layerStateRecord->m_dataEntries.empty()
+            ? layerStateRecord->m_values
+            : layerStateRecord->m_dataEntries;
+        if (std::any_of(payload.begin(), payload.end(),
+                [](const DRW_Variant& value) {
+                    return !isDxfXRecordApplicationCode(value.code());
+                })
+            || (layerStateRecord->m_dataEntries.empty()
+                && std::any_of(layerStateRecord->m_handleValues.begin(),
+                    layerStateRecord->m_handleValues.end(),
+                    [](const auto& value) {
+                        return value.first != 0
+                            && !isDxfXRecordApplicationCode(value.first);
+                    })))
+            return skip("AC1024 LayerStates XRECORD contains an application group code outside the DXF 1-369 range");
     }
 
     const auto hasDictionaryFrame = [this, sourceVersion](
@@ -28180,6 +28196,11 @@ bool dx_iface::inspectDwgLayerStateOutput(
             emittedExtension, &source.extensionDictionary);
         expectedDictionaries.emplace(emittedStates,
                                      &source.layerStatesDictionary);
+        std::map<std::uint32_t, const DRW_XRecord*> expectedXrecords;
+        if (source.hasLayerStateRecord
+            && !expectedXrecords.emplace(
+                emittedLayerStateRecord, &source.layerStateRecord).second)
+            return reject("LayerStates XRECORD identity is duplicated");
         for (const DRW_Dictionary& companion :
              source.layerStateCompanionDictionaries) {
             std::uint32_t emittedCompanion = 0u;
@@ -28197,26 +28218,50 @@ bool dx_iface::inspectDwgLayerStateOutput(
         }
 
         std::set<std::uint32_t> seen;
+        std::set<std::uint32_t> seenXrecords;
         std::string_view selectedName;
         bool bodyMismatch = false;
         const bool inspected = dx_standard_output::inspectSelected(
             view,
-            [&selectedName, &expectedDictionaries](
+            [&selectedName, &expectedDictionaries, &expectedXrecords](
                     std::string_view name, std::uint32_t handle) {
                 selectedName = name;
-                return expectedDictionaries.count(handle) == 1u
-                    && name == "DICTIONARY";
+                return (name == "DICTIONARY"
+                        && expectedDictionaries.count(handle) == 1u)
+                    || (name == "XRECORD"
+                        && expectedXrecords.count(handle) == 1u);
             },
             [&](const auto& shape, std::string_view body) {
+                dx_standard_output::Decoder decoder(view);
+                if (selectedName == "XRECORD") {
+                    const auto expected = expectedXrecords.find(shape.handle);
+                    if (expected == expectedXrecords.end()
+                        || !seenXrecords.insert(shape.handle).second)
+                        return false;
+                    std::vector<std::uint32_t> references;
+                    const bool decoded = decoder.decodeRecord<DRW_XRecord>(
+                        body, [&](const DRW_XRecord& actual) {
+                            return actual.handle == shape.handle
+                                && dx_standard_output::equal(
+                                    *expected->second, actual, mapHandle,
+                                    references);
+                        });
+                    if (!decoded)
+                        bodyMismatch = true;
+                    for (const std::uint32_t reference : references)
+                        if (reference == 0u || reference == DRW::NoHandle
+                            || dxfW->dxfWriteRecordHandleCount(reference) != 1u)
+                            return false;
+                    return decoded;
+                }
                 if (selectedName != "DICTIONARY"
                     || !seen.insert(shape.handle).second)
                     return false;
-                const auto expectedEntry =
-                    expectedDictionaries.find(shape.handle);
+                const auto expectedEntry = expectedDictionaries.find(
+                    shape.handle);
                 if (expectedEntry == expectedDictionaries.end())
                     return false;
                 const DRW_Dictionary* expected = expectedEntry->second;
-                dx_standard_output::Decoder decoder(view);
                 const bool decoded = decoder.decodeRecord<DRW_Dictionary>(
                     body, [&](const DRW_Dictionary& actual) {
                         std::vector<std::uint32_t> references;
@@ -28275,11 +28320,14 @@ bool dx_iface::inspectDwgLayerStateOutput(
                               << " body-bytes=" << body.size() << '\n';
                 return decoded;
             });
-        if (!inspected || seen.size() != expectedDictionaries.size()) {
+        if (!inspected || seen.size() != expectedDictionaries.size()
+            || seenXrecords.size() != expectedXrecords.size()) {
             if (debug)
                 std::cerr << "LayerStates staged scan detail: inspected="
                           << inspected << " seen=" << seen.size()
                           << " expected=" << expectedDictionaries.size()
+                          << " xrecords=" << seenXrecords.size() << '/'
+                          << expectedXrecords.size()
                           << " bodyMismatch=" << bodyMismatch
                           << " emitted=" << emittedExtension << '/'
                           << emittedStates << '/' << emittedLayerStateRecord
@@ -28295,6 +28343,10 @@ bool dx_iface::inspectDwgLayerStateOutput(
              source.layerStateCompanionDictionaries)
             if (!recordOpaqueDwgOutputQualification(companion.handle))
                 return reject("companion dictionary identity qualification staging");
+        if (source.hasLayerStateRecord
+            && !recordOpaqueDwgOutputQualification(
+                source.layerStateRecord.handle))
+            return reject("LayerStates XRECORD identity qualification staging");
         m_dwgLayerStateOutputInspected = true;
         return true;
     } catch (...) {

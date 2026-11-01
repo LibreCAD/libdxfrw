@@ -1,6 +1,6 @@
 {
   "date": "2026-11-01",
-  "scope": "Source-bound admission for one observed AC1024 LayerStates graph: the LAYER_CONTROL extension dictionary with ACAD_LAYERFILTERS, ACAD_LAYERSTATES and ACLYDICTIONARY roots; two empty companion dictionaries; and one typed XRECORD under ACAD_LAYERSTATES. This receipt does not qualify emitted bytes, fresh DXF readback, layer-state restoration semantics or whole-source conversion.",
+  "scope": "Source-bound evidence for one observed AC1024 LayerStates graph. The graph is typed and retained for reading, but its XRECORD contains group 370, outside Autodesk’s documented DXF XRECORD application payload domain (1–369 except 5 and 105). Output preparation therefore refuses the graph before queueing it. This receipt does not qualify emitted bytes, fresh DXF readback, LayerStates restoration semantics or whole-source conversion.",
   "source": {
     "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
     "version": "AC1024",
@@ -18,19 +18,29 @@
       "DICTIONARY 0xD5 contains ACAD_LAYERFILTERS to 0xEE (238), ACAD_LAYERSTATES to 0x1B8 (440), and ACLYDICTIONARY to 0xED (237).",
       "The two companion dictionaries have no entries and are owned by DICTIONARY 0xD5.",
       "ACAD_LAYERSTATES dictionary 0x1B8 contains ACAD_VIEWS_RenderView to XRECORD 0x249 (585); the XRECORD is owned by 0x1B8 and has typed XDATA values."
-    ]
+    ],
+    "autodesk_xrecord_specification": {
+      "primary_source": "Autodesk AutoCAD DXF Reference, XRECORD (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm",
+      "rule": "XRECORD application values use group codes 1–369 except 5 and 105; group 370 is outside the documented domain.",
+      "cross_check": {
+        "source": "Autodesk ObjectARX Developer Guide, DXF Group Codes for Xrecords",
+        "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-F8B4190D-CCC6-4CAB-BDAE-71A7094FB442.htm",
+        "rule": "The XRECORD-specific code table ends at 360–369 (hard ownership IDs); it defines no code-370 XRECORD payload."
+      }
+    }
   },
   "implementation": {
     "file_sha256": {
-      "dwg2dxf/dx_iface.cpp": "f76e812ee6c7dfe6069e34c76fc7cd215f42d8368b9565f769f13179e1530dce",
+      "dwg2dxf/dx_iface.cpp": "46563b473a07288a0aa91f171cd35cd8b8182995998c7ae1d26d6248ba3ac14d",
       "dwg2dxf/dx_iface.h": "d9a49da7b2e72011a71c8cd744dba1fc3fb9c1ab115899effe4426aa0ab8939d",
-      "tests/dwg2dxf_adapter_tests.cpp": "624ff5254bb6b20a790c9528c44b2e0dd8878342b5df411f7ffa70f717176749"
+      "tests/dwg2dxf_adapter_tests.cpp": "bb4b35dcbdde8726d2389411fc7d3360f618245a000ca99e8657089dd38032e1"
     },
     "proof": [
-      "Admission is limited to AC1024-to-AC1024 output and the exact three-root LayerStates extension profile observed in this source.",
-      "The extension dictionary, state dictionary, two companion dictionaries and XRECORD must each have a unique source identity and matching standard DWG typed baseline. The XRECORD must be fully typed, owned by the state dictionary, and have no raw/unparsed payload.",
-      "The existing extension-dictionary and XRECORD output queues receive the source identities only after the frozen models pass late-mutation checks.",
-      "Staged inspection now checks the emitted identities and owners for the XRECORD and all dictionaries, and checks every dictionary body against its frozen source model. The XRECORD body relies on the existing standard DWG object inspector for field/reference output proof; that end-to-end route has not yet been run for this profile."
+      "The physical AC1024 graph is identified only from unique source identities and matching standard DWG typed baselines.",
+      "The observed XRECORD carries group 370. Since Autodesk’s DXF XRECORD domain ends at 369, output preparation now leaves this graph unprepared and does not add its dictionaries or XRECORD to output queues.",
+      "Read retention remains independent of output eligibility. No transformation or custom remapping is inferred for group 370.",
+      "The staged inspector can compare exact dictionary/XRECORD bodies and mapped handle roles for a future eligible profile, but it was not reached or qualified for this source."
     ]
   },
   "validation": {
@@ -38,40 +48,58 @@
       "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
       "cmake --build build-gcc --target dwg2dxf -j4"
     ],
-    "build_result": "PASS",
+    "build_result": "PASS; rebuilt libdxfrw_dwg2dxf_adapter_tests and dwg2dxf before the focused selector.",
     "adapter_test_executable": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests",
-    "adapter_test_sha256": "5292af18cca4fda8a2cdbe748b7529e7a1a8f30d954a9c076ec796c377df36a8",
+    "adapter_test_sha256": "593792a9b1e693bc2628035dfbf0ef3e85103d43d4310763441a39bf12be7837",
     "dwg2dxf_executable": "build-gcc/dwg2dxf/dwg2dxf",
-    "dwg2dxf_sha256": "15f80b5810516c19f078383be31cc6dbdee6b14b99d7e9548b2133b706c3c3d9",
+    "dwg2dxf_sha256": "f0ae9933b758fa60a903023c3f8b93e18a45113d1de9a27e38c71d7b899502d4",
     "cases": [
       {
         "command": "--layerstates-xrecord-physical-source-admission tests/samples/AC1024/visualization_-_aerial.dwg",
-        "result": "PASS; validates the three-root extension graph, both companion dictionary frames, the XRECORD frame/body, output queue membership, and late-mutation rejection/restoration."
+        "result": "PASS; confirms the source graph and code-370 XRECORD, verifies output preflight queues none of its identities, and proves ASCII/Binary writer refusal preserves destination bytes plus all typed XRECORD values, order and handles across same-writer retries."
+      },
+      {
+        "command": "--layerstates-xrecord-physical-source-admission tests/samples/AC1024/visualization_-_conference_room.dwg",
+        "result": "PASS on the current adapter-test executable; group-370 preflight and ASCII/Binary writer-refusal rollback/retries pass. The source has three unrelated object-parse failures, so it is not a whole-source output witness."
+      },
+      {
+        "command": "--layerstates-xrecord-physical-source-admission tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg",
+        "result": "PASS on the current adapter-test executable; group-370 preflight and ASCII/Binary writer-refusal rollback/retries pass. Whole-file output remains separately blocked by the SUN owner graph."
       },
       {
         "command": "--layout-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
-        "result": "PASS for existing AC1018 LayerStates empty-dictionary ASCII/Binary output, rollback, same-adapter retry and fresh readback."
+        "result": "PASS on the current adapter-test executable for existing AC1018 LayerStates empty-dictionary ASCII/Binary output, rollback, corrected same-adapter retry and fresh readback."
       },
       {
-        "command": "git diff --check",
-        "result": "PASS after the plan, code, test and receipt edits."
+        "command": "git diff --check; python3 -m json.tool docs/research/p4-ac1024-layerstates-xrecord-source-admission-2026-11-01.json",
+        "result": "PASS after final code, plan and receipt edits."
       }
     ],
     "full_source_probe": {
       "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/visualization_-_aerial.dwg -y -v2010 /private/tmp/libdxfrw-layerstates-aerial-full.dxf",
       "result": "EXPECTED REFUSAL before LayerStates staged output inspection: SUN owner graph closure reports an orphaned or multiply-owned SUN. No change was made to weaken that independent gate."
+    },
+    "unqualified_output_probe": {
+      "source": "tests/samples/AC1024/visualization_-_aerial.dwg",
+      "observed_blockers": [
+        "Full conversion stops at the unrelated orphaned/multiply-owned SUN graph before LayerStates inspection.",
+        "A direct scoped XRECORD serialization attempt refuses group 370 in both ASCII and Binary modes; two retries per mode preserve a seeded destination sentinel and every retained typed value, order and handle."
+      ],
+      "claim": "No staged-success, fresh-readback, semantic or whole-source support claim is made for this profile."
     }
   },
   "qualification_delta": {
-    "source_admission": "Implemented for this exact profile.",
-    "staged_output": "Not independently exercised for this profile.",
-    "fresh_ascii_binary_readback": "Not done.",
+    "source_evidence": "Retained; the observed graph and typed XRECORD are source-bound.",
+    "output_preparation": "Fail-closed for the observed profile because group 370 is not in the documented DXF XRECORD payload domain.",
+    "staged_output": "Not qualified; expected writer refusal for this profile.",
+    "fresh_ascii_binary_readback": "Not done for this profile.",
     "support_claim": "Not promoted."
   },
   "limitations": [
-    "The physical DWG is an existing local investigation input and was not added to the repository.",
-    "LibreDWG's independent JSON parse corroborates graph structure, not LayerStates semantic meaning.",
-    "The two companion dictionaries are admitted only as empty source-framed dictionaries; other keys, populated companions and additional XRECORD/profile shapes remain refused.",
-    "Whole-source conversion remains outside this receipt and must retain the independent SUN, proxy-graphics, rendering and other graph gates."
+    "The physical DWGs are existing local investigation inputs and were not added to the repository.",
+    "LibreDWG corroborates the physical graph and typed group-370 field; it does not establish a DXF mapping or LayerStates semantics.",
+    "Autodesk documents XRECORD application data as group codes 1–369 except 5 and 105. No producer-backed lossless projection for source group 370 is currently evidenced.",
+    "The profile remains read-only evidence; other nonempty LayerStates profiles remain refused until independently sourced and output-eligible.",
+    "Whole-source conversion has separate SUN, proxy-graphics, rendering and other graph gates."
   ]
 }
