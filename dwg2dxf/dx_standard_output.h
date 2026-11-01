@@ -832,7 +832,9 @@ template <class Mapper, class LayerVerifier = NoLayerReferences> bool equal(cons
 }
 
 template<class Mapper> bool xrecordApplicationTransportEqual(const std::vector<DRW_Variant>& source,
-        const std::vector<DRW_Variant>& actual, Mapper& map, std::vector<std::uint32_t>& references) {
+        const std::vector<DRW_Variant>& actual, Mapper& map,
+        std::vector<std::uint32_t>& references,
+        bool allowLayerStateGroup370 = false) {
     if (source.size() > 1000000u || actual.size() > 1000000u) return false;
     std::size_t next = 0u;
     for (const auto& value : source) {
@@ -841,7 +843,15 @@ template<class Mapper> bool xrecordApplicationTransportEqual(const std::vector<D
         const bool dwgCompatibilityCode =
             isDxfXRecordDwgCompatibilityCode(value.code())
             && value.type() == DRW_Variant::INTEGER;
-        if ((!standardCode && !dwgCompatibilityCode)
+        const bool layerStateCompatibilityCode = allowLayerStateGroup370
+            && isDxfXRecordLayerStateCompatibilityCode(value.code())
+            && value.type() == DRW_Variant::INTEGER
+            && value.i_val()
+                >= std::numeric_limits<std::int16_t>::min()
+            && value.i_val()
+                <= std::numeric_limits<std::int16_t>::max();
+        if ((!standardCode && !dwgCompatibilityCode
+                && !layerStateCompatibilityCode)
             || next >= actual.size()) return false;
         if (value.code() < 310 || value.code() > 319) {
             if (value.type() == DRW_Variant::BINARY) return false;
@@ -870,12 +880,14 @@ template<class Mapper> bool xrecordApplicationTransportEqual(const std::vector<D
 
 template <class Mapper, class LayerVerifier = NoLayerReferences> bool equal(const DRW_XRecord& source,
         const DRW_XRecord& actual, Mapper& map, std::vector<std::uint32_t>& references,
-        LayerVerifier verifyLayer = {}) {
+        LayerVerifier verifyLayer = {},
+        bool allowLayerStateGroup370 = false) {
     if (!commonEqual(source, actual, Family::Xrecord, map, references, verifyLayer)
         || source.m_rawDataValid || source.hasDwgRawDataSourceRecord()
         || !source.hasExactDxfCoordinateTuples() || !actual.hasExactDxfCoordinateTuples()
         || source.m_cloning != actual.m_cloning) return false;
-    return xrecordApplicationTransportEqual(source.m_dataEntries,actual.m_dataEntries,map,references);
+    return xrecordApplicationTransportEqual(source.m_dataEntries,
+        actual.m_dataEntries, map, references, allowLayerStateGroup370);
 }
 
 } // namespace dx_standard_output

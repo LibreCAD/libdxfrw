@@ -1469,12 +1469,24 @@ public:
                             return isDxfXRecordDwgCompatibilityCode(
                                 value.code());
                         });
+                    const bool hasLayerStateCompatibilityCode =
+                        std::any_of(values.cbegin(), values.cend(),
+                            [](const auto& value) {
+                                return isDxfXRecordLayerStateCompatibilityCode(
+                                    value.code());
+                            });
+                    const bool isSelectedLayerStateCompatibilityRecord =
+                        hasLayerStateCompatibilityCode
+                        && isDwgLayerStateCompatibilityRecord(record);
                     const bool useDwgCompatibility = hasDwgCompatibilityCode
+                        && !hasLayerStateCompatibilityCode
                         && ((cData->sourceFormat == dx_source_format::DWG
                              && cData->sourceVersion >= DRW::AC1021
                              && cData->sourceVersion == dxfW->getVersion())
                             || isDxfXRecordCompatibilityReplaySource(record));
-                    const bool written = useDwgCompatibility
+                    const bool written = isSelectedLayerStateCompatibilityRecord
+                        ? dxfW->writeXRecordLayerStateCompatibility(&record)
+                        : useDwgCompatibility
                         ? dxfW->writeXRecordDwgCompatibility(&record)
                         : dxfW->writeXRecord(&record);
                     if (!written) {
@@ -1485,8 +1497,10 @@ public:
                                   << static_cast<int>(cData->sourceVersion)
                                   << " target-version="
                                   << static_cast<int>(dxfW->getVersion())
-                                  << " has-1070/1071="
+                                  << " dwg-compatibility="
                                   << (hasDwgCompatibilityCode ? 1 : 0)
+                                  << " layerstate-370="
+                                  << (hasLayerStateCompatibilityCode ? 1 : 0)
                                   << " raw-data-valid="
                                   << (record.m_rawDataValid ? 1 : 0)
                                   << " dwg-raw-source="
@@ -2778,6 +2792,8 @@ private:
     bool m_dwgLayerStateOutputInspected{false};
     bool prepareDwgLayerStateOutput(DRW::Version targetVersion,
                                     bool debug) noexcept;
+    bool isDwgLayerStateCompatibilityRecord(
+        const DRW_XRecord& record) const noexcept;
     bool hasUnchangedDwgLayerStateOutputSource() const noexcept;
     bool inspectDwgLayerStateOutput(const dxfRW::DxfObjectsWriteView&,
                                     bool debug) noexcept;

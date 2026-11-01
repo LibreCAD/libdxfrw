@@ -104,6 +104,10 @@ public:
                          iface.m_extensionXRecordHandles.end(), handle)
             != iface.m_extensionXRecordHandles.end();
     }
+    static bool layerStateCompatibilityRecord(
+            const dx_iface& iface, const DRW_XRecord& record) {
+        return iface.isDwgLayerStateCompatibilityRecord(record);
+    }
     static void attachDxfWriter(dx_iface& iface, dxfRW* writer) {
         iface.dxfW = writer;
     }
@@ -40636,51 +40640,92 @@ bool physicalLayerStateXrecordSourceAdmission(
         || recordFrame->m_version != DRW::AC1024
         || recordFrame->m_isEntity || recordFrame->m_hasDataStorage)
         return fail("LayerStates XRECORD lacks a typed body or source-bound frame");
-    const bool hasDxfOutOfRangePayloadCode = std::any_of(
+    const auto group370 = std::find_if(
         stateRecord->m_dataEntries.begin(), stateRecord->m_dataEntries.end(),
         [](const DRW_Variant& value) { return value.code() == 370; });
-    if (!hasDxfOutOfRangePayloadCode)
-        return fail("physical LayerStates XRECORD no longer exercises group-370 output refusal");
+    const auto group370Count = std::count_if(
+        stateRecord->m_dataEntries.begin(), stateRecord->m_dataEntries.end(),
+        [](const DRW_Variant& value) { return value.code() == 370; });
+    if (group370 == stateRecord->m_dataEntries.end()
+        || group370Count != 1u
+        || group370->type() != DRW_Variant::INTEGER
+        || group370->i_val() != -3) {
+        std::cerr << "LayerStates group-370 witness: count=" << group370Count;
+        if (group370 != stateRecord->m_dataEntries.end()) {
+            std::cerr << " type=" << static_cast<int>(group370->type());
+            if (group370->type() == DRW_Variant::INTEGER)
+                std::cerr << " int=" << group370->i_val();
+        }
+        std::cerr << '\n';
+        return fail("physical LayerStates XRECORD group 370 is not the witnessed Int16 value -3");
+    }
 
     dx_iface preflight;
     preflight.cData = &source;
     if (!DxIfaceStandardDwgCaptureTestAccess::prepareLayerStateOutput(
             preflight, DRW::AC1024)
-        || DxIfaceStandardDwgCaptureTestAccess::layerStateOutputPrepared(preflight)
-        || DxIfaceStandardDwgCaptureTestAccess::layerStateOutputHasRecord(preflight)
-        || DxIfaceStandardDwgCaptureTestAccess::layerStateDictionaryQueued(
+        || !DxIfaceStandardDwgCaptureTestAccess::layerStateOutputPrepared(preflight)
+        || !DxIfaceStandardDwgCaptureTestAccess::layerStateOutputHasRecord(preflight)
+        || !DxIfaceStandardDwgCaptureTestAccess::layerStateDictionaryQueued(
             preflight, extension->handle)
-        || DxIfaceStandardDwgCaptureTestAccess::layerStateDictionaryQueued(
+        || !DxIfaceStandardDwgCaptureTestAccess::layerStateDictionaryQueued(
             preflight, states->handle)
-        || DxIfaceStandardDwgCaptureTestAccess::layerStateXRecordQueued(
+        || !DxIfaceStandardDwgCaptureTestAccess::layerStateXRecordQueued(
             preflight, stateRecord->handle))
-        return fail("DXF-incompatible group-370 LayerStates XRECORD was queued for output");
+        return fail("source-qualified AC1024 LayerStates group-370 profile was not queued for output");
     for (const DRW_Dictionary* companion : companions)
-        if (DxIfaceStandardDwgCaptureTestAccess::layerStateDictionaryQueued(
+        if (!DxIfaceStandardDwgCaptureTestAccess::layerStateDictionaryQueued(
                 preflight, companion->handle))
-            return fail("DXF-incompatible LayerStates graph queued a companion dictionary");
+            return fail("source-qualified LayerStates graph omitted a companion dictionary");
 
     class XRecordCodeDomainExporter final : public dx_iface {
     public:
         DRW_XRecord* record{nullptr};
         bool recordRefused{false};
+        bool useLayerStateCompatibility{false};
+        bool forceLayerStateCompatibility{false};
+        bool layerStateCompatibilitySelected{false};
         unsigned objectAttempts{0u};
         std::string refusalCode;
+        void writeHeader(DRW_Header&) override {}
+        void writeBlocks() override {}
+        void writeBlockRecords() override {}
+        void writeEntities() override {}
+        void writeLTypes() override {}
+        void writeLayers() override {}
+        void writeTextstyles() override {}
+        void writeVports() override {}
+        void writeViews() override {}
+        void writeUCSs() override {}
+        void writeDimstyles() override {}
+        void writeAppId() override {}
+        bool wantsDxfLayerTableControl() const override { return false; }
         void writeObjects() override {
             ++objectAttempts;
-            recordRefused = !dxfW->writeXRecord(record);
+            layerStateCompatibilitySelected =
+                record != nullptr
+                && DxIfaceStandardDwgCaptureTestAccess::
+                    layerStateCompatibilityRecord(*this, *record);
+            const bool written = useLayerStateCompatibility
+                    && (forceLayerStateCompatibility
+                        || layerStateCompatibilitySelected)
+                ? dxfW->writeXRecordLayerStateCompatibility(record)
+                : dxfW->writeXRecord(record);
+            recordRefused = !written;
             if (recordRefused)
                 refusalCode = dxfW->getLastDiagnostic().code;
         }
         bool finalizeDxfWrite() override { return true; }
     } exporter;
-    dx_data emptyAdapterData;
-    exporter.cData = &emptyAdapterData;
+    exporter.cData = &source;
     for (DRW_XRecord& record : source.xRecords)
         if (record.handle == stateRecord->handle)
             exporter.record = &record;
     if (exporter.record == nullptr)
-        return fail("LayerStates XRECORD disappeared before DXF code-domain test");
+        return fail("LayerStates XRECORD disappeared before DXF producer-profile test");
+    if (!DxIfaceStandardDwgCaptureTestAccess::prepareLayerStateOutput(
+            exporter, DRW::AC1024))
+        return fail("source-bound LayerStates XRECORD did not prepare its adapter compatibility profile");
     const std::vector<DRW_Variant> sourceDataEntries =
         exporter.record->m_dataEntries;
     const std::vector<DRW_Variant> sourceValues = exporter.record->m_values;
@@ -40702,6 +40747,7 @@ bool physicalLayerStateXrecordSourceAdmission(
     };
 
     for (const bool binary : {false, true}) {
+        exporter.useLayerStateCompatibility = false;
         const auto nonce = std::chrono::steady_clock::now()
                                .time_since_epoch()
                                .count();
@@ -40743,7 +40789,7 @@ bool physicalLayerStateXrecordSourceAdmission(
                           << " objects=" << exporter.objectAttempts
                           << " diagnostic=" << diagnostic.code << ':'
                           << diagnostic.message << '\n';
-                return fail("DXF XRECORD writer did not deterministically refuse group 370");
+                return fail("ordinary DXF XRECORD writer accepted the producer-compatibility group 370");
             }
             previousObjectAttempts = exporter.objectAttempts;
             std::ifstream input(outputPath, std::ios::binary);
@@ -40758,9 +40804,95 @@ bool physicalLayerStateXrecordSourceAdmission(
                 || sourceHandleValues != exporter.record->m_handleValues)
                 return fail("group-370 refusal changed retained source XRECORD fields");
         }
+
+        exporter.useLayerStateCompatibility = true;
+        exporter.recordRefused = false;
+        exporter.refusalCode.clear();
+        const bool oldTargetWrote = codec.write(
+            &exporter, DRW::AC1021, binary);
+        if (oldTargetWrote || !exporter.recordRefused
+            || exporter.refusalCode != "xrecord-application-code-domain")
+            return fail("LayerStates compatibility writer accepted group 370 for an AC1021 target");
+        {
+            std::ifstream input(outputPath, std::ios::binary);
+            const std::string retained{
+                std::istreambuf_iterator<char>(input), {}};
+            if (retained != sentinel)
+                return fail("old-target group-370 refusal changed the destination");
+        }
+        std::vector<DRW_Variant> invalidGroup370 = sourceDataEntries;
+        auto invalid370 = std::find_if(invalidGroup370.begin(),
+            invalidGroup370.end(), [](const DRW_Variant& value) {
+                return value.code() == 370;
+            });
+        if (invalid370 == invalidGroup370.end())
+            return fail("group-370 range control lost its source value");
+        *invalid370 = DRW_Variant(370,
+            static_cast<std::int32_t>(std::numeric_limits<std::int16_t>::max())
+                + 1);
+        exporter.record->m_dataEntries = invalidGroup370;
+        exporter.forceLayerStateCompatibility = true;
+        exporter.recordRefused = false;
+        exporter.refusalCode.clear();
+        const bool invalidWrote = codec.write(&exporter, DRW::AC1024, binary);
+        if (invalidWrote || !exporter.recordRefused
+            || exporter.layerStateCompatibilitySelected
+            || exporter.refusalCode
+                != "xrecord-layerstate-compatibility-value-kind")
+            return fail("LayerStates group-370 compatibility failed to reject a stale source and out-of-range Int16");
+        {
+            std::ifstream input(outputPath, std::ios::binary);
+            const std::string retained{
+                std::istreambuf_iterator<char>(input), {}};
+            if (retained != sentinel)
+                return fail("invalid group-370 compatibility attempt changed the destination");
+        }
+        exporter.record->m_dataEntries = sourceDataEntries;
+        exporter.forceLayerStateCompatibility = false;
+        exporter.recordRefused = false;
+        exporter.refusalCode.clear();
+        if (!codec.write(&exporter, DRW::AC1024, binary)
+            || exporter.recordRefused
+            || !exporter.layerStateCompatibilitySelected)
+            return fail("corrected LayerStates group-370 source did not retry successfully");
+        {
+            std::ifstream input(outputPath, std::ios::binary);
+            const std::string emitted{
+                std::istreambuf_iterator<char>(input), {}};
+            if (emitted == sentinel || emitted.empty())
+                return fail("successful LayerStates compatibility retry did not publish DXF bytes");
+        }
+        dx_iface outputReader;
+        dx_data output;
+        if (!outputReader.fileImport(outputPath.string(), &output, false))
+            return fail("LayerStates compatibility output did not parse on fresh readback");
+        const DRW_XRecord* actualRecord = nullptr;
+        for (const DRW_XRecord& candidate : output.xRecords) {
+            if (candidate.handle != stateRecord->handle)
+                continue;
+            if (actualRecord != nullptr)
+                return fail("LayerStates compatibility readback duplicated the XRECORD identity");
+            actualRecord = &candidate;
+        }
+        if (actualRecord == nullptr)
+            return fail("LayerStates compatibility readback lost its XRECORD");
+        auto identity = [](std::uint32_t sourceHandle,
+                           std::uint32_t& emittedHandle) {
+            emittedHandle = sourceHandle;
+            return true;
+        };
+        std::vector<std::uint32_t> references;
+        if (!dx_standard_output::equal(*exporter.record, *actualRecord,
+                identity, references,
+                dx_standard_output::NoLayerReferences{}, true)
+            || !variantsUnchanged(sourceDataEntries,
+                                  actualRecord->m_dataEntries)
+            || !variantsUnchanged(sourceValues, actualRecord->m_values)
+            || sourceHandleValues != actualRecord->m_handleValues)
+            return fail("LayerStates compatibility output changed typed values, order, references or common fields");
     }
 
-    std::cout << "Physical AC1024 LayerStates source evidence confirms group 370 is outside the Autodesk DXF XRECORD payload domain; output preflight refuses the graph, and ASCII/Binary writer refusal preserves the destination and source fields across retries.\n";
+    std::cout << "Physical AC1024 LayerStates group 370 is admitted only through the source-qualified producer-compatibility route; ordinary output remains fail-closed, and ASCII/Binary output roundtrips the exact XRECORD with destination preservation and corrected retry.\n";
     return true;
 }
 

@@ -67,6 +67,14 @@ inline constexpr bool isDxfXRecordDwgCompatibilityCode(int code) {
     return code == 1070 || code == 1071;
 }
 
+// LibreDWG 0.14 emits group 370 as an application value in the AC1024
+// LayerStates XRECORD profile. Autodesk's XRECORD-specific tables stop at
+// 369, so keep this as a separate, opt-in compatibility profile rather than
+// widening the standard XRECORD domain.
+inline constexpr bool isDxfXRecordLayerStateCompatibilityCode(int code) {
+    return code == 370;
+}
+
 // The pinned LibreCAD tree predates the standalone safety correction for two
 // disputed ranges.  Keep that legacy interpretation available to an explicit
 // compatibility probe without changing the standalone-safe default used by

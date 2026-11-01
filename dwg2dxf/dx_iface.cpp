@@ -27813,18 +27813,33 @@ bool dx_iface::prepareDwgLayerStateOutput(
             layerStateRecord->m_dataEntries.empty()
             ? layerStateRecord->m_values
             : layerStateRecord->m_dataEntries;
-        if (std::any_of(payload.begin(), payload.end(),
-                [](const DRW_Variant& value) {
-                    return !isDxfXRecordApplicationCode(value.code());
+        const auto layerStatePayloadValueSupported = [](
+                const DRW_Variant& value) {
+            if (isDxfXRecordApplicationCode(value.code()))
+                return true;
+            return isDxfXRecordLayerStateCompatibilityCode(value.code())
+                && value.type() == DRW_Variant::INTEGER
+                && value.i_val()
+                    >= std::numeric_limits<std::int16_t>::min()
+                && value.i_val()
+                    <= std::numeric_limits<std::int16_t>::max();
+        };
+        if (sourceVersion != DRW::AC1024
+            || std::any_of(payload.begin(), payload.end(),
+                [&layerStatePayloadValueSupported](
+                        const DRW_Variant& value) {
+                    return !layerStatePayloadValueSupported(value);
                 })
             || (layerStateRecord->m_dataEntries.empty()
                 && std::any_of(layerStateRecord->m_handleValues.begin(),
                     layerStateRecord->m_handleValues.end(),
                     [](const auto& value) {
                         return value.first != 0
-                            && !isDxfXRecordApplicationCode(value.first);
+                            && (!isDxfXRecordApplicationCode(value.first)
+                                || isDxfXRecordLayerStateCompatibilityCode(
+                                    value.first));
                     })))
-            return skip("AC1024 LayerStates XRECORD contains an application group code outside the DXF 1-369 range");
+            return skip("AC1024 LayerStates XRECORD contains an unqualified application group value");
     }
 
     const auto hasDictionaryFrame = [this, sourceVersion](
@@ -27959,6 +27974,25 @@ bool dx_iface::prepareDwgLayerStateOutput(
     m_dwgLayerStateOutputSourceVersion = DRW::UNKNOWNV;
     m_dwgLayerStateOutputPrepared = false;
     return skip("snapshot changed during capture");
+}
+
+bool dx_iface::isDwgLayerStateCompatibilityRecord(
+        const DRW_XRecord& record) const noexcept {
+    if (cData == nullptr || dxfW == nullptr
+        || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024
+        || dxfW->getVersion() != DRW::AC1024
+        || !m_dwgLayerStateOutputPrepared
+        || !m_dwgLayerStateOutputSource.hasLayerStateRecord
+        || record.handle
+            != m_dwgLayerStateOutputSource.layerStateRecord.handle
+        || !hasUnchangedDwgLayerStateOutputSource())
+        return false;
+    const std::vector<DRW_Variant>& values = record.m_dataEntries.empty()
+        ? record.m_values : record.m_dataEntries;
+    return std::any_of(values.begin(), values.end(), [](const DRW_Variant& value) {
+        return isDxfXRecordLayerStateCompatibilityCode(value.code());
+    });
 }
 
 bool dx_iface::hasUnchangedDwgLayerStateOutputSource() const noexcept {
@@ -28244,7 +28278,9 @@ bool dx_iface::inspectDwgLayerStateOutput(
                             return actual.handle == shape.handle
                                 && dx_standard_output::equal(
                                     *expected->second, actual, mapHandle,
-                                    references);
+                                    references,
+                                    dx_standard_output::NoLayerReferences{},
+                                    true);
                         });
                     if (!decoded)
                         bodyMismatch = true;

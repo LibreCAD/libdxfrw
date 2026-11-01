@@ -419,6 +419,10 @@ public:
     /// use writeXRecord(), which retains the standard XRECORD code-domain
     /// check.
     bool writeXRecordDwgCompatibility(DRW_XRecord *ent);
+    /// Explicit producer-compatibility path for the source-bound AC1024
+    /// LayerStates XRECORD group-370 Int16 value. The adapter must first
+    /// qualify the owning dictionary graph and exact source profile.
+    bool writeXRecordLayerStateCompatibility(DRW_XRecord *ent);
     /// Emits the typed AcDbDataLink object profile. Referenced custom-data
     /// targets must already have a valid source-to-output handle mapping.
     bool writeDataLink(DRW_DataLink *ent);
@@ -1810,7 +1814,8 @@ private:
         const std::vector<std::pair<std::size_t, std::int32_t>>*
             int32Overrides = nullptr);
     bool writeXRecordInternal(DRW_XRecord *ent,
-                              bool allowDwgCompatibilityCodes);
+                              bool allowDwgCompatibilityCodes,
+                              bool allowLayerStateGroup370);
     void beginDxfReadRetainedBudget();
     bool appendDxfReadHeaderComment(const std::string& comment);
     bool recordDxfTableRow() noexcept;

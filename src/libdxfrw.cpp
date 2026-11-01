@@ -28868,15 +28868,20 @@ bool dxfRW::writeAcDbPlaceholder(DRW_AcDbPlaceholder *ent) {
 }
 
 bool dxfRW::writeXRecord(DRW_XRecord *ent) {
-    return writeXRecordInternal(ent, false);
+    return writeXRecordInternal(ent, false, false);
 }
 
 bool dxfRW::writeXRecordDwgCompatibility(DRW_XRecord *ent) {
-    return writeXRecordInternal(ent, true);
+    return writeXRecordInternal(ent, true, false);
+}
+
+bool dxfRW::writeXRecordLayerStateCompatibility(DRW_XRecord *ent) {
+    return writeXRecordInternal(ent, false, true);
 }
 
 bool dxfRW::writeXRecordInternal(
-        DRW_XRecord *ent, bool allowDwgCompatibilityCodes) {
+        DRW_XRecord *ent, bool allowDwgCompatibilityCodes,
+        bool allowLayerStateGroup370) {
     if (!preflightDxfWrite())
         return false;
     if (ent != nullptr && !ent->hasExactDxfCoordinateTuples()) {
@@ -28912,11 +28917,15 @@ bool dxfRW::writeXRecordInternal(
     const std::vector<DRW_Variant>& values = ent->m_dataEntries.empty()
         ? ent->m_values : ent->m_dataEntries;
     const auto invalidApplicationCode = [this, ent,
-            allowDwgCompatibilityCodes](int code) {
+            allowDwgCompatibilityCodes,
+            allowLayerStateGroup370](int code) {
         if (isDxfXRecordApplicationCode(code)
             || (allowDwgCompatibilityCodes
                 && version >= DRW::AC1021
-                && isDxfXRecordDwgCompatibilityCode(code)))
+                && isDxfXRecordDwgCompatibilityCode(code))
+            || (allowLayerStateGroup370
+                && version >= DRW::AC1024
+                && isDxfXRecordLayerStateCompatibilityCode(code)))
             return false;
         DRW_DBG("XRECORD rejected application group code=");
         DRW_DBG(code);
@@ -28938,6 +28947,18 @@ bool dxfRW::writeXRecordInternal(
                 DRW::OperationCause::ValidationFailure,
                 "xrecord-dwg-compatibility-value-kind",
                 "the AC1021+ DWG XRECORD compatibility profile requires Int16 group 1070 and Int32 group 1071");
+            m_writeError = true;
+            return false;
+        }
+        if (isDxfXRecordLayerStateCompatibilityCode(value.code())
+            && allowLayerStateGroup370
+            && (value.type() != DRW_Variant::INTEGER
+                || value.i_val() < std::numeric_limits<std::int16_t>::min()
+                || value.i_val() > std::numeric_limits<std::int16_t>::max())) {
+            recordOperationDiagnostic(DRW::OperationPhase::Validation,
+                DRW::OperationCause::ValidationFailure,
+                "xrecord-layerstate-compatibility-value-kind",
+                "the AC1024 LayerStates XRECORD compatibility profile requires an Int16 group 370 value");
             m_writeError = true;
             return false;
         }

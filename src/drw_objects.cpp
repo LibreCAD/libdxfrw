@@ -10349,9 +10349,21 @@ bool DRW_XRecord::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t b
             hasValue = readRawShortWithinBody(
                 &item, version, static_cast<std::uint32_t>(dataEndBit),
                 parsedValue);
-            if (hasValue)
+            if (hasValue) {
+                // DXF groups 370-379 are signed Int16 values. In particular,
+                // a DWG LayerStates XRECORD may carry group 370 == 0xFFFD,
+                // which LibreDWG projects as the DXF lineweight enum -3.
+                // Preserve its signed value in the typed model so a DXF
+                // compatibility writer does not emit 65533 or reject it.
+                const std::int32_t signedValue =
+                    code >= 370 && code <= 379
+                        && parsedValue > static_cast<std::uint16_t>(
+                            std::numeric_limits<std::int16_t>::max())
+                    ? static_cast<std::int32_t>(parsedValue) - 0x10000
+                    : static_cast<std::int32_t>(parsedValue);
                 value = DRW_Variant(code,
-                    static_cast<std::int32_t>(parsedValue));
+                    signedValue);
+            }
         } else if (xRecordCodeIsInt32(code)) {
             std::uint32_t parsedValue = 0;
             hasValue = readRawLong32WithinBody(
