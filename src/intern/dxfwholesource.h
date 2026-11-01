@@ -16,10 +16,16 @@
 class dxfRW;
 namespace WholeSourceV2 {
 inline bool sum(std::size_t a,std::size_t b,std::size_t& out) noexcept {
-    if(a>(std::numeric_limits<std::size_t>::max)()-b)return false;out=a+b;return true;
+    if (a > (std::numeric_limits<std::size_t>::max)() - b)
+        return false;
+    out = a + b;
+    return true;
 }
 inline bool product(std::size_t a,std::size_t b,std::size_t& out) noexcept {
-    if(b&&a>(std::numeric_limits<std::size_t>::max)()/b)return false;out=a*b;return true;
+    if (b && a > (std::numeric_limits<std::size_t>::max)() / b)
+        return false;
+    out = a * b;
+    return true;
 }
 struct Limits {std::size_t fields=1000000u,bytes=64u*1024u*1024u,work=128u*1024u*1024u;};
 enum class State {Collecting,ThroughEof,Quota,Allocation,Invalid};
@@ -36,7 +42,9 @@ struct Pool {
         bytes=next;if(peak<bytes)peak=bytes;return true;
     }
     void give(std::size_t amount) noexcept {
-        if(amount>bytes)std::terminate();bytes-=amount;
+        if (amount > bytes)
+            std::terminate();
+        bytes -= amount;
         if(lease && !lease->resizeTo(bytes))std::terminate();
     }
     bool chargeWork(std::size_t amount) noexcept {
@@ -187,7 +195,9 @@ class Capture final:public DxfReadRecordObserver {
     }
     void selfHandle(std::size_t n,Admission a) noexcept override {if(previous)previous->selfHandle(n,a);}
     void finish(Handler& h,const void* identity) noexcept {
-        if(!source)return;source->m_version=reader.getSourceVersion();
+        if (!source)
+            return;
+        source->m_version=reader.getSourceVersion();
         if(source->m_state==State::Collecting){
             if(!source->fields.empty()) {const auto& f=source->fields.back();
                 source->m_state=f.code==0&&f.kind==DxfReadRecordView::Text&&source->value(f)=="EOF"?State::ThroughEof:State::Invalid;

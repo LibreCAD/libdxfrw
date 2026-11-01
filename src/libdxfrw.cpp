@@ -2036,7 +2036,9 @@ public:
                 m_events.emplace_back([this,pair=std::move(pair),&handler](DRW_Interface& target) {
                     DxfTablePublicationScope publication(m_tablePublication,{1u,&pair->value,&pair->source,true});
                     handler.addDxfTableSource(pair->value,pair->source);
-                    if(m_tablePublication)m_tablePublication->phase=2u;target.addTable(pair->value);
+                    if (m_tablePublication)
+                        m_tablePublication->phase = 2u;
+                    target.addTable(pair->value);
                 });
             } else {
                 m_events.emplace_back([this,pair=std::move(pair),&handler,sourcePlan,typedPlan](DRW_Interface& target) {
@@ -2177,7 +2179,9 @@ public:
     DRW_BLOCK_EVENT_POINTER(addHatch, DRW_Hatch)
     DRW_BLOCK_EVENT_POINTER(addMPolygon, DRW_MPolygon)
     void addViewport(const DRW_Viewport& data) override {
-        if(m_failed)return;const auto event=plan(DRW_DxfBlockCallback::addViewport,&data);
+        if (m_failed)
+            return;
+        const auto event=plan(DRW_DxfBlockCallback::addViewport,&data);
         auto original=m_viewportPublication?*m_viewportPublication:DxfViewportPublication{};
         const bool published=original.model==&data;original.model=nullptr;
         try {m_events.emplace_back([this,value=data,original,published,event](DRW_Interface& target) {
@@ -2251,7 +2255,8 @@ private:
     DxfBlockPublication publication(std::uint8_t phase) const noexcept {
         DxfBlockPublication out;out.phase=phase;out.blockHandle=m_blockHandle;out.scope=m_scopeId;
         if(m_delivery){out.delivery=&m_delivery->source();out.blockRecord=out.delivery->blockRecord;}
-        if(m_children)out.physical=&m_children->source();return out;
+        if(m_children)out.physical=&m_children->source();
+        return out;
     }
     template<class Callback>void invoke(const Planned& planned,const DRW_Entity* entity,const DRW_RawDxfObject* raw,Callback callback) {
         const bool notify=m_delivery&&m_handler&&m_delivery->completeManifest()
@@ -2264,7 +2269,8 @@ private:
         if(entity){const auto state=dxfCompound::Decoder::observe(*entity).host;view.pendingXdata=state.present;view.coordinateMask=state.coordinateMask;}
         DxfBlockPublicationScope scope(m_publication,view);
         m_handler->beginDxfBlockDelivery(m_scopeId,m_blockHandle,planned.index,*view.event);
-        if(m_publication)m_publication->phase=8u;callback();
+        if(m_publication)m_publication->phase=8u;
+        callback();
         if(m_publication)m_publication->phase=9u;
         m_handler->endDxfBlockDelivery(m_scopeId,m_blockHandle,planned.index,*view.event);
     }
@@ -3471,7 +3477,8 @@ bool dxfRW::bindDxfWriteSourceObjectHandle(
 
 bool dxfRW::enableDxfEntitiesDeliveryLedger(std::size_t scopes,std::size_t records,std::size_t groups,
         std::size_t dispatches,std::size_t events,std::size_t bytes,std::size_t work) noexcept {
-    if(m_wholeOperationActive)return false;auto& s=m_dxfEntitiesDelivery;
+    if(m_wholeOperationActive)return false;
+    auto& s=m_dxfEntitiesDelivery;
     s.maxScopes=scopes;s.maxRecords=records;s.maxGroups=groups;s.maxDispatches=dispatches;s.maxEvents=events;
     s.maxBytes=bytes;s.maxWork=work;s.state={};s.state.enabled=true;s.scopes.clear();
     s.sourcePublication=nullptr;s.manifestPublication=nullptr;s.activeTicket.reset();return true;
@@ -3512,7 +3519,8 @@ std::size_t dxfRW::captureDxfEntitiesSource(const DRW_DxfEntitiesSource& source)
                 ||!add(bytes,1u,s.maxBytes-state.bytes))return fail();
         }
     }
-    if(groups!=source.groups||bytes>(s.maxWork-state.work-work)/2u)return fail();work+=2u*bytes;
+    if(groups!=source.groups||bytes>(s.maxWork-state.work-work)/2u)return fail();
+    work+=2u*bytes;
     try {
         DxfEntitiesDeliveryLedger::Scope scope;scope.source=source;
         const auto index=s.scopes.size();scope.ticket=DxfEntitiesDeliveryTicketPtr(new DxfEntitiesDeliveryTicket(state.generation,index));
@@ -3599,7 +3607,8 @@ void dxfRW::captureDxfIdentityDelivery(const DRW_DxfIdentitySource& value) noexc
     std::size_t bytes=sizeof(DRW_DxfIdentitySource)+sizeof(DxfIdentityDeliveryTicket)+24u*sizeof(void*);
     const auto charge=[&](std::size_t n) noexcept {if(bytes>s.maxBytes||n>s.maxBytes-bytes)return false;bytes+=n;return true;};
     const auto slots=[&](std::size_t n,std::size_t size) noexcept {
-        if(size&&n>s.maxBytes/size)return false;return charge(n*size);
+        if(size&&n>s.maxBytes/size)return false;
+        return charge(n*size);
     };
     const auto text=[&](const std::string& v) noexcept {return charge(v.size())&&charge(1u);};
     if(!slots(value.sections.size(),sizeof(DRW_DxfIdentitySource::SectionSource)+4u*sizeof(void*))
@@ -9861,7 +9870,8 @@ bool dxfRW::writeTableWithLegacySourcePresence(DRW_Table *ent, const std::vector
                 || cell.m_edgeFlags > 32767
                 || cell.m_textAlignment < 0 || cell.m_textAlignment > 32767
                 || cell.m_textColorRgb > 32767 || cell.m_fillColorRgb > 32767
-                || cell.m_overrideFlags > static_cast<std::uint32_t>(INT_MAX)
+                || cell.m_overrideFlags > static_cast<std::uint32_t>(
+                       std::numeric_limits<int>::max())
                 || cell.m_virtualEdgeFlags < 0 || cell.m_virtualEdgeFlags > 0xFF
                 || (version < DRW::AC1021
                     && ((cell.m_overrideFlags != 0u && !legacyOverrides)
@@ -10016,10 +10026,14 @@ bool dxfRW::writeTableWithLegacySourcePresence(DRW_Table *ent, const std::vector
     if (ent->m_dataVersion < 0 || ent->m_dataVersion > 32767
         || (version < DRW::AC1024 && ent->m_dataVersion != 0)
         || ent->m_flowDirection < 0 || ent->m_flowDirection > 32767
-        || ent->m_tableOverrideFlags > static_cast<std::uint32_t>(INT_MAX)
-        || ent->m_borderColorOverrideFlags > static_cast<std::uint32_t>(INT_MAX)
-        || ent->m_borderLineweightOverrideFlags > static_cast<std::uint32_t>(INT_MAX)
-        || ent->m_borderVisibilityOverrideFlags > static_cast<std::uint32_t>(INT_MAX)
+        || ent->m_tableOverrideFlags > static_cast<std::uint32_t>(
+               std::numeric_limits<int>::max())
+        || ent->m_borderColorOverrideFlags > static_cast<std::uint32_t>(
+               std::numeric_limits<int>::max())
+        || ent->m_borderLineweightOverrideFlags > static_cast<std::uint32_t>(
+               std::numeric_limits<int>::max())
+        || ent->m_borderVisibilityOverrideFlags > static_cast<std::uint32_t>(
+               std::numeric_limits<int>::max())
         || !std::isfinite(ent->m_horizontalCellMargin)
         || !std::isfinite(ent->m_verticalCellMargin)
         || ent->m_horizontalCellMargin < 0.0
@@ -24278,7 +24292,10 @@ void publishDxfResource(dxfReader& reader,DRW_Interface& iface,std::uint8_t kind
     view.model=&model;view.source=&original;view.pendingXdata=cursor.first;view.coordinateMask=cursor.second;
     view.typedAvailable=typedAvailable;view.payloadComplete=payloadComplete;
     DxfResourcePublicationScope scope(reader.resourcePublication(),view);
-    if(typedAvailable)typed();scope.raw();iface.addRawDxfObject(original);
+    if (typedAvailable)
+        typed();
+    scope.raw();
+    iface.addRawDxfObject(original);
 }
 }
 
@@ -26557,7 +26574,8 @@ bool collectProxyDxfGroup(DxfProxyCapture& capture,
         if (code == 330 && !capture.inProxyRecord && !capture.hasOwner) {
             capture.hasOwner = true;
             capture.ownerHandle = handle <= std::numeric_limits<std::uint32_t>::max()
-                ? static_cast<std::uint32_t>(handle) : DRW::NoHandle;
+                ? static_cast<std::uint32_t>(handle)
+                : static_cast<std::uint32_t>(DRW::NoHandle);
         }
         if (!capture.inProxySubclass)
             return true;
@@ -26714,7 +26732,8 @@ void applyProxyDxfCommon(DRW_ProxyEntity& entity,
             std::uint64_t handle = 0;
             if (proxyDxfHandle(value, handle))
                 entity.handle = handle <= std::numeric_limits<std::uint32_t>::max()
-                    ? static_cast<std::uint32_t>(handle) : DRW::NoHandle;
+                    ? static_cast<std::uint32_t>(handle)
+                    : static_cast<std::uint32_t>(DRW::NoHandle);
         }
         break;
     case 8:
@@ -26750,7 +26769,8 @@ void applyProxyDxfCommon(DRW_ProxyEntity& entity,
             std::uint64_t handle = 0;
             if (proxyDxfHandle(value, handle))
                 entity.material = handle <= std::numeric_limits<std::uint32_t>::max()
-                    ? static_cast<std::uint32_t>(handle) : DRW::NoHandle;
+                    ? static_cast<std::uint32_t>(handle)
+                    : static_cast<std::uint32_t>(DRW::NoHandle);
         }
         break;
     case 390:
@@ -26758,7 +26778,8 @@ void applyProxyDxfCommon(DRW_ProxyEntity& entity,
             std::uint64_t handle = 0;
             if (proxyDxfHandle(value, handle))
                 entity.plotStyle = handle <= std::numeric_limits<std::uint32_t>::max()
-                    ? static_cast<std::uint32_t>(handle) : DRW::NoHandle;
+                    ? static_cast<std::uint32_t>(handle)
+                    : static_cast<std::uint32_t>(DRW::NoHandle);
         }
         break;
     case 420:
@@ -28074,7 +28095,8 @@ bool dxfRW::writeRawDxfObjectInternal(
         || !writeString(0, obj->name))
         return false;
     const std::uint32_t emittedOwner = ownerOverride == DRW::NoHandle
-        ? DRW::NoHandle : remapObjectHandle(ownerOverride);
+        ? static_cast<std::uint32_t>(DRW::NoHandle)
+        : remapObjectHandle(ownerOverride);
     if (ownerOverride != DRW::NoHandle
         && (emittedOwner == 0 || emittedOwner == DRW::NoHandle)) {
         m_writeError = true;
@@ -32516,10 +32538,12 @@ bool dxfRW::writeSection(DRW_Section *ent, const char *recordName) {
             || geometry.m_rgbColor != 0;
         const std::int32_t rgb = hasRgb ? geometry.m_rgbColor : -1;
         const std::uint8_t canonicalMethod = hasRgb
-            ? dwgColor::RGB
-            : scalar == 256 ? dwgColor::BYLAYER
-            : scalar == 0 ? dwgColor::BYBLOCK
-            : scalar >= 1 && scalar <= 255 ? dwgColor::ACI : 0u;
+            ? static_cast<std::uint8_t>(dwgColor::RGB)
+            : scalar == 256 ? static_cast<std::uint8_t>(dwgColor::BYLAYER)
+            : scalar == 0 ? static_cast<std::uint8_t>(dwgColor::BYBLOCK)
+            : scalar >= 1 && scalar <= 255
+                  ? static_cast<std::uint8_t>(dwgColor::ACI)
+                  : 0u;
         if (scalar < 0 || scalar > 256
             || (hasRgb && (scalar != 256 || rgb < 0 || rgb > 0x00FFFFFF))
             || hasRgb

@@ -46,9 +46,13 @@ public:
                 return result;
             }
         }
-        if(code==1)fields|=Text;if(code==2)fields|=Tag;if(code==10)fields|=X;
-        if(code==20)fields|=Y;if(code==40)fields|=Height;
-        if(code==11)fields|=EndX;if(code==21)fields|=EndY;
+        if (code == 1) fields |= Text;
+        if (code == 2) fields |= Tag;
+        if (code == 10) fields |= X;
+        if (code == 20) fields |= Y;
+        if (code == 40) fields |= Height;
+        if (code == 11) fields |= EndX;
+        if (code == 21) fields |= EndY;
         return parseEntity(*value,code,reader);
     }
     bool finish(const DRW_Polyline* parent=nullptr) {

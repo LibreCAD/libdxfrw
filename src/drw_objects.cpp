@@ -21951,9 +21951,10 @@ bool DRW_MLeaderStyle::encodeDwg(DRW::Version version, dwgBufferW *buf,
             return;
         }
         const std::uint8_t method = sourceMethod != 0 ? sourceMethod
-            : rgb24 >= 0 ? dwgColor::RGB
-            : color == 256 ? dwgColor::BYLAYER
-            : color == 0 ? dwgColor::BYBLOCK : dwgColor::ACIS;
+            : rgb24 >= 0 ? static_cast<std::uint8_t>(dwgColor::RGB)
+            : color == 256 ? static_cast<std::uint8_t>(dwgColor::BYLAYER)
+            : color == 0 ? static_cast<std::uint8_t>(dwgColor::BYBLOCK)
+                         : static_cast<std::uint8_t>(dwgColor::ACIS);
         if (metadataPresent) {
             buf->putCmColorWithFlags(version, method,
                 static_cast<std::uint16_t>(color), rgb24,
@@ -34625,9 +34626,10 @@ bool DRW_DbColor::encodeDwg(DRW::Version version, dwgBufferW *buf,
 
     const bool hasRgb = rgb >= 0;
     const std::uint8_t method = colorMethod != 0u ? colorMethod
-        : hasRgb ? dwgColor::RGB
-        : colorIndex == 0u ? dwgColor::BYBLOCK
-        : colorIndex == 256u ? dwgColor::BYLAYER : dwgColor::ACIS;
+        : hasRgb ? static_cast<std::uint8_t>(dwgColor::RGB)
+        : colorIndex == 0u ? static_cast<std::uint8_t>(dwgColor::BYBLOCK)
+        : colorIndex == 256u ? static_cast<std::uint8_t>(dwgColor::BYLAYER)
+                             : static_cast<std::uint8_t>(dwgColor::ACIS);
     std::uint16_t index = colorIndex;
     std::int32_t rgb24 = -1;
     switch (method) {
