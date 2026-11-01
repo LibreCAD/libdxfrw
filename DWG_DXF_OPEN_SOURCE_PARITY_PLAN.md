@@ -48,7 +48,7 @@ Phase rows express aggregate exit gates, not item-level completion counts.
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
 | P4 | OPEN — source/graph closure | Close reproduced source-required bodies and dependencies that still lack strict output/readback proof. For AC1018 `ET-Drawing-with-Border.dwg`, DICTIONARY `0x2CD` remains unqualified because its sole `ACAD_SORTENTS` edge reaches SORTENTSTABLE `0x2CE` under named BLOCK_RECORD `0x24C` (`ET Border block`); the documented DXF owner scope does not admit that named-block table, so preserve/refuse the parent and child as one graph unless an authoritative eligible mapping is found. See the [AC1018 SORTENTSTABLE dependency receipt](docs/research/p4-ac1018-named-block-sortents-dependency-2026-11-01.json) and [owner-scope receipt](docs/research/p4-ac1024-sortents-owner-scope-qualification-2026-11-01.json). For AC1024 `title_block-arch.dwg`, retain refusal for the three remaining named-block SORTENTSTABLEs (handles 4202, 4380, 4637; owners `*U3`, `Title_Block-ARCH`, and `*U6`) under the same owner-scope rule; see the [current residual receipt](docs/research/p4-ac1024-title-block-named-block-sortents-residual-2026-11-01.json). Whole-source AC1018 output remains blocked by the invalid non-shape empty-name STYLE `0xDF`; keep it refused until a source- and consumer-backed output route is established. For the AC1024 LayerStates profile, compose the full dictionary/control/companion/XRECORD graph through production output, prove owners/references and fresh full-document readback, then establish LayerStates consumer semantics. Keep the exact selected AC1024 XRECORD's group-370 exception source-bounded; do not generalize it to other XRECORD application-code profiles. | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN — dynamic-block semantics, rendering and TABLE residual profiles | Resolve only the AC1024 architectural graph's `parentId` projection and native-evaluation gates. Qualify remaining rendering profiles, FIELD producer/version profiles beyond the generated AC1027 transport profile, coordinate-valued FIELD values, block-cell geometry, CONTENTFORMAT/CELLSTYLEMAP combinations, overlapping edge semantics and AC1018 TABLE bodies/borders. | For other profiles, admit only source- or consumer-backed fields and edges; preserve role/handle dependencies and fail closed on unrepresented data. |
+| P5 | OPEN — dynamic-block semantics, rendering and TABLE residual profiles | Resolve only the AC1024 architectural graph's `parentId` projection and native-evaluation gates. Qualify remaining rendering profiles, physical FIELD producer/version profiles beyond generated AC1027 transport coverage, block-cell geometry, CONTENTFORMAT/CELLSTYLEMAP combinations, overlapping edge semantics and AC1018 TABLE bodies/borders. | For other profiles, admit only source- or consumer-backed fields and edges; preserve role/handle dependencies and fail closed on unrepresented data. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -147,12 +147,15 @@ collation, layer style overrides, VIEWPORT shade modes 4/5, and references
 
 **TABLE:**
 
-1. **Nested FIELD graphs:** qualify coordinate-valued payloads, additional
-   producer/version profiles, and physical source gaps. Use the existing
-   `p5-ac1027-*` receipts as an exclusion inventory so admitted generated
-   transport profiles are not repeated. Preserve unsupported compositions with
-   explicit refusal. Native expression evaluation and TABLE rendering remain
-   separate semantic qualifications.
+1. **Nested FIELD graphs:** generated AC1027 coordinate-valued cache transport
+   is implemented for main and child values in ASCII and Binary DXF; see the
+   [coordinate transport receipt](docs/research/p5-ac1027-field-coordinate-transport-2026-11-01.json).
+   This proves bounded wire transport and libdxfrw readback only. Qualify
+   physical producer/version profiles and source gaps separately; do not infer
+   native FIELD evaluation from generated values. Use the existing
+   `p5-ac1027-*` receipts as an exclusion inventory. Preserve unsupported
+   compositions with explicit refusal. Native expression evaluation and TABLE
+   rendering remain separate semantic qualifications.
 2. **Block-cell geometry:** implement payloads only when a source or consumer
    witness identifies missing fields or semantics. Bind the exact field layout
    and semantics to that witness; keep unsupported payloads refused while

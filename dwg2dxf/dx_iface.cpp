@@ -47091,6 +47091,32 @@ bool dx_iface::hasTableContentFieldOutputProfile(
                             && value.m_value.binary() != nullptr
                             && *value.m_value.binary() == value.m_rawData));
             }
+            case 16: {
+                const DRW_Coord *point = value.m_value.coord();
+                return value.m_formatFlags == 0
+                    && (value.m_dataSize == 0u || value.m_dataSize == 16u)
+                    && value.m_unitType == 0
+                    && value.m_value.type() == DRW_Variant::COORD
+                    && value.m_value.code() == 11 && point != nullptr
+                    && std::isfinite(point->x) && std::isfinite(point->y)
+                    && point->z == 0.0 && value.m_handle == 0u
+                    && value.m_rawData.empty()
+                    && value.m_formatString.empty()
+                    && value.m_valueString.empty();
+            }
+            case 32: {
+                const DRW_Coord *point = value.m_value.coord();
+                return value.m_formatFlags == 0
+                    && (value.m_dataSize == 0u || value.m_dataSize == 24u)
+                    && value.m_unitType == 0
+                    && value.m_value.type() == DRW_Variant::COORD
+                    && value.m_value.code() == 11 && point != nullptr
+                    && std::isfinite(point->x) && std::isfinite(point->y)
+                    && std::isfinite(point->z) && value.m_handle == 0u
+                    && value.m_rawData.empty()
+                    && value.m_formatString.empty()
+                    && value.m_valueString.empty();
+            }
             case 64:
                 return fieldCadValueObjectId(value);
             default:
@@ -47099,10 +47125,11 @@ bool dx_iface::hasTableContentFieldOutputProfile(
         };
 
         // Autodesk's FIELD schema defines the counted 331 soft-pointer list
-        // and the group-330 ID, group-91 integer, group-140 real, and
-        // group-92/310 binary value forms. This profile admits tested string,
-        // integer, real, binary, and ID values in main and keyed child slots;
-        // coordinate and unknown types remain refused.
+        // and group-330 ID, group-91 integer, group-140 real, and group-92/310
+        // binary value forms. ACadSharp independently identifies value types
+        // 0x10/0x20 as 2D/3D points and maps them to DXF groups 11/21/31.
+        // This generated transport profile admits finite points with no
+        // unrepresented metadata; it does not claim native FIELD evaluation.
 
         std::unordered_map<std::uint32_t, std::size_t> referenceCounts;
         referenceCounts.reserve(data.fields.size());

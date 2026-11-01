@@ -29998,6 +29998,13 @@ bool fieldListMembershipOutput() {
         childBinary.m_value.m_rawData = childBinaryBytes;
         childBinary.m_value.m_value = DRW_Variant(310, childBinaryBytes);
         child.m_childValues.push_back(childBinary);
+        DRW_Field::ChildValue childPoint3d;
+        childPoint3d.m_key = "CHILD_POINT_3D";
+        childPoint3d.m_value.m_dataType = 32;
+        childPoint3d.m_value.m_dataSize = 24u;
+        childPoint3d.m_value.m_value.addCoord(
+            11, DRW_Coord(-1.25, 2.5, 7.75));
+        child.m_childValues.push_back(childPoint3d);
         writer.addField(child);
         data.fields.front().m_childHandles.push_back(child.handle);
 
@@ -30032,13 +30039,32 @@ bool fieldListMembershipOutput() {
         mainBinary.m_value.m_rawData = mainBinaryBytes;
         mainBinary.m_value.m_value = DRW_Variant(310, mainBinaryBytes);
         writer.addField(mainBinary);
+        DRW_Field mainPoint2d;
+        mainPoint2d.handle = 0x509u;
+        mainPoint2d.m_evaluatorId = "Text";
+        mainPoint2d.m_fieldCode = "FIELD_LIST_MAIN_POINT_2D";
+        mainPoint2d.m_value.m_dataType = 16;
+        mainPoint2d.m_value.m_dataSize = 16u;
+        mainPoint2d.m_value.m_value.addCoord(
+            11, DRW_Coord(2.5, -4.25, 0.0));
+        writer.addField(mainPoint2d);
+        DRW_Field mainPoint3d;
+        mainPoint3d.handle = 0x50Au;
+        mainPoint3d.m_evaluatorId = "Text";
+        mainPoint3d.m_fieldCode = "FIELD_LIST_MAIN_POINT_3D";
+        mainPoint3d.m_value.m_dataType = 32;
+        mainPoint3d.m_value.m_dataSize = 24u;
+        mainPoint3d.m_value.m_value.addCoord(
+            11, DRW_Coord(0.125, -2.75, 5.5));
+        writer.addField(mainPoint3d);
 
         DRW_FieldList fieldList;
         fieldList.handle = 0x503u;
         fieldList.m_unknown = binary ? 1 : 0;
         fieldList.m_fieldHandles = {
             first.handle, second.handle, child.handle, mainInteger0.handle,
-            mainInteger.handle, mainDouble.handle, mainBinary.handle};
+            mainInteger.handle, mainDouble.handle, mainBinary.handle,
+            mainPoint2d.handle, mainPoint3d.handle};
         writer.addFieldList(fieldList);
 
         DRW_TableContentObject content;
@@ -30050,7 +30076,8 @@ bool fieldListMembershipOutput() {
         DRW_TableCell cell;
         for (const std::uint32_t fieldHandle :
                 {first.handle, second.handle, mainInteger0.handle,
-                 mainInteger.handle, mainDouble.handle, mainBinary.handle}) {
+                 mainInteger.handle, mainDouble.handle, mainBinary.handle,
+                 mainPoint2d.handle, mainPoint3d.handle}) {
             DRW_TableCellContent reference;
             reference.m_type = 2;
             reference.m_handle = fieldHandle;
@@ -30076,8 +30103,16 @@ bool fieldListMembershipOutput() {
             return fail("authored FIELDLIST callback was not retained");
         data.fieldLists.front().m_fieldHandles = {
             first.handle, second.handle, child.handle, mainInteger0.handle,
-            mainInteger.handle, mainDouble.handle, mainBinary.handle};
+            mainInteger.handle, mainDouble.handle, mainBinary.handle,
+            mainPoint2d.handle, mainPoint3d.handle};
         DRW_Field& secondField = *std::next(data.fields.begin());
+        const auto mainPoint3dRecord = std::find_if(
+            data.fields.begin(), data.fields.end(),
+            [](const DRW_Field& field) {
+                return field.m_fieldCode == "FIELD_LIST_MAIN_POINT_3D";
+            });
+        if (mainPoint3dRecord == data.fields.end())
+            return fail("authored 3D FIELD value was not retained");
         secondField.m_value.m_handle = 0xDEADu;
         secondField.m_value.m_value.addInt(330, 0xDEADu);
         if (writer.fileExport(output.string(), DRW::AC1027, binary,
@@ -30098,11 +30133,35 @@ bool fieldListMembershipOutput() {
                                &data, false))
             return fail("corrected FIELD object references did not retry on the same adapter");
 
+        {
+            std::ofstream existing(output,
+                std::ios::binary | std::ios::trunc);
+            if (!existing || !(existing << sentinel))
+                return fail("could not restore FIELD retry sentinel");
+        }
+        mainPoint3dRecord->m_value.m_value.setCoordZ(
+            std::numeric_limits<double>::infinity());
+        if (writer.fileExport(output.string(), DRW::AC1027, binary,
+                              &data, false))
+            return fail("FIELD with non-finite coordinate was exported");
+        {
+            std::ifstream existing(output, std::ios::binary);
+            const std::string preserved{
+                std::istreambuf_iterator<char>(existing),
+                std::istreambuf_iterator<char>()};
+            if (preserved != sentinel)
+                return fail("invalid FIELD coordinate replaced destination");
+        }
+        mainPoint3dRecord->m_value.m_value.setCoordZ(5.5);
+        if (!writer.fileExport(output.string(), DRW::AC1027, binary,
+                               &data, false))
+            return fail("corrected FIELD coordinate did not retry on the same adapter");
+
         dx_data readback;
         dx_iface reader;
         if (!reader.fileImport(output.string(), &readback, false))
             return fail("nested FIELDLIST output did not import");
-        if (readback.fields.size() != 7u || readback.fieldLists.size() != 1u
+        if (readback.fields.size() != 9u || readback.fieldLists.size() != 1u
             || readback.tableContents.size() != 1u
             || !readback.hasNamedObjectDictionary)
             return fail("FIELDLIST readback counts: fields="
@@ -30115,11 +30174,11 @@ bool fieldListMembershipOutput() {
             readback.tableContents.front();
         if (parsedList.parentHandle != readback.namedObjectDictionary.handle
             || parsedList.m_unknown != (binary ? 1 : 0)
-            || parsedList.m_fieldHandles.size() != 7u
+            || parsedList.m_fieldHandles.size() != 9u
             || parsedContent.m_content.m_rows.size() != 1u
             || parsedContent.m_content.m_rows.front().m_cells.size() != 1u
             || parsedContent.m_content.m_rows.front().m_cells.front()
-                   .m_contents.size() != 6u)
+                   .m_contents.size() != 8u)
             return fail("FIELDLIST owner, membership, or TABLECONTENT shape changed");
         const auto parsedFirst = std::find_if(
             readback.fields.begin(), readback.fields.end(),
@@ -30156,6 +30215,16 @@ bool fieldListMembershipOutput() {
             [](const DRW_Field& field) {
                 return field.m_fieldCode == "FIELD_LIST_MAIN_BINARY";
             });
+        const auto parsedMainPoint2d = std::find_if(
+            readback.fields.begin(), readback.fields.end(),
+            [](const DRW_Field& field) {
+                return field.m_fieldCode == "FIELD_LIST_MAIN_POINT_2D";
+            });
+        const auto parsedMainPoint3d = std::find_if(
+            readback.fields.begin(), readback.fields.end(),
+            [](const DRW_Field& field) {
+                return field.m_fieldCode == "FIELD_LIST_MAIN_POINT_3D";
+            });
         if (parsedFirst == readback.fields.end()
             || parsedSecond == readback.fields.end()
             || parsedChild == readback.fields.end())
@@ -30163,7 +30232,9 @@ bool fieldListMembershipOutput() {
         if (parsedMainInteger0 == readback.fields.end()
             || parsedMainInteger == readback.fields.end()
             || parsedMainDouble == readback.fields.end()
-            || parsedMainBinary == readback.fields.end())
+            || parsedMainBinary == readback.fields.end()
+            || parsedMainPoint2d == readback.fields.end()
+            || parsedMainPoint3d == readback.fields.end())
             return fail("FIELD output lost a typed main-cache identity");
         const auto rootEntry = std::find_if(
             readback.namedObjectDictionary.m_entries.begin(),
@@ -30262,6 +30333,19 @@ bool fieldListMembershipOutput() {
             || parsedMainBinary->m_value.m_value.binary() == nullptr
             || *parsedMainBinary->m_value.m_value.binary()
                 != mainBinaryBytes
+            || parsedMainPoint2d->m_value.m_dataType != 16
+            || parsedMainPoint2d->m_value.m_dataSize != 16u
+            || parsedMainPoint2d->m_value.m_value.type() != DRW_Variant::COORD
+            || parsedMainPoint2d->m_value.m_value.coord() == nullptr
+            || parsedMainPoint2d->m_value.m_value.coord()->x != 2.5
+            || parsedMainPoint2d->m_value.m_value.coord()->y != -4.25
+            || parsedMainPoint3d->m_value.m_dataType != 32
+            || parsedMainPoint3d->m_value.m_dataSize != 24u
+            || parsedMainPoint3d->m_value.m_value.type() != DRW_Variant::COORD
+            || parsedMainPoint3d->m_value.m_value.coord() == nullptr
+            || parsedMainPoint3d->m_value.m_value.coord()->x != 0.125
+            || parsedMainPoint3d->m_value.m_value.coord()->y != -2.75
+            || parsedMainPoint3d->m_value.m_value.coord()->z != 5.5
             || parsedFirst->m_childHandles
                 != std::vector<std::uint32_t>{parsedChild->handle}
             || parsedChild->parentHandle != parsedFirst->handle
@@ -30270,7 +30354,7 @@ bool fieldListMembershipOutput() {
             || parsedChild->m_value.m_value.c_str() == nullptr
             || std::string(parsedChild->m_value.m_value.c_str())
                 != "child-value"
-            || parsedChild->m_childValues.size() != 6u
+            || parsedChild->m_childValues.size() != 7u
             || parsedChildIdValue == parsedChild->m_childValues.end()
             || parsedChildIdValue->m_value.m_dataType != 64
             || parsedChildIdValue->m_value.m_handle
@@ -30313,7 +30397,16 @@ bool fieldListMembershipOutput() {
                 != DRW_Variant::BINARY
             || parsedChildBinary->m_value.m_value.binary() == nullptr
             || *parsedChildBinary->m_value.m_value.binary()
-                != childBinaryBytes)
+                != childBinaryBytes
+            || parsedChild->m_childValues.back().m_key != "CHILD_POINT_3D"
+            || parsedChild->m_childValues.back().m_value.m_dataType != 32
+            || parsedChild->m_childValues.back().m_value.m_dataSize != 24u
+            || parsedChild->m_childValues.back().m_value.m_value.type()
+                != DRW_Variant::COORD
+            || parsedChild->m_childValues.back().m_value.m_value.coord() == nullptr
+            || parsedChild->m_childValues.back().m_value.m_value.coord()->x != -1.25
+            || parsedChild->m_childValues.back().m_value.m_value.coord()->y != 2.5
+            || parsedChild->m_childValues.back().m_value.m_value.coord()->z != 7.75)
             return fail("FIELD scalar/object values changed on DXF readback");
         for (const DRW_TableCellContent& reference :
                 parsedContent.m_content.m_rows.front().m_cells.front().m_contents) {
@@ -30412,7 +30505,7 @@ bool fieldListMembershipOutput() {
         dx_iface importedReader;
         if (!importedReader.fileImport(
                 importedOutput.string(), &importedReadback, false)
-            || importedReadback.fields.size() != 7u
+            || importedReadback.fields.size() != 9u
             || importedReadback.fieldLists.size() != 1u
             || importedReadback.tableContents.size() != 1u
             || !importedReadback.hasNamedObjectDictionary)
@@ -30421,7 +30514,7 @@ bool fieldListMembershipOutput() {
             importedReadback.fieldLists.front();
         if (importedList.parentHandle
                 != importedReadback.namedObjectDictionary.handle
-            || importedList.m_fieldHandles.size() != 7u
+            || importedList.m_fieldHandles.size() != 9u
             || std::any_of(importedList.m_fieldHandles.begin(),
                            importedList.m_fieldHandles.end(),
                 [&importedReadback](std::uint32_t handle) {
