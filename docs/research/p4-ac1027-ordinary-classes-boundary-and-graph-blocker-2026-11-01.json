@@ -2,10 +2,10 @@
   "schema": "libdxfrw.research-receipt.v1",
   "id": "p4-ac1027-ordinary-classes-boundary-and-graph-blocker-2026-11-01",
   "date": "2026-11-01",
-  "title": "Tracked AC1027 ordinary source passes reader after bounded CLASSES CRC profile; strict output exposes extension DICTIONARY blocker",
-  "status": "READER_PASS; STRICT_OUTPUT_REFUSED_AT_GRAPH_VALIDATION",
+  "title": "Tracked AC1027 source passes the bounded CLASSES reader profile; entity 0x32 handle roles still disagree across decoders",
+  "status": "READER_PASS; STRICT_OUTPUT_REFUSED; ENTITY_HANDLE_ROLE_RECONCILIATION_REQUIRED",
   "supportClaimEffect": "none",
-  "scope": "One tracked AC1027 source profile. Records bounded CLASSES trailer selection and full local/independent reader success. Strict DXF output remains refused by an extension-DICTIONARY reciprocity check; this receipt does not establish output completeness or semantic support.",
+  "scope": "One tracked AC1027 source profile. Records bounded CLASSES trailer selection, full local/independent reader success, and an unresolved mismatch in detached entity handle roles for LINE 0x32. Strict output remains refused; neither decoder result is treated as semantic/output qualification.",
   "source": {
     "path": "tests/fixtures/dwg/ordinary_enc_AC1027.dwg",
     "sha256": "a0ebf245e570bf0dc337c696330b7ea883feaebb7c4e781de8d77ac723815f83",
@@ -39,8 +39,8 @@
     "localTracePath": "/private/tmp/libdxfrw-ordinary-enc-ac1027-after-fix.log",
     "localTraceSha256": "7f04cb3da8c5367d57eaf4105caa51b976921bf1f7572c077c18998e618f1f95",
     "result": "operationSucceeded=true; legacyError=0; classesCrcMismatch=0; 26/26 observed physical frames published; entityParseFailures=0; objectParseFailures=0.",
-    "strictOutput": "Refused at extension-object graph validation: invalid-graph nodes=0 edges=1 staged-handles=0 source-records=7 xrecord-payload-slots=0; extension DICTIONARY is missing, ambiguous, or not reciprocally owned by its source record: handle=56 (decimal), corresponding to 0x38.",
-    "disposition": "The reader and strict writer results are independent: reader completion is resolved for this selected source profile, while output remains fail-closed until the exact dictionary/source-record ownership and dependency graph are proven."
+    "strictOutput": "The current local projection refuses at extension-object graph validation: it treats handle 0x38 (decimal 56) as an extension DICTIONARY target for entity 0x32, but the independent decode treats 0x38 as a reactor and reports XDICTIONARY handle 0x12, which resolves to a LAYER record. Keep output refused until source field roles and all referenced target kinds/ownership are reconciled.",
+    "disposition": "Reader completion is resolved only for this selected source profile. Its detailed entity-handle projection is not yet interoperable: strict output stays fail-closed, including because the independent trace reports references to absent objects."
   },
   "independentReader": {
     "executable": "/opt/homebrew/bin/dwgread",
@@ -51,7 +51,7 @@
     "traceSha256": "a1df9d09181174a80e75203ac929cde7759e53743cdb1f1730ed0dd6a6b7546e",
     "outputPath": "/private/tmp/libredwg-ordinary-enc-ac1027.json",
     "outputSha256": "82a3d69ebe6cb67f742fa1da6b491a3faa208cc10735dd1bb0e0b3899ad8bba5",
-    "result": "SUCCESS 0x0; independent decoder accepted and decoded the same tracked source. This does not establish semantic equivalence or DXF output support."
+    "result": "SUCCESS 0x0; independent decoder accepted the same tracked source. Its trace assigns different ENC/common handle roles from the local reader and reports absent handles 0x35\u20130x38 plus a frame-overrun while attempting a linetype handle. This is differential evidence, not semantic equivalence or output qualification."
   },
   "focusedValidation": {
     "buildTargets": [
@@ -69,12 +69,80 @@
   "binding": {
     "baseCommit": "7554195dc378b70bc07c0de8c826129f41eda2f7",
     "readerSourceSha256": "232741fdc78628aec0c77d34e5d1e22d65c027ffec30cd85b9512d8c449f7b80",
-    "executableSha256": "809c6957c51f5b7a5083a485303be643fbb32ebdc7203a28b65c71e2f1d29fea"
+    "executableSha256": "809c6957c51f5b7a5083a485303be643fbb32ebdc7203a28b65c71e2f1d29fea",
+    "entityParserSourceSha256": "851254cf2152c96c12dadd48d2dab58933ddcece04d5ca57accdde0fc1a71af8",
+    "bufferSourceSha256": "ca6073614d9ff414a7c76f67f320dd4bea1f8ef1e095414ef697b9364b0be251",
+    "localCleanTraceSha256": "7f04cb3da8c5367d57eaf4105caa51b976921bf1f7572c077c18998e618f1f95"
   },
-  "next": "P4: trace handle 0x38 back to its source object and verify extension-DICTIONARY owner role, reciprocal back-reference, and required descendants; add only source-backed output mapping/readback proof or retain refusal.",
+  "next": "P6: reconcile exact AC1027 entity 0x32 ENC/common handle spans against ODA \u00a7\u00a72.11 and 20.4.2 and the independent decoder; add generated-from-scratch bounded valid/malformed handle cases with following-entity alignment. Keep the tracked source strict-output refusal until missing/wrong-kind references and reciprocal ownership are resolved.",
   "limitations": [
     "No new test drawing was committed or created for this observation.",
     "No native application, platform, or 3D semantic qualification was performed.",
-    "This receipt concerns one AC1027 source profile and cannot promote format support claims."
+    "This receipt concerns one AC1027 source profile and cannot promote format support claims.",
+    "The independent decoder reports missing references and a linetype read beyond the frame; its successful overall exit does not validate this entity projection."
+  ],
+  "handleRoleDifferential": {
+    "sourceEntity": {
+      "type": "LINE",
+      "handle": "0x32",
+      "numReactors": 2,
+      "encFlags": "0xc3",
+      "localCleanTracePath": "/private/tmp/ordinary-ac1027-clean-postcommit.log",
+      "localCleanTraceSha256": "7f04cb3da8c5367d57eaf4105caa51b976921bf1f7572c077c18998e618f1f95"
+    },
+    "localProjection": {
+      "observed": {
+        "reactorSlotsConsumedBeforeXDictionary": 2,
+        "xDictionary": "0x38",
+        "encAcDbColor": "0x35",
+        "layer": "0x12",
+        "linetype": "0x10"
+      },
+      "basis": "The current parser consumes numReactors=2 handles first, then reads XDICTIONARY, then the ENC AcDbColor reference, followed by layer and linetype. The clean trace confirms XDICTIONARY=0x38, color=0x35, layer=0x12, and linetype=0x10.",
+      "sourcePath": "src/drw_entities.cpp::DRW_Entity::parseDwgEntHandle"
+    },
+    "independentLibreDwgProjection": {
+      "reactors": [
+        "0x38",
+        "0x35"
+      ],
+      "xDictionary": "0x12",
+      "layer": "0x10",
+      "linetype": "decoder attempts next handle beyond the declared frame and reports buffer overflow",
+      "interpretationLimit": "These are LibreDWG 0.14 decoder assignments, not yet reconciled against the authoritative DWG field order.",
+      "peerLabeledColorHandlesInTraceOrder": [
+        "0x36",
+        "0x37"
+      ]
+    },
+    "independentMissingHandleWarnings": [
+      "0x35",
+      "0x36",
+      "0x37",
+      "0x38"
+    ],
+    "targetKindObservation": "In the same source, handle 0x12 resolves to a LAYER table record, so it cannot be admitted as a DICTIONARY without contrary source evidence.",
+    "requiredResolution": "Use ODA v5.4.1 \u00a7\u00a72.11 and 20.4.2 plus exact source bits to assign every handle-stream slot. Distinguish the ENC AcDbColor reference, any color-book reference, reactors, XDICTIONARY, layer and linetype. Compare peer behavior only after binding to this exact source hash; preserve refusal for missing or wrong-kind targets."
+  },
+  "authoritativeSources": [
+    {
+      "name": "ODA Open Design Specification v5.4.1",
+      "localPath": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sections": [
+        "2.11 CmColor/ENC",
+        "20.4.1 Common Entity Data",
+        "20.4.2 Common Entity Handle Data"
+      ],
+      "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf"
+    },
+    {
+      "name": "LibreDWG common_entity_data.spec",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/common_entity_data.spec"
+    },
+    {
+      "name": "LibreDWG common_entity_handle_data.spec",
+      "url": "https://github.com/LibreDWG/libredwg/blob/master/src/common_entity_handle_data.spec"
+    }
   ]
 }
