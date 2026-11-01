@@ -57663,7 +57663,7 @@ void dx_iface::addRawDxfEntity(const DRW_RawDxfObject& data) {
 bool dx_iface::validateSortEntsGraph(const dx_data& data, bool debug) {
     constexpr std::size_t kMaxSourceRecords = 1000000u;
     constexpr std::size_t kMaxSortPairs = 1000000u;
-    constexpr std::size_t kMaxRawGroups = 4000000u;
+    static constexpr std::size_t kMaxRawGroups = 4000000u;
     m_sortDictionaryHandles.clear();
     m_sortOwnerHandles.clear();
     m_sortEmissionTables.clear();
@@ -59650,7 +59650,7 @@ bool dx_data::hasSingleSuccessfulFieldCarrierImport() const {
 
 bool dx_data::hasCompleteAutoCadFieldGraph() const {
     constexpr std::size_t kMaxFieldGraphRecords = 100000u;
-    constexpr std::size_t kMaxFieldGraphEdges = 1000000u;
+    static constexpr std::size_t kMaxFieldGraphEdges = 1000000u;
     if (!hasSingleSuccessfulFieldCarrierImport()
         || !hasNamedObjectDictionary || fields.empty()
         || fieldLists.size() != 1u
