@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-p5-ac1024-dynamic-graph-failure-readback-v1",
+  "date": "2026-10-31",
+  "qualificationEligible": false,
+  "baseCommit": "bf922fc71252a5e3e5a1c3fc3fcaf774705edbed",
+  "scope": "Document-level failure, retry, and fresh ASCII/Binary DXF readback controls for the two-root AC1024 dynamic graph. This does not establish native dynamic-block semantics or promote a support claim.",
+  "input": {
+    "path": "tests/samples/AC1024/architectural_example-imperial.dwg",
+    "sha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+    "committedAsFixture": false
+  },
+  "sourceProfile": {
+    "version": "AC1024",
+    "evaluationGraphRoots": 2,
+    "dynamicBlockObjects": 65,
+    "constraintGroups": 3,
+    "parameterDependencies": 6,
+    "opaqueCallbacks": 490
+  },
+  "implementation": {
+    "path": "tests/dwg2dxf_adapter_tests.cpp",
+    "sha256": "db9e495e535ecba8a42987a4f1360f9fefbf05fee6e4fa4849fba07084d5ec69",
+    "selector": "--dynamic-block-graph-failure-readback",
+    "result": "Adds ASCII and Binary whole-document exports from the local source. For each of the six selected dynamic parameter dependencies, a missing constraint-group action edge and a wrong dependency owner must refuse publication. Each encoding also injects a late source mutation after OBJECTS staging. Every failure preserves the destination sentinel and leaves source callback qualification state unchanged; the same exporter then retries successfully and qualifies all 490 callbacks."
+  },
+  "freshReadback": {
+    "encodings": ["ASCII", "Binary"],
+    "verified": [
+      "Exact two-root EvaluationGraph identity set, owner, values, ordered nodes, and edges",
+      "Exact 65-object dynamic identity set, unique handles, record kinds, owners, EvalExpr parse state and node IDs",
+      "All three constraint groups, owner handles, body/action parse state, counts and ordered action references",
+      "All six dependency fields and flags, group owners, parameter/body target roles and dependency-body names"
+    ],
+    "known_projection_boundary": "EvalExpr parentId is not emitted by the current admitted DXF projection. For source handle 0x1111 (BLOCKLINEARGRIP), the source sentinel 0xFFFFFFFF reads back as 0. The roundtrip test deliberately does not equate this parser/default state; native or authoritative field evidence must decide whether it is semantics-neutral or whether the projection needs another field."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS with the configured warning-as-error build",
+      "executableSha256": "fa906838588e23928adc5ec13af76cd14434227f9a2d5bfa51a567392bb504b1"
+    },
+    "newSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-graph-failure-readback tests/samples/AC1024/architectural_example-imperial.dwg",
+      "exitCode": 0,
+      "result": "PASS for both encodings; expected rejection diagnostics were emitted for missing edges, wrong owners, and late source mutation. Generated output files are removed by the test."
+    },
+    "existingFocusedControl": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --dynamic-block-visibility-composed-graph",
+      "exitCode": 0,
+      "result": "PASS"
+    },
+    "testExecutableSha256": "fa906838588e23928adc5ec13af76cd14434227f9a2d5bfa51a567392bb504b1"
+  },
+  "remaining": [
+    "Independent native dynamic-block semantics for both roots, visibility, parameter/action behavior, and reachable geometry",
+    "Resolve the EvalExpr parentId DXF-projection boundary with authoritative field or independent semantic evidence",
+    "Adapter-level DXF-origin typed/raw replay",
+    "All other open P4-P9 gates"
+  ]
+}

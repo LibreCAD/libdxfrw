@@ -49,7 +49,7 @@ Implementation history and evidence stay in Git and `docs/research/`.
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
 | P4 | OPEN — source/graph closure | Close source-backed bodies, owner edges and dependencies still missing from existing inputs. | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN — broader rendering/TABLE and dynamic-block work | Close remaining rendering metadata/native rendering profiles; qualify the current two-root AC1024 dynamic graph with failure controls, fresh readback and native semantics, then close adapter-level DXF-origin typed/raw replay; close FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
+| P5 | OPEN — broader rendering/TABLE and dynamic-block work | Close remaining rendering metadata/native rendering profiles; qualify native semantics and the parentId projection boundary for the two-root AC1024 dynamic graph; qualify adapter-level DXF-origin typed/raw replay; close FIELDLIST/child graphs and other source-backed FIELD profiles, independently evidenced block-cell geometry, TABLECONTENT style/format/payload profiles, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -58,31 +58,35 @@ Implementation history and evidence stay in Git and `docs/research/`.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
-**Next implementation packet — dynamic-graph failure controls and readback.**
-Strict output for the AC1024 architectural source now passes all 490 captured
+**Next implementation packet — native dynamic semantics and DXF projection.**
+The completed ASCII/Binary failure, retry and fresh-readback controls are in the
+[dynamic graph readback receipt](docs/research/p5-ac1024-dynamic-graph-failure-readback-2026-10-31.json).
+Strict output for the AC1024 architectural source passes all 490 captured
 opaque callback identities, including the bounded ASE hierarchy-index XRECORD
-profile. Its source, exact staged fields, output identities, build and strict
-conversion evidence are recorded in the [ASE output-proof receipt](docs/research/p5-ac1024-ase-hierarchy-index-output-proof-2026-10-31.json).
-The completed source census and prior writer/staged-output proofs remain in
-the [edge-census receipt](docs/research/p5-ac1024-architectural-dynamic-block-edge-census-2026-10-31.json)
+profile; exact staged fields and identities are recorded in the [ASE output-proof
+receipt](docs/research/p5-ac1024-ase-hierarchy-index-output-proof-2026-10-31.json).
+The source census and earlier writer/staged-output proofs remain in the
+[edge-census receipt](docs/research/p5-ac1024-architectural-dynamic-block-edge-census-2026-10-31.json)
 and [dynamic-writer progress receipt](docs/research/p5-ac1024-architectural-dynamic-writer-progress-2026-10-31.json).
-These results prove output transport and callback closure only; whole-document
-readback, native dynamic meaning and support claims remain unqualified.
+These receipts prove output transport and graph readback, not native semantics
+or support claims.
 
 Remaining implementation order, using the current object/graph models and
 retained source frames rather than adding another graph engine:
 
-1. **Add document-level failure controls** for the now-emitted two-root graph:
-   remove a required edge, substitute a wrong owner/role, and mutate the source
-   after staging. Each case must refuse publication and preserve the complete
-   destination; a corrected retry must succeed. Add fresh ASCII/Binary
-   whole-document readback using generated in-memory inputs, without adding
-   drawing fixtures. Include explicit controls for the three constraint groups
-   and six dynamic dependencies proved in this slice.
-2. **Qualify native dynamic-block meaning** after fresh output readback passes.
-   Use an independent consumer to verify both roots, evaluated visibility and
-   parameter/action behavior, and representative reachable geometry. Keep the
-   support ledger closed until this consumer gate passes.
+1. **Resolve the parentId projection boundary and qualify native meaning.** The
+   fresh readback records source `EvalExpr.parentId=0xFFFFFFFF` as DXF model
+   default `0` for `BLOCKLINEARGRIP` handle `0x1111`; the current projection
+   omits that field. Establish from authoritative DXF field documentation or an
+   independent native consumer whether this is semantics-neutral. If not, add
+   the required projection with source-backed fields and focused refusal/retry
+   controls. Then qualify both roots, visibility, parameter/action behavior and
+   representative reachable geometry using an independent consumer bound to
+   exact input/output bytes, executable and configuration. Keep claims closed
+   until meaning is established.
+2. **Qualify adapter-level DXF-origin typed/raw replay** with the same graph
+   identity, role, field, failure and destination-atomicity expectations. Keep
+   unrelated raw profiles refused.
 
 The sweep also reproduced separate unresolved gates: AC1021 proxy-graphics
 refusal and AC1018 `ET-Drawing-with-Border.dwg` with 23 opaque callbacks but no
@@ -133,7 +137,8 @@ output gates are met.
 
 ## P5 — rendering and TABLE
 
-**Dynamic blocks:** qualify native dynamic-block semantics and DXF-origin
+**Dynamic blocks:** resolve the parentId projection boundary and qualify native
+semantics for the two-root AC1024 profile; qualify adapter-level DXF-origin
 typed/raw replay. Admit other physical subclasses only when an existing source
 identifies a required field, role, or output mismatch.
 

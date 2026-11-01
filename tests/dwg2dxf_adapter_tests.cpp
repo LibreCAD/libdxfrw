@@ -14663,6 +14663,423 @@ bool dynamicBlockVisibilityComposedGraphOutputProfile() {
     return true;
 }
 
+bool dynamicBlockGraphFailureReadback(
+        const std::filesystem::path& sourcePath) {
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024
+        || source.evaluationGraphs.size() != 2u
+        || source.dynamicBlockObjects.size() != 65u)
+        return fail("dynamic graph control source is not the two-root AC1024 profile");
+
+    std::unordered_map<std::uint32_t, const DRW_DynamicBlockObject*>
+        dynamicByHandle;
+    dynamicByHandle.reserve(source.dynamicBlockObjects.size());
+    for (const DRW_DynamicBlockObject& object : source.dynamicBlockObjects)
+        if (object.handle == 0u || object.handle == DRW::NoHandle
+            || !dynamicByHandle.emplace(object.handle, &object).second)
+            return fail("dynamic graph control source has duplicate object handles");
+
+    std::unordered_map<std::uint32_t, const DRW_AssociativeObject*>
+        associativeByHandle;
+    associativeByHandle.reserve(source.dwgAssociativeObjects.size());
+    for (const DRW_AssociativeObject& object : source.dwgAssociativeObjects)
+        if (object.handle == 0u || object.handle == DRW::NoHandle
+            || !associativeByHandle.emplace(object.handle, &object).second)
+            return fail("dynamic graph control source has duplicate associative handles");
+
+    std::vector<std::uint32_t> dependencyHandles;
+    std::set<std::uint32_t> constraintGroupHandles;
+    for (const DRW_AssociativeObject& dependency :
+         source.dwgAssociativeObjects) {
+        if (dependency.m_recordName != "ACDBASSOCDEPENDENCY")
+            continue;
+        const auto body = dynamicByHandle.find(
+            dependency.m_dependencyBodyHandle);
+        if (body == dynamicByHandle.end()
+            || body->second->m_kind
+                != DRW_DynamicBlockObject::Kind::ParameterDependencyBody)
+            continue;
+        const auto group = associativeByHandle.find(
+            static_cast<std::uint32_t>(dependency.parentHandle));
+        const auto parameter = dynamicByHandle.find(
+            dependency.m_dependencyHandle);
+        if (group == associativeByHandle.end()
+            || group->second->m_recordName
+                != "ACDBASSOC2DCONSTRAINTGROUP"
+            || !group->second->m_constraintGroupBodyParsed
+            || !group->second->m_constraintActionsParsed
+            || std::count(group->second->m_constraintActions.begin(),
+                group->second->m_constraintActions.end(), dependency.handle)
+                != 1
+            || parameter == dynamicByHandle.end()
+            || (parameter->second->m_kind
+                    != DRW_DynamicBlockObject::Kind::HorizontalConstraintParameter
+                && parameter->second->m_kind
+                    != DRW_DynamicBlockObject::Kind::VerticalConstraintParameter)
+            || !dependency.m_dependencyFieldsParsed
+            || !dependency.m_dependencyWireComplete)
+            return fail("dynamic parameter dependency lost its exact group/body/parameter role");
+        dependencyHandles.push_back(dependency.handle);
+        constraintGroupHandles.insert(group->first);
+    }
+    if (dependencyHandles.size() != 6u
+        || constraintGroupHandles.size() != 3u
+        || source.dwgReadOutcome.opaqueViewCallbacks != 490u)
+        return fail("source graph control census changed from three groups, six dependencies, and 490 callbacks");
+    std::set<std::uint32_t> sourceGraphHandles;
+    for (const DRW_EvaluationGraph& graph : source.evaluationGraphs)
+        if (graph.handle == 0u || graph.handle == DRW::NoHandle
+            || !sourceGraphHandles.insert(graph.handle).second)
+            return fail("source dynamic graph has an invalid or duplicate root identity");
+
+    class LateDynamicDependencyMutation final : public dx_iface {
+    public:
+        bool mutateAfterObjects{false};
+        std::uint32_t target{0u};
+        bool applied{false};
+
+        void writeObjects() override {
+            dx_iface::writeObjects();
+            if (!mutateAfterObjects || cData == nullptr)
+                return;
+            for (DRW_AssociativeObject& object :
+                 cData->dwgAssociativeObjects) {
+                if (object.handle != target
+                    || object.m_recordName != "ACDBASSOCDEPENDENCY")
+                    continue;
+                ++object.m_dependencyBodyId;
+                applied = true;
+                return;
+            }
+        }
+    } exporter;
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch().count();
+    for (const bool binary : {false, true}) {
+        const std::string encoding = binary ? "binary" : "ascii";
+        const std::filesystem::path outputPath =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-dynamic-graph-failures-" + encoding + "-"
+               + std::to_string(nonce) + ".dxf");
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{outputPath};
+        const std::string sentinel =
+            "preserve complete dynamic graph destination\n";
+        const auto seedDestination = [&]() {
+            std::ofstream output(outputPath,
+                std::ios::binary | std::ios::trunc);
+            return output && static_cast<bool>(output << sentinel);
+        };
+        const auto destinationPreserved = [&]() {
+            std::ifstream input(outputPath, std::ios::binary);
+            return input && std::string{
+                std::istreambuf_iterator<char>(input), {}} == sentinel;
+        };
+        const auto exportComplete = [&]() {
+            return exporter.fileExport(
+                outputPath.string(), DRW::AC1024, binary, &source,
+                false, true, dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete);
+        };
+        exporter.cData = &source;
+
+        const auto refuseThenRetry = [&](const std::string& label,
+                const std::function<void()>& corrupt,
+                const std::function<void()>& restore,
+                bool lateMutation, std::uint32_t targetHandle) {
+            if (!seedDestination())
+                return fail(std::string("could not seed dynamic graph ")
+                            + label + " sentinel");
+            const std::size_t qualifiedBefore =
+                DxIfaceStandardDwgCaptureTestAccess::
+                    opaqueOutputQualificationCount(source);
+            exporter.mutateAfterObjects = lateMutation;
+            exporter.target = targetHandle;
+            exporter.applied = false;
+            corrupt();
+            const bool refused = !exportComplete();
+            const bool mutationApplied = !lateMutation || exporter.applied;
+            restore();
+            exporter.mutateAfterObjects = false;
+            if (!refused || !mutationApplied || !destinationPreserved()
+                || DxIfaceStandardDwgCaptureTestAccess::
+                    opaqueOutputQualificationCount(source) != qualifiedBefore)
+                return fail(std::string("dynamic graph ") + label
+                    + " failure was published or changed committed qualification state: "
+                    + encoding);
+            if (!exportComplete())
+                return fail(std::string("corrected dynamic graph ") + label
+                    + " retry failed: " + exporter.extensionGraphFailureDetail());
+            if (DxIfaceStandardDwgCaptureTestAccess::
+                    opaqueOutputQualificationCount(source)
+                != source.dwgReadOutcome.opaqueViewCallbacks)
+                return fail(std::string("corrected dynamic graph ") + label
+                    + " retry did not qualify all source callbacks: " + encoding);
+            return true;
+        };
+
+        for (const std::uint32_t dependencyHandle : dependencyHandles) {
+            const auto dependency = std::find_if(
+                source.dwgAssociativeObjects.begin(),
+                source.dwgAssociativeObjects.end(),
+                [dependencyHandle](const DRW_AssociativeObject& object) {
+                    return object.handle == dependencyHandle;
+                });
+            if (dependency == source.dwgAssociativeObjects.end())
+                return fail("dynamic dependency disappeared before failure controls");
+            const std::uint32_t sourceGroupHandle =
+                static_cast<std::uint32_t>(dependency->parentHandle);
+            auto group = std::find_if(
+                source.dwgAssociativeObjects.begin(),
+                source.dwgAssociativeObjects.end(),
+                [sourceGroupHandle](const DRW_AssociativeObject& object) {
+                    return object.handle == sourceGroupHandle;
+                });
+            if (group == source.dwgAssociativeObjects.end())
+                return fail("dynamic dependency has no constraint group");
+            const auto originalActions = group->m_constraintActions;
+            const auto edge = std::find(group->m_constraintActions.begin(),
+                                        group->m_constraintActions.end(),
+                                        dependencyHandle);
+            if (edge == group->m_constraintActions.end())
+                return fail("dynamic dependency edge is absent from its group");
+            const std::string handleLabel =
+                "dependency " + std::to_string(dependencyHandle);
+            if (!refuseThenRetry(
+                    "missing group edge for " + handleLabel,
+                    [&]() { group->m_constraintActions.erase(edge); },
+                    [&]() { group->m_constraintActions = originalActions; },
+                    false, dependencyHandle))
+                return false;
+
+            const std::uint32_t originalOwner =
+                static_cast<std::uint32_t>(dependency->parentHandle);
+            const auto wrongOwner = std::find_if(
+                constraintGroupHandles.begin(), constraintGroupHandles.end(),
+                [originalOwner](std::uint32_t handle) {
+                    return handle != originalOwner;
+                });
+            if (wrongOwner == constraintGroupHandles.end())
+                return fail("dynamic dependency has no alternate wrong-role owner");
+            if (!refuseThenRetry(
+                    "wrong owner/role for " + handleLabel,
+                    [&]() { dependency->parentHandle = *wrongOwner; },
+                    [&]() { dependency->parentHandle = originalOwner; },
+                    false, dependencyHandle))
+                return false;
+        }
+
+        const std::uint32_t lateMutationHandle = dependencyHandles.front();
+        const auto lateMutationDependency = std::find_if(
+            source.dwgAssociativeObjects.begin(),
+            source.dwgAssociativeObjects.end(),
+            [lateMutationHandle](const DRW_AssociativeObject& object) {
+                return object.handle == lateMutationHandle;
+            });
+        if (lateMutationDependency == source.dwgAssociativeObjects.end())
+            return fail("selected dynamic dependency disappeared before late-mutation control");
+        const std::int32_t originalBodyId =
+            lateMutationDependency->m_dependencyBodyId;
+        if (!refuseThenRetry("late source mutation",
+                []() {},
+                [&]() {
+                    lateMutationDependency->m_dependencyBodyId = originalBodyId;
+                }, true, lateMutationHandle))
+            return false;
+
+        dx_iface readbackReader;
+        dx_data readback;
+        if (!readbackReader.fileImport(outputPath.string(), &readback, false)
+            || readback.sourceFormat != dx_source_format::DXF
+            || readback.sourceVersion != DRW::AC1024
+            || readback.evaluationGraphs.size() != 2u
+            || readback.dynamicBlockObjects.size()
+                != source.dynamicBlockObjects.size())
+            return fail("strict dynamic graph output did not freshly read back as a complete two-root document: "
+                        + encoding);
+
+        std::unordered_map<std::uint32_t,
+            const DRW_AssociativeObject*> readbackAssociative;
+        for (const DRW_AssociativeObject& object : readback.associativeObjects)
+            if (!readbackAssociative.emplace(object.handle, &object).second)
+                return fail("dynamic graph readback contains aliased associative identities");
+        std::unordered_map<std::uint32_t,
+            const DRW_DynamicBlockObject*> readbackDynamic;
+        for (const DRW_DynamicBlockObject& object : readback.dynamicBlockObjects)
+            if (!readbackDynamic.emplace(object.handle, &object).second)
+                return fail("dynamic graph readback contains aliased dynamic identities");
+        if (readbackDynamic.size() != dynamicByHandle.size())
+            return fail("dynamic graph readback changed the exact source identity set: "
+                        + encoding);
+        for (const auto& entry : dynamicByHandle) {
+            const auto actual = readbackDynamic.find(entry.first);
+            if (actual == readbackDynamic.end())
+                return fail("dynamic graph readback omitted source identity "
+                            + std::to_string(entry.first) + ": " + encoding);
+            if (actual->second->m_recordName != entry.second->m_recordName
+                || actual->second->m_kind != entry.second->m_kind)
+                return fail("dynamic graph record identity, owner, or body role changed on fresh readback: "
+                            + std::to_string(entry.first) + ": " + encoding);
+            if (actual->second->parentHandle != entry.second->parentHandle)
+                return fail("dynamic graph record owner changed on fresh readback: "
+                            + std::to_string(entry.first) + ": " + encoding);
+            // parentId is not part of the currently admitted DXF projection;
+            // native semantics must establish whether the sentinel/default
+            // normalization is acceptable before any support claim.
+            if (actual->second->m_evalExprParsed
+                    != entry.second->m_evalExprParsed
+                || actual->second->m_nodeId != entry.second->m_nodeId)
+                return fail("dynamic graph EvalExpr node identity changed on fresh readback: "
+                            + std::to_string(entry.first) + " ("
+                            + actual->second->m_recordName + ", parsed "
+                            + std::to_string(entry.second->m_evalExprParsed)
+                            + "/"
+                            + std::to_string(actual->second->m_evalExprParsed)
+                            + ", node "
+                            + std::to_string(entry.second->m_nodeId) + "/"
+                            + std::to_string(actual->second->m_nodeId) + "): "
+                            + encoding);
+        }
+
+        std::unordered_map<std::uint32_t, const DRW_EvaluationGraph*>
+            readbackGraphs;
+        for (const DRW_EvaluationGraph& graph : readback.evaluationGraphs)
+            if (!readbackGraphs.emplace(graph.handle, &graph).second)
+                return fail("dynamic graph readback contains aliased EvaluationGraph identities");
+        if (readbackGraphs.size() != source.evaluationGraphs.size())
+            return fail("dynamic graph readback changed the exact root identity set: "
+                        + encoding);
+
+        for (const std::uint32_t handle : constraintGroupHandles) {
+            const auto original = associativeByHandle.find(handle);
+            const auto actual = readbackAssociative.find(handle);
+            if (original == associativeByHandle.end()
+                || actual == readbackAssociative.end()
+                || actual->second->m_recordName
+                    != "ACDBASSOC2DCONSTRAINTGROUP"
+                || actual->second->parentHandle
+                    != original->second->parentHandle
+                || actual->second->m_constraintActions
+                    != original->second->m_constraintActions
+                || !actual->second->m_constraintGroupBodyParsed
+                || !actual->second->m_constraintActionsParsed
+                || actual->second->m_constraintActionCount
+                    != original->second->m_constraintActionCount
+                || actual->second->m_constraintNodeCount
+                    != original->second->m_constraintNodeCount)
+                return fail("constraint-group owner, action edges or parsed body changed on fresh readback: "
+                            + encoding);
+        }
+        for (const std::uint32_t handle : dependencyHandles) {
+            const auto original = associativeByHandle.find(handle);
+            const auto actual = readbackAssociative.find(handle);
+            if (original == associativeByHandle.end()
+                || actual == readbackAssociative.end()
+                || actual->second->m_recordName != "ACDBASSOCDEPENDENCY"
+                || actual->second->parentHandle
+                    != original->second->parentHandle
+                || actual->second->m_dependencyHandle
+                    != original->second->m_dependencyHandle
+                || actual->second->m_dependencyBodyHandle
+                    != original->second->m_dependencyBodyHandle
+                || actual->second->m_dependencyBodyId
+                    != original->second->m_dependencyBodyId
+                || !actual->second->m_dependencyFieldsParsed
+                || !actual->second->m_dependencyWireComplete
+                || actual->second->m_dependencyIsRead
+                    != original->second->m_dependencyIsRead
+                || actual->second->m_dependencyIsWrite
+                    != original->second->m_dependencyIsWrite
+                || actual->second->m_dependencyIsAttachedToObject
+                    != original->second->m_dependencyIsAttachedToObject
+                || actual->second->m_dependencyIsDelegatingToOwningAction
+                    != original->second->m_dependencyIsDelegatingToOwningAction)
+                return fail("dynamic dependency fields or group role changed on fresh readback: "
+                            + encoding);
+            const auto sourceBody = dynamicByHandle.find(
+                original->second->m_dependencyBodyHandle);
+            const auto outputBody = readbackDynamic.find(
+                original->second->m_dependencyBodyHandle);
+            const auto sourceParameter = dynamicByHandle.find(
+                original->second->m_dependencyHandle);
+            const auto outputParameter = readbackDynamic.find(
+                original->second->m_dependencyHandle);
+            if (sourceBody == dynamicByHandle.end()
+                || outputBody == readbackDynamic.end()
+                || outputBody->second->m_recordName
+                    != "BLOCKPARAMDEPENDENCYBODY"
+                || outputBody->second->parentHandle != handle
+                || outputBody->second->m_dependencyName
+                    != sourceBody->second->m_dependencyName
+                || sourceParameter == dynamicByHandle.end()
+                || outputParameter == readbackDynamic.end()
+                || outputParameter->second->m_recordName
+                    != sourceParameter->second->m_recordName
+                || outputParameter->second->parentHandle
+                    != sourceParameter->second->parentHandle)
+                return fail("dynamic dependency body/parameter reference role changed on fresh readback: "
+                            + encoding);
+        }
+        for (const DRW_EvaluationGraph& graph : source.evaluationGraphs) {
+            const auto actual = readbackGraphs.find(graph.handle);
+            if (actual == readbackGraphs.end()
+                || actual->second->parentHandle != graph.parentHandle
+                || actual->second->m_value96 != graph.m_value96
+                || actual->second->m_value97 != graph.m_value97
+                || actual->second->m_nodes.size() != graph.m_nodes.size()
+                || actual->second->m_edges.size() != graph.m_edges.size())
+                return fail("one dynamic root or EvaluationGraph node/edge set changed on fresh readback: "
+                            + encoding);
+            for (std::size_t index = 0u; index < graph.m_nodes.size(); ++index) {
+                const auto& before = graph.m_nodes[index];
+                const auto& after = actual->second->m_nodes[index];
+                if (before.m_index != after.m_index
+                    || before.m_flags != after.m_flags
+                    || before.m_nextNodeIndex != after.m_nextNodeIndex
+                    || before.m_data1 != after.m_data1
+                    || before.m_data2 != after.m_data2
+                    || before.m_data3 != after.m_data3
+                    || before.m_data4 != after.m_data4
+                    || before.m_expressionHandle
+                        != after.m_expressionHandle)
+                    return fail("EvaluationGraph node fields or expression links changed on fresh readback: "
+                                + encoding);
+            }
+            for (std::size_t index = 0u; index < graph.m_edges.size(); ++index) {
+                const auto& before = graph.m_edges[index];
+                const auto& after = actual->second->m_edges[index];
+                if (std::tie(before.m_value92, before.m_value93,
+                        before.m_value94, before.m_value91a,
+                        before.m_value91b, before.m_value92a,
+                        before.m_value92b, before.m_value92c,
+                        before.m_value92d, before.m_value92e)
+                    != std::tie(after.m_value92, after.m_value93,
+                        after.m_value94, after.m_value91a,
+                        after.m_value91b, after.m_value92a,
+                        after.m_value92b, after.m_value92c,
+                        after.m_value92d, after.m_value92e))
+                    return fail("EvaluationGraph edge fields changed on fresh readback: "
+                                + encoding);
+            }
+        }
+        std::cerr << "Two-root dynamic graph " << encoding
+                  << " failure/retry/readback passed: 3 constraint groups, "
+                     "6 parameter dependencies, 65 dynamic objects, and "
+                     "all 490 strict callback qualifications.\n";
+    }
+    return true;
+}
+
 bool proxyObjectCaptureLimitsFailClosed() {
     dx_data data;
     dx_iface iface;
@@ -56154,6 +56571,10 @@ int main(int argc, char** argv) {
         && std::string(argv[1])
             == "--dynamic-block-visibility-composed-graph")
         return dynamicBlockVisibilityComposedGraphOutputProfile() ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1])
+            == "--dynamic-block-graph-failure-readback")
+        return dynamicBlockGraphFailureReadback(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--dynamic-block-proxy-node-body-closure")
         return dynamicBlockProxyNodeBodyClosure(argv[2]) ? 0 : 1;
