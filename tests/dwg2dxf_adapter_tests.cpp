@@ -37615,9 +37615,9 @@ bool physicalDictionaryDefaultOutputReadback(
 
         if (source.sourceVersion == DRW::AC1018
             && (DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
-                    source) != 9u
+                    source) != 10u
                 || source.dwgReadOutcome.opaqueViewCallbacks != 23u))
-            return fail("AC1018 dictionary-default output did not add exactly two identities to the nine-profile callback census");
+            return fail("AC1018 composed output did not qualify exactly ten identities in the 23-callback source census");
 
     }
     std::cerr << "Physical DICTIONARYWDFLT/PLACEHOLDER ASCII and binary output, "
@@ -37646,6 +37646,50 @@ bool physicalMLineStyleOutputReadback(
         || sourceStyle.elements[0].linetypeHandle != 0u
         || sourceStyle.elements[1].linetypeHandle != 0u)
         return fail("physical STANDARD MLINESTYLE linetype sentinels or reference roles changed");
+
+    const DRW_Dictionary* sourceOwner = nullptr;
+    for (const DRW_Dictionary& dictionary : source.dictionaries) {
+        if (dictionary.handle != sourceStyle.parentHandle)
+            continue;
+        if (sourceOwner != nullptr)
+            return fail("physical MLINESTYLE owner dictionary is ambiguous");
+        sourceOwner = &dictionary;
+    }
+    const auto sourceRootEntry = std::find_if(
+        source.namedObjectDictionary.m_entries.begin(),
+        source.namedObjectDictionary.m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == "ACAD_MLINESTYLE";
+        });
+    const DRW_UnsupportedObject* ownerFrame = sourceOwner == nullptr
+        ? nullptr
+        : DxIfaceStandardDwgCaptureTestAccess::standardSourceFrame(
+            source, source.importGeneration, sourceOwner->handle);
+    if (sourceOwner == nullptr || sourceOwner->handle == 0u
+        || sourceOwner->handle == DRW::NoHandle
+        || sourceOwner->parentHandle != source.namedObjectDictionary.handle
+        || sourceOwner->m_entries.size() != 1u
+        || sourceOwner->m_entries.front().m_name != "Standard"
+        || sourceOwner->m_entries.front().m_handle != sourceStyle.handle
+        || sourceOwner->reactorHandles
+            != std::vector<std::uint32_t>{source.namedObjectDictionary.handle}
+        || sourceRootEntry == source.namedObjectDictionary.m_entries.end()
+        || std::count_if(source.namedObjectDictionary.m_entries.begin(),
+                         source.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_MLINESTYLE";
+            }) != 1
+        || sourceRootEntry->m_handle != sourceOwner->handle
+        || ownerFrame == nullptr
+        || ownerFrame->m_objectType != 42
+        || ownerFrame->m_handle != sourceOwner->handle
+        || ownerFrame->m_version != source.sourceVersion
+        || ownerFrame->m_isCustomClass || ownerFrame->m_isEntity
+        || !ownerFrame->m_recordName.empty()
+        || !ownerFrame->m_className.empty()
+        || (source.sourceVersion == DRW::AC1018
+            && sourceOwner->handle != 0x17u))
+        return fail("physical MLINESTYLE source owner dictionary lacks its exact standard callback and rooted Standard entry");
 
     if (source.sourceVersion == DRW::AC1018) {
         auto invalidTextStyle = std::find_if(
@@ -37691,9 +37735,15 @@ bool physicalMLineStyleOutputReadback(
                 dx_dwgReadCompletenessPolicy::AllowPartial);
         };
         DRW_MLineStyle& mutableStyle = source.mLineStyles.front();
+        const std::size_t qualificationsBeforeFailure =
+            DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                source);
         const bool qualifiedBeforeFailure =
             DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
                 source, source.importGeneration, sourceStyle.handle);
+        const bool ownerQualifiedBeforeFailure =
+            DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourceOwner->handle);
         const int originalIndex = mutableStyle.elements.front().linetypeIndex;
         mutableStyle.elements.front().linetypeIndex = 7;
         const bool unsupportedIndexRejected = !exportPartial();
@@ -37702,9 +37752,14 @@ bool physicalMLineStyleOutputReadback(
             std::istreambuf_iterator<char>{refusedOutput}, {}};
         mutableStyle.elements.front().linetypeIndex = originalIndex;
         if (!unsupportedIndexRejected || refusedContents != sentinel
+            || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                source) != qualificationsBeforeFailure
             || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
                 source, source.importGeneration, sourceStyle.handle)
-                != qualifiedBeforeFailure)
+                != qualifiedBeforeFailure
+            || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourceOwner->handle)
+                != ownerQualifiedBeforeFailure)
             return fail("unresolved physical MLINESTYLE linetype index was not refused atomically");
         if (!exportPartial())
             return fail("corrected physical MLINESTYLE could not retry on the same adapter: source-count="
@@ -37715,7 +37770,9 @@ bool physicalMLineStyleOutputReadback(
                 + " unchanged=" + std::to_string(
                     DxIfaceStandardDwgCaptureTestAccess::mlineStyleOutputSourcesUnchanged(writer)));
         if (!DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
-                source, source.importGeneration, sourceStyle.handle)) {
+                source, source.importGeneration, sourceStyle.handle)
+            || !DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourceOwner->handle)) {
             return fail("physical MLINESTYLE output identity was not committed with the successful export: source-count="
                 + std::to_string(
                     DxIfaceStandardDwgCaptureTestAccess::mlineStyleOutputSourceCount(writer))
@@ -37724,6 +37781,11 @@ bool physicalMLineStyleOutputReadback(
                 + " unchanged=" + std::to_string(
                     DxIfaceStandardDwgCaptureTestAccess::mlineStyleOutputSourcesUnchanged(writer)));
         }
+        if (source.sourceVersion == DRW::AC1018
+            && DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration,
+                source.namedObjectDictionary.handle))
+            return fail("AC1018 MLINESTYLE root-key proof unexpectedly qualified the incomplete NOD");
 
         dx_iface outputReader;
         dx_data output;
@@ -40593,9 +40655,9 @@ bool physicalAc1018DictionaryVarOutputReadback(
             return fail("AC1018 DICTIONARYVAR/owner source identities lack output qualification");
         if (!isQualified(0x18u)
             || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
-                source) != 9u
+                source) != 10u
             || source.dwgReadOutcome.opaqueViewCallbacks != 23u)
-            return fail("AC1018 DICTIONARYVAR, MLINESTYLE, TABLESTYLE and dictionary-default output profiles did not join the nine qualified identities in the 23-callback source graph");
+            return fail("AC1018 DICTIONARYVAR, MLINESTYLE owner, TABLESTYLE and dictionary-default output profiles did not join the ten qualified identities in the 23-callback source graph");
         if (binary)
             DxIfaceStandardDwgCaptureTestAccess::reportOpaqueOutputGaps(source);
 

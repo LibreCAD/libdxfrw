@@ -27128,6 +27128,30 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
             != std::vector<std::uint32_t>{rootOwner->handle})
         return true;
 
+    const auto rootFrame = cData->m_standardDwgObjectFrames.find(
+        {cData->importGeneration, rootOwner->handle});
+    const DRW_Dictionary* rootFrameBaseline =
+        rootFrame != cData->m_standardDwgObjectFrames.end()
+            && rootFrame->second.typedBaseline
+        ? dynamic_cast<const DRW_Dictionary*>(
+            rootFrame->second.typedBaseline.get())
+        : nullptr;
+    if (rootFrame == cData->m_standardDwgObjectFrames.end()
+        || rootFrame->second.generation != cData->importGeneration
+        || !rootFrame->second.payloadMatched
+        || rootFrameBaseline == nullptr
+        || rootFrame->second.raw.m_handle != rootOwner->handle
+        || rootFrame->second.raw.m_objectType != dwgObjType::DICTIONARY
+        || rootFrame->second.raw.m_version != cData->sourceVersion
+        || rootFrame->second.raw.m_isEntity
+        || rootFrame->second.raw.m_isCustomClass
+        || !rootFrame->second.raw.m_recordName.empty()
+        || !rootFrame->second.raw.m_className.empty()
+        || !standardDwgModelsEqual(*rootFrameBaseline, *rootOwner,
+                                   cData->sourceVersion,
+                                   dwgObjType::DICTIONARY))
+        return true;
+
     try {
         m_dwgMLineStyleOutputSources.emplace(
             style.handle,
@@ -27251,6 +27275,31 @@ bool dx_iface::hasUnchangedDwgMLineStyleOutputSources() const noexcept {
             }
             if (liveRoot == nullptr
                 || !sameDictionary(frozen->second.rootOwner, *liveRoot))
+                return false;
+            const auto rootFrame = cData->m_standardDwgObjectFrames.find(
+                {cData->importGeneration, frozen->second.rootOwner.handle});
+            const DRW_Dictionary* rootFrameBaseline =
+                rootFrame != cData->m_standardDwgObjectFrames.end()
+                    && rootFrame->second.typedBaseline
+                ? dynamic_cast<const DRW_Dictionary*>(
+                    rootFrame->second.typedBaseline.get())
+                : nullptr;
+            if (rootFrame == cData->m_standardDwgObjectFrames.end()
+                || rootFrame->second.generation != cData->importGeneration
+                || !rootFrame->second.payloadMatched
+                || rootFrameBaseline == nullptr
+                || rootFrame->second.raw.m_handle
+                    != frozen->second.rootOwner.handle
+                || rootFrame->second.raw.m_objectType
+                    != dwgObjType::DICTIONARY
+                || rootFrame->second.raw.m_version != cData->sourceVersion
+                || rootFrame->second.raw.m_isEntity
+                || rootFrame->second.raw.m_isCustomClass
+                || !rootFrame->second.raw.m_recordName.empty()
+                || !rootFrame->second.raw.m_className.empty()
+                || !standardDwgModelsEqual(
+                    *rootFrameBaseline, frozen->second.rootOwner,
+                    cData->sourceVersion, dwgObjType::DICTIONARY))
                 return false;
         }
         return currentStyles.size()
@@ -60593,6 +60642,9 @@ bool dx_iface::finalizeDxfWrite() {
         if (m_dwgMLineStylesInspected) {
             for (const auto& proof : m_dwgMLineStyleOutputSources) {
                 if (!qualifyCapturedIdentity(proof.first))
+                    return false;
+                if (!qualifyCapturedIdentity(
+                        proof.second.rootOwner.handle))
                     return false;
             }
         }
