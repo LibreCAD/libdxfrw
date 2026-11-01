@@ -1,5 +1,14 @@
-if(NOT DEFINED DWG2DXF OR NOT DEFINED SAMPLE OR NOT DEFINED OUTPUT_DIR)
-    message(FATAL_ERROR "DWG2DXF, SAMPLE, and OUTPUT_DIR are required")
+if(NOT DEFINED DWG2DXF OR NOT DEFINED OUTPUT_DIR)
+    message(FATAL_ERROR "DWG2DXF and OUTPUT_DIR are required")
+endif()
+if(NOT DEFINED SAMPLE AND NOT DEFINED DWG_SOURCE_GENERATOR)
+    message(FATAL_ERROR "SAMPLE or DWG_SOURCE_GENERATOR is required")
+endif()
+if(DEFINED DWG_SOURCE_GENERATOR AND NOT EXISTS "${DWG_SOURCE_GENERATOR}")
+    message(FATAL_ERROR "DWG source generator does not exist: ${DWG_SOURCE_GENERATOR}")
+endif()
+if(DEFINED SAMPLE AND NOT EXISTS "${SAMPLE}")
+    message(FATAL_ERROR "DWG sample does not exist: ${SAMPLE}")
 endif()
 if(NOT DEFINED RTEXT_SAMPLE OR NOT DEFINED MPOLYGON_SAMPLE)
     message(FATAL_ERROR "RTEXT_SAMPLE and MPOLYGON_SAMPLE are required")
@@ -28,15 +37,34 @@ if(DEFINED PYTHON)
     endif()
 endif()
 
-set(_test_dir "${OUTPUT_DIR}/freecad dwg2dxf cli test")
+string(RANDOM LENGTH 12 ALPHABET 0123456789abcdef _nonce)
+set(_test_dir "${OUTPUT_DIR}/freecad dwg2dxf cli test-${_nonce}")
+if(EXISTS "${_test_dir}")
+    message(FATAL_ERROR "Refusing to reuse existing test directory '${_test_dir}'")
+endif()
 file(MAKE_DIRECTORY "${_test_dir}")
 set(_input "${_test_dir}/source drawing AC1027.dwg")
-execute_process(
-    COMMAND "${CMAKE_COMMAND}" -E copy "${SAMPLE}" "${_input}"
-    RESULT_VARIABLE _copy_result
-)
-if(NOT "${_copy_result}" STREQUAL "0")
-    message(FATAL_ERROR "Could not prepare the test-local DWG input (${_copy_result})")
+if(DEFINED SAMPLE)
+    execute_process(
+        COMMAND "${CMAKE_COMMAND}" -E copy "${SAMPLE}" "${_input}"
+        RESULT_VARIABLE _copy_result
+    )
+    if(NOT "${_copy_result}" STREQUAL "0")
+        message(FATAL_ERROR "Could not prepare the test-local DWG input (${_copy_result})")
+    endif()
+else()
+    execute_process(
+        COMMAND "${DWG_SOURCE_GENERATOR}" --generate-cli-batch-source "${_input}" AC1027
+        RESULT_VARIABLE _generate_result
+        OUTPUT_VARIABLE _generate_stdout
+        ERROR_VARIABLE _generate_stderr
+        TIMEOUT 30
+    )
+    if(NOT "${_generate_result}" STREQUAL "0" OR NOT EXISTS "${_input}")
+        message(FATAL_ERROR
+            "Could not generate the test-local AC1027 DWG (${_generate_result})\n"
+            "${_generate_stdout}\n${_generate_stderr}")
+    endif()
 endif()
 set(_output "${_test_dir}/ordinary encoding AC1027.dxf")
 file(REMOVE "${_output}")
@@ -142,13 +170,28 @@ if(NOT CMAKE_HOST_WIN32)
     set(_unicode_input "${_unicode_dir}/drawing été.dwg")
     set(_unicode_output "${_unicode_dir}/résultat été.dxf")
     file(REMOVE "${_unicode_output}")
-    execute_process(
-        COMMAND "${CMAKE_COMMAND}" -E copy "${SAMPLE}" "${_unicode_input}"
-        RESULT_VARIABLE _copy_result
-    )
-    if(NOT "${_copy_result}" STREQUAL "0")
-        message(FATAL_ERROR
-            "Could not prepare Unicode-path DWG input (${_copy_result})")
+    if(DEFINED SAMPLE)
+        execute_process(
+            COMMAND "${CMAKE_COMMAND}" -E copy "${SAMPLE}" "${_unicode_input}"
+            RESULT_VARIABLE _copy_result
+        )
+        if(NOT "${_copy_result}" STREQUAL "0")
+            message(FATAL_ERROR
+                "Could not prepare Unicode-path DWG input (${_copy_result})")
+        endif()
+    else()
+        execute_process(
+            COMMAND "${DWG_SOURCE_GENERATOR}" --generate-cli-batch-source "${_unicode_input}" AC1027
+            RESULT_VARIABLE _generate_result
+            OUTPUT_VARIABLE _generate_stdout
+            ERROR_VARIABLE _generate_stderr
+            TIMEOUT 30
+        )
+        if(NOT "${_generate_result}" STREQUAL "0" OR NOT EXISTS "${_unicode_input}")
+            message(FATAL_ERROR
+                "Could not generate the Unicode-path AC1027 DWG (${_generate_result})\n"
+                "${_generate_stdout}\n${_generate_stderr}")
+        endif()
     endif()
     execute_process(
         COMMAND "${DWG2DXF}" "${_unicode_input}" -o "${_unicode_output}"
@@ -273,3 +316,4 @@ if(_failed_temporary_files)
     message(FATAL_ERROR
         "Failed conversion left output temporaries: ${_failed_temporary_files}")
 endif()
+file(REMOVE_RECURSE "${_test_dir}")

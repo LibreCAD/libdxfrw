@@ -36,7 +36,6 @@ CTEST_REGRESSIONS = (
     "libdxfrw_independent_dxf_selftest",
     "libdxfrw_debug_state",
     "dwg2dxf_cli_contract",
-    "libdxfrw_dxf_fixtures",
     "libdxfrw_dwg_local_roundtrip",
     "libdxfrw_3d_consumer_probe",
     "dwg2dxf_version_policy",

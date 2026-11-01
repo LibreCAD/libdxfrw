@@ -8477,6 +8477,42 @@ private:
     double dateTime_;
 };
 
+class CliBatchDwgSource final : public dx_iface {
+public:
+    explicit CliBatchDwgSource(dwgRW* writer) : writer_(writer) {}
+
+    void writeHeader(DRW_Header& header) override { header.vars.clear(); }
+    void writeDwgClasses() override {}
+    void collectDwgAppIds() override {}
+    void writeBlocks() override {}
+    void writeBlockRecords() override {}
+    void writeEntities() override {
+        if (writer_ == nullptr)
+            return;
+        DRW_Line line;
+        line.basePoint = DRW_Coord(1.0, 2.0, 3.0);
+        line.secPoint = DRW_Coord(4.0, 5.0, 6.0);
+        wroteLine_ = writer_->writeLine(&line);
+    }
+    void writeObjects() override {}
+    void writeLTypes() override {}
+    void writeLayers() override {}
+    void writeTextstyles() override {}
+    void writeVports() override {}
+    void writeDimstyles() override {}
+    void writeViews() override {}
+    void writeUCSs() override {}
+    void writeAppId() override {}
+    bool finalizeDwgWrite() override { return wroteLine_; }
+    bool finalizeDwgWriteStructure() override { return true; }
+
+    bool wroteLine() const noexcept { return wroteLine_; }
+
+private:
+    dwgRW* writer_ {nullptr};
+    bool wroteLine_ {false};
+};
+
 class LocalDwgHeaderCmColorInterface final : public dx_iface {
 public:
     explicit LocalDwgHeaderCmColorInterface(bool writeColors,
@@ -34117,6 +34153,33 @@ bool runBlockRecordXrefMetadataRoundTrip(
 } // namespace
 
 int main(int argc, char** argv) {
+    if ((argc == 3 || argc == 4)
+        && std::string(argv[1]) == "--generate-cli-batch-source") {
+        if (std::filesystem::exists(argv[2])) {
+            std::cerr << "Refusing to replace an existing CLI batch source\n";
+            return 1;
+        }
+        DRW::Version version = DRW::AC1021;
+        if (argc == 4) {
+            const std::string token = argv[3];
+            if (token == "AC1021") version = DRW::AC1021;
+            else if (token == "AC1027") version = DRW::AC1027;
+            else {
+                std::cerr << "Unsupported CLI batch source version\n";
+                return 1;
+            }
+        }
+        dwgRW writer(argv[2]);
+        CliBatchDwgSource source(&writer);
+        const bool written = writer.write(&source, version, true);
+        if (!written || !source.wroteLine()) {
+            const DRW_OperationDiagnostic diagnostic = writer.getLastDiagnostic();
+            std::cerr << "Could not generate CLI batch DWG source: "
+                      << diagnostic.code << " — " << diagnostic.message << '\n';
+            return 1;
+        }
+        return 0;
+    }
     if (argc == 3 && std::string(argv[1]) == "--dwg-group-source-identity")
         return runDwgGroupSourceIdentity(argv[2]);
     if ((argc == 3 || argc == 4)

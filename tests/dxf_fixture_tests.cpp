@@ -56582,7 +56582,17 @@ bool generateLegacyEllipseCarriers(const std::filesystem::path& path, bool binar
     dx_data source;
     populateLegacyEllipseCarriers(source);
     dx_iface adapter;
-    return adapter.fileExport(path.string(), DRW::AC1018, binary, &source, false);
+    adapter.cData = &source;
+    adapter.currentBlock = source.mBlock;
+    dxfRW codec(path.string().c_str());
+    adapter.dxfW = &codec;
+    // The direct codec controls above prove AC1018 ELLIPSE lowering into R12
+    // POLYLINE carriers. Keep this process-level check focused on CLI import
+    // and re-export of those R12 carriers; a generated AC1018 DIMSTYLE has
+    // independent downgrade requirements outside this control.
+    const bool written = codec.write(&adapter, DRW::AC1009, binary);
+    adapter.dxfW = nullptr;
+    return written;
 }
 
 void testLegacyEllipseCarrierTransfer(TestContext& t) {

@@ -17130,11 +17130,16 @@ bool dxfRW::processLayer() {
             } else if (dxfKeywordEquals(sectionstr, "ENDTAB")) {
                 if (layerControlHandler
                     && layerControlHandler->wantsDxfLayerTableControl()) {
-                    if (tableControl.usable())
+                    // Pre-R13 LAYER tables have no control handle or extension
+                    // group. Keep that absence distinct from an ambiguous
+                    // attempted capture, which must fail closed.
+                    if (tableControl.usable()
+                        && (tableControl.tableHandle() != 0u
+                            || tableControl.xDictionaryHandle() != 0u))
                         layerControlHandler->addDxfLayerTableControl(
                             tableControl.tableHandle(),
                             tableControl.xDictionaryHandle());
-                    else
+                    else if (!tableControl.usable())
                         layerControlHandler->addDxfLayerTableControl(
                             DRW::NoHandle, DRW::NoHandle);
                 }

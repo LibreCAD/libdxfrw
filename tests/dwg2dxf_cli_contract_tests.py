@@ -134,6 +134,24 @@ def check_options(converter, root):
             raise AssertionError(f"documented legacy {token}: wrong output revision/kind")
         checked += 1
 
+    # SOURCE intentionally has HEADER and ENTITIES but no TABLES section. A
+    # successful consumer import must be exportable and remain importable after
+    # the adapter synthesizes its canonical layer table. Author both files in
+    # this temporary directory; this is a compatibility control, not a fixture.
+    canonical = root / "no tables canonical.dxf"
+    result = invoke([source, "-y", "-v2010", canonical])
+    if result.returncode != 0:
+        raise AssertionError("no-TABLES DXF import was not exportable: "
+                             f"{result.stdout[:2048]!r} {result.stderr[:2048]!r}")
+    if b"\nLINE\n" not in canonical.read_bytes():
+        raise AssertionError("no-TABLES DXF export dropped its entity")
+    canonical_readback = root / "no tables canonical readback.dxf"
+    result = invoke([canonical, "-y", "-v2010", canonical_readback])
+    if result.returncode != 0 or b"\nLINE\n" not in canonical_readback.read_bytes():
+        raise AssertionError("canonical no-TABLES DXF could not be read and exported: "
+                             f"{result.stdout[:2048]!r} {result.stderr[:2048]!r}")
+    checked += 2
+
     for token, version in (("-R12", "AC1009"), ("-v2000", "AC1015"),
                            ("-v2004", "AC1018"), ("-v2007", "AC1021"),
                            ("-v2010", "AC1024"), ("-v2013", "AC1027"),
@@ -299,7 +317,7 @@ def check_modern_versions(converter, root):
     return routes, batches, refused, retries
 
 
-def check_batch(converter, root):
+def check_batch(converter, root, writer):
     source_dir = root / "batch inputs"
     source_dir.mkdir()
     source = source_dir / " leading é trailing .dxf"
@@ -495,9 +513,16 @@ def check_batch(converter, root):
         raise AssertionError(f"batch relative output directory failed: {result!r}")
     checked += 1
 
-    # Use an existing repository fixture to verify that DWG input publishes
-    # DXF data with a .dxf suffix; do not add or download a fixture.
-    dwg_source = Path(__file__).resolve().parent / "fixtures" / "dwg" / "ordinary_enc_AC1015.dwg"
+    # Author a minimal valid DWG at runtime. The tracked reader samples include
+    # a dangling XDICTIONARY handle, which strict export correctly refuses.
+    if writer is None:
+        raise AssertionError("batch DWG control requires the local DWG writer")
+    dwg_source = root / "batch source.dwg"
+    generated = run_bounded(
+        [str(writer), "--generate-cli-batch-source", str(dwg_source)],
+        10, 131072, cwd=root)
+    if generated.returncode != 0 or not dwg_source.is_file():
+        raise AssertionError(f"could not author batch DWG control locally: {generated!r}")
     list_path.write_text(str(dwg_source) + "\n", encoding="utf-8")
     output = root / "batch DWG suffix"
     output.mkdir()
@@ -508,7 +533,7 @@ def check_batch(converter, root):
     if result.returncode != 0 or not dwg_payload or dwg_payload.startswith(BINARY_PREFIX):
         raise AssertionError(f"batch DWG did not publish ASCII DXF with .dxf suffix: {result!r}")
     checked += 1
-    readback = output / "ordinary_enc_AC1015_readback.dxf"
+    readback = output / "batch source readback.dxf"
     result = run_bounded([str(converter), str(dwg_output), "-v2007", str(readback)],
                          5, 131072, cwd=root)
     if result.returncode != 0 or not readback.is_file():
@@ -1138,6 +1163,10 @@ def check_exact_input_policy(converter, root):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--converter", required=True, type=Path)
+    parser.add_argument("--writer", type=Path,
+                        help="local test executable that authors generated DWG controls")
+    parser.add_argument("--fast-only", action="store_true",
+                        help="run bounded option, batch, and read-observation smoke controls")
     parser.add_argument("--options-only", action="store_true",
                         help="run only fast option-token and overwrite-authority controls")
     parser.add_argument("--modern-versions-only", action="store_true",
@@ -1183,7 +1212,7 @@ def main():
                   f"{target[2]} modern positives/{target[3]} two-pass literal routes)")
             return
         if args.batch_only:
-            batch_checked = check_batch(converter, root)
+            batch_checked = check_batch(converter, root, args.writer)
             print(f"CLI batch: PASS ({batch_checked} bounded batch controls)")
             return
         if args.batch_name_limit_only:
@@ -1206,8 +1235,16 @@ def main():
             checked = check_unsupported_dwg_codepage(converter, root)
             print(f"CLI unsupported DWG codepage: PASS ({checked} diagnostic control)")
             return
+        if args.fast_only:
+            checked = check_options(converter, root)
+            batch_checked = check_batch(converter, root, args.writer)
+            observation_checked = check_read_observations(converter, root)
+            print(f"CLI fast contract: PASS ({checked} option controls, "
+                  f"{batch_checked} batch controls, {observation_checked} "
+                  "read-observation controls)")
+            return
         checked = check_options(converter, root)
-        batch_checked = check_batch(converter, root)
+        batch_checked = check_batch(converter, root, args.writer)
         observation_checked = check_read_observations(converter, root)
         source_checked = check_source_text_admission(converter, root)
         target = check_target_text_transport(converter, root)

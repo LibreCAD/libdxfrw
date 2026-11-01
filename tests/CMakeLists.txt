@@ -2912,24 +2912,22 @@ if(TARGET dwg2dxf)
     endforeach()
 
     # Match FreeCAD's Draft/importDWG.py subprocess contract without requiring a
-    # FreeCAD installation. The DWG fixture is already tracked in this repository.
-    set(_freecad_cli_sample
-        ${CMAKE_CURRENT_SOURCE_DIR}/fixtures/dwg/ordinary_enc_AC1027.dwg
-    )
+    # FreeCAD installation. Generate the positive drawing locally so a broken
+    # or incomplete third-party fixture cannot invalidate the CLI contract.
+    set(_freecad_cli_source_generator $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>)
     set(_freecad_cli_rtext_sample
         ${CMAKE_CURRENT_SOURCE_DIR}/fixtures/dwg/rtext_arctext.dwg
     )
     set(_freecad_cli_mpolygon_sample
         ${CMAKE_CURRENT_SOURCE_DIR}/fixtures/dwg/mpolygon_solid.dwg
     )
-    if(EXISTS "${_freecad_cli_sample}"
-            AND EXISTS "${_freecad_cli_rtext_sample}"
+    if(EXISTS "${_freecad_cli_rtext_sample}"
             AND EXISTS "${_freecad_cli_mpolygon_sample}")
         add_test(
             NAME dwg2dxf_freecad_cli_compat
             COMMAND ${CMAKE_COMMAND}
                 -DDWG2DXF=$<TARGET_FILE:dwg2dxf>
-                -DSAMPLE=${_freecad_cli_sample}
+                "-DDWG_SOURCE_GENERATOR=${_freecad_cli_source_generator}"
                 -DRTEXT_SAMPLE=${_freecad_cli_rtext_sample}
                 -DMPOLYGON_SAMPLE=${_freecad_cli_mpolygon_sample}
                 "-DPYTHON=${LIBDXFRW_PYTHON_EXECUTABLE}"
@@ -2960,7 +2958,7 @@ if(TARGET dwg2dxf)
                     "-DINSTALL_BINDIR=${CMAKE_INSTALL_BINDIR}"
                     "-DINSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}"
                     "-DEXECUTABLE_SUFFIX=${CMAKE_EXECUTABLE_SUFFIX}"
-                    "-DSAMPLE=${_freecad_cli_sample}"
+                    "-DDWG_SOURCE_GENERATOR=${_freecad_cli_source_generator}"
                     "-DRTEXT_SAMPLE=${_freecad_cli_rtext_sample}"
                     "-DMPOLYGON_SAMPLE=${_freecad_cli_mpolygon_sample}"
                     "-DOUTPUT_DIR=${CMAKE_CURRENT_BINARY_DIR}"

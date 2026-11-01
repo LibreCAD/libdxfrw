@@ -1676,13 +1676,15 @@ edit this block or commit the same slice concurrently.
 - Latest completed checkpoint: S19 remains the last completed full slice.
   H0.1–H0.3 and implementation fixes whose slice gates remain open are archived
   in `docs/LIBRECAD_DXFRW_UPGRADE_HISTORY.md`.
-- Current implementation digest: `087456dce91e58e8f497d13df750316a50eb7d980a8c79b2b40c6eaa8f630294`
-  across 456 inputs. The Windows ASCII replay failure is traced to the
-  `$HANDSEED` backpatch using an offset derived from a staged `stringstream`
-  after publication through a text-mode Windows file stream. Output now remains
-  byte-addressable and the ASCII writer emits platform line endings explicitly,
-  preserving Windows CRLF bytes while keeping offsets exact. No drawing payload
-  or support claim changed.
+- Current implementation digest: `13452968c1be8d11337452b476491738319e6bd31c3c607470e204db33870f16`
+  across 456 inputs. The local fast-focus run passes all seven fast vector
+  executables and all 44 required CTests in 59.63 seconds. The lane includes a
+  locally generated AC1027 FreeCAD positive input, generated no-TABLES DXF
+  export/readback, and R12 ellipse-carrier CLI readback. The direct codec
+  regression separately verifies AC1018 ELLIPSE lowering to R12 POLYLINE while
+  retaining ordered XDATA and identities. R12 LAYER tables with no control
+  identity now remain distinct from malformed attempted captures. No drawing
+  fixtures or support claims changed.
 - On the previous digest `b67b43a07b0d58b094196b1e62296d28c252e3864e29b9494be1714956bd1702`,
   Linux/GCC and macOS/Apple Clang passed in run `41327050265` (artifacts
   `13092101769` and `13091414170`). Those receipts are now baseline only; all
@@ -1711,9 +1713,9 @@ edit this block or commit the same slice concurrently.
 - Native qualification run `41330244115` passed Linux/GCC, macOS/Apple Clang,
   and Windows/MSVC for prior digest `bb8bc53404402e31d5310032d54855370ef3695b9d9e4e0d4ad4031ca6f8fcaf`;
   receipt artifacts are `13093610828`, `13093031519`, and `13092904136`.
-  Because the fast-runner/test correction changes digest inputs, refresh all
-  three platform receipts for current digest
-  `087456dce91e58e8f497d13df750316a50eb7d980a8c79b2b40c6eaa8f630294`.
+  Because later source and fast-gate corrections change digest inputs, these
+  receipts are baseline only; refresh all three platforms for current digest
+  `13452968c1be8d11337452b476491738319e6bd31c3c607470e204db33870f16`.
 - Fast run `41330244120` built all 81 targets and passed its seven executable
   vectors, then failed before CTest execution because the required test name
   `dwg2dxf_dynamic_block_fail_closed` had been retired in favor of
@@ -1722,7 +1724,16 @@ edit this block or commit the same slice concurrently.
   metadata in the synthetic PurgePreventer input; the fixture now supplies that
   source identity and the targeted CTest passes. Candidate digest is now
   `087456dce91e58e8f497d13df750316a50eb7d980a8c79b2b40c6eaa8f630294` across
-  456 inputs. The hosted fast and platform gates must be rerun.
+  456 inputs. This candidate is superseded by the current digest above.
+- Local `parity-fast` verification on the current digest passed seven vector
+  executables and 44/44 required CTests, including the installed FreeCAD CLI
+  path, in 59.63 seconds. The old FreeCAD positive input was confirmed to
+  contain a dangling extension-dictionary handle, so the control now authors
+  its AC1027 DWG in the build tree. R12 process controls consume R12 carrier
+  drawings; direct-codec controls retain AC1018-to-R12 ellipse lowering
+  coverage. No repository DWG/DXF fixture was added. Hosted `parity-fast`,
+  fixture-policy, and three-platform receipts remain required for the pushed
+  current digest.
 - `parity-fast` and fixture-policy qualification must complete on the current
   implementation digest. Plan-only PR-head updates canceled earlier runs, so
   only a completed latest-head run closes this gate.
@@ -1754,8 +1765,8 @@ edit this block or commit the same slice concurrently.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
-| S15 | C2: UTF-8/native input and atomic-output paths | S11, S14 | VERIFYING | current-digest Linux/Windows/macOS focused receipts; Unicode parent/basename/non-BMP DXF ASCII+binary/DWG; transaction commit/rollback/cleanup; writer controls; LibreCAD filter and LibreCAD_3 runtime/persistence consumers | C2.1 implementation and portable controls are archived. All three platform receipts passed for prior digest `bb8bc53404402e31d5310032d54855370ef3695b9d9e4e0d4ad4031ca6f8fcaf`; refresh them for current digest `087456dce91e58e8f497d13df750316a50eb7d980a8c79b2b40c6eaa8f630294`. Locked LibreCAD filter/parser and LibreCAD_3 compatibility compiles pass; runtime/persistence checks remain. No support claim is promoted. | current-digest receipts, then LibreCAD and LibreCAD_3 runtime/persistence checks |
-| S20 | H0: hosted build and fast-workflow repair closure | S19 | VERIFYING | focused Linux x64, Windows x64, macOS ARM64 receipts; local round-trip and reader matrix; `parity-fast`; fixture-admission guard | H0.1–H0.3 and completed implementation fixes are archived. Candidate `087456dce91e58e8f497d13df750316a50eb7d980a8c79b2b40c6eaa8f630294` requires fresh three-platform and fast-workflow receipts. The prior fast run built all targets but found a stale required CTest name; that runner/test-fixture gap is corrected locally. No support claim or drawing payload changed. | S15, final release |
+| S15 | C2: UTF-8/native input and atomic-output paths | S11, S14 | VERIFYING | current-digest Linux/Windows/macOS focused receipts; Unicode parent/basename/non-BMP DXF ASCII+binary/DWG; transaction commit/rollback/cleanup; writer controls; LibreCAD filter and LibreCAD_3 runtime/persistence consumers | C2.1 implementation and portable controls are archived. All three platform receipts passed for prior digest `bb8bc53404402e31d5310032d54855370ef3695b9d9e4e0d4ad4031ca6f8fcaf`; refresh them for current digest `13452968c1be8d11337452b476491738319e6bd31c3c607470e204db33870f16`. Locked LibreCAD filter/parser and LibreCAD_3 compatibility compiles pass; runtime/persistence checks remain. No support claim is promoted. | current-digest receipts, then LibreCAD and LibreCAD_3 runtime/persistence checks |
+| S20 | H0: hosted build and fast-workflow repair closure | S19 | VERIFYING | focused Linux x64, Windows x64, macOS ARM64 receipts; local round-trip and reader matrix; `parity-fast`; fixture-admission guard | H0.1–H0.3 and completed implementation fixes are archived. Candidate `13452968c1be8d11337452b476491738319e6bd31c3c607470e204db33870f16` has passed the local 7-vector/44-CTest fast lane and requires hosted three-platform and fast-workflow receipts. No support claim or drawing payload changed. | S15, final release |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -1764,9 +1775,9 @@ edit this block or commit the same slice concurrently.
 
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| C2.2 | C2 / S15 | WP3/WP8; Phase 8 follow-up | C2.1 | VERIFYING | NOT_EVALUATED | current-digest three-platform receipts and LibreCAD filter/LibreCAD_3 runtime/persistence consumers | Run `41330244115` passed all three platforms for prior digest `bb8bc53404402e31d5310032d54855370ef3695b9d9e4e0d4ad4031ca6f8fcaf`; refresh receipts for current digest `087456dce91e58e8f497d13df750316a50eb7d980a8c79b2b40c6eaa8f630294`. Consumer runtime/persistence checks remain. No claim is promoted. |
-| H0.4 | H0 / S20 | WP4/WP6; Windows qualification follow-up | H0.2 | VERIFYING | NOT_APPLICABLE | Current-digest Windows qualification self-test and all 7 focused CTests pass | Run `41330244115` passed Linux/GCC, Windows/MSVC, and macOS/Apple Clang for prior digest `bb8bc53404402e31d5310032d54855370ef3695b9d9e4e0d4ad4031ca6f8fcaf`; artifacts `13093610828`, `13092904136`, and `13093031519`. Refresh all three for current digest `087456dce91e58e8f497d13df750316a50eb7d980a8c79b2b40c6eaa8f630294`. |
-| H0.5 | H0 / S20 | WP1/WP2; fast GCC follow-up | H0.2 | VERIFYING | NOT_APPLICABLE | Current-digest `parity-fast` completes its warnings-as-errors build, fast vectors, CLI checks, and fixture guard | Run `41330244120` built all targets and passed seven executable vectors, then stopped before CTest execution because the required CTest name was stale. The runner now selects `dwg2dxf_dynamic_block_purge_preventer`; its local focused CTest passes after correcting the synthetic source identity. Rerun fast qualification for current digest `087456dce91e58e8f497d13df750316a50eb7d980a8c79b2b40c6eaa8f630294`. No claim is promoted. |
+| C2.2 | C2 / S15 | WP3/WP8; Phase 8 follow-up | C2.1 | VERIFYING | NOT_EVALUATED | current-digest three-platform receipts and LibreCAD filter/LibreCAD_3 runtime/persistence consumers | Run `41330244115` passed all three platforms for prior digest `bb8bc53404402e31d5310032d54855370ef3695b9d9e4e0d4ad4031ca6f8fcaf`; refresh receipts for current digest `13452968c1be8d11337452b476491738319e6bd31c3c607470e204db33870f16`. Consumer runtime/persistence checks remain. No claim is promoted. |
+| H0.4 | H0 / S20 | WP4/WP6; Windows qualification follow-up | H0.2 | VERIFYING | NOT_APPLICABLE | Current-digest Windows qualification self-test and focused CTests pass | Run `41330244115` passed Linux/GCC, Windows/MSVC, and macOS/Apple Clang for prior digest `bb8bc53404402e31d5310032d54855370ef3695b9d9e4e0d4ad4031ca6f8fcaf`; artifacts `13093610828`, `13092904136`, and `13093031519`. Refresh all three for current digest `13452968c1be8d11337452b476491738319e6bd31c3c607470e204db33870f16`. |
+| H0.5 | H0 / S20 | WP1/WP2; fast GCC follow-up | H0.2 | VERIFYING | NOT_APPLICABLE | Current-digest `parity-fast` completes its warnings-as-errors build, fast vectors, CLI checks, and fixture guard | Local current-digest fast-focus passed all seven vector executables and 44/44 required CTests in 59.63 seconds. Hosted `parity-fast` and fixture-policy qualification remain required; no claim is promoted. |
 
 <!-- UPGRADE_PROGRESS_END -->
 

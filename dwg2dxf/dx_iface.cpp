@@ -57649,8 +57649,20 @@ bool dx_data::getLayerTableControlExtensionDictionary(
             return false;
         if (!m_dxfLayerControlSourceSeen) {
             // Hand-authored adapter data has no parser capture. A completed
-            // real DXF import must have delivered its LAYER TABLE header.
-            return !dxfReadOutcome.attempted;
+            // DXF may also omit TABLES/LAYER entirely; entity callbacks then
+            // create consumer-side layer rows (normally layer 0), which have
+            // no source TABLE control identity or extension ownership to
+            // replay. Permit that canonical rewrite only when no synthesized
+            // row carries an extension dictionary. A failed/incomplete read
+            // or an unproven layer extension still fails closed.
+            if (!dxfReadOutcome.attempted)
+                return true;
+            if (!dxfReadOutcome.operationSucceeded)
+                return false;
+            return std::none_of(layers.begin(), layers.end(),
+                [](const DRW_Layer& layer) {
+                    return layer.xDictHandle != 0u;
+                });
         }
         if (importGeneration == 0u
             || m_dxfLayerControlGeneration != importGeneration

@@ -7784,6 +7784,7 @@ bool generate(const std::string& path, bool binary) {
 
     DRW_ImageDef definition;
     definition.handle = image.ref;
+    definition.parentHandle = sourceImageDictionary.handle;
     definition.name = kImagePath;
     definition.imgVersion = 2;
     definition.u = 640.0;
@@ -7807,6 +7808,7 @@ bool generate(const std::string& path, bool binary) {
     iface.linkImage(&definition);
     DRW_ImageDef distinctDefinition;
     distinctDefinition.handle = samePathDistinctDefinition.ref;
+    distinctDefinition.parentHandle = sourceImageDictionary.handle;
     distinctDefinition.name = kImagePath;
     distinctDefinition.imgVersion = 4;
     distinctDefinition.u = 1920.0;
@@ -7822,8 +7824,17 @@ bool generate(const std::string& path, bool binary) {
     auto* stored = dynamic_cast<dx_ifaceImg*>(data.mBlock->ent.front());
     if (stored == nullptr || stored->path != kImagePath)
         return fail("image-definition callback did not update stored entity");
-    if (!iface.fileExport(path, DRW::AC1027, binary, &data, false))
+    if (!iface.fileExport(path, DRW::AC1027, binary, &data, false)) {
+        std::cerr << "generated IMAGE path capture state: typedEntity="
+                  << data.typedEntityCaptureFailed
+                  << " typedBytes=" << data.typedEntityRetainedBytes
+                  << " imageDefinitions=" << data.imageDefinitions.size()
+                  << " imageDefinitionFailed=" << data.imageDefinitionCaptureFailed
+                  << " layerCount=" << data.layers.size()
+                  << " graph=" << iface.extensionGraphFailureName()
+                  << " detail=" << iface.extensionGraphFailureDetail() << '\n';
         return fail("could not export generated image-path DXF control");
+    }
 
     const auto imageRoot = std::find_if(
         data.namedObjectDictionary.m_entries.begin(),
