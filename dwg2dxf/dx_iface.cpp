@@ -46330,14 +46330,11 @@ dx_iface::IdentitySourceReport dx_iface::identitySourceReport(const dx_data& dat
     r.state=audit->namespaceReady?S::NamespaceReady:S::Unqualified;return r;
 }
 
-bool dx_iface::hasSimpleTableContentFieldProfile(
+bool dx_iface::hasTableContentFieldOutputProfile(
         const dx_data& data) const noexcept {
     try {
-        constexpr std::size_t kMaxSimpleFields = 10000u;
+        constexpr std::size_t kMaxTableContentFields = 10000u;
         constexpr std::size_t kMaxTableFieldReferences = 10000u;
-        static constexpr std::array<int, 24> kSimpleFieldRawCodes{{
-            5, 330, 100, 1, 2, 90, 97, 91, 92, 94, 95, 96,
-            300, 93, 7, 93, 90, 1, 94, 300, 302, 304, 301, 98}};
         const bool adapterAuthored =
             data.sourceFormat == dx_source_format::Unknown
             && data.rawFields.empty() && data.rawFieldLists.empty();
@@ -46346,7 +46343,7 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
             && data.rawFields.size() == data.fields.size()
             && data.rawFieldLists.size() == data.fieldLists.size();
         if ((!adapterAuthored && !importedDxf) || data.fields.empty()
-            || data.fields.size() > kMaxSimpleFields
+            || data.fields.size() > kMaxTableContentFields
             || (adapterAuthored && data.fieldLists.size() > 1u)
             || (importedDxf && data.fieldLists.size() > 1u)
             || std::any_of(data.tables.begin(), data.tables.end(),
@@ -46374,17 +46371,8 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
             for (const DRW_RawDxfObject& raw : data.rawFields) {
                 if (!asciiIdentifierEquals(raw.name, "FIELD")
                     || raw.m_version != data.sourceVersion
-                    || raw.groups.size() != kSimpleFieldRawCodes.size()
-                    || (raw.hasRawValues
-                        && raw.rawValues.size() != raw.groups.size())
                     || !rawByHandle.emplace(raw.handle, &raw).second)
                     return false;
-                for (std::size_t index = 0u;
-                     index < kSimpleFieldRawCodes.size(); ++index) {
-                    if (raw.groups[index].code()
-                        != kSimpleFieldRawCodes[index])
-                        return false;
-                }
             }
             rawFieldListsByHandle.reserve(data.rawFieldLists.size());
             for (const DRW_RawDxfObject& raw : data.rawFieldLists) {
@@ -46402,13 +46390,12 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
         std::size_t itemCount = 0u;
         for (const DRW_Field& field : data.fields) {
             if (field.handle == 0u || field.handle == DRW::NoHandle
-                || (adapterAuthored && field.parentHandle != 0u)
                 || (importedDxf
-                    && field.parentHandle
-                        != data.namedObjectDictionary.handle)
+                    && (field.parentHandle == 0u
+                        || field.parentHandle == DRW::NoHandle))
                 || !field.reactorHandles.empty()
                 || field.xDictHandle != 0u || !field.appData.empty()
-                || !field.extData.empty() || !field.m_childHandles.empty()
+                || !field.extData.empty()
                 || !field.m_objectHandles.empty()
                 || !field.m_childValues.empty()
                 || !field.m_formatString.empty()
@@ -46452,10 +46439,96 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
             }
         }
 
-        // A locally authored flat FIELD set can carry the standard NOD
-        // FIELDLIST membership object. Keep this profile narrow: imported
-        // FIELDLISTs still require raw-to-typed body equivalence, and complex
-        // FIELD children/object references use the separate graph gate.
+        // Permit a bounded FIELD child tree rooted by TABLECONTENT references.
+        // The exact imported body is checked above; this graph check preserves
+        // the 360 child / 330 owner relationship and rejects cycles, aliases,
+        // disconnected records, and children referenced as table roots.
+        std::unordered_map<std::uint32_t, const DRW_Field*> fieldsByHandle;
+        fieldsByHandle.reserve(data.fields.size());
+        std::unordered_set<std::uint32_t> roots;
+        roots.reserve(data.fields.size());
+        std::unordered_set<std::uint32_t> linkedChildren;
+        linkedChildren.reserve(data.fields.size());
+        for (const DRW_Field& field : data.fields) {
+            if (!fieldsByHandle.emplace(field.handle, &field).second)
+                return false;
+        }
+        for (const DRW_Field& field : data.fields) {
+            const bool root = adapterAuthored
+                ? field.parentHandle == 0u
+                : field.parentHandle == data.namedObjectDictionary.handle;
+            if (root) {
+                roots.insert(field.handle);
+            } else {
+                const auto parent = fieldsByHandle.find(field.parentHandle);
+                if (parent == fieldsByHandle.end())
+                    return false;
+            }
+            std::unordered_set<std::uint32_t> uniqueChildren;
+            uniqueChildren.reserve(field.m_childHandles.size());
+            for (const std::uint32_t childHandle : field.m_childHandles) {
+                const auto child = fieldsByHandle.find(childHandle);
+                if (childHandle == 0u || childHandle == DRW::NoHandle
+                    || child == fieldsByHandle.end()
+                    || child->second->parentHandle != field.handle
+                    || !uniqueChildren.insert(childHandle).second
+                    || !linkedChildren.insert(childHandle).second)
+                    return false;
+            }
+        }
+        for (const DRW_Field& field : data.fields) {
+            const bool root = adapterAuthored
+                ? field.parentHandle == 0u
+                : field.parentHandle == data.namedObjectDictionary.handle;
+            if (!root && linkedChildren.count(field.handle) != 1u)
+                return false;
+        }
+        if (linkedChildren.size() + roots.size() != data.fields.size())
+            return false;
+        if (roots.empty())
+            return false;
+        std::unordered_set<std::uint32_t> reached;
+        reached.reserve(data.fields.size());
+        std::unordered_set<std::uint32_t> active;
+        active.reserve(data.fields.size());
+        struct FieldFrame {
+            std::uint32_t handle;
+            std::size_t nextChild;
+        };
+        std::vector<FieldFrame> stack;
+        for (const std::uint32_t root : roots) {
+            if (reached.count(root) != 0u)
+                continue;
+            active.insert(root);
+            stack.push_back({root, 0u});
+            while (!stack.empty()) {
+                FieldFrame& frame = stack.back();
+                const DRW_Field& field = *fieldsByHandle.at(frame.handle);
+                if (frame.nextChild == field.m_childHandles.size()) {
+                    active.erase(frame.handle);
+                    reached.insert(frame.handle);
+                    stack.pop_back();
+                    continue;
+                }
+                const std::uint32_t child =
+                    field.m_childHandles[frame.nextChild++];
+                if (active.count(child) != 0u)
+                    return false;
+                if (reached.count(child) != 0u)
+                    return false;
+                active.insert(child);
+                stack.push_back({child, 0u});
+            }
+        }
+        if (reached.size() != data.fields.size())
+            return false;
+        if (roots.size() != data.fields.size()
+            && data.fieldLists.size() != 1u)
+            return false;
+
+        // A bounded FIELD tree can carry the standard NOD FIELDLIST
+        // membership object. Imported FIELDLIST/FIELD bodies still require
+        // exact raw-to-typed equivalence before this graph is output-eligible.
         if (!data.fieldLists.empty()) {
             if (data.fieldLists.size() != 1u
                 || (!adapterAuthored && !importedDxf))
@@ -46536,6 +46609,7 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
                             if (content.m_handle == 0u
                                 || content.m_handle == DRW::NoHandle
                                 || field == referenceCounts.end()
+                                || roots.count(content.m_handle) == 0u
                                 || field->second == kMaxTableFieldReferences)
                                 return false;
                             ++field->second;
@@ -46562,8 +46636,12 @@ bool dx_iface::hasSimpleTableContentFieldProfile(
             }
         }
         return referenceCount != 0u
-            && std::all_of(referenceCounts.begin(), referenceCounts.end(),
-                [](const auto& item) { return item.second != 0u; });
+            && std::all_of(roots.begin(), roots.end(),
+                [&referenceCounts](std::uint32_t root) {
+                    const auto found = referenceCounts.find(root);
+                    return found != referenceCounts.end()
+                        && found->second != 0u;
+                });
     } catch (...) {
         return false;
     }
@@ -63565,7 +63643,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         });
     if (hasFieldCarriers || hasTableFieldReferences
         || hasTableContentFieldReferences) {
-        if (!hasSimpleTableContentFieldProfile(*cData)) {
+        if (!hasTableContentFieldOutputProfile(*cData)) {
             if (cData->sourceFormat == dx_source_format::DXF) {
                 if (!cData->hasSingleSuccessfulFieldCarrierImport()) {
                     reportPreflightFailure(
@@ -66655,7 +66733,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     std::vector<std::pair<std::string, std::uint32_t>>().swap(
         backgroundRootEntries);
     const bool fieldListEmissionReady = !cData->fieldLists.empty()
-        && hasSimpleTableContentFieldProfile(*cData);
+        && hasTableContentFieldOutputProfile(*cData);
     if (cData->hasNamedObjectDictionary) {
         for (const DRW_Dictionary::Entry& sourceEntry :
              cData->namedObjectDictionary.m_entries) {
@@ -66830,7 +66908,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     if (cData->sourceFormat == dx_source_format::Unknown
         && !cData->fieldLists.empty()) {
-        if (!hasSimpleTableContentFieldProfile(*cData)
+        if (!hasTableContentFieldOutputProfile(*cData)
             || !rootEntryNames.insert(layoutSymbolKey("ACAD_FIELDLIST")).second) {
             delete dxfW;
             dxfW = nullptr;

@@ -1,0 +1,56 @@
+{
+  "id": "p5-ac1027-field-child-tree-output-2026-11-01",
+  "phase": "P5",
+  "status": "bounded_codec_profile_qualified",
+  "profile": {
+    "source": "locally authored dx_data constructed in the adapter regression test; no DWG/DXF fixture file was added",
+    "targetVersion": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "records": {
+      "fieldRoots": ["0x501", "0x502"],
+      "nestedField": "0x504",
+      "fieldList": "0x503",
+      "tableContent": "0x601"
+    },
+    "supportedShape": "Two root scalar string-valued FIELD records, one scalar string-valued child FIELD owned by the first root, one FIELDLIST containing all three fields, and TABLECONTENT references to both roots.",
+    "wireRoles": {
+      "fieldChild": "group 360",
+      "fieldOwner": "group 330",
+      "tableContentRoots": "type-2 FIELD references"
+    }
+  },
+  "proof": [
+    "The output is imported by the production DXF reader in ASCII and binary modes. FIELDLIST membership, field cached strings, root TABLECONTENT references, child owner, and reciprocal child handle are checked after readback.",
+    "The imported re-export path replays each retained raw FIELD body through the production FIELD decoder and compares it with the typed model before output admission.",
+    "An authored child with an incorrect owner is rejected while preserving the existing destination; restoring the owner permits retry on the same adapter.",
+    "Imported typed FIELD mutation, nested-child edge mutation, and raw FIELDLIST membership mutation are rejected without replacing the destination; restoration permits a corrected retry and fresh readback."
+  ],
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "passed"
+    },
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_fieldlist_membership_output|libdxfrw_field_graph_export_refusal)$' --output-on-failure",
+      "result": "2/2 passed"
+    },
+    "diffCheck": "git diff --check passed"
+  },
+  "limitations": [
+    "This is serializer and readback evidence for a locally authored AC1027 object graph, not evidence of any DWG/DXF producer's field semantics.",
+    "FIELD child-value records, object-handle lists, CadValue object-ID references, non-string value types, and other owner profiles remain refused or unqualified.",
+    "Native field evaluation and TABLE rendering are not qualified; no consumer support claim is promoted."
+  ],
+  "evidenceReferences": [
+    "src/intern/dxffield.h: group 360 is retained as a ChildField reference and group 331 as an object reference",
+    "src/libdxfrw.cpp: writeField emits child links and typed FIELD value records",
+    "docs/research/fieldlist-imported-source-profile-2026-10-30.json",
+    "docs/research/deeper-broader-dxf-dictionary-entry-ownership-field-route-2026-10-20.json"
+  ],
+  "sha256": {
+    "dwg2dxf/dx_iface.cpp": "b6c9ddda22e395155af70f6cdd515a2f7f5f3f162aaf40af7c903207c92cb9a5",
+    "dwg2dxf/dx_iface.h": "5ccbdbe5bf9a0d536657711ac7b27cdd7a3cd5e8af691e44c4cce788b1bebe0f",
+    "tests/dwg2dxf_adapter_tests.cpp": "1581d4801be11f58b5a992608dc9e5a957d049ab9982160f745c59664c2706e1",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "cd62e1eaaae113576fe3dc5bb5a5820f631fe087ee8d797d7de30f7fb1cb0920"
+  }
+}

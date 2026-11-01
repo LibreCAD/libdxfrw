@@ -29628,11 +29628,20 @@ bool fieldListMembershipOutput() {
         second.m_value.m_dataType = 4;
         second.m_value.m_value = DRW_Variant(1, UTF8STRING("second-value"));
         writer.addField(second);
+        DRW_Field child;
+        child.handle = 0x504u;
+        child.parentHandle = first.handle;
+        child.m_evaluatorId = "Text";
+        child.m_fieldCode = "FIELD_LIST_CHILD";
+        child.m_value.m_dataType = 4;
+        child.m_value.m_value = DRW_Variant(1, UTF8STRING("child-value"));
+        writer.addField(child);
+        data.fields.front().m_childHandles.push_back(child.handle);
 
         DRW_FieldList fieldList;
         fieldList.handle = 0x503u;
         fieldList.m_unknown = binary ? 1 : 0;
-        fieldList.m_fieldHandles = {first.handle, second.handle};
+        fieldList.m_fieldHandles = {first.handle, second.handle, child.handle};
         writer.addFieldList(fieldList);
 
         DRW_TableContentObject content;
@@ -29642,7 +29651,8 @@ bool fieldListMembershipOutput() {
         content.m_content.m_columns.push_back({"", 1.0});
         content.m_content.m_rows.resize(1u);
         DRW_TableCell cell;
-        for (const std::uint32_t fieldHandle : fieldList.m_fieldHandles) {
+        for (const std::uint32_t fieldHandle :
+                {first.handle, second.handle}) {
             DRW_TableCellContent reference;
             reference.m_type = 2;
             reference.m_handle = fieldHandle;
@@ -29666,43 +29676,67 @@ bool fieldListMembershipOutput() {
 
         if (data.fieldLists.size() != 1u)
             return fail("authored FIELDLIST callback was not retained");
-        data.fieldLists.front().m_fieldHandles = {first.handle, 0xDEADu};
+        data.fieldLists.front().m_fieldHandles = {
+            first.handle, second.handle, child.handle};
+        data.fields.back().parentHandle = 0xDEADu;
         if (writer.fileExport(output.string(), DRW::AC1027, binary,
                               &data, false))
-            return fail("incomplete FIELDLIST membership was exported");
+            return fail("nested FIELD with wrong owner was exported");
         {
             std::ifstream existing(output, std::ios::binary);
             const std::string preserved{
                 std::istreambuf_iterator<char>(existing),
                 std::istreambuf_iterator<char>()};
             if (preserved != sentinel)
-                return fail("incomplete FIELDLIST replaced the destination");
+                return fail("wrong-owner FIELD graph replaced destination");
         }
-
-        data.fieldLists.front().m_fieldHandles = {first.handle, second.handle};
+        data.fields.back().parentHandle = first.handle;
         if (!writer.fileExport(output.string(), DRW::AC1027, binary,
                                &data, false))
             return fail("corrected FIELDLIST did not retry on the same adapter");
 
         dx_data readback;
         dx_iface reader;
-        if (!reader.fileImport(output.string(), &readback, false)
-            || readback.fields.size() != 2u
-            || readback.fieldLists.size() != 1u
+        if (!reader.fileImport(output.string(), &readback, false))
+            return fail("nested FIELDLIST output did not import");
+        if (readback.fields.size() != 3u || readback.fieldLists.size() != 1u
             || readback.tableContents.size() != 1u
             || !readback.hasNamedObjectDictionary)
-            return fail("FIELDLIST output did not import with its carriers");
+            return fail("FIELDLIST readback counts: fields="
+                + std::to_string(readback.fields.size()) + " lists="
+                + std::to_string(readback.fieldLists.size()) + " tables="
+                + std::to_string(readback.tableContents.size()) + " nod="
+                + std::to_string(readback.hasNamedObjectDictionary));
         const DRW_FieldList& parsedList = readback.fieldLists.front();
         const DRW_TableContentObject& parsedContent =
             readback.tableContents.front();
         if (parsedList.parentHandle != readback.namedObjectDictionary.handle
             || parsedList.m_unknown != (binary ? 1 : 0)
-            || parsedList.m_fieldHandles.size() != 2u
+            || parsedList.m_fieldHandles.size() != 3u
             || parsedContent.m_content.m_rows.size() != 1u
             || parsedContent.m_content.m_rows.front().m_cells.size() != 1u
             || parsedContent.m_content.m_rows.front().m_cells.front()
                    .m_contents.size() != 2u)
             return fail("FIELDLIST owner, membership, or TABLECONTENT shape changed");
+        const auto parsedFirst = std::find_if(
+            readback.fields.begin(), readback.fields.end(),
+            [](const DRW_Field& field) {
+                return field.m_fieldCode == "FIELD_LIST_FIRST";
+            });
+        const auto parsedSecond = std::find_if(
+            readback.fields.begin(), readback.fields.end(),
+            [](const DRW_Field& field) {
+                return field.m_fieldCode == "FIELD_LIST_SECOND";
+            });
+        const auto parsedChild = std::find_if(
+            readback.fields.begin(), readback.fields.end(),
+            [](const DRW_Field& field) {
+                return field.m_fieldCode == "FIELD_LIST_CHILD";
+            });
+        if (parsedFirst == readback.fields.end()
+            || parsedSecond == readback.fields.end()
+            || parsedChild == readback.fields.end())
+            return fail("FIELDLIST output lost a FIELD identity");
         const auto rootEntry = std::find_if(
             readback.namedObjectDictionary.m_entries.begin(),
             readback.namedObjectDictionary.m_entries.end(),
@@ -29717,24 +29751,15 @@ bool fieldListMembershipOutput() {
                           parsedList.m_fieldHandles.end(),
                           parsedField.handle)
                     == parsedList.m_fieldHandles.end()
-                || parsedField.parentHandle
-                    != readback.namedObjectDictionary.handle
+                || (parsedField.m_fieldCode == "FIELD_LIST_CHILD"
+                    ? parsedField.parentHandle
+                        != parsedFirst->handle
+                    : parsedField.parentHandle
+                        != readback.namedObjectDictionary.handle)
                 || parsedField.m_evaluatorId != "Text")
                 return fail("FIELDLIST membership or FIELD owner changed");
         }
-        const auto parsedFirst = std::find_if(
-            readback.fields.begin(), readback.fields.end(),
-            [](const DRW_Field& field) {
-                return field.m_fieldCode == "FIELD_LIST_FIRST";
-            });
-        const auto parsedSecond = std::find_if(
-            readback.fields.begin(), readback.fields.end(),
-            [](const DRW_Field& field) {
-                return field.m_fieldCode == "FIELD_LIST_SECOND";
-            });
-        if (parsedFirst == readback.fields.end()
-            || parsedSecond == readback.fields.end()
-            || parsedFirst->m_value.m_dataType != 4
+        if (parsedFirst->m_value.m_dataType != 4
             || parsedFirst->m_value.m_value.type() != DRW_Variant::STRING
             || parsedFirst->m_value.m_value.c_str() == nullptr
             || std::string(parsedFirst->m_value.m_value.c_str())
@@ -29743,7 +29768,15 @@ bool fieldListMembershipOutput() {
             || parsedSecond->m_value.m_value.type() != DRW_Variant::STRING
             || parsedSecond->m_value.m_value.c_str() == nullptr
             || std::string(parsedSecond->m_value.m_value.c_str())
-                != "second-value")
+                != "second-value"
+            || parsedFirst->m_childHandles
+                != std::vector<std::uint32_t>{parsedChild->handle}
+            || parsedChild->parentHandle != parsedFirst->handle
+            || parsedChild->m_value.m_dataType != 4
+            || parsedChild->m_value.m_value.type() != DRW_Variant::STRING
+            || parsedChild->m_value.m_value.c_str() == nullptr
+            || std::string(parsedChild->m_value.m_value.c_str())
+                != "child-value")
             return fail("FIELD scalar values changed on DXF readback");
         for (const DRW_TableCellContent& reference :
                 parsedContent.m_content.m_rows.front().m_cells.front().m_contents) {
@@ -29784,6 +29817,22 @@ bool fieldListMembershipOutput() {
             || preservedImportedDestination() != importedSentinel)
             return fail("imported FIELD typed/source mismatch was emitted");
         readback.fields.front().m_fieldCode = originalFieldCode;
+
+        auto importedParent = std::find_if(
+            readback.fields.begin(), readback.fields.end(),
+            [](const DRW_Field& field) {
+                return field.m_fieldCode == "FIELD_LIST_FIRST";
+            });
+        if (importedParent == readback.fields.end())
+            return fail("imported nested FIELD parent disappeared");
+        const std::vector<std::uint32_t> originalChildren =
+            importedParent->m_childHandles;
+        importedParent->m_childHandles.clear();
+        if (importedWriter.fileExport(importedOutput.string(), DRW::AC1027,
+                                      binary, &readback, false)
+            || preservedImportedDestination() != importedSentinel)
+            return fail("imported nested FIELD edge/source mismatch was emitted");
+        importedParent->m_childHandles = originalChildren;
 
         DRW_RawDxfObject& rawList = readback.rawFieldLists.front();
         std::size_t memberGroupIndex = rawList.groups.size();
@@ -29826,7 +29875,7 @@ bool fieldListMembershipOutput() {
         dx_iface importedReader;
         if (!importedReader.fileImport(
                 importedOutput.string(), &importedReadback, false)
-            || importedReadback.fields.size() != 2u
+            || importedReadback.fields.size() != 3u
             || importedReadback.fieldLists.size() != 1u
             || importedReadback.tableContents.size() != 1u
             || !importedReadback.hasNamedObjectDictionary)
@@ -29835,7 +29884,7 @@ bool fieldListMembershipOutput() {
             importedReadback.fieldLists.front();
         if (importedList.parentHandle
                 != importedReadback.namedObjectDictionary.handle
-            || importedList.m_fieldHandles.size() != 2u
+            || importedList.m_fieldHandles.size() != 3u
             || std::any_of(importedList.m_fieldHandles.begin(),
                            importedList.m_fieldHandles.end(),
                 [&importedReadback](std::uint32_t handle) {
@@ -29845,7 +29894,23 @@ bool fieldListMembershipOutput() {
                             return field.handle == handle;
                         });
                 }))
-            return fail("imported FIELDLIST owner or membership changed on retry");
+            return fail("imported nested FIELDLIST owner or membership changed on retry");
+        importedParent = std::find_if(
+            importedReadback.fields.begin(), importedReadback.fields.end(),
+            [](const DRW_Field& field) {
+                return field.m_fieldCode == "FIELD_LIST_FIRST";
+            });
+        const auto importedChild = std::find_if(
+            importedReadback.fields.begin(), importedReadback.fields.end(),
+            [](const DRW_Field& field) {
+                return field.m_fieldCode == "FIELD_LIST_CHILD";
+            });
+        if (importedParent == importedReadback.fields.end()
+            || importedChild == importedReadback.fields.end()
+            || importedChild->parentHandle != importedParent->handle
+            || importedParent->m_childHandles
+                != std::vector<std::uint32_t>{importedChild->handle})
+            return fail("nested FIELD owner or child edge changed on imported retry");
     }
     return true;
 }

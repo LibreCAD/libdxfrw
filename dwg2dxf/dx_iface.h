@@ -2091,7 +2091,7 @@ public:
         objectWritePhase = "FIELD and FIELDLIST records";
         std::unordered_set<std::uint32_t> tableFieldHandles;
         if (!cData->fields.empty()) {
-            if (!hasSimpleTableContentFieldProfile(*cData)) {
+            if (!hasTableContentFieldOutputProfile(*cData)) {
                 dxfW->writeRawDxfObject(nullptr);
                 return;
             }
@@ -2202,7 +2202,7 @@ private:
     bool mlineStyleBodiesSourceLiveProof(const dx_data&,std::size_t,std::size_t*) const noexcept;
     bool mlineLayerSourceLiveProof(const dx_data&,std::size_t,std::size_t*) const noexcept;
     bool mlineLtypeSourceLiveProof(const dx_data&,std::size_t,std::size_t*) const noexcept;
-    bool hasSimpleTableContentFieldProfile(const dx_data&) const noexcept;
+    bool hasTableContentFieldOutputProfile(const dx_data&) const noexcept;
     bool tableContentDirectReferencesClosed(
         const DRW_TableContentObject&,
         const std::unordered_set<std::uint32_t>&) const noexcept;

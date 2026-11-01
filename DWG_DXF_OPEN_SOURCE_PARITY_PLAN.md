@@ -49,7 +49,7 @@ Implementation history and evidence stay in Git and `docs/research/`.
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
 | P4 | OPEN — source/graph closure | Close reproduced source-required bodies and dependencies that still lack strict output/readback proof. For AC1018 `ET-Drawing-with-Border.dwg`, 3 of 23 opaque callback identities remain unqualified: DICTIONARY callbacks `0xC` and `0x2CD`; named-block SORTENTSTABLE `0x2CE` is outside the documented DXF owner scope. Whole-source output also remains blocked by the invalid non-shape empty-name STYLE `0xDF`; keep it refused until a source- and consumer-backed output route is established. The empty LAYER_CONTROL → `ACAD_LAYERSTATES` graph is qualified only for this witness; nonempty layer-state XRECORD graphs remain unqualified. See the [LayerStates output receipt](docs/research/p4-ac1018-layerstates-dictionary-output-qualification-2026-11-01.json). | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN — broader rendering/TABLE and dynamic-block semantics | Resolve native dynamic-block semantics and the parentId projection boundary for the two-root AC1024 graph; finish remaining rendering metadata/native rendering profiles, nested FIELDLIST/child graphs and source-backed FIELD profiles, independently evidenced block-cell geometry, remaining source- or consumer-backed CONTENTFORMAT/CELLSTYLEMAP profiles, source-backed semantics for overlapping TABLECONTENT edge masks, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
+| P5 | OPEN — broader rendering/TABLE and dynamic-block semantics | Resolve native dynamic-block semantics and the parentId projection boundary for the two-root AC1024 graph; finish remaining rendering metadata/native rendering profiles; extend FIELD support from the bounded AC1027 child-tree codec profile in the [FIELD child-tree receipt](docs/research/p5-ac1027-field-child-tree-output-2026-11-01.json) to producer-backed profiles and child-value/object-handle/CadValue dependency graphs; qualify independently evidenced block-cell geometry, remaining source- or consumer-backed CONTENTFORMAT/CELLSTYLEMAP profiles, source-backed semantics for overlapping TABLECONTENT edge masks, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -145,13 +145,17 @@ reproduced missing provider, remap, collision or composed output failure.
 
 **TABLE:**
 
-1. **Nested FIELD graphs:** close nested FIELD child/value/object graphs.
-   Admit additional source/version FIELD body profiles and other linked-cell
-   payloads only where an independent source or consumer witness identifies
-   missing behavior. Reuse
-   existing rooted reference planning and handle remapping. Preserve unsupported
-   compositions with explicit refusal. Native expression evaluation and TABLE
-   rendering remain separate semantic qualifications.
+1. **Nested FIELD graphs:** extend beyond the bounded locally authored AC1027
+   scalar-valued child-tree codec profile in the
+   [FIELD child-tree receipt](docs/research/p5-ac1027-field-child-tree-output-2026-11-01.json).
+   That profile verifies ASCII/binary FIELDLIST membership, FIELD child owner
+   and 360 edge, TABLECONTENT root references, output readback and imported
+   raw-to-typed body checks; it does not prove physical producer semantics.
+   Add source/version profiles only where an independent source or consumer
+   identifies missing behavior. Close child-value, object-handle and CadValue
+   object-ID dependency graphs with rooted planning and handle remapping.
+   Preserve unsupported compositions with explicit refusal. Native expression
+   evaluation and TABLE rendering remain separate semantic qualifications.
 2. **Block-cell geometry:** implement payloads only when a source or consumer
    witness identifies missing fields or semantics. Bind the exact field layout
    and semantics to that witness; keep unsupported payloads refused while
