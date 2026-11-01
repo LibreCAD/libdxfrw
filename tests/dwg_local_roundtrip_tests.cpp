@@ -64,6 +64,20 @@ bool runHatchSameDataTests(const std::filesystem::path& parent);
 bool writeHatchReferenceFile(const std::filesystem::path& path, bool binary);
 bool verifyHatchReferenceFile(const std::filesystem::path& path);
 
+void writeLiteralDxfLayerZeroTable(dxfWriter& tags) {
+    tags.writeString(0, "SECTION"); tags.writeString(2, "TABLES");
+    tags.writeString(0, "TABLE"); tags.writeString(2, "LAYER");
+    tags.writeString(5, "C0"); tags.writeString(100, "AcDbSymbolTable");
+    tags.writeInt16(70, 1);
+    tags.writeString(0, "LAYER"); tags.writeString(5, "C1");
+    tags.writeString(330, "C0");
+    tags.writeString(100, "AcDbSymbolTableRecord");
+    tags.writeString(100, "AcDbLayerTableRecord");
+    tags.writeString(2, "0"); tags.writeInt16(70, 0);
+    tags.writeInt16(62, 7); tags.writeString(6, "CONTINUOUS");
+    tags.writeString(0, "ENDTAB"); tags.writeString(0, "ENDSEC");
+}
+
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
     static std::size_t nameProofs(const dx_iface& iface) { return iface.m_standardDwgOutputNameProofs.size(); }
@@ -22101,6 +22115,7 @@ bool runDxfSplineImplicitUnitWeights(bool binary,
         tags->writeString(9, "$ACADVER");
         tags->writeString(1, "AC1027");
         tags->writeString(0, "ENDSEC");
+        writeLiteralDxfLayerZeroTable(*tags);
         tags->writeString(0, "SECTION");
         tags->writeString(2, "ENTITIES");
         tags->writeString(0, "SPLINE");
@@ -24052,6 +24067,7 @@ bool runDxfSplineFitOnlyInput(bool binary,
         tags->writeString(0, "SECTION"); tags->writeString(2, "HEADER");
         tags->writeString(9, "$ACADVER"); tags->writeString(1, "AC1027");
         tags->writeString(0, "ENDSEC");
+        writeLiteralDxfLayerZeroTable(*tags);
         tags->writeString(0, "SECTION"); tags->writeString(2, "ENTITIES");
         tags->writeString(0, "SPLINE"); tags->writeString(5, "FCF0");
         tags->writeString(100, "AcDbEntity"); tags->writeString(8, "0");

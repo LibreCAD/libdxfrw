@@ -14361,6 +14361,7 @@ void dx_iface::reportDwgReadOutcome(std::ostream& output,
         ? "standardObjectPayloadValidationFailed=true " : "standardObjectPayloadValidationFailed=false ");
     buffer.append(outcome.callbackCountsSaturated ? "callbackCountsSaturated=true\n"
                                                 : "callbackCountsSaturated=false\n");
+    buffer.append("Opaque callbacks are not CLI retention/export or terminal delivery.\n");
     buffer.append("Integrity observations: ");
     buffer.field("sourceRecorded", value.integrity.sourceRecorded);
     buffer.field("retainedRows", value.integrity.retained);

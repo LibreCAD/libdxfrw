@@ -6584,7 +6584,8 @@ bool dwgWriter15::replayRawObject(
                 : DRW_DwgCommonLinkEvidence::ValidatedAbsent;
         }
         const std::uint32_t typedBlockOwner =
-            typedModeler == nullptr ? DRW::NoHandle
+            typedModeler == nullptr
+                ? static_cast<std::uint32_t>(DRW::NoHandle)
             : typedModeler->parentHandle != DRW::NoHandle
                 ? typedModeler->parentHandle
                 : typedModeler->space == DRW::PaperSpace

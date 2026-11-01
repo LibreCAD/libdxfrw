@@ -103,6 +103,7 @@ dist_noinst_HEADERS = \
     intern/dxfentitiessource.h \
     intern/dxffield.h \
     intern/dxfidentitysource.h \
+    intern/dxfmleadercolor.h \
     intern/dxfwholesource.h \
     intern/dxflayout.h \
     intern/dxfmaterial.h \

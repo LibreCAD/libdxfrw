@@ -304,6 +304,7 @@ EXTRA_DIST = \
     src/intern/dxfidentitysource.h \
     src/intern/dxflayout.h \
     src/intern/dxfmaterial.h \
+    src/intern/dxfmleadercolor.h \
     src/intern/dxfnumber.h \
     src/intern/dxfobjectphysicalsource.h \
     src/intern/dxfparserlimits.h \
@@ -342,6 +343,7 @@ EXTRA_DIST = \
     tests/adapter_build_context_tests.py \
     tests/appid_test_helpers.h \
     tests/application_handle_width_controls.h \
+    tests/associative_constraint_group_test_helpers.h \
     tests/attdef_embedded_dual280_controls.h \
     tests/attdef_equal_alignment_controls.h \
     tests/attdef_origin_controls.h \
@@ -349,6 +351,7 @@ EXTRA_DIST = \
     tests/attdef_source_field_faults.h \
     tests/attdef_source_profile_controls.h \
     tests/attdef_source_tests.cpp \
+    tests/attdef_xrecord_controls.h \
     tests/attribute_subclass_alignment_tests.cpp \
     tests/block_children_source_controls.h \
     tests/block_delivery_controls.h \
@@ -476,6 +479,7 @@ EXTRA_DIST = \
     tests/legacy_entities_compound_join_tests.cpp \
     tests/legacy_identity_controls.h \
     tests/ltype_string_area_test_helpers.h \
+    tests/material_dwg_test_helpers.h \
     tests/material_normal_role_tests.cpp \
     tests/modeler_block_census_tests.cpp \
     tests/modeler_dxf_writer_matrix_tests.cpp \

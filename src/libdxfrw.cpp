@@ -9520,8 +9520,18 @@ bool dxfRW::writeInsert(DRW_Insert *ent){
         return false;
     }
     std::string emittedBlockName;
-    if (!resolveInsertBlockRecordName(*ent, emittedBlockName))
+    if (!resolveInsertBlockRecordName(*ent, emittedBlockName)) {
+        if (m_requireResolvedBlockOwners && version > DRW::AC1009) {
+            recordOperationDiagnostic(
+                writingBlock ? DRW::OperationPhase::Blocks
+                             : DRW::OperationPhase::Entities,
+                DRW::OperationCause::ValidationFailure,
+                "unresolved-insert-target",
+                "INSERT target does not resolve to an emitted BLOCK_RECORD",
+                0, false, ent->handle, ent->handle != DRW::NoHandle);
+        }
         return failDxfWrite();
+    }
     // Strict converter closure applies to the referenced definition as well
     // as this entity's owner. TABLES has already planned all BLOCK_RECORDs,
     // including forward/nested references; reuse that index, not a new walk.
