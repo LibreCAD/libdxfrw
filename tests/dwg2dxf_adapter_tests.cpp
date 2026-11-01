@@ -39403,13 +39403,14 @@ bool physicalTableStyleOutputReadback(
             const DRW_TableStyleCellStyle& style, int id, int styleClass,
             const char* name, int alignment, double textHeight,
             int mergeFlags, std::uint32_t textStyleHandle,
-            std::size_t borderCount, bool marginsOverridden) {
+            std::size_t borderCount, bool marginsOverridden,
+            std::uint8_t backgroundColorMethod) {
         const DRW_TableStyleContentFormat& format = style.m_contentFormat;
         if (style.m_type != 5 || !style.m_hasData
             || style.m_propertyOverrideFlags != 0u
             || style.m_mergeFlags != static_cast<std::uint32_t>(mergeFlags)
             || style.m_backgroundColor != 256
-            || !validCmc(style.m_backgroundColorCmc, 0xC8u)
+            || !validCmc(style.m_backgroundColorCmc, backgroundColorMethod)
             || style.m_contentLayout != 1u
             || format.m_propertyOverrideFlags != 0u
             || format.m_propertyFlags != 0u
@@ -39470,16 +39471,16 @@ bool physicalTableStyleOutputReadback(
         || sourceStyle.m_cellStyles.size() != 3u
         || (!customMarginsOverridden && !customMarginsInherited)
         || !validStyle(sourceStyle.m_tableCellStyle, 4, 2, "Table", 1,
-                       0.18, 0, 0u, 0u, true)
+                       0.18, 0, 0u, 0u, true, 0xC8u)
         || !validStyle(sourceStyle.m_cellStyles[0], 1, 1, "_TITLE", 5,
                        0.25, 0x8000, physicalTextStyleHandle, 6u,
-                       customMarginsOverridden)
+                       customMarginsOverridden, 0xC8u)
         || !validStyle(sourceStyle.m_cellStyles[1], 2, 1, "_HEADER", 5,
                        0.18, 0, physicalTextStyleHandle, 6u,
-                       customMarginsOverridden)
+                       customMarginsOverridden, 0xC8u)
         || !validStyle(sourceStyle.m_cellStyles[2], 3, 2, "_DATA", 2,
                        0.18, 0, physicalTextStyleHandle, 6u,
-                       customMarginsOverridden))
+                       customMarginsOverridden, 0xC8u))
         return fail("physical TABLESTYLE source fields are outside the admitted R24 profile");
     const DRW_Textstyle* sourceTextStyle =
         uniqueTextStyle(source, physicalTextStyleHandle);
@@ -39549,8 +39550,8 @@ bool physicalTableStyleOutputReadback(
             || output.sourceFormat != dx_source_format::DXF
             || output.sourceVersion != DRW::AC1024
             || output.rawTableStyles.size() != 1u
-            || output.tableStyles.size() > 1u)
-            return fail("physical R24 TABLESTYLE output did not freshly import as one raw style record");
+            || output.tableStyles.size() != 1u)
+            return fail("physical R24 TABLESTYLE output did not freshly import as one raw and typed style record");
         const DRW_Dictionary* outputDictionary =
             tableStyleDictionary(output);
         const DRW_RawDxfObject& raw = output.rawTableStyles.front();
@@ -39691,6 +39692,29 @@ bool physicalTableStyleOutputReadback(
             outputTextStyle = &textStyle;
             ++outputTextStyleMatches;
         }
+        const DRW_TableStyle& outputTypedStyle = output.tableStyles.front();
+        const std::uint32_t outputTextStyleHandle = outputTextStyle != nullptr
+            ? outputTextStyle->handle : 0u;
+        const bool typedNestedStylesMatch =
+            outputTypedStyle.m_name == sourceStyle.m_name
+            && outputTypedStyle.m_rowStyles.empty()
+            && outputTypedStyle.m_cellStyles.size() == 3u
+            && outputTextStyle != nullptr
+            && validStyle(outputTypedStyle.m_tableCellStyle, 4, 2, "Table", 1,
+                          0.18, 0, 0u, 0u, true,
+                          static_cast<std::uint8_t>(dwgColor::BYLAYER))
+            && validStyle(outputTypedStyle.m_cellStyles[0], 1, 1, "_TITLE", 5,
+                          0.25, 0x8000, outputTextStyleHandle, 6u,
+                          customMarginsOverridden,
+                          static_cast<std::uint8_t>(dwgColor::BYLAYER))
+            && validStyle(outputTypedStyle.m_cellStyles[1], 2, 1, "_HEADER", 5,
+                          0.18, 0, outputTextStyleHandle, 6u,
+                          customMarginsOverridden,
+                          static_cast<std::uint8_t>(dwgColor::BYLAYER))
+            && validStyle(outputTypedStyle.m_cellStyles[2], 3, 2, "_DATA", 2,
+                          0.18, 0, outputTextStyleHandle, 6u,
+                          customMarginsOverridden,
+                          static_cast<std::uint8_t>(dwgColor::BYLAYER));
         if (identities != expectedIdentities
             || countString(1, "TABLEFORMAT_BEGIN") != 4u
             || countString(1, "CONTENTFORMAT_BEGIN") != 4u
@@ -39706,6 +39730,7 @@ bool physicalTableStyleOutputReadback(
             || stringValues(3) != std::vector<std::string>{sourceStyle.m_name}
             || emittedContentTextStyles.size() != 3u
             || outputTextStyleMatches != 1u || outputTextStyle == nullptr
+            || !typedNestedStylesMatch
             || outputTextStyle->handle == 0u
             || !std::all_of(emittedContentTextStyles.begin(),
                             emittedContentTextStyles.end(),

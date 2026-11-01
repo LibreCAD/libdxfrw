@@ -1,7 +1,7 @@
 {
   "schema": "libdxfrw.research-receipt.v1",
   "id": "p5-ac1024-tablestyle-physical-output-readback-2026-10-31",
-  "date": "2026-10-31",
+  "date": "2026-11-01",
   "title": "Physical AC1024 R24 TABLESTYLE source-to-output/readback profile",
   "status": "ONE_PHYSICAL_R24_TABLESTYLE_PROFILE_OUTPUT_READBACK_PROVED",
   "supportClaimEffect": "none",
@@ -25,9 +25,9 @@
     "scope": "Same-input peer projection corroborates the R24 marker grammar, Table/title/header/data identities, color projection, margins, text heights and border masks; it is not native semantic acceptance."
   },
   "implementation": {
-    "change": "Added physical AC1024 TABLESTYLE source-to-output/readback coverage for the one rich R24 census identity, including owner/key and text-style reference remapping.",
+    "change": "Physical AC1024 TABLESTYLE source-to-output/readback coverage now requires one fresh typed R24 TABLESTYLE import and compares the default plus three nested cell styles, including semantic color normalization and remapped text-style references.",
     "sourcePath": "tests/dwg2dxf_adapter_tests.cpp",
-    "sourceSha256": "0423a055a1ee51c42fa461abfb776351d6ca5b057635e1b87714b79544f400b2",
+    "sourceSha256": "afd8f463d2a3634398d7935d8a89343619637c99981fc8ca140d1034ed26d225",
     "selector": "--tablestyle-physical-output-readback",
     "sourceModel": {
       "prefix": {
@@ -89,13 +89,13 @@
       "Binary DXF"
     ],
     "route": "Import the physical DWG, export the full source in explicit AllowPartial mode, then freshly import each exact DXF output.",
-    "identityJoin": "Unique source handle 0x87 and ACAD_TABLESTYLE Standard key/parent map to one emitted TABLESTYLE record and a fresh raw readback record through the output key and handle.",
+    "identityJoin": "Unique source handle 0x87 and ACAD_TABLESTYLE Standard key/parent map to one emitted TABLESTYLE record and a fresh raw plus typed readback record through the output key and handle.",
     "checked": [
       "Source R24 prefix and exact typed Standard Table/title/header/data model are in the admitted writer profile.",
       "Named Object Dictionary ACAD_TABLESTYLE key, dictionary owner, Standard key uniqueness and TABLESTYLE record owner remain closed on fresh output/readback.",
       "Raw R24 nested record has the four expected cell-style identities in order, all TABLEFORMAT/CONTENTFORMAT/CELLMARGIN markers, 18 GRIDFORMAT spans, and matching border masks.",
       "Content text heights, six margins, double-line spacing, CMC to DXF color projection and all three remapped text-style references match the source typed fields.",
-      "No typed nested-style readback is claimed; R24 nested markers remain raw-only after DXF import."
+      "Fresh typed import returns exactly one TABLESTYLE with the default Table cell style and three ordered custom styles; all decoded fields, border values, margins, text heights and remapped STYLE handles match the physical source profile. DXF BYLAYER color semantics are checked after DXF's canonical method normalization."
     ]
   },
   "failureAndRetry": {
@@ -109,13 +109,13 @@
   },
   "validation": {
     "build": {
-      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
       "result": "PASS with configured -Werror flags."
     },
     "focusedSelector": {
-      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --tablestyle-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
-      "result": "PASS for ASCII and Binary; physical typed fields, raw output/readback, key/owner, markers, borders/colors/margins, remapped text-style references, atomic refusal and retry verified.",
-      "executableSha256": "797c86e54d81d8d2ec91102c25aa7c019a158f2d06e7a83632dcd45aee6c98c1"
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --tablestyle-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary; fresh typed import verifies one physical TABLESTYLE, default and three nested styles, exact typed values, canonical DXF BYLAYER color semantics, raw wire markers, dictionary key/owner, borders/margins, remapped text-style references, atomic refusal and same-adapter retry.",
+      "executableSha256": "6688ddb65a8288ca2e76beee099feba8cb2bacbdd1adf94fe252d3093fa7add7"
     },
     "strictCheckpoint": {
       "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -v2010 /private/tmp/libdxfrw-strict-physical-current-20261031.dxf",
@@ -127,11 +127,11 @@
   },
   "limitations": [
     "Export uses AllowPartial; strict complete-export remains closed by 228 opaque callback views and zero retained correlation frames.",
-    "This receipt proves the selected R24 TABLESTYLE typed source profile and raw DXF output/readback only, not typed nested-style import, full-document preservation, native rendering or CAD semantic acceptance.",
+    "This receipt proves the selected R24 TABLESTYLE source profile and typed/raw DXF output/readback only; it does not prove full-document preservation, native rendering or CAD semantic acceptance.",
     "No format support claim or external item is promoted."
   ],
   "planImpact": {
-    "completedActionRemoved": "Bind physical AC1024 TABLESTYLE handle 0x87 to its selected ASCII/Binary output and fresh raw readback, including unique dictionary key/owner, R24 nested marker order, style fields, CMC colors, border masks, text-style references, atomic refusal and retry.",
+    "completedActionRemoved": "Bind physical AC1024 TABLESTYLE handle 0x87 to ASCII/Binary output and fresh raw plus typed readback, including unique dictionary key/owner, R24 nested style order and fields, canonical DXF color semantics, border masks, remapped text-style references, atomic refusal and retry.",
     "nextAction": "All 228 census profiles now have selected-profile receipts. Close the exact source-body or retained-replay gap reported by strict complete-export; do not infer whole-document completeness from these profiles.",
     "externalItemsPromoted": 0
   }
