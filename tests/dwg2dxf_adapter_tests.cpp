@@ -29674,6 +29674,36 @@ bool fieldListMembershipOutput() {
         childObjectId.m_value.m_handle = referenceTarget->handle;
         childObjectId.m_value.m_value.addInt(330, referenceTarget->handle);
         child.m_childValues.push_back(childObjectId);
+        DRW_Field::ChildValue childString;
+        childString.m_key = "CHILD_STRING";
+        childString.m_value.m_dataType = 4;
+        childString.m_value.m_value =
+            DRW_Variant(1, UTF8STRING("child-cache"));
+        child.m_childValues.push_back(childString);
+        DRW_Field::ChildValue childInteger0;
+        childInteger0.m_key = "CHILD_INTEGER_0";
+        childInteger0.m_value.m_dataType = 0;
+        childInteger0.m_value.m_value = DRW_Variant(91, std::int32_t{11});
+        child.m_childValues.push_back(childInteger0);
+        DRW_Field::ChildValue childInteger;
+        childInteger.m_key = "CHILD_INTEGER";
+        childInteger.m_value.m_dataType = 1;
+        childInteger.m_value.m_value = DRW_Variant(91, std::int32_t{17});
+        child.m_childValues.push_back(childInteger);
+        DRW_Field::ChildValue childDouble;
+        childDouble.m_key = "CHILD_DOUBLE";
+        childDouble.m_value.m_dataType = 2;
+        childDouble.m_value.m_value = DRW_Variant(140, 2.75);
+        child.m_childValues.push_back(childDouble);
+        const std::vector<std::uint8_t> childBinaryBytes{
+            0x12u, 0x34u, 0x56u, 0x78u};
+        DRW_Field::ChildValue childBinary;
+        childBinary.m_key = "CHILD_BINARY";
+        childBinary.m_value.m_dataType = 8;
+        childBinary.m_value.m_dataSize = childBinaryBytes.size();
+        childBinary.m_value.m_rawData = childBinaryBytes;
+        childBinary.m_value.m_value = DRW_Variant(310, childBinaryBytes);
+        child.m_childValues.push_back(childBinary);
         writer.addField(child);
         data.fields.front().m_childHandles.push_back(child.handle);
 
@@ -29811,6 +29841,36 @@ bool fieldListMembershipOutput() {
             return fail("FIELD object-reference target was not read back");
         if ((*parsedTarget)->handle == referenceTarget->handle)
             return fail("FIELD output did not exercise entity-handle remapping");
+        const auto parsedChildIdValue = std::find_if(
+            parsedChild->m_childValues.begin(), parsedChild->m_childValues.end(),
+            [](const DRW_Field::ChildValue& value) {
+                return value.m_key == "TARGET_ID";
+            });
+        const auto parsedChildString = std::find_if(
+            parsedChild->m_childValues.begin(), parsedChild->m_childValues.end(),
+            [](const DRW_Field::ChildValue& value) {
+                return value.m_key == "CHILD_STRING";
+            });
+        const auto parsedChildInteger = std::find_if(
+            parsedChild->m_childValues.begin(), parsedChild->m_childValues.end(),
+            [](const DRW_Field::ChildValue& value) {
+                return value.m_key == "CHILD_INTEGER";
+            });
+        const auto parsedChildInteger0 = std::find_if(
+            parsedChild->m_childValues.begin(), parsedChild->m_childValues.end(),
+            [](const DRW_Field::ChildValue& value) {
+                return value.m_key == "CHILD_INTEGER_0";
+            });
+        const auto parsedChildDouble = std::find_if(
+            parsedChild->m_childValues.begin(), parsedChild->m_childValues.end(),
+            [](const DRW_Field::ChildValue& value) {
+                return value.m_key == "CHILD_DOUBLE";
+            });
+        const auto parsedChildBinary = std::find_if(
+            parsedChild->m_childValues.begin(), parsedChild->m_childValues.end(),
+            [](const DRW_Field::ChildValue& value) {
+                return value.m_key == "CHILD_BINARY";
+            });
         if (parsedFirst->m_value.m_dataType != 4
             || parsedFirst->m_value.m_value.type() != DRW_Variant::STRING
             || parsedFirst->m_value.m_value.c_str() == nullptr
@@ -29831,15 +29891,50 @@ bool fieldListMembershipOutput() {
             || parsedChild->m_value.m_value.c_str() == nullptr
             || std::string(parsedChild->m_value.m_value.c_str())
                 != "child-value"
-            || parsedChild->m_childValues.size() != 1u
-            || parsedChild->m_childValues.front().m_key != "TARGET_ID"
-            || parsedChild->m_childValues.front().m_value.m_dataType != 64
-            || parsedChild->m_childValues.front().m_value.m_handle
+            || parsedChild->m_childValues.size() != 6u
+            || parsedChildIdValue == parsedChild->m_childValues.end()
+            || parsedChildIdValue->m_value.m_dataType != 64
+            || parsedChildIdValue->m_value.m_handle
                 != (*parsedTarget)->handle
-            || parsedChild->m_childValues.front().m_value.m_value.type()
+            || parsedChildIdValue->m_value.m_value.type()
                 != DRW_Variant::INTEGER
-            || parsedChild->m_childValues.front().m_value.m_value.i_val()
-                != static_cast<std::int32_t>((*parsedTarget)->handle))
+            || parsedChildIdValue->m_value.m_value.i_val()
+                != static_cast<std::int32_t>((*parsedTarget)->handle)
+            || parsedChildString == parsedChild->m_childValues.end()
+            || parsedChildString->m_value.m_dataType != 4
+            || parsedChildString->m_value.m_value.type()
+                != DRW_Variant::STRING
+            || parsedChildString->m_value.m_value.c_str() == nullptr
+            || std::string(parsedChildString->m_value.m_value.c_str())
+                != "child-cache"
+            || parsedChildInteger0 == parsedChild->m_childValues.end()
+            || parsedChildInteger0->m_value.m_dataType != 0
+            || parsedChildInteger0->m_value.m_value.type()
+                != DRW_Variant::INTEGER
+            || parsedChildInteger0->m_value.m_value.code() != 91
+            || parsedChildInteger0->m_value.m_value.i_val() != 11
+            || parsedChildInteger == parsedChild->m_childValues.end()
+            || parsedChildInteger->m_value.m_dataType != 1
+            || parsedChildInteger->m_value.m_value.type()
+                != DRW_Variant::INTEGER
+            || parsedChildInteger->m_value.m_value.code() != 91
+            || parsedChildInteger->m_value.m_value.i_val() != 17
+            || parsedChildDouble == parsedChild->m_childValues.end()
+            || parsedChildDouble->m_value.m_dataType != 2
+            || parsedChildDouble->m_value.m_value.type()
+                != DRW_Variant::DOUBLE
+            || parsedChildDouble->m_value.m_value.code() != 140
+            || parsedChildDouble->m_value.m_value.d_val() != 2.75
+            || parsedChildBinary == parsedChild->m_childValues.end()
+            || parsedChildBinary->m_value.m_dataType != 8
+            || parsedChildBinary->m_value.m_dataSize
+                != childBinaryBytes.size()
+            || parsedChildBinary->m_value.m_rawData != childBinaryBytes
+            || parsedChildBinary->m_value.m_value.type()
+                != DRW_Variant::BINARY
+            || parsedChildBinary->m_value.m_value.binary() == nullptr
+            || *parsedChildBinary->m_value.m_value.binary()
+                != childBinaryBytes)
             return fail("FIELD scalar/object values changed on DXF readback");
         for (const DRW_TableCellContent& reference :
                 parsedContent.m_content.m_rows.front().m_cells.front().m_contents) {

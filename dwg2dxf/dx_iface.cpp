@@ -47011,10 +47011,62 @@ bool dx_iface::hasTableContentFieldOutputProfile(
                 && value.m_valueString.empty() && value.m_handle == 0u
                 && value.m_rawData.empty();
         };
+        const auto fieldCadValue = [&fieldCadValueObjectId,
+                                    &fieldStringValue](
+                const DRW_CadValue& value) {
+            switch (value.m_dataType) {
+            case 0:
+            case 1:
+                return value.m_formatFlags == 0 && value.m_dataSize == 0u
+                    && value.m_unitType == 0
+                    && value.m_value.type() == DRW_Variant::INTEGER
+                    && value.m_value.code() == 91
+                    && value.m_formatString.empty()
+                    && value.m_valueString.empty() && value.m_handle == 0u
+                    && value.m_rawData.empty();
+            case 2:
+                return value.m_formatFlags == 0 && value.m_dataSize == 0u
+                    && value.m_unitType == 0
+                    && value.m_value.type() == DRW_Variant::DOUBLE
+                    && value.m_value.code() == 140
+                    && std::isfinite(value.m_value.d_val())
+                    && value.m_formatString.empty()
+                    && value.m_valueString.empty() && value.m_handle == 0u
+                    && value.m_rawData.empty();
+            case 4:
+                return fieldStringValue(value);
+            case 8: {
+                if (value.m_formatFlags != 0 || value.m_unitType != 0
+                    || !value.m_formatString.empty()
+                    || !value.m_valueString.empty() || value.m_handle != 0u)
+                    return false;
+                const std::vector<std::uint8_t> *binary = nullptr;
+                if (value.m_value.type() == DRW_Variant::BINARY
+                    && value.m_value.code() == 310)
+                    binary = value.m_value.binary();
+                if (binary == nullptr && !value.m_rawData.empty())
+                    binary = &value.m_rawData;
+                return binary != nullptr
+                    && binary->size() <= DRW::kMaxDxfBinaryPayloadBytes
+                    && (value.m_dataSize == 0u
+                        || value.m_dataSize == binary->size())
+                    && (value.m_rawData.empty()
+                        || (value.m_value.type() == DRW_Variant::BINARY
+                            && value.m_value.binary() != nullptr
+                            && *value.m_value.binary() == value.m_rawData));
+            }
+            case 64:
+                return fieldCadValueObjectId(value);
+            default:
+                return false;
+            }
+        };
 
         // Autodesk's FIELD schema defines the counted 331 soft-pointer list
-        // and the 330 soft-pointer value form. This output profile admits only
-        // resolved object IDs; other child-value data types remain refused.
+        // and the group-330 ID, group-91 integer, group-140 real, and
+        // group-92/310 binary value forms. This profile admits the tested
+        // string/ID main cache and keyed child values using those scalar forms;
+        // coordinate and unknown types remain refused.
 
         std::unordered_map<std::uint32_t, std::size_t> referenceCounts;
         referenceCounts.reserve(data.fields.size());
@@ -47051,7 +47103,7 @@ bool dx_iface::hasTableContentFieldOutputProfile(
             for (const DRW_Field::ChildValue& childValue :
                     field.m_childValues) {
                 if (childValue.m_key.empty()
-                    || !fieldCadValueObjectId(childValue.m_value))
+                    || !fieldCadValue(childValue.m_value))
                     return false;
             }
             std::size_t fieldBytes = 0u;
