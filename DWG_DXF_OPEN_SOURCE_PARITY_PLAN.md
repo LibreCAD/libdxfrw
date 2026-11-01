@@ -49,7 +49,7 @@ Implementation history and evidence stay in Git and `docs/research/`.
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
 | P4 | OPEN — source/graph closure | Close reproduced source-required bodies and dependencies that still lack strict output/readback proof. For AC1018 `ET-Drawing-with-Border.dwg`, DICTIONARY `0x2CD` remains unqualified because its sole `ACAD_SORTENTS` edge reaches SORTENTSTABLE `0x2CE` under named BLOCK_RECORD `0x24C` (`ET Border block`); the documented DXF owner scope does not admit that named-block table, so preserve/refuse the parent and child as one graph unless an authoritative eligible mapping is found. See the [AC1018 SORTENTSTABLE dependency receipt](docs/research/p4-ac1018-named-block-sortents-dependency-2026-11-01.json) and [owner-scope receipt](docs/research/p4-ac1024-sortents-owner-scope-qualification-2026-11-01.json). Whole-source output remains blocked by the invalid non-shape empty-name STYLE `0xDF`; keep it refused until a source- and consumer-backed output route is established. Nonempty layer-state XRECORD graphs remain open. | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN — broader rendering/TABLE and dynamic-block semantics | Resolve native dynamic-block semantics and the parentId projection boundary for the two-root AC1024 graph; finish remaining rendering metadata/native rendering profiles; qualify source- or consumer-backed FIELD body profiles and remaining child-value/object-handle/CadValue dependency graphs; qualify independently evidenced block-cell geometry, remaining source- or consumer-backed CONTENTFORMAT/CELLSTYLEMAP profiles, source-backed semantics for overlapping TABLECONTENT edge masks, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
+| P5 | OPEN — broader rendering/TABLE and dynamic-block semantics | Resolve native dynamic-block semantics and the parentId projection boundary for the two-root AC1024 graph; finish remaining rendering metadata/native rendering profiles; qualify source- or consumer-backed FIELD body profiles and remaining child-value/object-handle/CadValue dependency graphs; qualify independently evidenced block-cell geometry, remaining source- or consumer-backed CONTENTFORMAT/CELLSTYLEMAP profiles, source-backed semantics for overlapping TABLECONTENT edge masks, and additional source-bound AC1018 TABLE body/border profiles. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -162,9 +162,11 @@ reproduced missing provider, remap, collision or composed output failure.
    wire/readback behavior are established.
    Cover the witnessed scope combinations and version gates; keep unsupported
    styles refused until schema and wire order are known.
-4. Complete the remaining source-bound AC1018 TABLE body and merge/presence
-   profiles. Preserve explicit zero and absence separately; do not infer
-   visibility polarity from field transport.
+4. Admit additional AC1018 TABLE body/border profiles only after a physical
+   source identifies their exact fields and version/body profile. Add capture,
+   typed matching and output proof for that witnessed profile only. Preserve
+   group-289 presence separately from absence; do not infer visibility semantics
+   from field transport.
 5. Qualify native TABLE rendering independently. This gate concerns consumer
    geometry, merge visibility and rendered style; serializer/readback evidence
    remains scoped to its witnessed source profiles and does not close this gate.
