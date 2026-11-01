@@ -60742,6 +60742,9 @@ bool dx_iface::finalizeDxfWrite() {
         }
         if (m_dwgLayoutsObjectsInspected
             && m_dwgLayoutBlocksInspected) {
+            if (!qualifyCapturedIdentity(
+                    m_dwgLayoutOutputDictionary.handle))
+                return false;
             for (const auto& proof : m_dwgLayoutOutputSources) {
                 if (!qualifyCapturedIdentity(proof.first))
                     return false;

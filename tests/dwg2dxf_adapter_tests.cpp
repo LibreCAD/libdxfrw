@@ -37728,9 +37728,9 @@ bool physicalDictionaryDefaultOutputReadback(
 
         if (source.sourceVersion == DRW::AC1018
             && (DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
-                    source) != 13u
+                    source) != 14u
                 || source.dwgReadOutcome.opaqueViewCallbacks != 23u))
-            return fail("AC1018 composed output did not qualify exactly thirteen identities in the 23-callback source census");
+            return fail("AC1018 composed output did not qualify exactly fourteen identities in the 23-callback source census");
 
     }
     std::cerr << "Physical DICTIONARYWDFLT/PLACEHOLDER ASCII and binary output, "
@@ -39733,11 +39733,14 @@ bool physicalAc1018LayoutOutputReadback(
             return fail("physical AC1018 Layout1 was not selected for rollback control");
         const dwgHandle originalBlockRecord =
             mutablePaperLayout->paperSpaceBlockRecordHandle;
-        std::array<bool, 3> qualificationBeforeFailure{};
+        std::array<bool, 4> qualificationBeforeFailure{};
         for (std::size_t index = 0u; index < expected.size(); ++index)
             qualificationBeforeFailure[index] =
                 DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
                     source, source.importGeneration, expected[index].first);
+        qualificationBeforeFailure[3] =
+            DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourceLayoutDictionary->handle);
         mutablePaperLayout->paperSpaceBlockRecordHandle.ref = DRW::NoHandle;
         const bool invalidOwnerRejected = !exportPartial();
         std::ifstream refusedOutput(outputPath, std::ios::binary);
@@ -39750,6 +39753,10 @@ bool physicalAc1018LayoutOutputReadback(
                 && DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
                     source, source.importGeneration, expected[index].first)
                     == qualificationBeforeFailure[index];
+        qualificationsUnchanged = qualificationsUnchanged
+            && DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourceLayoutDictionary->handle)
+                == qualificationBeforeFailure[3];
         if (!invalidOwnerRejected || refusedContents != sentinel
             || !qualificationsUnchanged)
             return fail("invalid physical AC1018 LAYOUT owner was not refused atomically");
@@ -39760,10 +39767,16 @@ bool physicalAc1018LayoutOutputReadback(
             if (!DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
                     source, source.importGeneration, identity.first))
                 return fail("physical AC1018 LAYOUT callback was not qualified after staged output proof");
+        if (!DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourceLayoutDictionary->handle)
+            || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration,
+                source.namedObjectDictionary.handle))
+            return fail("physical AC1018 ACAD_LAYOUT dictionary qualification did not match its exact output proof scope");
         if (source.dwgReadOutcome.opaqueViewCallbacks != 23u
             || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
-                source) != 13u)
-            return fail("AC1018 LAYOUT output did not add three identities to the 23-callback source census");
+                source) != 14u)
+            return fail("AC1018 LAYOUT output did not add the dictionary and three layout identities to the 23-callback source census");
 
         dx_iface outputReader;
         dx_data output;
@@ -41052,9 +41065,9 @@ bool physicalAc1018DictionaryVarOutputReadback(
             return fail("AC1018 DICTIONARYVAR/owner source identities lack output qualification");
         if (!isQualified(0x18u)
             || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
-                source) != 13u
+                source) != 14u
             || source.dwgReadOutcome.opaqueViewCallbacks != 23u)
-            return fail("AC1018 DICTIONARYVAR, MLINESTYLE owner, TABLESTYLE, dictionary-default and LAYOUT output profiles did not join thirteen identities in the 23-callback source graph");
+            return fail("AC1018 DICTIONARYVAR, MLINESTYLE owner, TABLESTYLE, dictionary-default and LAYOUT output profiles did not join fourteen identities in the 23-callback source graph");
         if (binary)
             DxIfaceStandardDwgCaptureTestAccess::reportOpaqueOutputGaps(source);
 
