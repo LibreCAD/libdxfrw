@@ -82,6 +82,35 @@ public:
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
+    static bool prepareLayerStateOutput(dx_iface& iface,
+                                        DRW::Version targetVersion) {
+        return iface.prepareDwgLayerStateOutput(targetVersion, false);
+    }
+    static bool layerStateOutputPrepared(const dx_iface& iface) {
+        return iface.m_dwgLayerStateOutputPrepared;
+    }
+    static bool layerStateOutputUnchanged(const dx_iface& iface) {
+        return iface.hasUnchangedDwgLayerStateOutputSource();
+    }
+    static bool layerStateOutputHasRecord(const dx_iface& iface) {
+        return iface.m_dwgLayerStateOutputSource.hasLayerStateRecord;
+    }
+    static std::size_t layerStateCompanionCount(const dx_iface& iface) {
+        return iface.m_dwgLayerStateOutputSource
+            .layerStateCompanionDictionaries.size();
+    }
+    static bool layerStateDictionaryQueued(const dx_iface& iface,
+                                           std::uint32_t handle) {
+        return std::find(iface.m_extensionDictionaryHandles.begin(),
+                         iface.m_extensionDictionaryHandles.end(), handle)
+            != iface.m_extensionDictionaryHandles.end();
+    }
+    static bool layerStateXRecordQueued(const dx_iface& iface,
+                                        std::uint32_t handle) {
+        return std::find(iface.m_extensionXRecordHandles.begin(),
+                         iface.m_extensionXRecordHandles.end(), handle)
+            != iface.m_extensionXRecordHandles.end();
+    }
     static const DRW_UnsupportedObject* opaqueSourceFrame(
             const dx_data& data, std::uint64_t generation,
             std::uint32_t handle) {
@@ -40291,6 +40320,150 @@ bool physicalAc1018LayoutOutputReadback(
     return true;
 }
 
+bool physicalLayerStateXrecordSourceAdmission(
+        const std::filesystem::path& sourcePath) {
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024)
+        return fail("LayerStates XRECORD witness is not an AC1024 DWG");
+
+    const auto uniqueDictionary = [](const dx_data& data,
+                                     std::uint32_t handle) {
+        const DRW_Dictionary* found = nullptr;
+        for (const DRW_Dictionary& row : data.dictionaries) {
+            if (row.handle != handle)
+                continue;
+            if (found != nullptr)
+                return static_cast<const DRW_Dictionary*>(nullptr);
+            found = &row;
+        }
+        return found;
+    };
+    const auto uniqueXRecord = [](const dx_data& data,
+                                  std::uint32_t handle) {
+        const DRW_XRecord* found = nullptr;
+        for (const DRW_XRecord& row : data.xRecords) {
+            if (row.handle != handle)
+                continue;
+            if (found != nullptr)
+                return static_cast<const DRW_XRecord*>(nullptr);
+            found = &row;
+        }
+        return found;
+    };
+    std::uint32_t layerControl = 0u;
+    std::uint32_t extensionHandle = 0u;
+    if (!source.getLayerTableControlExtensionDictionary(
+            layerControl, extensionHandle))
+        return fail("LayerStates LAYER_CONTROL extension edge is absent");
+    const DRW_Dictionary* extension = uniqueDictionary(source, extensionHandle);
+    if (extension == nullptr || extension->parentHandle != layerControl
+        || extension->m_entries.size() != 3u)
+        return fail("LayerStates extension dictionary is outside the three-root AC1024 source profile");
+    const auto layerStatesRoot = std::find_if(
+        extension->m_entries.begin(), extension->m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == "ACAD_LAYERSTATES";
+        });
+    if (layerStatesRoot == extension->m_entries.end()
+        || std::count_if(extension->m_entries.begin(), extension->m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_LAYERSTATES";
+            }) != 1u)
+        return fail("LayerStates extension root key is absent or ambiguous");
+    std::set<std::string> companionNames;
+    std::vector<const DRW_Dictionary*> companions;
+    for (const DRW_Dictionary::Entry& entry : extension->m_entries) {
+        if (entry.m_name == "ACAD_LAYERSTATES")
+            continue;
+        if ((entry.m_name != "ACAD_LAYERFILTERS"
+                && entry.m_name != "ACLYDICTIONARY")
+            || !companionNames.insert(entry.m_name).second)
+            return fail("LayerStates extension has an unadmitted companion key");
+        const DRW_Dictionary* companion = uniqueDictionary(source, entry.m_handle);
+        const DRW_UnsupportedObject* frame =
+            DxIfaceStandardDwgCaptureTestAccess::standardSourceFrame(
+                source, source.importGeneration, entry.m_handle);
+        if (companion == nullptr || companion->parentHandle != extension->handle
+            || !companion->m_entries.empty()
+            || companion->reactorHandles
+                != std::vector<std::uint32_t>{extension->handle}
+            || frame == nullptr || frame->m_objectType != 42
+            || frame->m_version != DRW::AC1024 || frame->m_isEntity
+            || frame->m_hasDataStorage)
+            return fail("LayerStates companion root is not one source-bound empty dictionary");
+        companions.push_back(companion);
+    }
+    if (companionNames.size() != 2u)
+        return fail("LayerStates companion-root set is incomplete");
+
+    const DRW_Dictionary* states = uniqueDictionary(
+        source, layerStatesRoot->m_handle);
+    if (states == nullptr || states->parentHandle != extension->handle
+        || states->m_entries.size() != 1u
+        || states->reactorHandles
+            != std::vector<std::uint32_t>{extension->handle})
+        return fail("ACAD_LAYERSTATES child is outside the one-XRECORD source profile");
+    const DRW_Dictionary::Entry& stateEntry = states->m_entries.front();
+    const DRW_XRecord* stateRecord = uniqueXRecord(source, stateEntry.m_handle);
+    const DRW_UnsupportedObject* recordFrame =
+        DxIfaceStandardDwgCaptureTestAccess::standardSourceFrame(
+            source, source.importGeneration, stateEntry.m_handle);
+    if (stateRecord == nullptr || stateRecord->tType != DRW::XRECORD
+        || stateRecord->parentHandle != states->handle
+        || stateRecord->m_rawDataValid
+        || stateRecord->hasDwgRawDataSourceRecord()
+        || !stateRecord->hasDwgCommonLinkTail()
+        || stateRecord->m_dataEntries.empty()
+        || recordFrame == nullptr || recordFrame->m_objectType != 79
+        || recordFrame->m_handle != stateRecord->handle
+        || recordFrame->m_version != DRW::AC1024
+        || recordFrame->m_isEntity || recordFrame->m_hasDataStorage)
+        return fail("LayerStates XRECORD lacks a typed body or source-bound frame");
+
+    dx_iface writer;
+    writer.cData = &source;
+    if (!DxIfaceStandardDwgCaptureTestAccess::prepareLayerStateOutput(
+            writer, DRW::AC1024)
+        || !DxIfaceStandardDwgCaptureTestAccess::layerStateOutputPrepared(writer)
+        || !DxIfaceStandardDwgCaptureTestAccess::layerStateOutputHasRecord(writer)
+        || !DxIfaceStandardDwgCaptureTestAccess::layerStateOutputUnchanged(writer)
+        || DxIfaceStandardDwgCaptureTestAccess::layerStateCompanionCount(writer)
+            != companions.size())
+        return fail("physical nonempty LayerStates graph was not admitted as a stable output source");
+    if (!DxIfaceStandardDwgCaptureTestAccess::layerStateDictionaryQueued(
+            writer, extension->handle)
+        || !DxIfaceStandardDwgCaptureTestAccess::layerStateDictionaryQueued(
+            writer, states->handle)
+        || !DxIfaceStandardDwgCaptureTestAccess::layerStateXRecordQueued(
+            writer, stateRecord->handle))
+        return fail("LayerStates graph identities were not added to existing output queues");
+    for (const DRW_Dictionary* companion : companions)
+        if (!DxIfaceStandardDwgCaptureTestAccess::layerStateDictionaryQueued(
+                writer, companion->handle))
+            return fail("LayerStates companion dictionary was not queued for output");
+
+    DRW_XRecord* mutableRecord = nullptr;
+    for (DRW_XRecord& record : source.xRecords)
+        if (record.handle == stateRecord->handle)
+            mutableRecord = &record;
+    if (mutableRecord == nullptr)
+        return fail("LayerStates source record disappeared before mutation control");
+    const std::uint32_t originalOwner = mutableRecord->parentHandle;
+    mutableRecord->parentHandle = DRW::NoHandle;
+    const bool mutationRejected =
+        !DxIfaceStandardDwgCaptureTestAccess::layerStateOutputUnchanged(writer);
+    mutableRecord->parentHandle = originalOwner;
+    if (!mutationRejected
+        || !DxIfaceStandardDwgCaptureTestAccess::layerStateOutputUnchanged(writer))
+        return fail("LayerStates XRECORD late mutation was not rejected or restored");
+
+    std::cout << "Physical AC1024 LayerStates source admission passed: three-root LAYER_CONTROL extension, two source-bound companion dictionaries, one typed XRECORD, queued identities, and mutation rejection/restoration. Staged output/readback remains to be qualified.\n";
+    return true;
+}
+
 bool physicalTableStyleSourceProfile(
         const std::filesystem::path& sourcePath) {
     dx_iface sourceReader;
@@ -59451,6 +59624,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--layout-physical-ac1018-output-readback")
         return physicalAc1018LayoutOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--layerstates-xrecord-physical-source-admission")
+        return physicalLayerStateXrecordSourceAdmission(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--tablestyle-physical-ac1018-source-profile")
         return physicalTableStyleSourceProfile(argv[2]) ? 0 : 1;

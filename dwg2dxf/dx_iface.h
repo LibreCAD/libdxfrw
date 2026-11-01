@@ -2766,6 +2766,9 @@ private:
         std::uint32_t layerControlHandle{0u};
         DRW_Dictionary extensionDictionary;
         DRW_Dictionary layerStatesDictionary;
+        std::vector<DRW_Dictionary> layerStateCompanionDictionaries;
+        DRW_XRecord layerStateRecord;
+        bool hasLayerStateRecord{false};
     };
     DwgLayerStateOutputSource m_dwgLayerStateOutputSource;
     const dx_data* m_dwgLayerStateOutputOwner{nullptr};

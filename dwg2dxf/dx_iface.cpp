@@ -27698,9 +27698,11 @@ bool dx_iface::prepareDwgLayerStateOutput(
     if (cData == nullptr)
         return false;
     if (cData->sourceFormat != dx_source_format::DWG
-        || cData->sourceVersion != DRW::AC1018
+        || (cData->sourceVersion != DRW::AC1018
+            && cData->sourceVersion != DRW::AC1024)
         || targetVersion != DRW::AC1024)
         return true;
+    const DRW::Version sourceVersion = cData->sourceVersion;
 
     std::uint32_t controlHandle = 0u;
     std::uint32_t extensionHandle = 0u;
@@ -27724,12 +27726,25 @@ bool dx_iface::prepareDwgLayerStateOutput(
         }
         return found;
     };
+    const auto uniqueXRecord = [this](std::uint32_t handle)
+            -> const DRW_XRecord* {
+        const DRW_XRecord* found = nullptr;
+        for (const DRW_XRecord& row : cData->xRecords) {
+            if (row.handle != handle)
+                continue;
+            if (found != nullptr)
+                return nullptr;
+            found = &row;
+        }
+        return found;
+    };
     const DRW_Dictionary* extension = uniqueDictionary(extensionHandle);
     if (extension == nullptr || extension->handle != extensionHandle
         || extension->parentHandle != controlHandle
         || extension->hardOwner != 1 || extension->cloning != 1
         || extension->countCap || !extension->hasCompleteDwgEntries()
-        || extension->m_entries.size() != 1u
+        || extension->m_entries.size()
+            != (sourceVersion == DRW::AC1018 ? 1u : 3u)
         || !extension->appData.empty() || !extension->extData.empty()
         || !extension->reactorHandles.empty()
         || extension->xDictHandle != 0u
@@ -27737,7 +27752,7 @@ bool dx_iface::prepareDwgLayerStateOutput(
         || extension->hasDwgCommonLinkTail()
         || !extension->pendingAppIdResolutions.empty()
         || !extension->pendingLayerRefResolutions.empty())
-        return skip("LAYER_CONTROL extension dictionary is outside its one-entry profile");
+        return skip("LAYER_CONTROL extension dictionary is outside its versioned LayerStates root profile");
     const auto root = std::find_if(
         extension->m_entries.begin(), extension->m_entries.end(),
         [](const DRW_Dictionary::Entry& entry) {
@@ -27757,7 +27772,7 @@ bool dx_iface::prepareDwgLayerStateOutput(
         || states->parentHandle != extensionHandle
         || states->hardOwner != 0 || states->cloning != 1
         || states->countCap
-        || !states->hasCompleteDwgEntries() || !states->m_entries.empty()
+        || !states->hasCompleteDwgEntries()
         || !states->appData.empty() || !states->extData.empty()
         || states->xDictHandle != 0u
         || states->hasDataStorageBinaryData()
@@ -27766,10 +27781,38 @@ bool dx_iface::prepareDwgLayerStateOutput(
         || !states->pendingLayerRefResolutions.empty()
         || states->reactorHandles
             != std::vector<std::uint32_t>{extensionHandle})
-        return skip("ACAD_LAYERSTATES child dictionary is outside its empty profile");
+        return skip("ACAD_LAYERSTATES child dictionary common fields are outside the admitted profile");
 
-    const auto hasDictionaryFrame = [this](std::uint32_t handle,
-                                            const DRW_Dictionary& source) {
+    const DRW_XRecord* layerStateRecord = nullptr;
+    if (sourceVersion == DRW::AC1018) {
+        if (!states->m_entries.empty())
+            return skip("AC1018 ACAD_LAYERSTATES child dictionary is outside its empty profile");
+    } else {
+        if (states->m_entries.size() != 1u)
+            return skip("AC1024 ACAD_LAYERSTATES child dictionary is outside its single-XRECORD profile");
+        const DRW_Dictionary::Entry& entry = states->m_entries.front();
+        if (entry.m_handle == 0u || entry.m_handle == DRW::NoHandle
+            || entry.m_handle == states->handle
+            || entry.m_handle == extensionHandle)
+            return skip("AC1024 ACAD_LAYERSTATES XRECORD identity is invalid");
+        layerStateRecord = uniqueXRecord(entry.m_handle);
+        if (layerStateRecord == nullptr
+            || layerStateRecord->tType != DRW::XRECORD
+            || layerStateRecord->parentHandle != states->handle
+            || layerStateRecord->m_rawDataValid
+            || layerStateRecord->hasDwgRawDataSourceRecord()
+            || !layerStateRecord->hasDwgCommonLinkTail()
+            || std::any_of(layerStateRecord->m_handleValues.begin(),
+                layerStateRecord->m_handleValues.end(),
+                [](const auto& value) {
+                    return value.first == 0 || value.second == 0u
+                        || value.second == DRW::NoHandle;
+                }))
+            return skip("AC1024 ACAD_LAYERSTATES entry is not one completely typed, owned XRECORD");
+    }
+
+    const auto hasDictionaryFrame = [this, sourceVersion](
+            std::uint32_t handle, const DRW_Dictionary& source) {
         const dx_data::StandardDwgFrameKey key{
             cData->importGeneration, handle};
         if (cData->m_opaqueDwgSourceFrameIdentities.count(key) != 1u)
@@ -27778,7 +27821,7 @@ bool dx_iface::prepareDwgLayerStateOutput(
         if (standard == cData->m_standardDwgObjectFrames.end()
             || standard->second.raw.m_objectType != 42
             || standard->second.raw.m_handle != handle
-            || standard->second.raw.m_version != DRW::AC1018
+            || standard->second.raw.m_version != sourceVersion
             || standard->second.raw.m_isEntity
             || standard->second.raw.m_hasDataStorage
             || !standard->second.payloadMatched
@@ -27788,7 +27831,7 @@ bool dx_iface::prepareDwgLayerStateOutput(
         const auto* baseline = dynamic_cast<const DRW_Dictionary*>(
             standard->second.typedBaseline.get());
         if (baseline == nullptr
-            || !standardDwgCommonEqual(source, *baseline, DRW::AC1018)
+            || !standardDwgCommonEqual(source, *baseline, sourceVersion)
             || source.hardOwner != baseline->hardOwner
             || source.cloning != baseline->cloning
             || source.countCap || baseline->countCap
@@ -27806,20 +27849,94 @@ bool dx_iface::prepareDwgLayerStateOutput(
         }
         return true;
     };
+    const auto hasXRecordFrame = [this, sourceVersion](
+            const DRW_XRecord& source) {
+        const dx_data::StandardDwgFrameKey key{
+            cData->importGeneration, source.handle};
+        const auto standard = cData->m_standardDwgObjectFrames.find(key);
+        if (cData->m_opaqueDwgSourceFrameIdentities.count(key) != 1u
+            || standard == cData->m_standardDwgObjectFrames.end()
+            || standard->second.raw.m_objectType != dwgObjType::XRECORD
+            || standard->second.raw.m_handle != source.handle
+            || standard->second.raw.m_version != sourceVersion
+            || standard->second.raw.m_isEntity
+            || standard->second.raw.m_hasDataStorage
+            || !standard->second.payloadMatched
+            || !standard->second.typedBaseline
+            || standard->second.opaquePayload)
+            return false;
+        return standardDwgModelsEqual(
+            source, *standard->second.typedBaseline, sourceVersion,
+            dwgObjType::XRECORD);
+    };
+    std::vector<DRW_Dictionary> layerStateCompanions;
+    if (sourceVersion == DRW::AC1024) {
+        std::set<std::string> companionNames;
+        for (const DRW_Dictionary::Entry& entry : extension->m_entries) {
+            if (entry.m_name == "ACAD_LAYERSTATES")
+                continue;
+            if ((entry.m_name != "ACAD_LAYERFILTERS"
+                    && entry.m_name != "ACLYDICTIONARY")
+                || !companionNames.insert(entry.m_name).second)
+                return skip("AC1024 LAYER_CONTROL extension has an unadmitted root key");
+            const DRW_Dictionary* companion = uniqueDictionary(entry.m_handle);
+            if (companion == nullptr || companion->handle == states->handle
+                || companion->parentHandle != extensionHandle
+                || companion->hardOwner != 0 || companion->cloning != 1
+                || companion->countCap
+                || !companion->hasCompleteDwgEntries()
+                || !companion->m_entries.empty()
+                || companion->xDictHandle != 0u
+                || companion->hasDataStorageBinaryData()
+                || companion->hasDwgCommonLinkTail()
+                || !companion->pendingAppIdResolutions.empty()
+                || !companion->pendingLayerRefResolutions.empty()
+                || companion->reactorHandles
+                    != std::vector<std::uint32_t>{extensionHandle}
+                || !hasDictionaryFrame(companion->handle, *companion))
+                return skip("AC1024 LayerStates companion root is not one source-bound empty dictionary");
+            layerStateCompanions.push_back(*companion);
+        }
+        if (companionNames.size() != 2u)
+            return skip("AC1024 LAYER_CONTROL extension companion roots are incomplete");
+    }
     if (cData->importGeneration == 0u
         || !hasDictionaryFrame(extensionHandle, *extension)
-        || !hasDictionaryFrame(states->handle, *states))
+        || !hasDictionaryFrame(states->handle, *states)
+        || (layerStateRecord != nullptr
+            && !hasXRecordFrame(*layerStateRecord)))
         return skip("both dictionary callback identities must be source-bound");
 
     m_dwgLayerStateOutputSource.layerControlHandle = controlHandle;
     m_dwgLayerStateOutputSource.extensionDictionary = *extension;
     m_dwgLayerStateOutputSource.layerStatesDictionary = *states;
+    m_dwgLayerStateOutputSource.layerStateCompanionDictionaries =
+        std::move(layerStateCompanions);
+    if (layerStateRecord != nullptr) {
+        m_dwgLayerStateOutputSource.layerStateRecord = *layerStateRecord;
+        m_dwgLayerStateOutputSource.hasLayerStateRecord = true;
+    }
     m_dwgLayerStateOutputOwner = cData;
     m_dwgLayerStateOutputGeneration = cData->importGeneration;
     m_dwgLayerStateOutputSourceVersion = cData->sourceVersion;
     m_dwgLayerStateOutputPrepared = true;
-    if (hasUnchangedDwgLayerStateOutputSource())
+    if (hasUnchangedDwgLayerStateOutputSource()) {
+        const auto appendUnique = [](std::vector<std::uint32_t>& handles,
+                                    std::uint32_t handle) {
+            if (std::find(handles.begin(), handles.end(), handle)
+                == handles.end())
+                handles.push_back(handle);
+        };
+        appendUnique(m_extensionDictionaryHandles, extensionHandle);
+        appendUnique(m_extensionDictionaryHandles, states->handle);
+        for (const DRW_Dictionary& companion :
+             m_dwgLayerStateOutputSource.layerStateCompanionDictionaries)
+            appendUnique(m_extensionDictionaryHandles, companion.handle);
+        if (layerStateRecord != nullptr)
+            appendUnique(m_extensionXRecordHandles,
+                         layerStateRecord->handle);
         return true;
+    }
     m_dwgLayerStateOutputSource = {};
     m_dwgLayerStateOutputOwner = nullptr;
     m_dwgLayerStateOutputGeneration = 0u;
@@ -27835,10 +27952,13 @@ bool dx_iface::hasUnchangedDwgLayerStateOutputSource() const noexcept {
             && m_dwgLayerStateOutputSourceVersion == DRW::UNKNOWNV;
     if (cData == nullptr || m_dwgLayerStateOutputOwner != cData
         || m_dwgLayerStateOutputGeneration != cData->importGeneration
-        || m_dwgLayerStateOutputSourceVersion != DRW::AC1018
+        || (m_dwgLayerStateOutputSourceVersion != DRW::AC1018
+            && m_dwgLayerStateOutputSourceVersion != DRW::AC1024)
         || cData->sourceFormat != dx_source_format::DWG
         || cData->sourceVersion != m_dwgLayerStateOutputSourceVersion)
         return false;
+    const DRW::Version sourceVersion =
+        m_dwgLayerStateOutputSourceVersion;
     std::uint32_t controlHandle = 0u;
     std::uint32_t extensionHandle = 0u;
     if (!cData->getLayerTableControlExtensionDictionary(
@@ -27859,9 +27979,22 @@ bool dx_iface::hasUnchangedDwgLayerStateOutputSource() const noexcept {
         }
         return found;
     };
-    const auto sameDictionary = [](const DRW_Dictionary& expected,
+    const auto uniqueXRecord = [this](std::uint32_t handle)
+            -> const DRW_XRecord* {
+        const DRW_XRecord* found = nullptr;
+        for (const DRW_XRecord& row : cData->xRecords) {
+            if (row.handle != handle)
+                continue;
+            if (found != nullptr)
+                return nullptr;
+            found = &row;
+        }
+        return found;
+    };
+    const auto sameDictionary = [sourceVersion](
+                                  const DRW_Dictionary& expected,
                                   const DRW_Dictionary& actual) {
-        if (!standardDwgCommonEqual(expected, actual, DRW::AC1018)
+        if (!standardDwgCommonEqual(expected, actual, sourceVersion)
             || expected.hardOwner != actual.hardOwner
             || expected.cloning != actual.cloning || expected.countCap
             || actual.countCap
@@ -27878,7 +28011,7 @@ bool dx_iface::hasUnchangedDwgLayerStateOutputSource() const noexcept {
         }
         return true;
     };
-    const auto frameMatches = [this, &sameDictionary](
+    const auto frameMatches = [this, sourceVersion, &sameDictionary](
                                   const DRW_Dictionary& source) {
         const dx_data::StandardDwgFrameKey key{
             cData->importGeneration, source.handle};
@@ -27887,7 +28020,7 @@ bool dx_iface::hasUnchangedDwgLayerStateOutputSource() const noexcept {
             || frame == cData->m_standardDwgObjectFrames.end()
             || frame->second.raw.m_objectType != 42
             || frame->second.raw.m_handle != source.handle
-            || frame->second.raw.m_version != DRW::AC1018
+            || frame->second.raw.m_version != sourceVersion
             || frame->second.raw.m_isEntity
             || frame->second.raw.m_hasDataStorage
             || !frame->second.payloadMatched
@@ -27898,27 +28031,75 @@ bool dx_iface::hasUnchangedDwgLayerStateOutputSource() const noexcept {
             frame->second.typedBaseline.get());
         return baseline != nullptr && sameDictionary(source, *baseline);
     };
+    const auto xrecordFrameMatches = [this, sourceVersion](
+            const DRW_XRecord& source) {
+        const dx_data::StandardDwgFrameKey key{
+            cData->importGeneration, source.handle};
+        const auto frame = cData->m_standardDwgObjectFrames.find(key);
+        return cData->m_opaqueDwgSourceFrameIdentities.count(key) == 1u
+            && frame != cData->m_standardDwgObjectFrames.end()
+            && frame->second.raw.m_objectType == dwgObjType::XRECORD
+            && frame->second.raw.m_handle == source.handle
+            && frame->second.raw.m_version == sourceVersion
+            && !frame->second.raw.m_isEntity
+            && !frame->second.raw.m_hasDataStorage
+            && frame->second.payloadMatched
+            && frame->second.typedBaseline
+            && !frame->second.opaquePayload
+            && standardDwgModelsEqual(
+                source, *frame->second.typedBaseline, sourceVersion,
+                dwgObjType::XRECORD);
+    };
     const DRW_Dictionary* extension = uniqueDictionary(extensionHandle);
     const DRW_Dictionary* states = uniqueDictionary(
         m_dwgLayerStateOutputSource.layerStatesDictionary.handle);
+    const DRW_XRecord* layerStateRecord =
+        m_dwgLayerStateOutputSource.hasLayerStateRecord
+        ? uniqueXRecord(m_dwgLayerStateOutputSource.layerStateRecord.handle)
+        : nullptr;
     if (extension == nullptr || states == nullptr
         || !sameDictionary(m_dwgLayerStateOutputSource.extensionDictionary,
                            *extension)
         || !sameDictionary(m_dwgLayerStateOutputSource.layerStatesDictionary,
                            *states)
-        || !frameMatches(*extension) || !frameMatches(*states))
+        || !frameMatches(*extension) || !frameMatches(*states)
+        || (m_dwgLayerStateOutputSource.hasLayerStateRecord
+            && (layerStateRecord == nullptr
+                || !standardDwgModelsEqual(
+                    m_dwgLayerStateOutputSource.layerStateRecord,
+                    *layerStateRecord, sourceVersion, dwgObjType::XRECORD)
+                || !xrecordFrameMatches(*layerStateRecord))))
         return false;
+    for (const DRW_Dictionary& expected :
+         m_dwgLayerStateOutputSource.layerStateCompanionDictionaries) {
+        const DRW_Dictionary* actual = uniqueDictionary(expected.handle);
+        if (actual == nullptr || !sameDictionary(expected, *actual)
+            || actual->parentHandle != extension->handle
+            || !actual->m_entries.empty() || !frameMatches(*actual))
+            return false;
+    }
     const auto root = std::find_if(
         extension->m_entries.begin(), extension->m_entries.end(),
         [](const DRW_Dictionary::Entry& entry) {
             return entry.m_name == "ACAD_LAYERSTATES";
         });
-    return root != extension->m_entries.end()
-        && std::count_if(extension->m_entries.begin(), extension->m_entries.end(),
+    if (root == extension->m_entries.end()
+        || std::count_if(extension->m_entries.begin(), extension->m_entries.end(),
             [](const DRW_Dictionary::Entry& entry) {
                 return entry.m_name == "ACAD_LAYERSTATES";
-            }) == 1u
-        && root->m_handle == states->handle;
+            }) != 1u)
+        return false;
+    if (root->m_handle != states->handle)
+        return false;
+    if (!m_dwgLayerStateOutputSource.hasLayerStateRecord)
+        return states->m_entries.empty();
+    return states->m_entries.size() == 1u
+        && states->m_entries.front().m_handle == layerStateRecord->handle
+        && layerStateRecord->parentHandle == states->handle
+        && layerStateRecord->tType == DRW::XRECORD
+        && !layerStateRecord->m_rawDataValid
+        && !layerStateRecord->hasDwgRawDataSourceRecord()
+        && layerStateRecord->hasDwgCommonLinkTail();
 }
 
 bool dx_iface::inspectDwgLayerStateOutput(
@@ -27962,8 +28143,12 @@ bool dx_iface::inspectDwgLayerStateOutput(
         };
         std::uint32_t emittedExtension = 0u;
         std::uint32_t emittedStates = 0u;
+        std::uint32_t emittedLayerStateRecord = 0u;
         if (!mapHandle(source.extensionDictionary.handle, emittedExtension)
             || !mapHandle(source.layerStatesDictionary.handle, emittedStates)
+            || (source.hasLayerStateRecord
+                && !mapHandle(source.layerStateRecord.handle,
+                              emittedLayerStateRecord))
             || emittedExtension == emittedStates
             || dxfW->dxfWriteRecordHandleCount(2u) != 1u
             || !dxfW->dxfWriteRecordHasIdentity(2u, "TABLE", "TABLES")
@@ -27976,31 +28161,61 @@ bool dx_iface::inspectDwgLayerStateOutput(
             || !dxfW->dxfWriteRecordHasIdentity(
                 emittedStates, "DICTIONARY", "OBJECTS")
             || !dxfW->dxfWriteRecordHasOwner(
-                emittedStates, emittedExtension))
+                emittedStates, emittedExtension)
+            || (source.hasLayerStateRecord
+                && (emittedLayerStateRecord == 0u
+                    || emittedLayerStateRecord == emittedStates
+                    || emittedLayerStateRecord == emittedExtension
+                    || dxfW->dxfWriteRecordHandleCount(
+                        emittedLayerStateRecord) != 1u
+                    || !dxfW->dxfWriteRecordHasIdentity(
+                        emittedLayerStateRecord, "XRECORD", "OBJECTS")
+                    || !dxfW->dxfWriteRecordHasOwner(
+                        emittedLayerStateRecord, emittedStates))))
             return reject("dictionary identities or owner roles");
+
+        std::map<std::uint32_t, const DRW_Dictionary*>
+            expectedDictionaries;
+        expectedDictionaries.emplace(
+            emittedExtension, &source.extensionDictionary);
+        expectedDictionaries.emplace(emittedStates,
+                                     &source.layerStatesDictionary);
+        for (const DRW_Dictionary& companion :
+             source.layerStateCompanionDictionaries) {
+            std::uint32_t emittedCompanion = 0u;
+            if (!mapHandle(companion.handle, emittedCompanion)
+                || emittedCompanion == emittedExtension
+                || emittedCompanion == emittedStates
+                || dxfW->dxfWriteRecordHandleCount(emittedCompanion) != 1u
+                || !dxfW->dxfWriteRecordHasIdentity(
+                    emittedCompanion, "DICTIONARY", "OBJECTS")
+                || !dxfW->dxfWriteRecordHasOwner(
+                    emittedCompanion, emittedExtension)
+                || !expectedDictionaries.emplace(
+                    emittedCompanion, &companion).second)
+                return reject("LayerStates companion dictionary identity or owner role");
+        }
 
         std::set<std::uint32_t> seen;
         std::string_view selectedName;
         bool bodyMismatch = false;
         const bool inspected = dx_standard_output::inspectSelected(
             view,
-            [&selectedName, emittedExtension, emittedStates](
+            [&selectedName, &expectedDictionaries](
                     std::string_view name, std::uint32_t handle) {
                 selectedName = name;
-                return (handle == emittedExtension || handle == emittedStates)
+                return expectedDictionaries.count(handle) == 1u
                     && name == "DICTIONARY";
             },
             [&](const auto& shape, std::string_view body) {
                 if (selectedName != "DICTIONARY"
                     || !seen.insert(shape.handle).second)
                     return false;
-                const DRW_Dictionary* expected =
-                    shape.handle == emittedExtension
-                    ? &source.extensionDictionary
-                    : shape.handle == emittedStates
-                        ? &source.layerStatesDictionary : nullptr;
-                if (expected == nullptr)
+                const auto expectedEntry =
+                    expectedDictionaries.find(shape.handle);
+                if (expectedEntry == expectedDictionaries.end())
                     return false;
+                const DRW_Dictionary* expected = expectedEntry->second;
                 dx_standard_output::Decoder decoder(view);
                 const bool decoded = decoder.decodeRecord<DRW_Dictionary>(
                     body, [&](const DRW_Dictionary& actual) {
@@ -28060,13 +28275,15 @@ bool dx_iface::inspectDwgLayerStateOutput(
                               << " body-bytes=" << body.size() << '\n';
                 return decoded;
             });
-        if (!inspected || seen.size() != 2u) {
+        if (!inspected || seen.size() != expectedDictionaries.size()) {
             if (debug)
                 std::cerr << "LayerStates staged scan detail: inspected="
                           << inspected << " seen=" << seen.size()
-                          << " expected=2 bodyMismatch=" << bodyMismatch
+                          << " expected=" << expectedDictionaries.size()
+                          << " bodyMismatch=" << bodyMismatch
                           << " emitted=" << emittedExtension << '/'
-                          << emittedStates << '\n';
+                          << emittedStates << '/' << emittedLayerStateRecord
+                          << '\n';
             return reject("complete staged dictionary bodies or entry roles");
         }
         if (!recordOpaqueDwgOutputQualification(
@@ -28074,6 +28291,10 @@ bool dx_iface::inspectDwgLayerStateOutput(
             || !recordOpaqueDwgOutputQualification(
                 source.layerStatesDictionary.handle))
             return reject("callback identity qualification staging");
+        for (const DRW_Dictionary& companion :
+             source.layerStateCompanionDictionaries)
+            if (!recordOpaqueDwgOutputQualification(companion.handle))
+                return reject("companion dictionary identity qualification staging");
         m_dwgLayerStateOutputInspected = true;
         return true;
     } catch (...) {

@@ -1,0 +1,77 @@
+{
+  "date": "2026-11-01",
+  "scope": "Source-bound admission for one observed AC1024 LayerStates graph: the LAYER_CONTROL extension dictionary with ACAD_LAYERFILTERS, ACAD_LAYERSTATES and ACLYDICTIONARY roots; two empty companion dictionaries; and one typed XRECORD under ACAD_LAYERSTATES. This receipt does not qualify emitted bytes, fresh DXF readback, layer-state restoration semantics or whole-source conversion.",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "version": "AC1024",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixture_committed": false
+  },
+  "independent_source_evidence": {
+    "tool": "LibreDWG dwgread 0.14",
+    "executable": "/opt/homebrew/bin/dwgread",
+    "executable_sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "json_command": "/opt/homebrew/bin/dwgread -O JSON -o /private/tmp/libdxfrw-layerstates-aerial-libredwg.json tests/samples/AC1024/visualization_-_aerial.dwg",
+    "json_sha256": "31f12bab6c02c885f4ed97231573f0503c9de6835b23ace74cce65197234a832",
+    "observed_graph": [
+      "LAYER_CONTROL handle 0x2 references extension DICTIONARY 0xD5 (213).",
+      "DICTIONARY 0xD5 contains ACAD_LAYERFILTERS to 0xEE (238), ACAD_LAYERSTATES to 0x1B8 (440), and ACLYDICTIONARY to 0xED (237).",
+      "The two companion dictionaries have no entries and are owned by DICTIONARY 0xD5.",
+      "ACAD_LAYERSTATES dictionary 0x1B8 contains ACAD_VIEWS_RenderView to XRECORD 0x249 (585); the XRECORD is owned by 0x1B8 and has typed XDATA values."
+    ]
+  },
+  "implementation": {
+    "file_sha256": {
+      "dwg2dxf/dx_iface.cpp": "f76e812ee6c7dfe6069e34c76fc7cd215f42d8368b9565f769f13179e1530dce",
+      "dwg2dxf/dx_iface.h": "d9a49da7b2e72011a71c8cd744dba1fc3fb9c1ab115899effe4426aa0ab8939d",
+      "tests/dwg2dxf_adapter_tests.cpp": "624ff5254bb6b20a790c9528c44b2e0dd8878342b5df411f7ffa70f717176749"
+    },
+    "proof": [
+      "Admission is limited to AC1024-to-AC1024 output and the exact three-root LayerStates extension profile observed in this source.",
+      "The extension dictionary, state dictionary, two companion dictionaries and XRECORD must each have a unique source identity and matching standard DWG typed baseline. The XRECORD must be fully typed, owned by the state dictionary, and have no raw/unparsed payload.",
+      "The existing extension-dictionary and XRECORD output queues receive the source identities only after the frozen models pass late-mutation checks.",
+      "Staged inspection now checks the emitted identities and owners for the XRECORD and all dictionaries, and checks every dictionary body against its frozen source model. The XRECORD body relies on the existing standard DWG object inspector for field/reference output proof; that end-to-end route has not yet been run for this profile."
+    ]
+  },
+  "validation": {
+    "build_commands": [
+      "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "cmake --build build-gcc --target dwg2dxf -j4"
+    ],
+    "build_result": "PASS",
+    "adapter_test_executable": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests",
+    "adapter_test_sha256": "5292af18cca4fda8a2cdbe748b7529e7a1a8f30d954a9c076ec796c377df36a8",
+    "dwg2dxf_executable": "build-gcc/dwg2dxf/dwg2dxf",
+    "dwg2dxf_sha256": "15f80b5810516c19f078383be31cc6dbdee6b14b99d7e9548b2133b706c3c3d9",
+    "cases": [
+      {
+        "command": "--layerstates-xrecord-physical-source-admission tests/samples/AC1024/visualization_-_aerial.dwg",
+        "result": "PASS; validates the three-root extension graph, both companion dictionary frames, the XRECORD frame/body, output queue membership, and late-mutation rejection/restoration."
+      },
+      {
+        "command": "--layout-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "result": "PASS for existing AC1018 LayerStates empty-dictionary ASCII/Binary output, rollback, same-adapter retry and fresh readback."
+      },
+      {
+        "command": "git diff --check",
+        "result": "PASS after the plan, code, test and receipt edits."
+      }
+    ],
+    "full_source_probe": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1024/visualization_-_aerial.dwg -y -v2010 /private/tmp/libdxfrw-layerstates-aerial-full.dxf",
+      "result": "EXPECTED REFUSAL before LayerStates staged output inspection: SUN owner graph closure reports an orphaned or multiply-owned SUN. No change was made to weaken that independent gate."
+    }
+  },
+  "qualification_delta": {
+    "source_admission": "Implemented for this exact profile.",
+    "staged_output": "Not independently exercised for this profile.",
+    "fresh_ascii_binary_readback": "Not done.",
+    "support_claim": "Not promoted."
+  },
+  "limitations": [
+    "The physical DWG is an existing local investigation input and was not added to the repository.",
+    "LibreDWG's independent JSON parse corroborates graph structure, not LayerStates semantic meaning.",
+    "The two companion dictionaries are admitted only as empty source-framed dictionaries; other keys, populated companions and additional XRECORD/profile shapes remain refused.",
+    "Whole-source conversion remains outside this receipt and must retain the independent SUN, proxy-graphics, rendering and other graph gates."
+  ]
+}
