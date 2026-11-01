@@ -29411,9 +29411,9 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 const DRW_TableStyleBorder& border) {
             const std::uint32_t edgeFlags =
                 static_cast<std::uint32_t>(border.m_edgeFlags);
-            const bool oneEdge = edgeFlags != 0u && edgeFlags <= 0x20u
-                && (edgeFlags & (edgeFlags - 1u)) == 0u;
-            return oneEdge
+            const bool supportedEdges = edgeFlags != 0u
+                && (edgeFlags & ~std::uint32_t{0x3Fu}) == 0u;
+            return supportedEdges
                 && border.m_propertyOverrideFlags == 0x10
                 && border.m_borderType == 0 && border.m_color == 0
                 && border.m_colorCmc.m_rgb == -1

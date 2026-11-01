@@ -1999,10 +1999,16 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
         std::cerr << "TABLECONTENT cell border visibility: " << why << '\n';
         return false;
     };
-    const std::array<int, 6> edges{{1, 2, 4, 8, 0x10, 0x20}};
-    for (bool binary : {false, true}) {
-        const auto path = dir / (binary ? "cell-border-edges-binary.dxf"
-                                        : "cell-border-edges-ascii.dxf");
+    const std::array<std::vector<int>, 2> edgeProfiles{{
+        {1, 2, 4, 8, 0x10, 0x20},
+        {0x03, 0x0C, 0x30}
+    }};
+    for (std::size_t run = 0; run < edgeProfiles.size() * 2u; ++run) {
+        const std::size_t profile = run % edgeProfiles.size();
+        const bool binary = run / edgeProfiles.size() != 0u;
+        const std::vector<int>& edges = edgeProfiles[profile];
+        const auto path = dir / (std::string("cell-border-edges-")
+            + std::to_string(profile) + (binary ? "-binary.dxf" : "-ascii.dxf"));
         dx_data data;
         dx_iface exporter;
         exporter.cData = &data;
@@ -2041,7 +2047,7 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
 
         if (!exporter.fileExport(path.string(), DRW::AC1027, binary,
                                  &data, false))
-            return fail("six one-hot edge visibility records were refused");
+            return fail("selected edge visibility records were refused");
 
         struct BorderWire {
             int edge = 0;
@@ -2103,8 +2109,9 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
                 else if (tag.code == 40)
                     current.doubleLineSpacing = tag.real;
                 else if (tag.code == 309 && tag.text == "GRIDFORMAT_END") {
-                    if (cellStyleBorderCount != 6)
-                        return fail("cell TABLEFORMAT border count is not six");
+                    if (cellStyleBorderCount
+                        != static_cast<int>(edges.size()))
+                        return fail("cell TABLEFORMAT border count differs");
                     borders.push_back(current);
                     inGridFormat = false;
                 }
@@ -2121,7 +2128,7 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
                 || border.lineWeight != 0 || border.lineType != "0"
                 || border.invisibility != 1
                 || border.doubleLineSpacing != 0.0)
-                return fail("physical one-hot border fields changed");
+                return fail("physical border edge fields changed");
         }
 
         dx_iface reader;
@@ -2142,7 +2149,7 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
                 || border.m_lineWeight != 0 || border.m_lineTypeHandle != 0u
                 || border.m_visible != 1
                 || border.m_doubleLineSpacing != 0.0)
-                return fail("typed one-hot border fields changed");
+                return fail("typed border edge fields changed");
         }
 
         DRW_TableStyleBorder& invalidBorder = metadata->m_rows[0]
@@ -2170,8 +2177,8 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
                 .m_cells[0].m_scope.m_style.m_borders.size() != edges.size())
             return fail("corrected border retry readback differs");
     }
-    std::cout << "TABLECONTENT cell border visibility: six one-hot edges, "
-                 "ASCII/binary wire and readback, refusal and retry passed\n";
+    std::cout << "TABLECONTENT cell border visibility: one-hot and grouped edge "
+                 "flags, ASCII/binary wire and readback, refusal and retry passed\n";
     return true;
 }
 
