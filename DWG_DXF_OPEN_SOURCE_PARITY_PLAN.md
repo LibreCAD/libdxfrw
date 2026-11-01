@@ -152,8 +152,8 @@ reproduced missing provider, remap, collision or composed output failure.
    preserving current block-reference and ATTDEF ownership validation.
 3. Complete only the remaining source- or consumer-backed CONTENTFORMAT string,
    data/unit/domain/property combinations, CELLSTYLEMAP body/property profiles,
-   and remaining border-property profiles: linetype, extended CMC/name colors,
-   and overlapping edge declarations.
+   and remaining border-property profiles: extended CMC/name colors and
+   overlapping edge declarations.
    Cover the witnessed scope combinations and version gates; keep unsupported
    styles refused until schema and wire order are known.
 4. Complete source-bound AC1018 TABLE body and merge/presence profiles beyond the

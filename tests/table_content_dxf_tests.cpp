@@ -2007,15 +2007,20 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
         int borderType;
         int lineWeight;
         double doubleLineSpacing;
+        std::uint32_t lineTypeHandle;
     };
+    constexpr std::uint32_t sourceLineTypeHandle = 0xC102u;
     const std::array<std::vector<BorderExpectation>, 2> borderProfiles{{
-        {{1, 0x10, 0, 1, 0, 0, 0.0}, {2, 0x08, 7, 0, 0, 0, 0.0},
-         {4, 0x18, 3, 1, 0, 0, 0.0}, {8, 0x01, 0, 0, 1, 0, 0.0},
-         {0x10, 0x02, 0, 0, 0, 25, 0.0},
-         {0x20, 0x1B, 12, 1, 1, 50, 0.0}},
-        {{0x03, 0x0A, 7, 0, 0, -2, 0.0},
-         {0x0C, 0x11, 0, 1, 1, 0, 0.0},
-         {0x30, 0x39, 3, 1, 2, 0, 0.5}}
+        {{1, 0x10, 0, 1, 0, 0, 0.0, 0u},
+         {2, 0x08, 7, 0, 0, 0, 0.0, 0u},
+         {4, 0x18, 3, 1, 0, 0, 0.0, 0u},
+         {8, 0x01, 0, 0, 1, 0, 0.0, 0u},
+         {0x10, 0x02, 0, 0, 0, 25, 0.0, 0u},
+         {0x20, 0x1B, 12, 1, 1, 50, 0.0, 0u}},
+        {{0x03, 0x0A, 7, 0, 0, -2, 0.0, 0u},
+         {0x0C, 0x11, 0, 1, 1, 0, 0.0, 0u},
+         {0x30, 0x3D, 3, 1, 2, 0, 0.5,
+          sourceLineTypeHandle}}
     }};
     for (std::size_t run = 0; run < borderProfiles.size() * 2u; ++run) {
         const std::size_t profile = run % borderProfiles.size();
@@ -2028,6 +2033,13 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
         dx_iface exporter;
         exporter.cData = &data;
         exporter.currentBlock = data.mBlock;
+        if (profile == 1u) {
+            DRW_LType lineType;
+            lineType.handle = sourceLineTypeHandle;
+            lineType.name = "BorderDash";
+            lineType.path = {0.5, -0.25};
+            exporter.addLType(lineType);
+        }
         DRW_TableContentObject table = tableContentScalarGrid();
         auto metadata = std::make_shared<DRW_TableContentDxfMetadata>();
         metadata->m_columns.resize(table.m_content.m_columns.size());
@@ -2059,6 +2071,7 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
             border.m_borderType = expected.borderType;
             border.m_lineWeight = expected.lineWeight;
             border.m_doubleLineSpacing = expected.doubleLineSpacing;
+            border.m_lineTypeHandle = expected.lineTypeHandle;
             cellStyle.m_borders.push_back(border);
         }
         table.m_dxfMetadata = metadata;
@@ -2067,6 +2080,65 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
         if (!exporter.fileExport(path.string(), DRW::AC1027, binary,
                                  &data, false))
             return fail("selected cell border profiles were refused");
+
+        std::uint32_t emittedLineTypeHandle = 0u;
+        std::string emittedLineTypeHandleText = "0";
+        if (profile == 1u) {
+            bool inTableHeader = false;
+            bool inLineTypeTable = false;
+            bool inLineTypeRecord = false;
+            std::uint32_t currentLineTypeHandle = 0u;
+            std::string currentLineTypeOwner;
+            std::string currentLineTypeHandleText;
+            for (const AttdefWireTag& tag : attdefWireTags(path, binary)) {
+                if (tag.code == 0) {
+                    if (tag.text == "TABLE") {
+                        inTableHeader = true;
+                        inLineTypeTable = false;
+                    } else if (tag.text == "ENDTAB") {
+                        inTableHeader = false;
+                        inLineTypeTable = false;
+                    }
+                    inLineTypeRecord = tag.text == "LTYPE"
+                        && inLineTypeTable;
+                    currentLineTypeHandle = 0u;
+                    currentLineTypeOwner.clear();
+                    currentLineTypeHandleText.clear();
+                } else if (inTableHeader && tag.code == 2) {
+                    inLineTypeTable = tag.text == "LTYPE";
+                    inTableHeader = false;
+                } else if (inLineTypeRecord && tag.code == 5) {
+                    currentLineTypeHandle = static_cast<std::uint32_t>(
+                        std::stoul(tag.text, nullptr, 16));
+                    currentLineTypeHandleText = tag.text;
+                } else if (inLineTypeRecord && tag.code == 330) {
+                    currentLineTypeOwner = tag.text;
+                } else if (inLineTypeRecord && tag.code == 2
+                           && tag.text == "BorderDash") {
+                    emittedLineTypeHandle = currentLineTypeHandle;
+                    emittedLineTypeHandleText = currentLineTypeHandleText;
+                    if (currentLineTypeOwner != "5")
+                        return fail("custom border LTYPE owner is not LTYPE table");
+                }
+            }
+            if (emittedLineTypeHandle == 0u)
+                return fail("custom border LTYPE output identity is missing");
+            if (emittedLineTypeHandle == sourceLineTypeHandle)
+                return fail("custom border LTYPE handle was not remapped");
+            if (emittedLineTypeHandleText.empty())
+                return fail("custom border LTYPE identity field is missing");
+        }
+        const auto emittedLineTypeIsUnique = [emittedLineTypeHandle](
+                const dx_data& parsed) {
+            const auto matches = std::count_if(
+                parsed.lineTypes.begin(), parsed.lineTypes.end(),
+                [emittedLineTypeHandle](const DRW_LType& lineType) {
+                    return lineType.handle == emittedLineTypeHandle
+                        && lineType.name == "BorderDash";
+                });
+            return emittedLineTypeHandle == 0u
+                ? matches == 0 : matches == 1;
+        };
 
         struct BorderWire {
             int edge = 0;
@@ -2148,7 +2220,8 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
                 || border.borderType != expected.borderType
                 || border.color != expected.color
                 || border.lineWeight != expected.lineWeight
-                || border.lineType != "0"
+                || border.lineType != (expected.lineTypeHandle == 0u
+                    ? "0" : emittedLineTypeHandleText)
                 || border.invisibility != expected.invisibility
                 || border.doubleLineSpacing != expected.doubleLineSpacing)
                 return fail("physical border edge fields changed");
@@ -2160,6 +2233,8 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
             || parsed.tableContents.size() != 1u
             || !parsed.tableContents.front().m_dxfMetadata)
             return fail("fresh table readback is missing");
+        if (!emittedLineTypeIsUnique(parsed))
+            return fail("fresh readback LTYPE identity is missing or ambiguous");
         const auto& readStyle = parsed.tableContents.front().m_dxfMetadata
             ->m_rows[0].m_cells[0].m_scope.m_style;
         if (readStyle.m_borders.size() != expectedBorders.size())
@@ -2172,7 +2247,9 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
                 || border.m_borderType != expected.borderType
                 || border.m_color != expected.color
                 || border.m_lineWeight != expected.lineWeight
-                || border.m_lineTypeHandle != 0u
+                || border.m_lineTypeHandle
+                    != (expected.lineTypeHandle == 0u
+                        ? 0u : emittedLineTypeHandle)
                 || border.m_visible != expected.invisibility
                 || border.m_doubleLineSpacing
                     != expected.doubleLineSpacing)
@@ -2233,6 +2310,34 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
             doubleBorder->m_doubleLineSpacing = originalSpacing;
         }
 
+        const auto lineTypeBorder = std::find_if(
+            styleBorders.begin(), styleBorders.end(),
+            [](const DRW_TableStyleBorder& border) {
+                return (static_cast<std::uint32_t>(
+                    border.m_propertyOverrideFlags) & 0x04u) != 0u;
+            });
+        if (profile == 1u && lineTypeBorder == styleBorders.end())
+            return fail("linetype profile has no selected border");
+        if (lineTypeBorder != styleBorders.end()) {
+            const std::uint32_t originalLineTypeHandle =
+                lineTypeBorder->m_lineTypeHandle;
+            lineTypeBorder->m_lineTypeHandle = 0xC103u;
+            const std::string lineTypeSentinel =
+                "PRESERVE_TABLECONTENT_LINETYPE_DESTINATION";
+            { std::ofstream out(path, std::ios::binary);
+              out << lineTypeSentinel; }
+            if (exporter.fileExport(path.string(), DRW::AC1027, binary,
+                                    &data, false))
+                return fail("unresolved border LTYPE target was accepted");
+            { std::ifstream in(path, std::ios::binary);
+              if (std::string(std::istreambuf_iterator<char>(in), {})
+                  != lineTypeSentinel)
+                  return fail("linetype refusal changed the destination"); }
+            if (lineTypeBorder->m_lineTypeHandle != 0xC103u)
+                return fail("linetype refusal changed the caller model");
+            lineTypeBorder->m_lineTypeHandle = originalLineTypeHandle;
+        }
+
         DRW_TableStyleBorder& invalidBorder = styleBorders.front();
         const int originalBorderProperties =
             invalidBorder.m_propertyOverrideFlags;
@@ -2260,6 +2365,8 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
                 .m_cells[0].m_scope.m_style.m_borders.size()
                     != expectedBorders.size())
             return fail("corrected border retry readback differs");
+        if (!emittedLineTypeIsUnique(retried))
+            return fail("corrected retry LTYPE identity is missing or ambiguous");
         const auto& retriedBorders = retried.tableContents.front()
             .m_dxfMetadata->m_rows[0].m_cells[0].m_scope.m_style.m_borders;
         for (std::size_t index = 0; index < expectedBorders.size(); ++index) {
@@ -2270,7 +2377,9 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
                 || border.m_borderType != expected.borderType
                 || border.m_color != expected.color
                 || border.m_lineWeight != expected.lineWeight
-                || border.m_lineTypeHandle != 0u
+                || border.m_lineTypeHandle
+                    != (expected.lineTypeHandle == 0u
+                        ? 0u : emittedLineTypeHandle)
                 || border.m_visible != expected.invisibility
                 || border.m_doubleLineSpacing
                     != expected.doubleLineSpacing)
@@ -2278,8 +2387,8 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
         }
     }
     std::cout << "TABLECONTENT cell border transport: one-hot/grouped edges, "
-                 "indexed color, visibility, single/double type, lineweight "
-                 "and spacing, "
+                 "indexed color, visibility, single/double type, lineweight, "
+                 "linetype and spacing, "
                  "ASCII/binary readback, refusal and retry passed\n";
     return true;
 }

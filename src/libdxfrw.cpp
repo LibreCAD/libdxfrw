@@ -29387,7 +29387,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             && style.m_styleClass == 0 && style.m_name.empty()
             && style.m_borders.empty();
     };
-    const auto styleWithMarginsIsSupported = [&styleIsDefault,
+    const auto styleWithMarginsIsSupported = [this, &styleIsDefault,
             &cmcIsDefault, &formatIsDefault, &contentFormatIsSupported](
             const DRW_TableStyleCellStyle& style, int type,
             bool allowSelectedCellBorder) {
@@ -29407,7 +29407,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             && style.m_bottomMargin == 0.0 && style.m_rightMargin == 0.0
             && style.m_marginHorizontalSpacing == 0.0
             && style.m_marginVerticalSpacing == 0.0;
-        const auto isSelectedCellBorder = [](
+        const auto isSelectedCellBorder = [this](
                 const DRW_TableStyleBorder& border) {
             static constexpr std::array<int, 27> lineWeights{{
                 -3, -2, -1, 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40,
@@ -29420,13 +29420,14 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 && (edgeFlags & ~std::uint32_t{0x3Fu}) == 0u;
             const std::uint32_t propertyFlags =
                 static_cast<std::uint32_t>(border.m_propertyOverrideFlags);
-            constexpr std::uint32_t supportedPropertyMask = 0x3Bu;
+            constexpr std::uint32_t supportedPropertyMask = 0x3Fu;
             const bool supportedProperties = propertyFlags != 0u
                 && (propertyFlags & ~supportedPropertyMask) == 0u;
             const bool colorOverride = (propertyFlags & 0x08u) != 0u;
             const bool visibilityOverride = (propertyFlags & 0x10u) != 0u;
             const bool typeOverride = (propertyFlags & 0x01u) != 0u;
             const bool lineWeightOverride = (propertyFlags & 0x02u) != 0u;
+            const bool lineTypeOverride = (propertyFlags & 0x04u) != 0u;
             const bool spacingOverride = (propertyFlags & 0x20u) != 0u;
             const bool supportedColor = colorOverride
                 ? border.m_color >= 1 && border.m_color <= 255
@@ -29451,11 +29452,14 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 && border.m_colorCmc.m_method == 0u
                 && border.m_colorCmc.m_flags == 0u
                 && border.m_colorCmc.m_reservedIndex == 0u
+                && (lineTypeOverride
+                    ? dxfWriteSourceLinetypeTargetHandle(
+                        border.m_lineTypeHandle) != 0u
+                    : border.m_lineTypeHandle == 0u)
                 && (lineWeightOverride
                     ? std::find(lineWeights.begin(), lineWeights.end(),
                                 border.m_lineWeight) != lineWeights.end()
-                    : border.m_lineWeight == 0)
-                && border.m_lineTypeHandle == 0u;
+                    : border.m_lineWeight == 0);
         };
         const bool noBorders = style.m_borders.empty();
         const bool selectedBorder = [&]() {
@@ -30000,6 +30004,13 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                     static_cast<std::int32_t>(style->m_borders.size())))
                 return false;
             for (const DRW_TableStyleBorder& border : style->m_borders) {
+                const std::uint32_t lineTypeHandle =
+                    border.m_lineTypeHandle == 0u ? 0u
+                    : dxfWriteSourceLinetypeTargetHandle(
+                        border.m_lineTypeHandle);
+                if (border.m_lineTypeHandle != 0u
+                    && lineTypeHandle == 0u)
+                    return false;
                 if (!writer->writeInt32(95, border.m_edgeFlags)
                     || !writer->writeString(302, "GRIDFORMAT")
                     || !writer->writeString(1, "GRIDFORMAT_BEGIN")
@@ -30012,8 +30023,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                         && !writer->writeInt32(420,
                             border.m_colorCmc.m_rgb))
                     || !writer->writeInt32(92, border.m_lineWeight)
-                    || !writer->writeString(340,
-                        toHexStr(border.m_lineTypeHandle))
+                    || !writer->writeString(340, toHexStr(lineTypeHandle))
                     || !writer->writeInt32(93, border.m_visible)
                     || !writer->writeDouble(40,
                         border.m_doubleLineSpacing)
