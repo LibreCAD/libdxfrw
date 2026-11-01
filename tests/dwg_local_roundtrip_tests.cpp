@@ -16870,6 +16870,15 @@ void printLocalDxfHeaderFailure(const std::filesystem::path& path) {
     bool endedHeader = false;
     std::size_t headerPairs = 0u;
     std::size_t totalPairs = 0u;
+    const auto trimCodePadding = [](std::string& row) {
+        const std::size_t first = row.find_first_not_of(" \t\r\n");
+        if (first == std::string::npos) {
+            row.clear();
+            return;
+        }
+        const std::size_t last = row.find_last_not_of(" \t\r\n");
+        row = row.substr(first, last - first + 1u);
+    };
     const auto trimCarriageReturn = [](std::string& row) {
         while (!row.empty() && row.back() == '\r')
             row.pop_back();
@@ -16888,7 +16897,7 @@ void printLocalDxfHeaderFailure(const std::filesystem::path& path) {
     while (totalPairs < 20000u && std::getline(input, code)
            && std::getline(input, value)) {
         ++totalPairs;
-        trimCarriageReturn(code);
+        trimCodePadding(code);
         trimCarriageReturn(value);
         if (firstRows.size() < 16u)
             firstRows.push_back(code + "=" + printableRow(value));

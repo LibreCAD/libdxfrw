@@ -125,7 +125,16 @@ active S20 work list; their parent H0.4/H0.5 qualification items remain open.
   failures were caused by the test's LF-only byte marker. The local
   qualification self-test and full round-trip executable pass. The five
   remaining Windows ASCII ACDS assertion failures are tracked in active H0.4,
-  with per-predicate diagnostics added for the next focused receipt.
+  with per-predicate diagnostics added for the next focused receipt. Artifact
+  `13091551224` on digest `ad267afa6a06060f6dcb0091a6f2fc7a524c576f4cb564626d080abdc5f5e213`
+  passed 6/7 focused CTests; the single round-trip CTest contained five ASCII
+  ACDS replay failures at `read-header`. Its bounded header dump showed
+  width-padded group-code rows (`  0`, `  2`), which the failure-only dump
+  scanner compared without normalization and therefore failed to recognize.
+  The scanner now trims ASCII whitespace from group-code rows before locating
+  HEADER, and the local round-trip CTest passes. This fixes the diagnostic
+  omission only; the ACDS replay read failure remains open until a new Windows
+  artifact supplies the header tail.
 - H0.5: adapter tests use explicit `std::int64_t`/`uint32_t` values and the
   independent scalar walker includes `<filesystem>`. Hosted run `41319773161`
   passed its GCC 13 warnings-as-errors build and fixture/inventory checks, then
