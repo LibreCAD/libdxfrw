@@ -46881,6 +46881,141 @@ bool dx_iface::hasTableContentFieldOutputProfile(
             }
         }
 
+        std::unordered_set<std::uint32_t> knownObjectHandles;
+        const auto addHandle = [&knownObjectHandles](std::uint32_t handle) {
+            if (handle != 0u && handle != DRW::NoHandle)
+                knownObjectHandles.insert(handle);
+        };
+        const auto addRecords = [&addHandle](const auto& records) {
+            for (const auto& record : records)
+                addHandle(record.handle);
+        };
+        const auto addEntity = [&addHandle](const DRW_Entity *entity) {
+            if (entity != nullptr)
+                addHandle(entity->handle);
+        };
+        addRecords(data.lineTypes);
+        addRecords(data.layers);
+        addRecords(data.dimStyles);
+        addRecords(data.VPorts);
+        addRecords(data.views);
+        addRecords(data.ucsList);
+        addRecords(data.textStyles);
+        addRecords(data.appIds);
+        addRecords(data.blockRecords);
+        addRecords(data.layouts);
+        addRecords(data.plotSettings);
+        addRecords(data.dictionaries);
+        addRecords(data.sortEntsTables);
+        addRecords(data.groups);
+        addRecords(data.fields);
+        addRecords(data.fieldLists);
+        addRecords(data.dictionaryWithDefaults);
+        addRecords(data.placeholders);
+        addRecords(data.mLineStyles);
+        addRecords(data.mLeaderStyles);
+        addRecords(data.tableStyles);
+        addRecords(data.detailViewStyles);
+        addRecords(data.sectionViewStyles);
+        addRecords(data.scales);
+        addRecords(data.dictionaryVars);
+        addRecords(data.xRecords);
+        addRecords(data.materials);
+        addRecords(data.renderSettings);
+        addRecords(data.backgrounds);
+        addRecords(data.suns);
+        addRecords(data.visualStyles);
+        addRecords(data.proxyObjects);
+        addRecords(data.evaluationGraphs);
+        addRecords(data.acshHistoryObjects);
+        addRecords(data.dynamicBlockObjects);
+        for (const DRW_TableContentObject& content : data.tableContents)
+            addHandle(content.handle);
+        for (const auto& definition : data.imageDefinitions)
+            addHandle(definition.second.handle);
+        for (const auto& reactor : data.imageDefinitionReactors)
+            addHandle(reactor.second.handle);
+        addHandle(data.namedObjectDictionary.handle);
+        for (const DRW_RawDxfObject& object : data.rawVisualStyleObjects)
+            addHandle(object.handle);
+        for (const DRW_RawDxfObject& object : data.rawRenderSettingsObjects)
+            addHandle(object.handle);
+        for (const DRW_RawDxfObject& object : data.rawBackgroundObjects)
+            addHandle(object.handle);
+        for (const DRW_RawDxfObject& object : data.rawSunObjects)
+            addHandle(object.handle);
+        for (const DRW_RawDxfObject& object : data.rawTableStyles)
+            addHandle(object.handle);
+        for (const DRW_RawDxfObject& object : data.rawSortEntsTables)
+            addHandle(object.handle);
+        for (const DRW_RawDxfObject& object : data.rawFields)
+            addHandle(object.handle);
+        for (const DRW_RawDxfObject& object : data.rawFieldLists)
+            addHandle(object.handle);
+        for (const DRW_RawDxfObject& object : data.rawNamedResourceObjects)
+            addHandle(object.handle);
+        for (const DRW_RawDxfObject& object : data.rawProxyObjects)
+            addHandle(object.handle);
+        addEntity(data.mBlock);
+        if (data.mBlock != nullptr) {
+            for (const DRW_Entity *entity : data.mBlock->ent)
+                addEntity(entity);
+            for (const dx_ifaceRawEntityEvent& event :
+                    data.mBlock->rawEntities)
+                addHandle(event.record.handle);
+        }
+        for (const dx_ifaceBlock *block : data.blocks) {
+            addEntity(block);
+            if (block != nullptr) {
+                for (const DRW_Entity *entity : block->ent)
+                    addEntity(entity);
+                for (const dx_ifaceRawEntityEvent& event :
+                        block->rawEntities)
+                    addHandle(event.record.handle);
+            }
+        }
+        for (const DRW_Table& table : data.tables)
+            addEntity(&table);
+        for (const dx_ifaceImg *image : data.images)
+            addEntity(image);
+
+        const auto resolvedObjectReference = [&knownObjectHandles](
+                std::uint32_t handle) {
+            return handle != 0u && handle != DRW::NoHandle
+                && knownObjectHandles.count(handle) != 0u;
+        };
+        const auto fieldCadValueObjectId = [&resolvedObjectReference](
+                const DRW_CadValue& value) {
+            if (value.m_dataType != 64 || value.m_formatFlags != 0
+                || value.m_dataSize != 0u || value.m_unitType != 0
+                || value.m_value.type() != DRW_Variant::INTEGER
+                || !value.m_formatString.empty()
+                || !value.m_valueString.empty()
+                || !value.m_rawData.empty())
+                return false;
+            const std::uint32_t valueHandle =
+                static_cast<std::uint32_t>(value.m_value.i_val());
+            if (value.m_handle != 0u && value.m_handle != valueHandle)
+                return false;
+            const std::uint32_t handle = value.m_handle != 0u
+                ? value.m_handle : valueHandle;
+            return resolvedObjectReference(handle);
+        };
+        const auto fieldStringValue = [](const DRW_CadValue& value) {
+            return value.m_dataType == 4 && value.m_formatFlags == 0
+                && value.m_dataSize == 0u && value.m_unitType == 0
+                && value.m_value.type() == DRW_Variant::STRING
+                && value.m_value.c_str() != nullptr
+                && value.m_value.code() == 1
+                && value.m_formatString.empty()
+                && value.m_valueString.empty() && value.m_handle == 0u
+                && value.m_rawData.empty();
+        };
+
+        // Autodesk's FIELD schema defines the counted 331 soft-pointer list
+        // and the 330 soft-pointer value form. This output profile admits only
+        // resolved object IDs; other child-value data types remain refused.
+
         std::unordered_map<std::uint32_t, std::size_t> referenceCounts;
         referenceCounts.reserve(data.fields.size());
         std::size_t retainedBytes = 0u;
@@ -46893,8 +47028,8 @@ bool dx_iface::hasTableContentFieldOutputProfile(
                 || !field.reactorHandles.empty()
                 || field.xDictHandle != 0u || !field.appData.empty()
                 || !field.extData.empty()
-                || !field.m_objectHandles.empty()
-                || !field.m_childValues.empty()
+                || field.m_objectHandles.size() > DRW_Field::kMaxItems
+                || field.m_childValues.size() > DRW_Field::kMaxItems
                 || !field.m_formatString.empty()
                 || field.m_evaluationOptionFlags != 0
                 || field.m_filingOptionFlags != 0
@@ -46902,20 +47037,23 @@ bool dx_iface::hasTableContentFieldOutputProfile(
                 || field.m_evaluationStatusFlags != 0
                 || field.m_evaluationErrorCode != 0
                 || !field.m_evaluationErrorMessage.empty()
-                || field.m_value.m_dataType != 4
-                || field.m_value.m_formatFlags != 0
-                || field.m_value.m_dataSize != 0u
-                || field.m_value.m_unitType != 0
-                || field.m_value.m_value.type() != DRW_Variant::STRING
-                || field.m_value.m_value.c_str() == nullptr
-                || !field.m_value.m_formatString.empty()
-                || !field.m_value.m_valueString.empty()
-                || field.m_value.m_handle != 0u
-                || !field.m_value.m_rawData.empty()
                 || !field.m_valueString.empty()
                 || field.m_valueStringLength != 0
                 || !referenceCounts.emplace(field.handle, 0u).second)
                 return false;
+            if (!fieldStringValue(field.m_value)
+                && !fieldCadValueObjectId(field.m_value))
+                return false;
+            for (const std::uint32_t handle : field.m_objectHandles) {
+                if (!resolvedObjectReference(handle))
+                    return false;
+            }
+            for (const DRW_Field::ChildValue& childValue :
+                    field.m_childValues) {
+                if (childValue.m_key.empty()
+                    || !fieldCadValueObjectId(childValue.m_value))
+                    return false;
+            }
             std::size_t fieldBytes = 0u;
             std::size_t fieldItems = 0u;
             if (!estimateFieldTypedBytes(field, fieldBytes, fieldItems)

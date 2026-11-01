@@ -29639,10 +29639,17 @@ bool fieldListMembershipOutput() {
         writer.cData = &data;
         writer.currentBlock = data.mBlock;
 
+        auto *referenceTarget = new DRW_Line();
+        referenceTarget->handle = 0x701u;
+        referenceTarget->basePoint = DRW_Coord(1.0, 2.0, 3.0);
+        referenceTarget->secPoint = DRW_Coord(4.0, 5.0, 6.0);
+        data.mBlock->ent.push_back(referenceTarget);
+
         DRW_Field first;
         first.handle = 0x501u;
         first.m_evaluatorId = "Text";
         first.m_fieldCode = "FIELD_LIST_FIRST";
+        first.m_objectHandles = {referenceTarget->handle};
         first.m_value.m_dataType = 4;
         first.m_value.m_value = DRW_Variant(1, UTF8STRING("first-value"));
         writer.addField(first);
@@ -29650,8 +29657,9 @@ bool fieldListMembershipOutput() {
         second.handle = 0x502u;
         second.m_evaluatorId = "Text";
         second.m_fieldCode = "FIELD_LIST_SECOND";
-        second.m_value.m_dataType = 4;
-        second.m_value.m_value = DRW_Variant(1, UTF8STRING("second-value"));
+        second.m_value.m_dataType = 64;
+        second.m_value.m_handle = referenceTarget->handle;
+        second.m_value.m_value.addInt(330, referenceTarget->handle);
         writer.addField(second);
         DRW_Field child;
         child.handle = 0x504u;
@@ -29660,6 +29668,12 @@ bool fieldListMembershipOutput() {
         child.m_fieldCode = "FIELD_LIST_CHILD";
         child.m_value.m_dataType = 4;
         child.m_value.m_value = DRW_Variant(1, UTF8STRING("child-value"));
+        DRW_Field::ChildValue childObjectId;
+        childObjectId.m_key = "TARGET_ID";
+        childObjectId.m_value.m_dataType = 64;
+        childObjectId.m_value.m_handle = referenceTarget->handle;
+        childObjectId.m_value.m_value.addInt(330, referenceTarget->handle);
+        child.m_childValues.push_back(childObjectId);
         writer.addField(child);
         data.fields.front().m_childHandles.push_back(child.handle);
 
@@ -29703,22 +29717,26 @@ bool fieldListMembershipOutput() {
             return fail("authored FIELDLIST callback was not retained");
         data.fieldLists.front().m_fieldHandles = {
             first.handle, second.handle, child.handle};
-        data.fields.back().parentHandle = 0xDEADu;
+        DRW_Field& secondField = *std::next(data.fields.begin());
+        secondField.m_value.m_handle = 0xDEADu;
+        secondField.m_value.m_value.addInt(330, 0xDEADu);
         if (writer.fileExport(output.string(), DRW::AC1027, binary,
                               &data, false))
-            return fail("nested FIELD with wrong owner was exported");
+            return fail("FIELD with unresolved CadValue object ID was exported");
         {
             std::ifstream existing(output, std::ios::binary);
             const std::string preserved{
                 std::istreambuf_iterator<char>(existing),
                 std::istreambuf_iterator<char>()};
             if (preserved != sentinel)
-                return fail("wrong-owner FIELD graph replaced destination");
+                return fail("unresolved FIELD CadValue ID replaced destination");
         }
-        data.fields.back().parentHandle = first.handle;
+        secondField.m_value.m_handle = referenceTarget->handle;
+        secondField.m_value.m_value.addInt(
+            330, referenceTarget->handle);
         if (!writer.fileExport(output.string(), DRW::AC1027, binary,
                                &data, false))
-            return fail("corrected FIELDLIST did not retry on the same adapter");
+            return fail("corrected FIELD object references did not retry on the same adapter");
 
         dx_data readback;
         dx_iface reader;
@@ -29784,16 +29802,27 @@ bool fieldListMembershipOutput() {
                 || parsedField.m_evaluatorId != "Text")
                 return fail("FIELDLIST membership or FIELD owner changed");
         }
+        const auto parsedTarget = std::find_if(
+            readback.mBlock->ent.begin(), readback.mBlock->ent.end(),
+            [](const DRW_Entity *entity) {
+                return entity != nullptr && entity->eType == DRW::LINE;
+            });
+        if (parsedTarget == readback.mBlock->ent.end())
+            return fail("FIELD object-reference target was not read back");
+        if ((*parsedTarget)->handle == referenceTarget->handle)
+            return fail("FIELD output did not exercise entity-handle remapping");
         if (parsedFirst->m_value.m_dataType != 4
             || parsedFirst->m_value.m_value.type() != DRW_Variant::STRING
             || parsedFirst->m_value.m_value.c_str() == nullptr
             || std::string(parsedFirst->m_value.m_value.c_str())
                 != "first-value"
-            || parsedSecond->m_value.m_dataType != 4
-            || parsedSecond->m_value.m_value.type() != DRW_Variant::STRING
-            || parsedSecond->m_value.m_value.c_str() == nullptr
-            || std::string(parsedSecond->m_value.m_value.c_str())
-                != "second-value"
+            || parsedFirst->m_objectHandles
+                != std::vector<std::uint32_t>{(*parsedTarget)->handle}
+            || parsedSecond->m_value.m_dataType != 64
+            || parsedSecond->m_value.m_handle != (*parsedTarget)->handle
+            || parsedSecond->m_value.m_value.type() != DRW_Variant::INTEGER
+            || parsedSecond->m_value.m_value.i_val()
+                != static_cast<std::int32_t>((*parsedTarget)->handle)
             || parsedFirst->m_childHandles
                 != std::vector<std::uint32_t>{parsedChild->handle}
             || parsedChild->parentHandle != parsedFirst->handle
@@ -29801,8 +29830,17 @@ bool fieldListMembershipOutput() {
             || parsedChild->m_value.m_value.type() != DRW_Variant::STRING
             || parsedChild->m_value.m_value.c_str() == nullptr
             || std::string(parsedChild->m_value.m_value.c_str())
-                != "child-value")
-            return fail("FIELD scalar values changed on DXF readback");
+                != "child-value"
+            || parsedChild->m_childValues.size() != 1u
+            || parsedChild->m_childValues.front().m_key != "TARGET_ID"
+            || parsedChild->m_childValues.front().m_value.m_dataType != 64
+            || parsedChild->m_childValues.front().m_value.m_handle
+                != (*parsedTarget)->handle
+            || parsedChild->m_childValues.front().m_value.m_value.type()
+                != DRW_Variant::INTEGER
+            || parsedChild->m_childValues.front().m_value.m_value.i_val()
+                != static_cast<std::int32_t>((*parsedTarget)->handle))
+            return fail("FIELD scalar/object values changed on DXF readback");
         for (const DRW_TableCellContent& reference :
                 parsedContent.m_content.m_rows.front().m_cells.front().m_contents) {
             if (reference.m_type != 2

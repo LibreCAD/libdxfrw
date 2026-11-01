@@ -1,0 +1,61 @@
+{
+  "receipt": "p5-ac1027-field-object-reference-transport-2026-11-01",
+  "recordedAt": "2026-11-01",
+  "scope": {
+    "target": "Generated AC1027 DXF FIELD/FIELDLIST/TABLECONTENT transport",
+    "fileFormats": [
+      "ASCII DXF",
+      "Binary DXF"
+    ],
+    "sourceFixture": "The test graph and LINE target are authored in memory; no DWG or DXF fixture file was added.",
+    "qualifiedShapes": [
+      "FIELD object-handle lists: group 97 count and repeated group 331 soft-pointer IDs",
+      "Main FIELD CadValue ID: type-64 implementation branch serialized as group 330",
+      "Child-value CadValue ID: keyed child value serialized with group 330",
+      "Target resolution against the retained document object handles",
+      "Entity handle remapping with FIELD references following the emitted identity"
+    ],
+    "notQualified": [
+      "The Autodesk FIELD page documents group 330 for an ID-valued field value but does not define the library's numeric type constant 64; that constant is the existing implementation branch exercised here.",
+      "Other child-value data types and additional producer/version profiles",
+      "Native FIELD expression evaluation, calculated values, and CAD application semantics",
+      "Independent CAD consumer acceptance or a DWG source-to-DXF semantic association"
+    ]
+  },
+  "authority": [
+    {
+      "title": "Autodesk AutoCAD 2021 FIELD (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-51B921F2-16CA-4948-AC75-196198DD1796.htm",
+      "supports": [
+        "Group 97 is the number of object IDs used in field code.",
+        "Group 331 repeats for those IDs and is an AcDbSoftPointerId.",
+        "Group 330 represents the ID value when the field-value data type is ID."
+      ]
+    }
+  ],
+  "implementation": {
+    "admission": "hasTableContentFieldOutputProfile permits only string values and resolved type-64 object-ID values for this profile; object-handle lists and keyed child-value object IDs must resolve to a retained document object. Other child-value types remain refused.",
+    "serialization": "The existing FIELD serializer remaps group 331 and type-64 group 330 handles through the DXF writer's object-handle remapper.",
+    "files": [
+      {
+        "path": "dwg2dxf/dx_iface.cpp",
+        "sha256": "d3cb49afe2f395348284d97b4c43fbc1c695cc9f8e5a57059733c29036c30084"
+      },
+      {
+        "path": "tests/dwg2dxf_adapter_tests.cpp",
+        "sha256": "e7926e2091cc2d5d5462da41359562587dbaeed1eb3f73e56f1b6a7c5ea25666"
+      }
+    ]
+  },
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "testCommand": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --fieldlist-membership-output",
+    "result": "PASS",
+    "observations": [
+      "ASCII and Binary output both read back all three FIELD records, FIELDLIST membership, and TABLECONTENT FIELD references.",
+      "Group-331 references and main/child group-330 IDs resolve to the emitted LINE handle, which differs from its source handle.",
+      "An unresolved CadValue object ID is refused without replacing a sentinel destination; correcting the reference succeeds on the same adapter instance.",
+      "No external DWG/DXF fixture was added."
+    ]
+  }
+}
