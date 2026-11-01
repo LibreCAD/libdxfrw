@@ -22,6 +22,7 @@ from tempfile import TemporaryDirectory
 
 START = "<!-- UPGRADE_PROGRESS_START -->"
 END = "<!-- UPGRADE_PROGRESS_END -->"
+HISTORY_RELATIVE = Path("docs/LIBRECAD_DXFRW_UPGRADE_HISTORY.md")
 SLICE_STATES = {"PLANNED", "READY", "ACTIVE", "VERIFYING", "VERIFIED",
                 "COMMITTED", "BLOCKED_HARD", "SUPERSEDED"}
 ITEM_STATES = SLICE_STATES
@@ -88,6 +89,17 @@ def rows(text: str) -> list[Row]:
     return result
 
 
+def ledger_rows(text: str, repo: Path | None = None) -> list[Row]:
+    """Read active rows and, when available, their archived completion history."""
+    result = rows(text)
+    if repo is None:
+        return result
+    history_path = repo / HISTORY_RELATIVE
+    if history_path.is_file():
+        result.extend(rows(history_path.read_text(encoding="utf-8")))
+    return result
+
+
 def parse_dependencies(value: str) -> list[str]:
     value = value.strip()
     if value.lower() in {"", "none", "-"}:
@@ -97,7 +109,7 @@ def parse_dependencies(value: str) -> list[str]:
 
 def validate(text: str, repo: Path | None = None) -> list[str]:
     diagnostics: list[str] = []
-    parsed = rows(text)
+    parsed = ledger_rows(text, repo)
     slices = {row.ident: row for row in parsed if row.kind == "slice"}
     parents = {row.ident: row for row in parsed if row.kind == "parent"}
     children = {row.ident: row for row in parsed if row.kind == "child"}
@@ -178,7 +190,7 @@ def report(plan: Path, revision: str, repo: Path) -> str:
     if not slice_match:
         raise ValueError(f"{revision} has no Plan-Slice trailer")
     ident = slice_match.group(1)
-    row = next((item for item in rows(text)
+    row = next((item for item in ledger_rows(text, repo)
                 if item.kind == "slice" and item.ident == ident), None)
     if row is None:
         raise ValueError(f"{ident} is absent from the plan")
@@ -304,6 +316,30 @@ def self_test() -> None:
         assert "PLAN_PREPARED:S00" in path.read_text(encoding="utf-8")
         abort_commit(path, "S00")
         assert "PLAN_PREPARED:S00" not in path.read_text(encoding="utf-8")
+
+        # Active work may depend on completed items moved to the archive.
+        archive = Path(directory) / HISTORY_RELATIVE
+        archive.parent.mkdir(parents=True)
+        archive.write_text(
+            f"{START}\n"
+            "| Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |\n"
+            "| --- | --- | --- | --- | --- | --- | --- |\n"
+            "| S00 | A0 | none | COMMITTED | gate | archived | S01 |\n"
+            "| Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |\n"
+            "| --- | --- | --- | --- | --- | --- |\n"
+            "| A0 | S00 | none | COMMITTED | NOT_APPLICABLE | archived |\n"
+            "| Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |\n"
+            "| --- | --- | --- | --- | --- | --- | --- | --- |\n"
+            "| A0.1 | A0 / S00 | WP0 | none | COMMITTED | NOT_APPLICABLE | gate | archived |\n"
+            f"{END}\n",
+            encoding="utf-8")
+        active = sample.replace("| S00 | A0 | none | COMMITTED |",
+                                "| S01 | A1 | S00 | VERIFYING |")
+        active = active.replace("| A0 | S00 | none | PLANNED |",
+                                "| A1 | S01 | A0 | VERIFYING |")
+        active = active.replace("| A0.1 | A0 / S00 | WP0 | none | COMMITTED |",
+                                "| A1.1 | A1 / S01 | WP1 | A0.1 | VERIFYING |")
+        assert not validate(active, Path(directory))
     bad = sample.replace("| S00 | A0 | none | COMMITTED |", "| S00 | A0 | S99 | COMMITTED |")
     assert validate(bad)
     print("update_upgrade_plan self-test: PASS")

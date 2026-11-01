@@ -16833,7 +16833,7 @@ bool dxfRW::processBlockRecord() {
         }
         std::size_t contextRecordCount = 0u;
         std::size_t contextCopyBytes = 0u;
-        const std::size_t maxSize =
+        static constexpr std::size_t maxSize =
             (std::numeric_limits<std::size_t>::max)();
         const auto addContextCopyBytes = [&contextCopyBytes](
                 std::size_t bytes) {
@@ -29714,7 +29714,7 @@ bool dxfRW::writeDataLink(DRW_DataLink *ent) {
 }
 
 bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
-    constexpr std::size_t maxTableCellAttributes = 10000u;
+    static constexpr std::size_t maxTableCellAttributes = 10000u;
     const auto safeText = [](const UTF8STRING& text) {
         return text.size() <= 16u * 1024u * 1024u
             && isSafeDxfRecordText(text);
