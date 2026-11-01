@@ -1696,14 +1696,17 @@ edit this block or commit the same slice concurrently.
   predicates; casts the `NoHandle` branch to its underlying `uint32_t` type;
   and uses an exact `int64_t` variant constructor argument. The reader-matrix
   target builds and passes 1/1 under local Apple Clang 21 and GCC 16/libstdc++.
-  The two new GCC fixes are limited to the affected source/test expressions;
-  targeted local rebuilds and new hosted results remain required. The previous
+  The `libdxfrw_debug_state_tests` target rebuilds and links under local GCC 16;
+  a separate `-Werror -fsyntax-only` probe under GCC 16 exercises both corrected
+  GCC expressions. The full DXF fixture test translation unit remains covered
+  by the hosted fast run. The previous
   candidate's Linux/macOS receipts remain baseline evidence only: the selected
   implementation digest now reads
   `b042eca3771f789446004c3eafcaa32909303083ad685fef4b53944d6247221a` across
   456 inputs, so fresh receipts are required. Neither hosted failure nor the
   worktree fixes are qualified until a new candidate completes the platform and
-  fast workflows. Local Apple Clang 21 and GCC 16/libstdc++ focused controls
+  fast workflows. Candidate `7d1a6f06` is in native run `41317674256` and fast
+  run `41317674246`; both are pending. Local Apple Clang 21 and GCC 16/libstdc++ focused controls
   pass; the two previously reproduced CTests pass 2/2 under each, and the
   Point18 fixture control passes. Run round-trip tests serially across local
   build trees because generated temporary DXF names are shared. Do not count
@@ -1736,7 +1739,7 @@ edit this block or commit the same slice concurrently.
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
 | S15 | C2: UTF-8/native input and atomic-output paths | S11, S14 | VERIFYING | focused native suite on Linux/macOS/Windows; Unicode parent/basename/non-BMP DXF ASCII+binary/DWG; transaction commit/rollback/cleanup; existing hardening and writer controls; LibreCAD filter and LibreCAD_3 compatibility consumers | C2.1 implementation and portable Mac/Ubuntu ARM controls are complete and archived. Linux/GCC 13 and macOS/Apple Clang baseline receipts pass on `c237d094`; regenerate Windows/Linux/macOS receipts for the current digest. LibreCAD runtime/persistence consumers remain; local filter/parser and LibreCAD_3 compatibility compiles pass at their locked revisions. No support claim is promoted. | current-digest platform receipts and runtime consumers |
-| S20 | H0: hosted build and fast-workflow repair closure | S19 | VERIFYING | clean focused build and `libdxfrw_dwg_local_roundtrip`; focused Linux x64, Windows x64, and macOS ARM64 receipts; `parity-fast`; fixture-admission guard | Candidate `c237d094` passes Linux/macOS native suites but fails MSVC on test-lambda captures; its fast workflow also finds two GCC-only compile diagnostics. The worktree fixes all three diagnostic sources and records digest `b042eca3771f789446004c3eafcaa32909303083ad685fef4b53944d6247221a` across 456 inputs. The reader-matrix test passes locally under Apple Clang 21/GCC 16. Targeted GCC expression builds and fresh hosted Linux, Windows, macOS, and fast-workflow runs are required. No support claims or drawing payload files changed. | S15, final release |
+| S20 | H0: hosted build and fast-workflow repair closure | S19 | VERIFYING | clean focused build and `libdxfrw_dwg_local_roundtrip`; focused Linux x64, Windows x64, and macOS ARM64 receipts; `parity-fast`; fixture-admission guard | Candidate `c237d094` passes Linux/macOS native suites but fails MSVC on test-lambda captures; its fast workflow also finds two GCC-only compile diagnostics. Commit `7d1a6f06` fixes all three sources and records digest `b042eca3771f789446004c3eafcaa32909303083ad685fef4b53944d6247221a` across 456 inputs. The reader-matrix test passes under local Apple Clang 21/GCC 16; GCC 16 also links the debug-state target and compiles a `-Werror` probe covering the corrected expressions. Fresh native run `41317674256` and fast run `41317674246` are pending. No support claims or drawing payload files changed. | S15, final release |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
@@ -1746,7 +1749,7 @@ edit this block or commit the same slice concurrently.
 | Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | C2.2 | C2 / S15 | WP3/WP8; Phase 8 follow-up | C2.1 | VERIFYING | NOT_EVALUATED | own current-digest three-platform immutable hosted receipts and LibreCAD filter/LibreCAD_3 compatibility consumers | The first hosted macOS CTest failure was fixture setup coupling; ASCII/binary path readback now uses fresh drawings. On locked LibreCAD commit `2043e525`, the `c237d094` source overlay builds `librecad_filter_compile_check` and `libdxfrw_test_core` under Apple Clang 21. The separate `lc3_compat_check` compiles under Apple Clang 21 and GCC 16 without `DWGSUPPORT`. Linux/GCC 13 and macOS/Apple Clang receipts on `c237d094` pass 7/7, but the MSVC-driven explicit-capture test fix changes the selected implementation digest; those receipts are baseline only. Windows and fresh Linux/macOS receipts plus LibreCAD runtime Unicode/persistence/full-consumer checks remain. No support claims are promoted. |
-| H0.2 | H0 / S20 | WP1/WP2; Phase 2 follow-up | H0.1 | VERIFYING | NOT_EVALUATED | GCC/MSVC/Apple Clang compile portability under default warnings-as-errors | `c237d094` fixed GCC 13 warnings and earlier MSVC helper links. Its Windows job then rejected no-capture lambdas in `dwg_reader_matrix_tests.cpp` with C3493; C2064/C2737 errors cascade from them. The `parity-fast` build also rejected the `NoHandle` conditional and an ambiguous `DRW_Variant` test value. The worktree adds explicit lambda captures, an exact `uint32_t` sentinel branch, and an exact `int64_t` variant input. The reader-matrix test passes under local Apple Clang 21/GCC 16; targeted compile checks for both GCC findings and fresh hosted Linux/Windows/macOS/fast runs remain. Current digest: `b042eca3771f789446004c3eafcaa32909303083ad685fef4b53944d6247221a` (456 inputs). |
+| H0.2 | H0 / S20 | WP1/WP2; Phase 2 follow-up | H0.1 | VERIFYING | NOT_EVALUATED | GCC/MSVC/Apple Clang compile portability under default warnings-as-errors | `c237d094` fixed GCC 13 warnings and earlier MSVC helper links. Its Windows job then rejected no-capture lambdas in `dwg_reader_matrix_tests.cpp` with C3493; C2064/C2737 errors cascade from them. The `parity-fast` build also rejected the `NoHandle` conditional and an ambiguous `DRW_Variant` test value. Commit `7d1a6f06` adds explicit lambda captures, an exact `uint32_t` sentinel branch, and an exact `int64_t` variant input. The reader-matrix test passes under local Apple Clang 21/GCC 16; GCC 16 also links the debug-state target and compiles a `-Werror` probe covering both corrected expressions. Native run `41317674256` and fast run `41317674246` are pending. Current digest: `b042eca3771f789446004c3eafcaa32909303083ad685fef4b53944d6247221a` (456 inputs). |
 
 
 
