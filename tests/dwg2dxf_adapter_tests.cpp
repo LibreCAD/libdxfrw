@@ -37304,6 +37304,83 @@ bool physicalSortEntsOutputReadback(
     return true;
 }
 
+bool physicalSortEntsOwnerScopeQualification(
+        const std::filesystem::path& sourcePath) {
+    const std::vector<std::uint32_t> expectedTables = {
+        0x00F3u, 0x106Au, 0x111Cu, 0x121Du
+    };
+    for (const bool binary : {false, true}) {
+        dx_iface sourceReader;
+        dx_data source;
+        if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+            || source.sourceFormat != dx_source_format::DWG
+            || source.sourceVersion != DRW::AC1024
+            || source.sortEntsTables.size() != expectedTables.size())
+            return fail("physical owner-scope source is not the four-table AC1024 profile");
+
+        std::uint32_t eligibleTable = 0u;
+        for (const std::uint32_t expectedTable : expectedTables) {
+            const auto table = std::find_if(source.sortEntsTables.begin(),
+                source.sortEntsTables.end(), [expectedTable](
+                    const DRW_SortEntsTable& candidate) {
+                        return candidate.handle == expectedTable;
+                    });
+            if (table == source.sortEntsTables.end())
+                return fail("physical owner-scope SORTENTSTABLE identity is missing");
+            const auto owner = std::find_if(source.blockRecords.begin(),
+                source.blockRecords.end(), [&table](
+                    const DRW_Block_Record& candidate) {
+                        return candidate.handle == table->m_blockOwnerHandle;
+                    });
+            if (owner == source.blockRecords.end()
+                || ((owner->name == "*Model_Space"
+                     || owner->name == "*Paper_Space")
+                    != (expectedTable == 0x00F3u)))
+                return fail("physical owner-scope SORTENTSTABLE owner role changed");
+            if (owner->name == "*Model_Space"
+                || owner->name == "*Paper_Space")
+                eligibleTable = table->handle;
+        }
+        if (eligibleTable != 0x00F3u)
+            return fail("physical owner-scope source has an unexpected DXF-space table");
+
+        const auto nonce = std::chrono::steady_clock::now()
+                               .time_since_epoch().count();
+        const std::filesystem::path outputPath =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-sortents-owner-scope-"
+               + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{outputPath};
+        dx_iface writer;
+        if (!writer.fileExport(outputPath.string(), DRW::AC1024, binary,
+                &source, false, true,
+                dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::AllowPartial))
+            return fail("physical owner-scope partial output failed");
+        for (const std::uint32_t expectedTable : expectedTables) {
+            const bool qualified =
+                DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                    source, source.importGeneration, expectedTable);
+            if (qualified != (expectedTable == eligibleTable))
+                return fail("physical SORTENTSTABLE output qualification exceeded the documented space-owner scope");
+        }
+        std::cerr << "Physical SORTENTSTABLE "
+                  << (binary ? "binary" : "ASCII")
+                  << " owner-scope qualification passed: one Model/Paper Space "
+                     "table qualified; named block tables remain unqualified.\n";
+    }
+    return true;
+}
+
 bool physicalDictionaryDefaultOutputReadback(
         const std::filesystem::path& sourcePath,
         bool requireAc1018 = false) {
@@ -58538,6 +58615,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--sortents-physical-output-readback")
         return physicalSortEntsOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--sortents-owner-scope-qualification")
+        return physicalSortEntsOwnerScopeQualification(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--dictionary-default-physical-output-readback")
         return physicalDictionaryDefaultOutputReadback(argv[2]) ? 0 : 1;

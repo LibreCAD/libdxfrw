@@ -58,6 +58,14 @@ Implementation history and evidence stay in Git and `docs/research/`.
 P6–P9 qualification can proceed when its inputs are ready; it does not block
 independently ready local code work.
 
+**SORTENTSTABLE owner-scope restriction:** Autodesk's DXF definition limits the
+owner reference to `*MODEL_SPACE` or `*PAPER_SPACE`. Physical AC1024 testing
+therefore qualifies the Model/Paper Space table only; named-block tables remain
+unqualified even when their source graph and emitted bytes are internally
+consistent. The previous multi-table output receipt records physical output
+evidence, but its named-block callbacks are not eligible DXF support claims
+under this owner schema. See the [owner-scope receipt](docs/research/p4-ac1024-sortents-owner-scope-qualification-2026-11-01.json).
+
 **Open external semantic gate — native dynamic-block evaluation.**
 The AC1024 source has `EvalExpr.parentId=0xFFFFFFFF` for `BLOCKLINEARGRIP`
 handle `0x1111`, while the current DXF readback model reports default `0`.

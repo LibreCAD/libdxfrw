@@ -56793,6 +56793,10 @@ bool dx_iface::validateSortEntsGraph(const dx_data& data, bool debug) {
                 if (dictionary == dictionaries.end()
                     || blockOwner == owners.end()
                     || frame == data.m_opaqueDwgSourceFrames.end()
+                    || (!asciiIdentifierEquals(
+                            blockOwner->second->name, "*MODEL_SPACE")
+                        && !asciiIdentifierEquals(
+                            blockOwner->second->name, "*PAPER_SPACE"))
                     || ownerFrame == data.m_standardDwgObjectFrames.end()
                     || ownerFrame->second.generation != data.importGeneration
                     || !ownerFrame->second.payloadMatched
