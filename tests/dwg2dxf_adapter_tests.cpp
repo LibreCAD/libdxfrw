@@ -44119,6 +44119,155 @@ bool associativeDwgGeometryDependencyGraphExport() {
         if (readLine->reactorHandles
             != std::vector<std::uint32_t>{readDependency->handle})
             return fail("geometry-associative target reactor backlink changed on readback");
+
+        if (readback.sourceFormat != dx_source_format::DXF
+            || readback.sourceVersion != DRW::AC1024
+            || !readback.dynamicBlockObjects.empty()
+            || readback.associativeObjects.size() != 3u
+            || readback.rawAssociativeObjects.size() != 3u)
+            return fail("generated associative-only DXF replay control has an unexpected carrier set");
+
+        const auto replayPath = directory / ("libdxfrw-associative-dxf-replay-"
+            + std::to_string(nonce)
+            + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct ReplayCleanup {
+            std::filesystem::path path;
+            ~ReplayCleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } replayCleanup{replayPath};
+        const std::string replaySentinel =
+            "associative-only replay must preserve this destination\n";
+        const auto seedReplayDestination = [&]() {
+            std::ofstream output(replayPath,
+                std::ios::binary | std::ios::trunc);
+            return output && static_cast<bool>(output << replaySentinel);
+        };
+        const auto replayDestinationPreserved = [&]() {
+            std::ifstream input(replayPath, std::ios::binary);
+            return input && std::string{
+                std::istreambuf_iterator<char>(input), {}} == replaySentinel;
+        };
+        class LateAssociativeMutationExporter final : public dx_iface {
+        public:
+            bool mutateAfterObjects{false};
+            bool applied{false};
+
+            void writeObjects() override {
+                dx_iface::writeObjects();
+                if (!mutateAfterObjects || cData == nullptr)
+                    return;
+                for (DRW_AssociativeObject& object :
+                     cData->associativeObjects) {
+                    if (object.m_recordName != "ACDBASSOCNETWORK")
+                        continue;
+                    ++object.m_networkVersion;
+                    applied = true;
+                    return;
+                }
+            }
+        } replayExporter;
+        const auto exportAssociativeOnlyDxf = [&]() {
+            return replayExporter.fileExport(
+                replayPath.string(), DRW::AC1024, binary, &readback,
+                false, true, dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete);
+        };
+        const auto networkOriginal = std::find_if(
+            readback.associativeObjects.begin(),
+            readback.associativeObjects.end(),
+            [](const DRW_AssociativeObject& object) {
+                return object.m_recordName == "ACDBASSOCNETWORK";
+            });
+        if (networkOriginal == readback.associativeObjects.end()
+            || !seedReplayDestination())
+            return fail("could not prepare associative-only DXF replay control");
+        const std::int32_t originalNetworkVersion =
+            networkOriginal->m_networkVersion;
+        const std::uint32_t networkHandle = networkOriginal->handle;
+        replayExporter.mutateAfterObjects = true;
+        replayExporter.applied = false;
+        const bool mutationRefused = !exportAssociativeOnlyDxf();
+        replayExporter.mutateAfterObjects = false;
+        auto networkAfterMutation = std::find_if(
+            readback.associativeObjects.begin(),
+            readback.associativeObjects.end(),
+            [networkHandle](const DRW_AssociativeObject& object) {
+                return object.handle == networkHandle
+                    && object.m_recordName == "ACDBASSOCNETWORK";
+            });
+        if (networkAfterMutation != readback.associativeObjects.end())
+            networkAfterMutation->m_networkVersion = originalNetworkVersion;
+        if (!mutationRefused || !replayExporter.applied
+            || !replayDestinationPreserved()
+            || readback.associativeDxfImport.qualifiedRecords != 0u)
+            return fail("associative-only late mutation was not refused atomically");
+
+        const bool retrySucceeded = exportAssociativeOnlyDxf();
+        if (!retrySucceeded
+            || readback.associativeDxfImport.qualifiedRecords
+                != readback.associativeObjects.size()) {
+            return fail("corrected associative-only DXF replay did not retry with complete qualification");
+        }
+        dx_data replayReadback;
+        dx_iface replayReader;
+        if (!replayReader.fileImport(replayPath.string(), &replayReadback,
+                false)
+            || replayReadback.sourceFormat != dx_source_format::DXF
+            || replayReadback.sourceVersion != DRW::AC1024
+            || !replayReadback.dynamicBlockObjects.empty()
+            || replayReadback.associativeObjects.size() != 3u
+            || replayReadback.rawAssociativeObjects.size() != 3u)
+            return fail("associative-only DXF replay did not freshly read back all typed/raw records");
+        for (const DRW_AssociativeObject& original :
+             readback.associativeObjects) {
+            const auto actual = std::find_if(
+                replayReadback.associativeObjects.begin(),
+                replayReadback.associativeObjects.end(),
+                [&original](const DRW_AssociativeObject& object) {
+                    return object.handle == original.handle;
+                });
+            if (actual == replayReadback.associativeObjects.end()
+                || actual->m_recordName != original.m_recordName
+                || actual->parentHandle != original.parentHandle)
+                return fail("associative-only DXF replay changed a record identity or field: "
+                    + original.m_recordName + " "
+                    + (binary ? "binary" : "ascii"));
+            if (original.m_recordName == "ACDBASSOCNETWORK"
+                && (actual->m_networkVersion != original.m_networkVersion
+                    || actual->m_networkActionIndex
+                        != original.m_networkActionIndex
+                    || actual->m_actions.size() != original.m_actions.size()))
+                return fail(std::string(
+                    "associative-only replay changed network fields: ")
+                    + (binary ? "binary" : "ascii"));
+            if (original.m_recordName
+                    == "ACDBASSOC2DCONSTRAINTGROUP"
+                && (actual->m_constraintActions
+                        != original.m_constraintActions
+                    || actual->m_constraintNodes.size()
+                        != original.m_constraintNodes.size()
+                    || actual->m_constraintNodeCount
+                        != original.m_constraintNodeCount))
+                return fail(std::string(
+                    "associative-only replay changed constraint-group fields: ")
+                    + (binary ? "binary" : "ascii"));
+            if (original.m_recordName == "ACDBASSOCGEOMDEPENDENCY"
+                && (actual->m_dependencyHandle
+                        != original.m_dependencyHandle
+                    || actual->m_dependencyOrder
+                        != original.m_dependencyOrder
+                    || actual->m_geomDependencyFieldsParsed
+                        != original.m_geomDependencyFieldsParsed
+                    || actual->m_geomPersistentSubentityClassName
+                        != original.m_geomPersistentSubentityClassName))
+                return fail(std::string(
+                    "associative-only replay changed geometry-dependency fields: ")
+                    + (binary ? "binary" : "ascii"));
+        }
     }
     return true;
 }

@@ -8491,8 +8491,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
         const bool allowDxfAssociativeTraversal =
             data->sourceFormat == dx_source_format::DXF
             && data->sourceVersion == DRW::AC1024
-            && hasCompleteDxfAssociativeCarrierPairs(*data)
-            && hasCompleteDxfDynamicBlockCarrierPairs(*data);
+            && hasCompleteDxfAssociativeCarrierPairs(*data);
         const bool hasGeometryDependencies = associativeObjects != nullptr
             && std::any_of(associativeObjects->begin(),
                            associativeObjects->end(),
@@ -38177,7 +38176,6 @@ bool dx_iface::prepareDxfAssociativeReplaySources(
         return false;
     };
     if (cData == nullptr || cData->sourceFormat != dx_source_format::DXF
-        || cData->dynamicBlockObjects.empty()
         || cData->associativeObjects.empty()) {
         m_dxfAssociativeReplaySources.clear();
         m_dxfAssociativeReplayOwner = nullptr;
@@ -38202,11 +38200,9 @@ bool dx_iface::prepareDxfAssociativeReplaySources(
     m_dxfAssociativeReplayPreparedRecords = 0u;
     m_dxfAssociativeReplayPrepared = false;
     m_dxfAssociativeReplayInspected = false;
-    if (version != cData->sourceVersion
-        || !hasCompleteDxfAssociativeCarrierPairs(*cData)
-        || !m_dxfDynamicReplayPrepared
-        || !hasCompleteAc1024DynamicBlockGraphSet(*cData))
-        return reject("same-version typed/raw identity or complete dynamic graph");
+    if (version != DRW::AC1024 || version != cData->sourceVersion
+        || !hasCompleteDxfAssociativeCarrierPairs(*cData))
+        return reject("same-version AC1024 typed/raw identity");
     try {
         std::size_t retainedBytes = 0u;
         m_dxfAssociativeReplaySources.reserve(
@@ -38349,10 +38345,40 @@ bool dx_iface::inspectDxfAssociativeReplay(
                       << reason << '\n';
         return false;
     };
-    if (dxfW == nullptr || cData == nullptr
-        || view.version != m_dxfAssociativeReplayVersion
-        || !hasUnchangedDxfAssociativeReplaySources())
-        return reject("source snapshot/version");
+    if (dxfW == nullptr || cData == nullptr)
+        return reject("writer/context");
+    if (view.version != m_dxfAssociativeReplayVersion)
+        return reject("target version");
+    if (!hasUnchangedDxfAssociativeReplaySources()) {
+        if (cData != m_dxfAssociativeReplayOwner
+            || cData->sourceFormat != dx_source_format::DXF
+            || cData->importGeneration != m_dxfAssociativeReplayGeneration
+            || cData->sourceVersion != m_dxfAssociativeReplayVersion
+            || cData->associativeObjects.size()
+                != m_dxfAssociativeReplaySources.size()
+            || cData->rawAssociativeObjects.size()
+                != m_dxfAssociativeReplaySources.size())
+            return reject("source import identity/cardinality");
+        for (std::size_t index = 0u;
+             index < m_dxfAssociativeReplaySources.size(); ++index) {
+            const DxfAssociativeReplaySource& source =
+                m_dxfAssociativeReplaySources[index];
+            if (!associativeDxfReplayModelEqual(
+                    source.model, cData->associativeObjects[index])) {
+                const DRW_AssociativeObject& actual =
+                    cData->associativeObjects[index];
+                if (debug)
+                    std::cerr << "DXF associative replay changed typed record: "
+                              << actual.m_recordName << " handle="
+                              << actual.handle << '\n';
+                return reject("typed source record changed");
+            }
+            if (!retainedRawDxfObjectsEqual(
+                    source.raw, cData->rawAssociativeObjects[index]))
+                return reject("raw source record changed");
+        }
+        return reject("source snapshot state");
+    }
     try {
         std::unordered_map<std::uint32_t,
             const DxfAssociativeReplaySource*> expected;
@@ -61867,11 +61893,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         && cData->sourceFormat == dx_source_format::DWG;
     if (requireResolvedOwners
         && cData->sourceFormat == dx_source_format::DXF) {
-        if (!cData->dynamicBlockObjects.empty()
-            && (!prepareDxfDynamicBlockReplaySources(
-                    v, debug || requireResolvedOwners)
-                || !prepareDxfAssociativeReplaySources(
-                    v, debug || requireResolvedOwners))) {
+        if (!prepareDxfDynamicBlockReplaySources(
+                v, debug || requireResolvedOwners)
+            || !prepareDxfAssociativeReplaySources(
+                v, debug || requireResolvedOwners)) {
             reportPreflightFailure(
                 "same-version DXF dynamic/associative raw replay profile");
             return false;
@@ -62688,7 +62713,6 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         return false;
     }
     if (cData->sourceFormat == dx_source_format::DXF
-        && !cData->dynamicBlockObjects.empty()
         && (!prepareDxfDynamicBlockReplaySources(
                 v, debug || requireResolvedOwners)
             || !prepareDxfAssociativeReplaySources(
@@ -62803,8 +62827,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     if (hasDxfAssociativeObjects
         && (!m_dxfAssociativeReplayPrepared
             || !hasUnchangedDxfAssociativeReplaySources()
-            || !hasCompleteDxfAssociativeCarrierPairs(*cData)
-            || !hasCompleteAc1024DynamicBlockGraphSet(*cData))) {
+            || !hasCompleteDxfAssociativeCarrierPairs(*cData))) {
         reportPreflightFailure(
             "DXF-origin associative records have no admitted output graph route");
         return false;
@@ -65983,11 +66006,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         m_rasterOutputPublished = true;
     if (success && m_generatedRootOutputInspected && m_generatedRootOutputFinalized)
         m_generatedRootOutputPublished = true;
-    if (success && m_dxfDynamicReplayPrepared
-        && m_dxfAssociativeReplayPrepared
-        && m_dxfDynamicReplayInspected
-        && m_dxfAssociativeReplayInspected
-        && cData != nullptr) {
+    if (success && m_dxfAssociativeReplayPrepared
+        && m_dxfAssociativeReplayInspected && cData != nullptr) {
         cData->associativeDxfImport.qualifiedRecords =
             m_dxfAssociativeReplayPreparedRecords;
     }
