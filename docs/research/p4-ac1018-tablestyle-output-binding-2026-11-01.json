@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-01",
+  "profile": "AC1018 ET-Drawing-with-Border Standard TABLESTYLE to AC1024 DXF",
+  "classification": "BOUNDED_OUTPUT_PROFILE_COMPLETE_NO_CLAIM_PROMOTION",
+  "support_claim_effect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "sha256": "85819667e8e88366ca3d8f9a0dda9770f094b6445882e08e0b2b3bf983472f7b",
+    "version": "AC1018",
+    "committed_as_fixture": false,
+    "opaque_callback_count": 23
+  },
+  "authoritative_format_source": {
+    "document": "Open Design Specification for .dwg files, v5.4.1",
+    "section": "20.4.101.1 TABLESTYLE format until R21",
+    "pages": [242, 243],
+    "relevant_layout": "Common object data, flow direction, flags, horizontal/vertical margins, title/header suppression, then three row styles in data/title/header order. Each row carries a text-style hard pointer, height/alignment, text/fill CMC, background enable, six ordered border weights/visibility/CMC colors. R2007+ adds data type and unit fields."
+  },
+  "independent_source_evidence": {
+    "project": "GNU LibreDWG",
+    "version": "0.14",
+    "command": "dwgread -O JSON -o /tmp/et-libre.json /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+    "json_sha256": "bccee1259568948df2fd0e65c797932965574cc81824781864c3b34b4129d788",
+    "object": {
+      "type": 504,
+      "handle": "0x87",
+      "class": "AcDbTableStyle",
+      "name": "Standard",
+      "owner": "DICTIONARY 0x86",
+      "reactor": "DICTIONARY 0x86",
+      "horizontal_margin": 0.06,
+      "vertical_margin": 0.06,
+      "rows": [
+        { "text_style": "0x11", "height": 0.18, "alignment": 2 },
+        { "text_style": "0x11", "height": 0.25, "alignment": 5 },
+        { "text_style": "0x11", "height": 0.18, "alignment": 5 }
+      ],
+      "row_color_evidence": "All row text CMC tokens are c1000000; fill tokens are c3000007. LibreDWG JSON reports fill index 256 alongside c3000007. libdxfrw's typed projection is scalar ACI 7 plus CMC method 0xC3; the admitted profile requires the pair and the DXF writer emits group 63 value 7."
+    },
+    "root_graph": {
+      "nod": "DICTIONARY 0x0C",
+      "nod_key": "ACAD_TABLESTYLE",
+      "root_dictionary": "0x86",
+      "root_entry": { "key": "Standard", "target": "0x87" },
+      "root_dictionary_owner": "0x0C"
+    },
+    "local_frame_observation": "The source-bound callback frame is AC1018, type 504, custom AcDbTableStyle/TABLESTYLE, with typed payload validated and common-link evidence Unknown. Admission binds typed owner 0x86, the independently decoded NOD/dictionary graph, and actual staged output; it does not treat the frame's zero/unknown common-link projection as proof."
+  },
+  "qualified_scope": {
+    "target": "AC1024 DXF",
+    "encodings": ["ASCII", "Binary"],
+    "source_profile": "One Standard TABLESTYLE with three legacy rows, six ordered borders per row, 0.06 margins, row heights 0.18/0.25/0.18, alignments 2/5/5, paired CMC colors, and a unique text-style dependency.",
+    "graph": "The staged-output inspector verifies the emitted NOD ACAD_TABLESTYLE edge, root dictionary owner and Standard entry, TABLESTYLE identity and owner, and emitted STYLE dependency. Test readback verifies the new source callback identity is published as output-qualified only after successful staged inspection.",
+    "field_readback": "Fresh import checks TABLESTYLE identity/key/owner; row style names (DXF group 7); margins/flow/flags/suppression; heights/alignment; text/fill/background and R2007+ type/unit groups; all 18 ordered border weights, visibility values and colors; and typed row values.",
+    "opaque_callback_count": "This profile adds TABLESTYLE handle 0x87 to the five identities qualified by the preceding AC1018 MLINESTYLE profile: 6 of 23 qualified and 17 remain unqualified. The source still fails strict whole-source conversion."
+  },
+  "failure_and_retry": {
+    "test_isolation": "The test-only source model assigns a valid temporary name to unrelated empty-name STYLE 0xDF so TABLES emission can reach the TABLESTYLE OBJECTS profile. It does not establish whole-source conversion or a production STYLE omission/replay disposition.",
+    "invalid_row": "A NaN row text height is refused without replacing a pre-existing destination and without publishing this callback's qualification.",
+    "invalid_border": "A lineweight of 40000 is refused without replacing the destination or publishing new qualification.",
+    "retry": "After restoring the source fields, the same adapter emits ASCII and Binary output, freshly imports the rows and dependency, and publishes output qualification for source callback 0x87."
+  },
+  "implementation": {
+    "files": ["dwg2dxf/dx_iface.cpp", "dwg2dxf/dx_iface.h", "tests/dwg2dxf_adapter_tests.cpp"],
+    "behavior": "The existing single-Standard TABLESTYLE graph proof now admits the exact AC1018 legacy row profile for AC1024 DXF output while retaining the AC1024 R24 gate. The source version is frozen with the source model; owner/key/dependency checks and staged output inspection remain required."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS"
+    },
+    "focused_selectors": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --tablestyle-physical-ac1018-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "result": "PASS for ASCII/Binary output, exact raw/typed fields, graph binding, qualification, atomic refusal and same-adapter retry"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --tablestyle-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+        "result": "PASS for the existing AC1024 R24 source/output profile in ASCII and Binary"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mline-style-physical-output-readback /Users/dli/doc/dwg/ET-Drawing-with-Border.dwg",
+        "result": "PASS for the existing AC1018 MLINESTYLE profile in ASCII and Binary"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_tablestyle_r24_typed_writer$' --output-on-failure",
+        "result": "PASS 1/1"
+      },
+      {
+        "command": "ctest --test-dir build-gcc -R '^libdxfrw_tablestyle_source_proof$' --output-on-failure",
+        "result": "PASS 1/1"
+      }
+    ],
+    "diff_check": "PASS"
+  },
+  "limits": [
+    "This qualifies one source-bound AC1018 Standard TABLESTYLE profile for AC1024 ASCII/Binary DXF output.",
+    "The test changes unrelated empty-name STYLE 0xDF only in its in-memory model; that STYLE remains refused in production.",
+    "Seventeen of the source's 23 opaque callback identities remain unqualified; strict whole-source conversion remains refused.",
+    "No native CAD rendering, LibreCAD/LibreCAD_3, FreeCAD, 3D semantics, other TABLESTYLE profile, or public support claim is established."
+  ],
+  "next_action": "Continue with the next AC1018 source-required callback whose typed body and rooted dependency graph can be tied to actual output. Keep all remaining callbacks and strict whole-source conversion refused."
+}

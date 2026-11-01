@@ -39318,6 +39318,404 @@ bool physicalTableStyleSourceProfile(
     return true;
 }
 
+bool physicalAc1018TableStyleOutputReadback(
+        const std::filesystem::path& sourcePath) {
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1018
+        || source.tableStyles.size() != 1u
+        || !source.hasNamedObjectDictionary)
+        return fail("physical TABLESTYLE source is not the one-record AC1018 profile");
+
+    DRW_TableStyle& style = source.tableStyles.front();
+    if (style.handle != 0x87u || style.m_name != "Standard"
+        || style.parentHandle != 0x86u || style.m_rowStyles.size() != 3u
+        || style.m_r24PrefixPresent || !style.m_cellStyles.empty()
+        || style.m_flowDirection != 0 || style.m_flags != 0
+        || style.m_horizontalCellMargin != 0.06
+        || style.m_verticalCellMargin != 0.06
+        || style.m_titleSuppressed || style.m_headerSuppressed)
+        return fail("physical AC1018 TABLESTYLE header is outside the legacy Standard profile");
+    const DRW_UnsupportedObject* sourceFrame =
+        DxIfaceStandardDwgCaptureTestAccess::opaqueSourceFrame(
+            source, source.importGeneration, style.handle);
+    if (sourceFrame == nullptr || sourceFrame->m_objectType != 504
+        || sourceFrame->m_handle != style.handle
+        || sourceFrame->m_version != DRW::AC1018
+        || !sourceFrame->m_isCustomClass
+        || !sourceFrame->m_typedPayloadValidated
+        || sourceFrame->m_className != "AcDbTableStyle"
+        || sourceFrame->m_recordName != "TABLESTYLE"
+        || sourceFrame->m_commonLinkEvidence
+            != DRW_DwgCommonLinkEvidence::Unknown)
+        return fail("physical AC1018 TABLESTYLE callback identity/common-link evidence changed");
+
+    const DRW_Dictionary* styleDictionary = nullptr;
+    std::size_t dictionaryMatches = 0u;
+    std::size_t rootMatches = 0u;
+    for (const DRW_Dictionary::Entry& entry :
+         source.namedObjectDictionary.m_entries) {
+        if (entry.m_name != "ACAD_TABLESTYLE")
+            continue;
+        ++rootMatches;
+        for (const DRW_Dictionary& dictionary : source.dictionaries) {
+            if (dictionary.handle != entry.m_handle)
+                continue;
+            styleDictionary = &dictionary;
+            ++dictionaryMatches;
+        }
+    }
+    const std::size_t keyMatches = styleDictionary == nullptr ? 0u
+        : static_cast<std::size_t>(std::count_if(
+            styleDictionary->m_entries.begin(), styleDictionary->m_entries.end(),
+            [&style](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == style.m_name
+                    && entry.m_handle == style.handle;
+            }));
+    if (rootMatches != 1u || dictionaryMatches != 1u
+        || styleDictionary == nullptr
+        || styleDictionary->handle != 0x86u
+        || styleDictionary->parentHandle
+            != source.namedObjectDictionary.handle
+        || keyMatches != 1u)
+        return fail("physical AC1018 TABLESTYLE dictionary/key/owner graph is not uniquely closed");
+
+    const auto validCmc = [](const DRW_TableStyleCmcColor& color,
+                             std::uint8_t method) {
+        return color.m_rgb == -1 && color.m_name.empty()
+            && color.m_bookName.empty() && color.m_method == method
+            && color.m_flags == 0u && color.m_reservedIndex == 0u;
+    };
+    constexpr double heights[]{0.18, 0.25, 0.18};
+    constexpr int alignments[]{2, 5, 5};
+    const std::uint32_t sourceTextStyleHandle = 0x11u;
+    for (std::size_t rowIndex = 0u; rowIndex < 3u; ++rowIndex) {
+        const DRW_TableStyleRowStyle& row = style.m_rowStyles[rowIndex];
+        if (row.m_textStyleHandle != sourceTextStyleHandle
+            || row.m_textHeight != heights[rowIndex]
+            || row.m_textAlignment != alignments[rowIndex]
+            || row.m_textColor != 0
+            || !validCmc(row.m_textColorCmc, 0xC1u)
+            || row.m_fillColor != 7
+            || !validCmc(row.m_fillColorCmc, 0xC3u)
+            || row.m_hasBackgroundColor || row.m_valueDataType != 0
+            || row.m_valueUnitType != 0 || !row.m_valueFormatString.empty()
+            || row.m_borders.size() != 6u) {
+            std::cerr << "TABLESTYLE row diagnostic index=" << rowIndex
+                      << " handle=" << row.m_textStyleHandle
+                      << " height=" << row.m_textHeight
+                      << " alignment=" << row.m_textAlignment
+                      << " textColor=" << row.m_textColor
+                      << " textCMC=" << static_cast<unsigned>(row.m_textColorCmc.m_method)
+                      << "/" << row.m_textColorCmc.m_rgb
+                      << "/" << static_cast<unsigned>(row.m_textColorCmc.m_flags)
+                      << "/" << row.m_textColorCmc.m_reservedIndex
+                      << " fill=" << row.m_fillColor
+                      << " fillCMC=" << static_cast<unsigned>(row.m_fillColorCmc.m_method)
+                      << "/" << row.m_fillColorCmc.m_rgb
+                      << "/" << static_cast<unsigned>(row.m_fillColorCmc.m_flags)
+                      << "/" << row.m_fillColorCmc.m_reservedIndex
+                      << " background=" << row.m_hasBackgroundColor
+                      << " value=" << row.m_valueDataType << "/"
+                      << row.m_valueUnitType << "/" << row.m_valueFormatString.size()
+                      << " borders=" << row.m_borders.size() << '\n';
+            return fail("physical AC1018 TABLESTYLE row is outside the admitted legacy profile");
+        }
+        for (std::size_t borderIndex = 0u;
+             borderIndex < row.m_borders.size(); ++borderIndex) {
+            const DRW_TableStyleBorder& border = row.m_borders[borderIndex];
+            if (border.m_edgeFlags != static_cast<int>(1u << borderIndex)
+                || border.m_lineWeight != -2 || border.m_visible != 1
+                || border.m_color != 0
+                || !validCmc(border.m_colorCmc, 0xC1u)
+                || border.m_propertyOverrideFlags != 0
+                || border.m_borderType != 0 || border.m_lineTypeHandle != 0u
+                || border.m_doubleLineSpacing != 0.0)
+                return fail("physical AC1018 TABLESTYLE border is outside the admitted legacy profile");
+        }
+    }
+    const DRW_Textstyle* sourceTextStyle = nullptr;
+    std::size_t textStyleMatches = 0u;
+    for (const DRW_Textstyle& textStyle : source.textStyles) {
+        if (textStyle.handle != sourceTextStyleHandle)
+            continue;
+        sourceTextStyle = &textStyle;
+        ++textStyleMatches;
+    }
+    if (textStyleMatches != 1u || sourceTextStyle == nullptr
+        || sourceTextStyle->name.empty())
+        return fail("physical AC1018 TABLESTYLE text-style dependency is not uniquely resolved");
+
+    auto invalidEmptyStyle = std::find_if(
+        source.textStyles.begin(), source.textStyles.end(),
+        [](const DRW_Textstyle& textStyle) {
+            return textStyle.handle == 0xDFu && textStyle.name.empty();
+        });
+    if (invalidEmptyStyle == source.textStyles.end())
+        return fail("physical AC1018 TABLESTYLE source no longer contains the known invalid empty-name STYLE");
+    const std::string originalInvalidName = invalidEmptyStyle->name;
+    invalidEmptyStyle->name = "ET_EMPTY_STYLE_RECOVERY";
+
+    for (const bool binary : {false, true}) {
+        const auto nonce = std::chrono::steady_clock::now()
+                               .time_since_epoch().count();
+        const std::filesystem::path outputPath =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-tablestyle-ac1018-physical-"
+               + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{outputPath};
+        const std::string sentinel =
+            "preserve physical AC1018 TABLESTYLE destination\n";
+        {
+            std::ofstream existing(outputPath,
+                                   std::ios::binary | std::ios::trunc);
+            if (!existing || !(existing << sentinel)) {
+                invalidEmptyStyle->name = originalInvalidName;
+                return fail("could not seed physical AC1018 TABLESTYLE destination sentinel");
+            }
+        }
+        dx_iface writer;
+        const bool alreadyQualified =
+            DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, style.handle);
+        const auto exportPartial = [&]() {
+            return writer.fileExport(
+                outputPath.string(), DRW::AC1024, binary, &source, false, true,
+                dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::AllowPartial);
+        };
+        const auto destinationIsSentinel = [&]() {
+            std::ifstream input(outputPath, std::ios::binary);
+            const std::string contents{
+                std::istreambuf_iterator<char>{input}, {}};
+            return (input.good() || input.eof()) && contents == sentinel;
+        };
+
+        const double sourceHeight = style.m_rowStyles.front().m_textHeight;
+        style.m_rowStyles.front().m_textHeight =
+            std::numeric_limits<double>::quiet_NaN();
+        const bool malformedRejected = !exportPartial();
+        style.m_rowStyles.front().m_textHeight = sourceHeight;
+        if (!malformedRejected || !destinationIsSentinel()
+            || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, style.handle)
+                != alreadyQualified) {
+            invalidEmptyStyle->name = originalInvalidName;
+            return fail("malformed AC1018 TABLESTYLE did not refuse atomically");
+        }
+
+        const int sourceWeight = style.m_rowStyles.front().m_borders.front().m_lineWeight;
+        style.m_rowStyles.front().m_borders.front().m_lineWeight = 40000;
+        const bool outOfRangeRejected = !exportPartial();
+        style.m_rowStyles.front().m_borders.front().m_lineWeight = sourceWeight;
+        if (!outOfRangeRejected || !destinationIsSentinel()
+            || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, style.handle)
+                != alreadyQualified) {
+            invalidEmptyStyle->name = originalInvalidName;
+            return fail("out-of-range AC1018 TABLESTYLE lineweight did not refuse atomically");
+        }
+        if (!exportPartial()
+            || !DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, style.handle)) {
+            invalidEmptyStyle->name = originalInvalidName;
+            return fail("corrected physical AC1018 TABLESTYLE could not retry on the same adapter: "
+                + writer.extensionGraphFailureDetail());
+        }
+
+        dx_iface outputReader;
+        dx_data output;
+        if (!outputReader.fileImport(outputPath.string(), &output, false)
+            || output.sourceFormat != dx_source_format::DXF
+            || output.sourceVersion != DRW::AC1024
+            || output.rawTableStyles.size() != 1u
+            || output.tableStyles.size() != 1u) {
+            invalidEmptyStyle->name = originalInvalidName;
+            return fail("physical AC1018 TABLESTYLE output did not freshly import as one raw and typed record");
+        }
+        const DRW_TableStyle& outputStyle = output.tableStyles.front();
+        const DRW_RawDxfObject& raw = output.rawTableStyles.front();
+        const DRW_Dictionary* outputDictionary = nullptr;
+        std::size_t outputRootMatches = 0u;
+        for (const DRW_Dictionary::Entry& entry :
+             output.namedObjectDictionary.m_entries) {
+            if (entry.m_name != "ACAD_TABLESTYLE")
+                continue;
+            ++outputRootMatches;
+            for (const DRW_Dictionary& dictionary : output.dictionaries)
+                if (dictionary.handle == entry.m_handle)
+                    outputDictionary = &dictionary;
+        }
+        const std::size_t outputKeyMatches = outputDictionary == nullptr ? 0u
+            : static_cast<std::size_t>(std::count_if(
+                outputDictionary->m_entries.begin(),
+                outputDictionary->m_entries.end(),
+                [&outputStyle](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == outputStyle.m_name
+                        && entry.m_handle == outputStyle.handle;
+                }));
+        if (raw.name != "TABLESTYLE" || raw.handle == 0u
+            || raw.handle != outputStyle.handle
+            || raw.parentHandle != outputStyle.parentHandle
+            || outputStyle.m_name != "Standard"
+            || outputRootMatches != 1u || outputDictionary == nullptr
+            || outputDictionary->parentHandle
+                != output.namedObjectDictionary.handle
+            || outputStyle.parentHandle != outputDictionary->handle
+            || outputKeyMatches != 1u
+            || outputStyle.m_rowStyles.size() != 3u
+            || !outputStyle.m_cellStyles.empty()
+            || outputStyle.m_horizontalCellMargin != 0.06
+            || outputStyle.m_verticalCellMargin != 0.06) {
+            invalidEmptyStyle->name = originalInvalidName;
+            return fail("physical AC1018 TABLESTYLE output key/owner/readback is not uniquely closed");
+        }
+
+        const auto values = [&raw](int code, DRW_Variant::TYPE type) {
+            std::vector<DRW_Variant> result;
+            for (const DRW_Variant& group : raw.groups)
+                if (group.code() == code && group.type() == type)
+                    result.push_back(group);
+            return result;
+        };
+        std::vector<double> emittedHeights;
+        std::vector<int> emittedAlignments;
+        std::vector<int> emittedLineweights;
+        std::vector<int> emittedVisibility;
+        std::vector<int> emittedColors;
+        std::vector<int> emittedTextColors;
+        std::vector<int> emittedFillColors;
+        std::vector<int> emittedBackgrounds;
+        std::vector<int> emittedDataTypes;
+        std::vector<int> emittedUnitTypes;
+        std::vector<std::string> emittedTextStyleNames;
+        for (const DRW_Variant& value : values(140, DRW_Variant::DOUBLE))
+            emittedHeights.push_back(value.d_val());
+        for (const DRW_Variant& value : values(170, DRW_Variant::INTEGER))
+            emittedAlignments.push_back(value.i_val());
+        for (const DRW_Variant& value : values(7, DRW_Variant::STRING))
+            if (value.c_str() != nullptr)
+                emittedTextStyleNames.emplace_back(value.c_str());
+        for (int code = 274; code <= 279; ++code)
+            for (const DRW_Variant& value : values(code, DRW_Variant::INTEGER))
+                emittedLineweights.push_back(value.i_val());
+        for (int code = 284; code <= 289; ++code)
+            for (const DRW_Variant& value : values(code, DRW_Variant::INTEGER))
+                emittedVisibility.push_back(value.i_val());
+        for (int code = 64; code <= 69; ++code)
+            for (const DRW_Variant& value : values(code, DRW_Variant::INTEGER))
+                emittedColors.push_back(value.i_val());
+        for (const DRW_Variant& value : values(62, DRW_Variant::INTEGER))
+            emittedTextColors.push_back(value.i_val());
+        for (const DRW_Variant& value : values(63, DRW_Variant::INTEGER))
+            emittedFillColors.push_back(value.i_val());
+        for (const DRW_Variant& value : values(283, DRW_Variant::INTEGER))
+            emittedBackgrounds.push_back(value.i_val());
+        for (const DRW_Variant& value : values(90, DRW_Variant::INTEGER))
+            emittedDataTypes.push_back(value.i_val());
+        for (const DRW_Variant& value : values(91, DRW_Variant::INTEGER))
+            emittedUnitTypes.push_back(value.i_val());
+        std::vector<int> expectedLineweights(18u, -2);
+        std::vector<int> expectedVisibility(18u, 1);
+        std::vector<int> expectedColors(18u, 0);
+        const std::vector<int> expectedTextColors(3u, 0);
+        const std::vector<int> expectedFillColors(3u, 7);
+        const std::vector<int> expectedBackgrounds(3u, 0);
+        const std::vector<int> expectedDataTypes(3u, 0);
+        const std::vector<int> expectedUnitTypes(3u, 0);
+        const std::vector<double> expectedHeights{0.18, 0.25, 0.18};
+        const std::vector<int> expectedAlignments{2, 5, 5};
+        const std::vector<std::string> expectedName{"Standard"};
+        const std::vector<std::string> expectedTextStyleNames(
+            3u, sourceTextStyle->name);
+        if (emittedHeights != expectedHeights
+            || emittedAlignments != expectedAlignments
+            || emittedTextStyleNames != expectedTextStyleNames
+            || emittedTextColors != expectedTextColors
+            || emittedFillColors != expectedFillColors
+            || emittedBackgrounds != expectedBackgrounds
+            || emittedDataTypes != expectedDataTypes
+            || emittedUnitTypes != expectedUnitTypes
+            || emittedLineweights != expectedLineweights
+            || emittedVisibility != expectedVisibility
+            || emittedColors != expectedColors
+            || values(40, DRW_Variant::DOUBLE).size() != 1u
+            || values(40, DRW_Variant::DOUBLE).front().d_val() != 0.06
+            || values(41, DRW_Variant::DOUBLE).size() != 1u
+            || values(41, DRW_Variant::DOUBLE).front().d_val() != 0.06
+            || values(70, DRW_Variant::INTEGER).size() != 1u
+            || values(70, DRW_Variant::INTEGER).front().i_val() != 0
+            || values(71, DRW_Variant::INTEGER).size() != 1u
+            || values(71, DRW_Variant::INTEGER).front().i_val() != 0
+            || values(280, DRW_Variant::INTEGER).size() != 2u
+            || values(280, DRW_Variant::INTEGER)[0].i_val() != 0
+            || values(280, DRW_Variant::INTEGER)[1].i_val() != 0
+            || values(281, DRW_Variant::INTEGER).size() != 1u
+            || values(281, DRW_Variant::INTEGER).front().i_val() != 0
+            || values(3, DRW_Variant::STRING).size() != 1u
+            || values(3, DRW_Variant::STRING).front().c_str() == nullptr
+            || std::string(values(3, DRW_Variant::STRING).front().c_str())
+                != expectedName.front()
+            || outputStyle.m_rowStyles.size() != 3u) {
+            invalidEmptyStyle->name = originalInvalidName;
+            return fail("physical AC1018 TABLESTYLE legacy row/border output groups changed");
+        }
+        const DRW_Textstyle* outputTextStyle = nullptr;
+        std::size_t outputTextStyleMatches = 0u;
+        for (const DRW_Textstyle& textStyle : output.textStyles) {
+            if (textStyle.name != sourceTextStyle->name)
+                continue;
+            outputTextStyle = &textStyle;
+            ++outputTextStyleMatches;
+        }
+        if (outputTextStyleMatches != 1u || outputTextStyle == nullptr
+            || outputTextStyle->handle == 0u) {
+            invalidEmptyStyle->name = originalInvalidName;
+            return fail("physical AC1018 TABLESTYLE text-style dependency was not emitted uniquely");
+        }
+        for (std::size_t rowIndex = 0u; rowIndex < 3u; ++rowIndex) {
+            const DRW_TableStyleRowStyle& row =
+                outputStyle.m_rowStyles[rowIndex];
+            if (row.m_textStyleHandle != 0u
+                || row.m_textStyleName != outputTextStyle->name
+                || row.m_textHeight != heights[rowIndex]
+                || row.m_textAlignment != alignments[rowIndex]
+                || row.m_textColor != 0 || row.m_fillColor != 7
+                || row.m_hasBackgroundColor || row.m_borders.size() != 6u) {
+                std::cerr << "TABLESTYLE readback diagnostic index=" << rowIndex
+                          << " styleName=" << row.m_textStyleName
+                          << " handle=" << row.m_textStyleHandle
+                          << " height=" << row.m_textHeight
+                          << " alignment=" << row.m_textAlignment
+                          << " text/fill=" << row.m_textColor << "/"
+                          << row.m_fillColor << " background="
+                          << row.m_hasBackgroundColor << " borders="
+                          << row.m_borders.size() << '\n';
+                invalidEmptyStyle->name = originalInvalidName;
+                return fail("physical AC1018 TABLESTYLE typed readback changed row fields or text-style binding");
+            }
+        }
+        std::cerr << "Physical AC1018 TABLESTYLE "
+                  << (binary ? "Binary" : "ASCII")
+                  << " readback passed: rooted Standard/key/owner graph, "
+                     "legacy row and border groups, remapped STYLE reference, "
+                     "atomic refusal and same-adapter retry.\n";
+    }
+    invalidEmptyStyle->name = originalInvalidName;
+    return true;
+}
+
 bool physicalAc1018EmptyTextStyleOutputRefusal(
         const std::filesystem::path& sourcePath) {
     dx_iface sourceReader;
@@ -57947,6 +58345,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--tablestyle-physical-ac1018-source-profile")
         return physicalTableStyleSourceProfile(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--tablestyle-physical-ac1018-output-readback")
+        return physicalAc1018TableStyleOutputReadback(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--empty-textstyle-physical-ac1018-output-refusal")
         return physicalAc1018EmptyTextStyleOutputRefusal(argv[2]) ? 0 : 1;

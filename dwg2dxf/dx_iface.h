@@ -3329,6 +3329,7 @@ private:
     DRW_Dictionary m_dwgTableStyleNamedObjectDictionarySource;
     bool m_dwgTableStyleRootSourceCaptured{false};
     const dx_data* m_dwgTableStyleOutputSourceOwner{nullptr};
+    DRW::Version m_dwgTableStyleOutputSourceVersion{DRW::UNKNOWNV};
     std::uint64_t m_dwgTableStyleOutputSourceGeneration{0u};
     bool m_dwgTableStylesInspected{false};
     bool hasUnchangedDwgTableStyleOutputSources() const noexcept;
