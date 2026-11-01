@@ -27652,6 +27652,7 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
     m_dwgLayoutOutputNodEntry = {};
     m_dwgLayoutOutputOwner = nullptr;
     m_dwgLayoutOutputGeneration = 0u;
+    m_dwgLayoutOutputSourceVersion = DRW::UNKNOWNV;
     m_dwgLayoutsObjectsInspected = false;
     m_dwgLayoutBlocksInspected = false;
     const auto skip = [debug](const char* stage) {
@@ -27663,21 +27664,24 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
     if (cData == nullptr)
         return false;
     if (cData->sourceFormat != dx_source_format::DWG
-        || cData->sourceVersion != DRW::AC1024)
+        || (cData->sourceVersion != DRW::AC1018
+            && cData->sourceVersion != DRW::AC1024))
         return true;
     if (version != DRW::AC1024)
-        return skip("source/target is outside AC1024 DWG");
+        return skip("target is outside AC1024 DXF");
 
-    // The tracked AC1024 witness has exactly two physical type-82 callbacks:
-    // Model and Layout1. Admit those records only with the complete rooted
-    // ACAD_LAYOUT dictionary, reciprocal BLOCK_RECORD edges, and the bounded
-    // extension DICTIONARY/XRECORD children already used by the writer.
-    if (cData->layouts.size() != 2u || !cData->hasNamedObjectDictionary
+    // Admit only the witnessed AC1018 three-layout or AC1024 two-layout
+    // profile. Both routes require the complete rooted ACAD_LAYOUT dictionary,
+    // reciprocal BLOCK_RECORD edges, and bounded extension dependencies.
+    const bool ac1018Profile = cData->sourceVersion == DRW::AC1018;
+    const std::size_t expectedLayoutCount = ac1018Profile ? 3u : 2u;
+    if (cData->layouts.size() != expectedLayoutCount
+        || !cData->hasNamedObjectDictionary
         || cData->namedObjectDictionary.handle == 0u
         || cData->namedObjectDictionary.handle == DRW::NoHandle
         || cData->namedObjectDictionary.countCap
         || !cData->namedObjectDictionary.hasCompleteDwgEntries())
-        return skip("two-layout NOD profile preconditions");
+        return skip("NOD and source-version LAYOUT profile preconditions");
     const auto findDictionary = [this](std::uint32_t handle)
             -> const DRW_Dictionary* {
         const DRW_Dictionary* result = nullptr;
@@ -27733,7 +27737,7 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
         || layoutDictionary->hardOwner != 0 || layoutDictionary->cloning != 1
         || layoutDictionary->countCap
         || !layoutDictionary->hasCompleteDwgEntries()
-        || layoutDictionary->m_entries.size() != 2u
+        || layoutDictionary->m_entries.size() != expectedLayoutCount
         || !layoutDictionary->appData.empty()
         || !layoutDictionary->extData.empty()
         || layoutDictionary->hasDataStorageBinaryData()
@@ -27745,7 +27749,8 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
         return skip("ACAD_LAYOUT dictionary source role/shape");
 
     const std::array<const char*, 3> expected{{
-        "Model", "Layout1", "Architectural Title Block"}};
+        "Model", "Layout1",
+        ac1018Profile ? "Layout2" : "Architectural Title Block"}};
     std::map<std::uint32_t, DwgLayoutOutputSource> selected;
     std::set<std::string> selectedNames;
     try {
@@ -27757,7 +27762,7 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
             if (expectedLayout == expected.end()
                 || selected.count(layout.handle) != 0u
                 || !selectedNames.insert(layout.name).second)
-                return skip("unique two-layout source identities");
+                return skip("unique source-version LAYOUT identities");
             if (layout.parentHandle != layoutDictionary->handle)
                 return skip("LAYOUT owner dictionary role");
             if (layout.plotViewHandle.ref != 0u
@@ -27768,7 +27773,8 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
             if (layout.hasDataStorageBinaryData()
                 || layout.hasDwgCommonLinkTail()
                 || !layout.appData.empty()
-                || (!layout.extData.empty()
+                || (ac1018Profile && !layout.extData.empty())
+                || (!ac1018Profile && !layout.extData.empty()
                     && layout.extData.size() != 6u)) {
                 if (debug)
                     std::cerr << "LAYOUT common/EED shape: handle="
@@ -27798,15 +27804,34 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
             }
             const auto frame = cData->m_opaqueDwgSourceFrames.find(
                 {cData->importGeneration, layout.handle});
-            if (frame == cData->m_opaqueDwgSourceFrames.end()
-                || frame->second.m_objectType != 82
-                || frame->second.m_handle != layout.handle
-                || frame->second.m_isEntity
-                || frame->second.m_version != DRW::AC1024
-                || frame->second.m_parentHandle != layout.parentHandle
-                || frame->second.m_hasDataStorage
-                || !drwDwgCommonLinkEvidenceValidated(
-                    frame->second.m_commonLinkEvidence))
+            const bool frameIdentityMatches =
+                frame != cData->m_opaqueDwgSourceFrames.end()
+                && frame->second.m_objectType == 82
+                && frame->second.m_handle == layout.handle
+                && !frame->second.m_isEntity
+                && frame->second.m_version == cData->sourceVersion
+                && !frame->second.m_hasDataStorage;
+            // LAYOUT stores its common parent/reactor handles in the object
+            // handle stream after the typed body (ODA §20.4.84). The
+            // legacy raw callback frame has no validated common-link fields;
+            // bind those roles from the independently checked typed parser
+            // result and rooted dictionary instead. Keep the AC1024 frame
+            // common-link evidence requirement unchanged.
+            const bool frameCommonMatches = frameIdentityMatches
+                && (ac1018Profile
+                    ? frame->second.m_parentHandle == 0u
+                        && !frame->second.m_commonHandleDataValidated
+                        && frame->second.m_commonLinkEvidence
+                            == DRW_DwgCommonLinkEvidence::Unknown
+                        && layout.parentHandle == layoutDictionary->handle
+                        && layout.reactorCount() == 1
+                        && layout.reactorHandles
+                            == std::vector<std::uint32_t>{
+                                layoutDictionary->handle}
+                    : frame->second.m_parentHandle == layout.parentHandle
+                        && drwDwgCommonLinkEvidenceValidated(
+                            frame->second.m_commonLinkEvidence));
+            if (!frameIdentityMatches || !frameCommonMatches)
                 return skip("physical type-82 source callback frame");
             const auto dictionaryEntry = std::find_if(
                 layoutDictionary->m_entries.begin(),
@@ -27922,12 +27947,15 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
             if (!selected.emplace(layout.handle, std::move(snapshot)).second)
                 return skip("two unique physical layout identities");
         }
-        const std::size_t paperLayoutNames =
-            selectedNames.count("Layout1")
-            + selectedNames.count("Architectural Title Block");
-        if (selected.size() != 2u || selectedNames.size() != 2u
+        const bool expectedPaperLayouts = ac1018Profile
+            ? selectedNames.count("Layout1") == 1u
+                && selectedNames.count("Layout2") == 1u
+            : selectedNames.count("Layout1") == 1u
+                || selectedNames.count("Architectural Title Block") == 1u;
+        if (selected.size() != expectedLayoutCount
+            || selectedNames.size() != expectedLayoutCount
             || selectedNames.count("Model") != 1u
-            || paperLayoutNames != 1u)
+            || !expectedPaperLayouts)
             return skip("not every witnessed layout identity was selected");
         m_dwgLayoutOutputSources = std::move(selected);
         m_dwgLayoutOutputDictionary = *layoutDictionary;
@@ -27936,6 +27964,7 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
         m_dwgLayoutOutputNodEntry = *rootEntry;
         m_dwgLayoutOutputOwner = cData;
         m_dwgLayoutOutputGeneration = cData->importGeneration;
+        m_dwgLayoutOutputSourceVersion = cData->sourceVersion;
         if (hasUnchangedDwgLayoutOutputSources(debug)) {
             return true;
         }
@@ -27952,6 +27981,7 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
     m_dwgLayoutOutputNodEntry = {};
     m_dwgLayoutOutputOwner = nullptr;
     m_dwgLayoutOutputGeneration = 0u;
+    m_dwgLayoutOutputSourceVersion = DRW::UNKNOWNV;
     return true;
 }
 
@@ -27965,19 +27995,24 @@ bool dx_iface::hasUnchangedDwgLayoutOutputSources(bool debug) const noexcept {
     if (m_dwgLayoutOutputSources.empty())
         return m_dwgLayoutOutputOwner == nullptr
             && m_dwgLayoutOutputGeneration == 0u
+            && m_dwgLayoutOutputSourceVersion == DRW::UNKNOWNV
             && m_dwgLayoutOutputNodHandle == 0u;
     if (cData == nullptr || m_dwgLayoutOutputOwner != cData
         || m_dwgLayoutOutputGeneration != cData->importGeneration
         || cData->sourceFormat != dx_source_format::DWG
-        || cData->sourceVersion != DRW::AC1024
+        || cData->sourceVersion != m_dwgLayoutOutputSourceVersion
+        || (m_dwgLayoutOutputSourceVersion != DRW::AC1018
+            && m_dwgLayoutOutputSourceVersion != DRW::AC1024)
         || cData->layouts.size() != m_dwgLayoutOutputSources.size()
         || cData->namedObjectDictionary.handle != m_dwgLayoutOutputNodHandle
         || cData->namedObjectDictionary.hardOwner
             != m_dwgLayoutOutputNodHardOwner)
         return fail("owner, generation, layout count, or NOD identity");
-    const auto sameDictionary = [](const DRW_Dictionary& expected,
+    const DRW::Version sourceVersion = m_dwgLayoutOutputSourceVersion;
+    const auto sameDictionary = [sourceVersion](
+                                   const DRW_Dictionary& expected,
                                    const DRW_Dictionary& actual) {
-        if (!standardDwgCommonEqual(expected, actual, DRW::AC1024)
+        if (!standardDwgCommonEqual(expected, actual, sourceVersion)
             || expected.hardOwner != actual.hardOwner
             || expected.cloning != actual.cloning || expected.countCap
             || actual.countCap
@@ -27994,11 +28029,12 @@ bool dx_iface::hasUnchangedDwgLayoutOutputSources(bool debug) const noexcept {
         }
         return true;
     };
-    const auto sameBlockRecord = [](const DRW_Block_Record& expected,
+    const auto sameBlockRecord = [sourceVersion](
+                                    const DRW_Block_Record& expected,
                                     const DRW_Block_Record& actual) {
         // BLOCK/ENDBLK pointers and the entity index are parser-only links;
         // the output uses the table record's semantic fields below.
-        return standardDwgCommonEqual(expected, actual, DRW::AC1024)
+        return standardDwgCommonEqual(expected, actual, sourceVersion)
             && expected.xrefUnloaded == actual.xrefUnloaded
             && expected.insUnits == actual.insUnits
             && retainedDoubleEqual(expected.basePoint.x, actual.basePoint.x)
@@ -28038,11 +28074,14 @@ bool dx_iface::hasUnchangedDwgLayoutOutputSources(bool debug) const noexcept {
             || !sameRootEntry(*rootEntry))
             return fail("ACAD_LAYOUT NOD entry");
         const DRW_Dictionary* liveLayoutDictionary = nullptr;
-        const DRW_Dictionary* liveExtensions[2] = {nullptr, nullptr};
-        const DRW_Block_Record* liveBlockRecords[2] = {nullptr, nullptr};
+        std::vector<const DRW_Dictionary*> liveExtensions(
+            m_dwgLayoutOutputSources.size(), nullptr);
+        std::vector<const DRW_Block_Record*> liveBlockRecords(
+            m_dwgLayoutOutputSources.size(), nullptr);
         std::size_t index = 0u;
         for (const auto& row : m_dwgLayoutOutputSources) {
-            if (row.first != row.second.model.handle || index >= 2u)
+            if (row.first != row.second.model.handle
+                || index >= m_dwgLayoutOutputSources.size())
                 return fail("snapshot layout index");
             const DRW_Layout* liveLayout = nullptr;
             for (const DRW_Layout& candidate : cData->layouts) {
@@ -28063,10 +28102,10 @@ bool dx_iface::hasUnchangedDwgLayoutOutputSources(bool debug) const noexcept {
             const bool layoutSame = liveLayout != nullptr
                 && dxfLayout::Decoder::sameModel(
                     row.second.model, *liveLayout,
-                    [](const DRW_TableEntry& expected,
+                    [sourceVersion](const DRW_TableEntry& expected,
                        const DRW_TableEntry& actual) {
                         return standardDwgCommonEqual(
-                            expected, actual, DRW::AC1024);
+                            expected, actual, sourceVersion);
                     });
             const bool blockRecordSame = liveBlockRecord != nullptr
                 && sameBlockRecord(row.second.blockRecord,
@@ -28148,7 +28187,7 @@ bool dx_iface::hasUnchangedDwgLayoutOutputSources(bool debug) const noexcept {
                         return fail("LAYOUT extension XRECORD source role changed");
                     if (frozenRecord != nullptr
                         && !standardDwgModelsEqual(
-                            *frozenRecord, *liveRecord, DRW::AC1024,
+                            *frozenRecord, *liveRecord, sourceVersion,
                             dwgObjType::XRECORD))
                         return fail("LAYOUT extension XRECORD source snapshot changed");
                 }
@@ -61981,6 +62020,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     m_dwgLayoutOutputNodEntry = {};
     m_dwgLayoutOutputOwner = nullptr;
     m_dwgLayoutOutputGeneration = 0u;
+    m_dwgLayoutOutputSourceVersion = DRW::UNKNOWNV;
     m_dwgLayoutsObjectsInspected = false;
     m_dwgLayoutBlocksInspected = false;
     m_dxfMLeaderStyleState={}; m_dxfMLeaderStylesInspected=false;

@@ -2745,6 +2745,7 @@ private:
     DRW_Dictionary::Entry m_dwgLayoutOutputNodEntry;
     const dx_data* m_dwgLayoutOutputOwner{nullptr};
     std::uint64_t m_dwgLayoutOutputGeneration{0u};
+    DRW::Version m_dwgLayoutOutputSourceVersion{DRW::UNKNOWNV};
     bool m_dwgLayoutsObjectsInspected{false};
     bool m_dwgLayoutBlocksInspected{false};
     bool prepareDwgLayouts(DRW::Version version, bool debug) noexcept;

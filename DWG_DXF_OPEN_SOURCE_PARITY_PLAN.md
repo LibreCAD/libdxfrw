@@ -48,7 +48,7 @@ Implementation history and evidence stay in Git and `docs/research/`.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — source/graph closure | Close the reproduced source-required bodies and dependencies that still lack strict output/readback proof. For AC1018 `ET-Drawing-with-Border.dwg`, 13 of 23 opaque callback identities remain unqualified. Resolve source-qualified handling for invalid empty-name STYLE `0xDF`, which currently blocks the tested TABLES output path; the source-specific safety findings are in the [STYLE receipt](docs/research/p4-ac1018-empty-style-output-safety-2026-11-01.json). | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — source/graph closure | Close the reproduced source-required bodies and dependencies that still lack strict output/readback proof. For AC1018 `ET-Drawing-with-Border.dwg`, 10 of 23 opaque callback identities remain unqualified: DICTIONARY callbacks `0xC`, `0xD`, `0x19`, `0x1A`, `0x72`, `0x73`, `0xE8`, `0xE9`, and `0x2CD`; named-block SORTENTSTABLE `0x2CE` remains outside the documented DXF owner scope. The physical output census is 13/23 after the three LAYOUT callbacks were qualified; see the [AC1018 LAYOUT receipt](docs/research/p4-ac1018-layout-output-qualification-2026-11-01.json). | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN — broader rendering/TABLE and dynamic-block semantics | Resolve native dynamic-block semantics and the parentId projection boundary for the two-root AC1024 graph; finish remaining rendering metadata/native rendering profiles, nested FIELDLIST/child graphs and source-backed FIELD profiles, independently evidenced block-cell geometry, remaining source- or consumer-backed CONTENTFORMAT/CELLSTYLEMAP profiles, source-backed semantics for overlapping TABLECONTENT edge masks, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -83,7 +83,13 @@ LibreDWG paths do not currently supply that evaluator.
 
 Separate unresolved gates remain: AC1021 proxy-graphics refusal belongs to P6;
 AC1018 `ET-Drawing-with-Border.dwg` strict refusal belongs to P4 until its
-remaining callbacks and required graph have output qualification.
+remaining callbacks and required graph have output qualification. The invalid
+non-shape empty-name STYLE `0xDF` has a completed fail-closed safety contract:
+ASCII/Binary refusal preserves the destination, and a corrected same-adapter
+retry succeeds with fresh readback. Keep refusing this source row; do not invent
+an omission, replacement name, or replay route without source and consumer proof.
+This safety result does not qualify whole-document output. See the
+[STYLE receipt](docs/research/p4-ac1018-empty-style-output-safety-2026-11-01.json).
 
 ## P4 — original bodies and complete document closure
 

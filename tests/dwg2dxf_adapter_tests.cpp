@@ -1,6 +1,7 @@
 #include "dx_iface.h"
 #include "intern/dxfreader.h"
 #include "intern/dxfwriter.h"
+#include "intern/dxflayout.h"
 #include "intern/dwgbufferw.h"
 #include "intern/dwg_fixed_handles.h"
 #include "libdxfrw.h"
@@ -37727,9 +37728,9 @@ bool physicalDictionaryDefaultOutputReadback(
 
         if (source.sourceVersion == DRW::AC1018
             && (DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
-                    source) != 10u
+                    source) != 13u
                 || source.dwgReadOutcome.opaqueViewCallbacks != 23u))
-            return fail("AC1018 composed output did not qualify exactly ten identities in the 23-callback source census");
+            return fail("AC1018 composed output did not qualify exactly thirteen identities in the 23-callback source census");
 
     }
     std::cerr << "Physical DICTIONARYWDFLT/PLACEHOLDER ASCII and binary output, "
@@ -39563,6 +39564,290 @@ bool physicalLayoutOutputReadback(
     return true;
 }
 
+bool physicalAc1018LayoutOutputReadback(
+        const std::filesystem::path& sourcePath) {
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1018
+        || source.layouts.size() != 3u
+        || !source.hasNamedObjectDictionary)
+        return fail("physical AC1018 LAYOUT source is outside the three-layout profile");
+
+    const std::array<std::pair<std::uint32_t, const char*>, 3> expected{{
+        {0x22u, "Model"}, {0x59u, "Layout1"}, {0x5Eu, "Layout2"}}};
+    const auto uniqueDictionary = [](const dx_data& data,
+                                     std::uint32_t handle) {
+        const DRW_Dictionary* result = nullptr;
+        for (const DRW_Dictionary& dictionary : data.dictionaries) {
+            if (dictionary.handle != handle)
+                continue;
+            if (result != nullptr)
+                return static_cast<const DRW_Dictionary*>(nullptr);
+            result = &dictionary;
+        }
+        return result;
+    };
+    const auto uniqueBlockRecord = [](const dx_data& data,
+                                      std::uint32_t handle) {
+        const DRW_Block_Record* result = nullptr;
+        for (const DRW_Block_Record& record : data.blockRecords) {
+            if (record.handle != handle)
+                continue;
+            if (result != nullptr)
+                return static_cast<const DRW_Block_Record*>(nullptr);
+            result = &record;
+        }
+        return result;
+    };
+    const auto layoutDictionary = [&uniqueDictionary](const dx_data& data) {
+        const auto root = std::find_if(
+            data.namedObjectDictionary.m_entries.begin(),
+            data.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_LAYOUT";
+            });
+        if (!data.hasNamedObjectDictionary
+            || root == data.namedObjectDictionary.m_entries.end()
+            || std::count_if(data.namedObjectDictionary.m_entries.begin(),
+                             data.namedObjectDictionary.m_entries.end(),
+                [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "ACAD_LAYOUT";
+                }) != 1u)
+            return static_cast<const DRW_Dictionary*>(nullptr);
+        return uniqueDictionary(data, root->m_handle);
+    };
+
+    const DRW_Dictionary* sourceLayoutDictionary = layoutDictionary(source);
+    if (source.namedObjectDictionary.handle != 0x0Cu
+        || sourceLayoutDictionary == nullptr
+        || sourceLayoutDictionary->handle != 0x1Au
+        || sourceLayoutDictionary->parentHandle
+            != source.namedObjectDictionary.handle
+        || sourceLayoutDictionary->hardOwner != 0
+        || sourceLayoutDictionary->cloning != 1
+        || sourceLayoutDictionary->countCap
+        || !sourceLayoutDictionary->hasCompleteDwgEntries()
+        || !sourceLayoutDictionary->appData.empty()
+        || !sourceLayoutDictionary->extData.empty()
+        || sourceLayoutDictionary->hasDataStorageBinaryData()
+        || sourceLayoutDictionary->hasDwgCommonLinkTail()
+        || sourceLayoutDictionary->reactorCount() != 1
+        || sourceLayoutDictionary->reactorHandles
+            != std::vector<std::uint32_t>{source.namedObjectDictionary.handle}
+        || sourceLayoutDictionary->m_entries.size() != expected.size())
+        return fail("physical AC1018 ACAD_LAYOUT root and three-entry dictionary are not closed");
+
+    std::array<const DRW_Layout*, 3> sourceLayouts{{nullptr, nullptr, nullptr}};
+    for (std::size_t index = 0u; index < expected.size(); ++index) {
+        const auto& identity = expected[index];
+        const auto layout = std::find_if(
+            source.layouts.begin(), source.layouts.end(),
+            [&identity](const DRW_Layout& candidate) {
+                return candidate.handle == identity.first
+                    && candidate.name == identity.second;
+            });
+        if (layout == source.layouts.end())
+            return fail("physical AC1018 LAYOUT identity differs from the source witness");
+        sourceLayouts[index] = &*layout;
+        const auto rootEntry = std::find_if(
+            sourceLayoutDictionary->m_entries.begin(),
+            sourceLayoutDictionary->m_entries.end(),
+            [&identity](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == identity.second
+                    && entry.m_handle == identity.first;
+            });
+        const DRW_Block_Record* block = uniqueBlockRecord(
+            source, layout->paperSpaceBlockRecordHandle.ref);
+        if (rootEntry == sourceLayoutDictionary->m_entries.end()
+            || layout->parentHandle != sourceLayoutDictionary->handle
+            || block == nullptr || block->layoutHandle != layout->handle
+            || layout->xDictHandle != 0u
+            || layout->plotViewHandle.ref != 0u
+            || layout->shadePlotHandle.ref != 0u
+            || layout->baseUcsHandle.ref != 0u
+            || layout->namedUcsHandle.ref != 0u
+            || layout->viewportCount != 0
+            || !layout->viewportHandles.empty()
+            || layout->lastActiveViewportHandle.ref != 0u
+            || layout->hasDataStorageBinaryData()
+            || layout->hasDwgCommonLinkTail()
+            || !layout->appData.empty() || !layout->extData.empty()
+            || layout->reactorCount() != 1
+            || layout->reactorHandles
+                != std::vector<std::uint32_t>{sourceLayoutDictionary->handle})
+            return fail("physical AC1018 LAYOUT owner, common fields, references or reciprocal BLOCK_RECORD link changed");
+    }
+    if (std::any_of(sourceLayouts.begin(), sourceLayouts.end(),
+            [](const DRW_Layout* layout) { return layout == nullptr; }))
+        return fail("physical AC1018 source layout set is incomplete");
+
+    auto invalidTextStyle = std::find_if(
+        source.textStyles.begin(), source.textStyles.end(),
+        [](const DRW_Textstyle& style) { return style.name.empty(); });
+    if (invalidTextStyle == source.textStyles.end()
+        || invalidTextStyle->handle != 0xDFu
+        || invalidTextStyle->font != "ltypeshp.shx"
+        || (invalidTextStyle->flags & 0x01) != 0)
+        return fail("physical AC1018 layout witness STYLE isolation profile changed");
+    // This is a bounded LAYOUT output test. The separately tested invalid
+    // STYLE refusal is not relaxed or counted as an output qualification.
+    invalidTextStyle->name = "ET_LAYOUT_PROFILE_ISOLATION";
+
+    for (const bool binary : {false, true}) {
+        const auto nonce = std::chrono::steady_clock::now()
+                               .time_since_epoch().count();
+        const std::filesystem::path outputPath =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-layout-ac1018-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{outputPath};
+        const std::string sentinel =
+            "preserve physical AC1018 LAYOUT destination\n";
+        {
+            std::ofstream existing(outputPath, std::ios::binary | std::ios::trunc);
+            if (!existing || !(existing << sentinel))
+                return fail("could not seed physical AC1018 LAYOUT destination sentinel");
+        }
+        dx_iface writer;
+        const auto exportPartial = [&]() {
+            return writer.fileExport(
+                outputPath.string(), DRW::AC1024, binary, &source, false, true,
+                dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::AllowPartial);
+        };
+        DRW_Layout* mutablePaperLayout = nullptr;
+        for (DRW_Layout& layout : source.layouts)
+            if (layout.handle == expected[1].first)
+                mutablePaperLayout = &layout;
+        if (mutablePaperLayout == nullptr)
+            return fail("physical AC1018 Layout1 was not selected for rollback control");
+        const dwgHandle originalBlockRecord =
+            mutablePaperLayout->paperSpaceBlockRecordHandle;
+        std::array<bool, 3> qualificationBeforeFailure{};
+        for (std::size_t index = 0u; index < expected.size(); ++index)
+            qualificationBeforeFailure[index] =
+                DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                    source, source.importGeneration, expected[index].first);
+        mutablePaperLayout->paperSpaceBlockRecordHandle.ref = DRW::NoHandle;
+        const bool invalidOwnerRejected = !exportPartial();
+        std::ifstream refusedOutput(outputPath, std::ios::binary);
+        const std::string refusedContents{
+            std::istreambuf_iterator<char>{refusedOutput}, {}};
+        mutablePaperLayout->paperSpaceBlockRecordHandle = originalBlockRecord;
+        bool qualificationsUnchanged = true;
+        for (std::size_t index = 0u; index < expected.size(); ++index)
+            qualificationsUnchanged = qualificationsUnchanged
+                && DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                    source, source.importGeneration, expected[index].first)
+                    == qualificationBeforeFailure[index];
+        if (!invalidOwnerRejected || refusedContents != sentinel
+            || !qualificationsUnchanged)
+            return fail("invalid physical AC1018 LAYOUT owner was not refused atomically");
+        if (!exportPartial())
+            return fail("corrected physical AC1018 LAYOUT could not retry on the same adapter: "
+                + writer.extensionGraphFailureDetail());
+        for (const auto& identity : expected)
+            if (!DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                    source, source.importGeneration, identity.first))
+                return fail("physical AC1018 LAYOUT callback was not qualified after staged output proof");
+        if (source.dwgReadOutcome.opaqueViewCallbacks != 23u
+            || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                source) != 13u)
+            return fail("AC1018 LAYOUT output did not add three identities to the 23-callback source census");
+
+        dx_iface outputReader;
+        dx_data output;
+        if (!outputReader.fileImport(outputPath.string(), &output, false)
+            || output.sourceFormat != dx_source_format::DXF
+            || output.sourceVersion != DRW::AC1024
+            || output.layouts.size() != expected.size())
+            return fail("physical AC1018 LAYOUT output did not freshly reimport as three AC1024 records");
+        const DRW_Dictionary* outputLayoutDictionary = layoutDictionary(output);
+        if (outputLayoutDictionary == nullptr
+            || outputLayoutDictionary->m_entries.size() != expected.size()
+            || outputLayoutDictionary->parentHandle
+                != output.namedObjectDictionary.handle)
+            return fail("physical AC1018 ACAD_LAYOUT output dictionary was not freshly readable");
+        for (std::size_t index = 0u; index < expected.size(); ++index) {
+            const DRW_Layout& original = *sourceLayouts[index];
+            const auto outputMatch = std::find_if(
+                output.layouts.begin(), output.layouts.end(),
+                [&original](const DRW_Layout& candidate) {
+                    return candidate.name == original.name;
+                });
+            if (outputMatch == output.layouts.end()
+                || std::count_if(output.layouts.begin(), output.layouts.end(),
+                    [&original](const DRW_Layout& candidate) {
+                        return candidate.name == original.name;
+                    }) != 1u)
+                return fail("physical AC1018 LAYOUT name did not map uniquely on readback");
+            const auto rootEntry = std::find_if(
+                outputLayoutDictionary->m_entries.begin(),
+                outputLayoutDictionary->m_entries.end(),
+                [&original, &outputMatch](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == original.name
+                        && entry.m_handle == outputMatch->handle;
+                });
+            const DRW_Block_Record* sourceBlock = uniqueBlockRecord(
+                source, original.paperSpaceBlockRecordHandle.ref);
+            const DRW_Block_Record* outputBlock = uniqueBlockRecord(
+                output, outputMatch->paperSpaceBlockRecordHandle.ref);
+            DRW_Layout normalized = original;
+            normalized.handle = outputMatch->handle;
+            normalized.parentHandle = outputMatch->parentHandle;
+            normalized.xDictHandle = outputMatch->xDictHandle;
+            normalized.reactorHandles = outputMatch->reactorHandles;
+            normalized.plotViewHandle = outputMatch->plotViewHandle;
+            normalized.shadePlotHandle = outputMatch->shadePlotHandle;
+            normalized.paperSpaceBlockRecordHandle =
+                outputMatch->paperSpaceBlockRecordHandle;
+            normalized.lastActiveViewportHandle =
+                outputMatch->lastActiveViewportHandle;
+            normalized.baseUcsHandle = outputMatch->baseUcsHandle;
+            normalized.namedUcsHandle = outputMatch->namedUcsHandle;
+            const bool blockRolesMatch = sourceBlock != nullptr
+                && outputBlock != nullptr
+                && sourceBlock->name == outputBlock->name
+                && sourceBlock->layoutHandle == original.handle
+                && outputBlock->layoutHandle == outputMatch->handle;
+            const bool layoutFieldsMatch = dxfLayout::Decoder::sameModel(
+                normalized, *outputMatch,
+                [](const DRW_TableEntry& expectedEntry,
+                   const DRW_TableEntry& actualEntry) {
+                    return expectedEntry.handle == actualEntry.handle
+                        && expectedEntry.parentHandle
+                            == actualEntry.parentHandle
+                        && expectedEntry.name == actualEntry.name
+                        && expectedEntry.flags == actualEntry.flags
+                        && expectedEntry.reactorHandles
+                            == actualEntry.reactorHandles;
+                });
+            if (rootEntry == outputLayoutDictionary->m_entries.end()
+                || outputMatch->parentHandle != outputLayoutDictionary->handle
+                || !blockRolesMatch
+                || outputMatch->flags != original.flags
+                || !layoutFieldsMatch)
+                return fail("physical AC1018 LAYOUT fields, root membership or BLOCK_RECORD backlink changed on readback");
+        }
+        std::cerr << "Physical AC1018 LAYOUT "
+                  << (binary ? "Binary" : "ASCII")
+                  << " readback passed: three source identities, complete rooted "
+                     "dictionary, full typed fields, reciprocal block links, "
+                     "atomic refusal and corrected same-adapter retry.\n";
+    }
+    return true;
+}
+
 bool physicalTableStyleSourceProfile(
         const std::filesystem::path& sourcePath) {
     dx_iface sourceReader;
@@ -40767,9 +41052,9 @@ bool physicalAc1018DictionaryVarOutputReadback(
             return fail("AC1018 DICTIONARYVAR/owner source identities lack output qualification");
         if (!isQualified(0x18u)
             || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
-                source) != 10u
+                source) != 13u
             || source.dwgReadOutcome.opaqueViewCallbacks != 23u)
-            return fail("AC1018 DICTIONARYVAR, MLINESTYLE owner, TABLESTYLE and dictionary-default output profiles did not join the ten qualified identities in the 23-callback source graph");
+            return fail("AC1018 DICTIONARYVAR, MLINESTYLE owner, TABLESTYLE, dictionary-default and LAYOUT output profiles did not join thirteen identities in the 23-callback source graph");
         if (binary)
             DxIfaceStandardDwgCaptureTestAccess::reportOpaqueOutputGaps(source);
 
@@ -58642,6 +58927,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--layout-physical-output-readback")
         return physicalLayoutOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--layout-physical-ac1018-output-readback")
+        return physicalAc1018LayoutOutputReadback(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--tablestyle-physical-ac1018-source-profile")
         return physicalTableStyleSourceProfile(argv[2]) ? 0 : 1;
