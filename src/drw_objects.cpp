@@ -3355,18 +3355,21 @@ DRW_DBG("\n***************************** parsing table entry *******************
         DRW_DBG(" end="); DRW_DBG(eedEndBit); DRW_DBG("\n");
         return false;
     }
+    if (!coalesceDwgEedChunksByApp(eedChunks))
+        return false;
     std::vector<std::unique_ptr<DRW_Variant>> parsedExtData;
     std::vector<PendingHandleRef> parsedAppIdResolutions;
     std::vector<PendingHandleRef> parsedLayerRefResolutions;
     try {
-        for (const DwgEedChunk& chunk : eedChunks) {
+        for (DwgEedChunk& chunk : eedChunks) {
             const std::size_t appIndex =
                 extData.size() + parsedExtData.size();
             parsedExtData.push_back(
                 std::make_unique<DRW_Variant>(1001, std::string{}));
             parsedAppIdResolutions.push_back({appIndex, chunk.appHandle});
-            for (const DRW_Variant& item : chunk.items) {
-                parsedExtData.push_back(std::make_unique<DRW_Variant>(item));
+            for (DRW_Variant& item : chunk.items) {
+                parsedExtData.push_back(
+                    std::make_unique<DRW_Variant>(std::move(item)));
             }
             for (const DwgEedHandleRef& ref : chunk.layerRefs) {
                 parsedLayerRefResolutions.push_back(

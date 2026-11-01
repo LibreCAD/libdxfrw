@@ -979,6 +979,7 @@ public:
 
         DRW_PlotSettings plotSettings;
         plotSettings.handle = 0xFA70u;
+        plotSettings.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
         plotSettings.pageSetupName = "LOCAL_PLOT_SETTINGS_FRAME";
         if (!colorFacade.registerPlotSettingsObjectClass(plotSettings.handle))
             return false;
@@ -997,13 +998,19 @@ public:
             observedColor->m_dwgClassInstanceEmittedHandles;
         const auto plotCountsBefore =
             observedColor->m_dwgClassInstanceEmissionCounts;
+        const std::size_t plotCheckpointsBefore =
+            observedColor->fullCheckpointCalls;
+        const std::size_t plotDictionaryEntriesBefore =
+            observedColor->m_deferredPlotSettingsEntries.size();
         const std::size_t plotBufferBefore = observedColor->m_buf.size();
         const std::size_t plotObjectMapBefore = observedColor->m_objectMap.size();
         observedColor->failNextFrameReceipt = true;
         if (colorFacade.writePlotSettings(&plotSettings)
-            || observedColor->fullCheckpointCalls != 0u
+            || observedColor->fullCheckpointCalls != plotCheckpointsBefore
             || observedColor->m_buf.size() != plotBufferBefore
             || observedColor->m_objectMap.size() != plotObjectMapBefore
+            || observedColor->m_deferredPlotSettingsEntries.size()
+                != plotDictionaryEntriesBefore
             || observedColor->m_dwgClassInstanceHandleOwners != plotOwnersBefore
             || observedColor->m_rawClassInstanceHandles != plotPendingBefore
             || observedColor->m_dwgClassInstanceEmittedHandles != plotEmittedBefore
@@ -1024,8 +1031,14 @@ public:
             plotCountBeforeIt == plotCountsBefore.end()
                 ? 0u : plotCountBeforeIt->second;
         if (!plotRetrySucceeded
-            || observedColor->fullCheckpointCalls != 0u
+            || observedColor->fullCheckpointCalls != plotCheckpointsBefore
             || observedColor->m_objectMap.size() != plotObjectMapBefore + 1u
+            || observedColor->m_deferredPlotSettingsEntries.size()
+                != plotDictionaryEntriesBefore + 1u
+            || observedColor->m_deferredPlotSettingsEntries.back().m_name
+                != "LOCAL_PLOT_SETTINGS_FRAME"
+            || observedColor->m_deferredPlotSettingsEntries.back().m_handle
+                != plotSettings.handle
             || observedColor->m_rawClassInstanceHandles.count(
                    {plotSettingsClass, plotSettings.handle}) != 0u
             || observedColor->m_dwgClassInstanceEmittedHandles.count(
@@ -1063,6 +1076,8 @@ public:
         const std::size_t handlelessBufferBefore = observedColor->m_buf.size();
         const std::size_t handlelessObjectMapBefore =
             observedColor->m_objectMap.size();
+        const std::size_t handlelessDictionaryEntriesBefore =
+            observedColor->m_deferredPlotSettingsEntries.size();
         const std::size_t handlelessCheckpointsBefore =
             observedColor->fullCheckpointCalls;
         observedColor->failNextFrameReceipt = true;
@@ -1079,6 +1094,8 @@ public:
                    != handlelessCheckpointsBefore + 1u
             || observedColor->m_buf.size() != handlelessBufferBefore
             || observedColor->m_objectMap.size() != handlelessObjectMapBefore
+            || observedColor->m_deferredPlotSettingsEntries.size()
+                   != handlelessDictionaryEntriesBefore
             || handlelessClassDefinitionAfterFailure
                    == observedColor->m_dwgClassDefinitions.end()
             || handlelessClassDefinitionAfterFailure->m_instanceCount
@@ -1094,6 +1111,12 @@ public:
                    != handlelessCheckpointsBefore + 2u
             || observedColor->m_objectMap.size()
                    != handlelessObjectMapBefore + 1u
+            || observedColor->m_deferredPlotSettingsEntries.size()
+                   != handlelessDictionaryEntriesBefore + 1u
+            || observedColor->m_deferredPlotSettingsEntries.back().m_name
+                   != "LOCAL_HANDLELESS_PLOT"
+            || observedColor->m_deferredPlotSettingsEntries.back().m_handle
+                   != observedColor->m_objectMap.back().first
             || handlelessPlotSettings.handle != 0u) {
             std::cerr << "fixed-object frame: handleless PLOTSETTINGS retry failed\n";
             return false;
@@ -2860,6 +2883,7 @@ class LocalDwgInterface : public dx_iface {
 public:
     static constexpr std::size_t kStagingGrowthProbeVertexCount = 512u;
     static constexpr std::uint32_t kLayoutDictionaryHandle = 0xA604u;
+    static constexpr std::uint32_t kPlotSettingsDictionaryHandle = 0xA605u;
 
     explicit LocalDwgInterface(dwgRW* writer = nullptr,
                                DRW::Version expectedVersion = DRW::UNKNOWNV,
@@ -2890,8 +2914,11 @@ public:
             registeredLayoutDictionary_ =
                 writer_->registerDwgNamedObjectDictionaryEntry(
                     "ACAD_LAYOUT", kLayoutDictionaryHandle);
-            registeredPlotSettings_ = writer_->registerPlotSettingsObjectClass(
-                0xA603u);
+            registeredPlotSettingsDictionary_ =
+                writer_->registerDwgNamedObjectDictionaryEntry(
+                    "ACAD_PLOTSETTINGS", kPlotSettingsDictionaryHandle);
+            registeredPlotSettings_ = registeredPlotSettingsDictionary_
+                && writer_->registerPlotSettingsObjectClass(0xA603u);
             DRW_MLeaderStyle mleaderRegistration;
             mleaderRegistration.handle = 0xA900u;
             registeredMLeaderStyle_ = writer_->registerMLeaderStyleObjectClass(
@@ -3266,6 +3293,7 @@ public:
             annotativeAttdef.attVersion = 1;
             annotativeAttdef.m_attributeType = 4;
             annotativeAttdef.attribFlags = 2;
+            annotativeAttdef.m_fieldLength = 293;
             annotativeAttdef.lockPosition = true;
             annotativeAttdef.mtext = std::make_unique<DRW_MText>();
             annotativeAttdef.mtext->text = "LOCAL_ATTDEF_MTEXT";
@@ -3320,7 +3348,7 @@ public:
         dictionary.hardOwner = 1;
         dictionary.m_entries = {
             {"LOCAL_XRECORD", 0xA602u},
-            {"LOCAL_PLOTSETTINGS", 0xA603u},
+            {"LOCAL_PLOTSETTINGS", 0u},
             {"LOCAL_LAYOUT_PLACEHOLDER", 0u},
             {"LOCAL_MLINESTYLE", 0xA800u},
             {"LOCAL_MLEADERSTYLE", 0xA900u},
@@ -3396,6 +3424,19 @@ public:
             && writer_->writeDictionary(&layoutDictionary)
             && layoutDictionary.handle != 0;
 
+        DRW_Dictionary plotSettingsDictionary;
+        plotSettingsDictionary.handle = kPlotSettingsDictionaryHandle;
+        plotSettingsDictionary.parentHandle =
+            DRW::DwgNamedObjectsDictionaryHandle;
+        plotSettingsDictionary.cloning = 1;
+        plotSettingsDictionary.hardOwner = 1;
+        plotSettingsDictionary.m_entries = {
+            {"LOCAL_PAGE", 0xA603u},
+        };
+        wrotePlotSettingsDictionary_ = registeredPlotSettingsDictionary_
+            && writer_->writeDictionary(&plotSettingsDictionary)
+            && plotSettingsDictionary.handle != 0;
+
         DRW_XRecord xrecord;
         xrecord.handle = 0xA602u;
         xrecord.parentHandle = dictionary.handle;
@@ -3409,7 +3450,7 @@ public:
 
         DRW_PlotSettings plotSettings;
         plotSettings.handle = 0xA603u;
-        plotSettings.parentHandle = dictionary.handle;
+        plotSettings.parentHandle = kPlotSettingsDictionaryHandle;
         plotSettings.pageSetupName = "LOCAL_PAGE";
         plotSettings.printerConfig = "LOCAL_PRINTER";
         plotSettings.plotLayoutFlags = 1;
@@ -5513,6 +5554,7 @@ public:
             outerAnnotativeAttribute->attVersion = 1;
             outerAnnotativeAttribute->m_attributeType = 2;
             outerAnnotativeAttribute->attribFlags = 4;
+            outerAnnotativeAttribute->m_fieldLength = 293;
             outerAnnotativeAttribute->lockPosition = true;
             outerAnnotativeAttribute->mtext = std::make_unique<DRW_MText>();
             outerAnnotativeAttribute->mtext->text = "LOCAL_ATTRIB_MTEXT";
@@ -6147,7 +6189,7 @@ public:
                 && data.m_entries[0].m_name == "LOCAL_XRECORD"
                 && data.m_entries[0].m_handle == 0xA602u
                 && data.m_entries[1].m_name == "LOCAL_PLOTSETTINGS"
-                && data.m_entries[1].m_handle == 0xA603u
+                && data.m_entries[1].m_handle == 0u
                 && data.m_entries[2].m_name == "LOCAL_LAYOUT_PLACEHOLDER"
                 && data.m_entries[2].m_handle == 0u
                 && data.m_entries[3].m_name == "LOCAL_MLINESTYLE"
@@ -6256,6 +6298,14 @@ public:
                 && data.m_entries.back().m_name == "LOCAL_NULL_ENTRY"
                 && data.m_entries.back().m_handle == 0u;
         }
+        if (data.handle == kPlotSettingsDictionaryHandle) {
+            readPlotSettingsDictionarySeen_ =
+                data.parentHandle == DRW::DwgNamedObjectsDictionaryHandle
+                && data.hasCompleteDwgEntries()
+                && data.m_entries.size() == 1u
+                && data.m_entries.front().m_name == "LOCAL_PAGE"
+                && data.m_entries.front().m_handle == 0xA603u;
+        }
         if (data.handle == kLayoutDictionaryHandle) {
             readLayoutDictionarySeen_ = data.parentHandle
                     == DRW::DwgNamedObjectsDictionaryHandle
@@ -6290,6 +6340,12 @@ public:
                 return entry.m_name == "ACAD_LAYOUT"
                     && entry.m_handle == kLayoutDictionaryHandle;
             });
+        readPlotSettingsRootEntrySeen_ = std::any_of(
+            data.m_entries.cbegin(), data.m_entries.cend(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_PLOTSETTINGS"
+                    && entry.m_handle == kPlotSettingsDictionaryHandle;
+            });
         dx_iface::addNamedObjectDictionary(data);
     }
     void addXRecord(const DRW_XRecord& data) override {
@@ -6301,7 +6357,8 @@ public:
     }
     void addPlotSettings(const DRW_PlotSettings* data) override {
         if (data != nullptr && data->handle == 0xA603u)
-            readPlotSettingsSeen_ = data->parentHandle == 0xA601u
+            readPlotSettingsSeen_ =
+                data->parentHandle == kPlotSettingsDictionaryHandle
                 && data->pageSetupName == "LOCAL_PAGE"
                 && data->printerConfig == "LOCAL_PRINTER"
                 && data->plotLayoutFlags == 1
@@ -7107,6 +7164,7 @@ public:
                     == expectedOuterAnnotativeAppIdHandle_
                 && data.m_r2018OuterAnnotativeAppIdName
                     == "LOCAL_ANNOTATIVE_APP"
+                && data.m_fieldLength == 293
                 && data.attribFlags == 2u
                 && data.lockPosition
                 && data.styleH.ref != 0u;
@@ -7161,6 +7219,7 @@ public:
                     == expectedOuterAnnotativeAppIdHandle_
                 && attribute.m_r2018OuterAnnotativeAppIdName
                     == "LOCAL_ANNOTATIVE_APP"
+                && attribute.m_fieldLength == 293
                 && attribute.attribFlags == 4u
                 && attribute.lockPosition
                 && attribute.styleH.ref != 0u;
@@ -7275,6 +7334,7 @@ public:
     bool wroteGroup() const { return wroteGroup_; }
     bool wroteObjectSet() const {
         return wroteDictionary_ && wroteLayoutDictionary_
+            && wrotePlotSettingsDictionary_
             && wroteXRecord_ && wrotePlotSettings_
             && wroteLayout_ && wroteMLineStyle_ && wroteMLeaderStyle_
             && wroteDictionaryVar_ && wroteDictionaryWithDefault_
@@ -7331,6 +7391,7 @@ public:
         const std::vector<std::pair<const char*, bool>> checks {
             {"dictionary", wroteDictionary_}, {"xrecord", wroteXRecord_},
             {"layout-dictionary", wroteLayoutDictionary_},
+            {"plotsettings-dictionary", wrotePlotSettingsDictionary_},
             {"plotsettings", wrotePlotSettings_}, {"layout", wroteLayout_},
             {"mlinestyle", wroteMLineStyle_}, {"mleaderstyle", wroteMLeaderStyle_},
             {"dictionaryvar", wroteDictionaryVar_},
@@ -7701,18 +7762,21 @@ public:
     const dx_data& capturedData() const { return data_; }
     bool readNamedObjectDictionarySeen() const {
         return readNamedObjectDictionaryCallbacks_ == 1u
-            && readNamedObjectDictionarySeen_;
+            && readNamedObjectDictionarySeen_
+            && readLayoutRootEntrySeen_
+            && readPlotSettingsRootEntrySeen_;
     }
     bool readObjectRawCarrierSetSeen() const {
         const std::size_t expected = expectedVersion_ == DRW::AC1015
-            ? 53u : expectedVersion_ == DRW::AC1018
-                ? 54u : expectedVersion_ == DRW::AC1021 ? 58u : 55u;
+            ? 54u : expectedVersion_ == DRW::AC1018
+                ? 55u : expectedVersion_ == DRW::AC1021 ? 59u : 56u;
         return readRawObjectInvariant_
             && readLocalRawObjectHandles_.size() == expected;
     }
     bool readObjectSetSeen() const {
         const bool result = readDictionarySeen_ && readLayoutDictionarySeen_
-            && readLayoutRootEntrySeen_ && readXRecordSeen_
+            && readLayoutRootEntrySeen_ && readPlotSettingsRootEntrySeen_
+            && readPlotSettingsDictionarySeen_ && readXRecordSeen_
             && readPlotSettingsSeen_ && readLayoutSeen_ && readMLineStyleSeen_
             && readMLeaderStyleSeen_ && readDictionaryVarSeen_
             && readDictionaryWithDefaultSeen_ && readSortEntsTableSeen_
@@ -7945,6 +8009,7 @@ private:
         case 0xA601u:
         case 0xA602u:
         case 0xA603u:
+        case kPlotSettingsDictionaryHandle:
         case 0xA700u:
         case 0xA800u:
         case 0xA900u:
@@ -8103,6 +8168,7 @@ private:
     bool registeredGroup_ {false};
     bool wroteDictionary_ {false};
     bool wroteLayoutDictionary_ {false};
+    bool wrotePlotSettingsDictionary_ {false};
     bool wroteXRecord_ {false};
     bool wrotePlotSettings_ {false};
     bool wroteLayout_ {false};
@@ -8214,6 +8280,7 @@ private:
     bool rejectedMalformedImage_ {false};
     bool registeredDictionary_ {false};
     bool registeredLayoutDictionary_ {false};
+    bool registeredPlotSettingsDictionary_ {false};
     bool registeredMLeaderStyle_ {false};
     bool registeredDictionaryVar_ {false};
     bool registeredDictionaryWithDefault_ {false};
@@ -8331,6 +8398,8 @@ private:
     bool readDictionarySeen_ {false};
     bool readLayoutDictionarySeen_ {false};
     bool readLayoutRootEntrySeen_ {false};
+    bool readPlotSettingsDictionarySeen_ {false};
+    bool readPlotSettingsRootEntrySeen_ {false};
     bool readXRecordSeen_ {false};
     bool readPlotSettingsSeen_ {false};
     bool readLayoutSeen_ {false};
@@ -8476,6 +8545,176 @@ public:
 private:
     double dateTime_;
 };
+
+class PlotSettingsNodGraphWriter final : public dx_iface {
+public:
+    PlotSettingsNodGraphWriter(dwgRW& output, bool explicitHandle,
+                               bool emptyPageName)
+        : output_(output) {
+        if (explicitHandle) {
+            settings_.handle = 0x1234u;
+            settings_.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+        }
+        settings_.pageSetupName = emptyPageName
+            ? std::string() : "LOCAL_GRAPH_PAGE";
+        expectedPageSetupName_ = settings_.pageSetupName.empty()
+            ? "LIBDXFRW_PLOTSETTINGS_" + std::to_string(settings_.handle)
+            : settings_.pageSetupName;
+        expectedHandle_ = settings_.handle;
+        settings_.printerConfig = "Local PDF.pc3";
+        settings_.marginLeft = 1.0;
+        settings_.paperWidth = 210.0;
+        settings_.paperHeight = 297.0;
+    }
+
+    void writeHeader(DRW_Header& header) override { header.vars.clear(); }
+    void writeDwgClasses() override {
+        registered_ = output_.registerPlotSettingsObjectClass(settings_.handle);
+    }
+    void collectDwgAppIds() override {}
+    void writeBlocks() override {}
+    void writeBlockRecords() override {}
+    void writeEntities() override {}
+    void writeLTypes() override {}
+    void writeLayers() override {}
+    void writeTextstyles() override {}
+    void writeVports() override {}
+    void writeViews() override {}
+    void writeUCSs() override {}
+    void writeDimstyles() override {}
+    void writeAppId() override {}
+    void writeObjects() override {
+        written_ = registered_ && output_.writePlotSettings(&settings_);
+        DRW::DwgObjectFrameReceipt frame;
+        frameCaptured_ = written_ && output_.getLastDwgObjectFrame(frame)
+            && frame.valid && frame.objectHandle != 0;
+        if (frameCaptured_)
+            plotSettingsHandle_ = frame.objectHandle;
+        if (expectedHandle_ == 0)
+            expectedHandle_ = plotSettingsHandle_;
+    }
+
+    bool registered() const { return registered_; }
+    bool written() const { return written_; }
+    bool frameCaptured() const { return frameCaptured_; }
+    std::uint32_t plotSettingsHandle() const { return plotSettingsHandle_; }
+    const std::string& expectedPageSetupName() const {
+        return expectedPageSetupName_;
+    }
+    std::uint32_t expectedHandle() const { return expectedHandle_; }
+
+private:
+    dwgRW& output_;
+    DRW_PlotSettings settings_;
+    std::string expectedPageSetupName_;
+    std::uint32_t expectedHandle_ {0};
+    bool registered_ {false};
+    bool written_ {false};
+    bool frameCaptured_ {false};
+    std::uint32_t plotSettingsHandle_ {0};
+};
+
+class PlotSettingsNodGraphReader final : public dx_iface {
+public:
+    PlotSettingsNodGraphReader() {
+        cData = &data_;
+        currentBlock = data_.mBlock;
+    }
+
+    void addNamedObjectDictionary(const DRW_Dictionary& dictionary) override {
+        if (dictionary.handle != DRW::DwgNamedObjectsDictionaryHandle)
+            return;
+        ++rootCount_;
+        for (const DRW_Dictionary::Entry& entry : dictionary.m_entries) {
+            if (entry.m_name == "ACAD_PLOTSETTINGS") {
+                ++plotSettingsRootCount_;
+                plotSettingsDictionaryHandle_ = entry.m_handle;
+            }
+        }
+    }
+
+    void addDictionary(const DRW_Dictionary& dictionary) override {
+        dictionaries_.push_back(dictionary);
+    }
+
+    void addPlotSettings(const DRW_PlotSettings* settings) override {
+        if (settings != nullptr)
+            plotSettings_.push_back(*settings);
+    }
+
+    bool hasClosedGraph(const std::string& expectedPageSetupName,
+                        std::uint32_t expectedHandle) const {
+        const DRW_Dictionary* plotSettingsDictionary = nullptr;
+        std::size_t dictionaryMatches = 0u;
+        for (const DRW_Dictionary& dictionary : dictionaries_) {
+            if (dictionary.handle != plotSettingsDictionaryHandle_)
+                continue;
+            ++dictionaryMatches;
+            plotSettingsDictionary = &dictionary;
+        }
+        if (rootCount_ != 1u || plotSettingsRootCount_ != 1u
+            || plotSettingsDictionaryHandle_ == 0
+            || dictionaryMatches != 1u || plotSettingsDictionary == nullptr
+            || !plotSettingsDictionary->hasCompleteDwgEntries()
+            || plotSettingsDictionary->parentHandle
+                != DRW::DwgNamedObjectsDictionaryHandle
+            || plotSettingsDictionary->hardOwner != 1
+            || plotSettingsDictionary->m_entries.size() != 1u
+            || plotSettingsDictionary->m_entries.front().m_name
+                != expectedPageSetupName
+            || plotSettings_.size() != 1u)
+            return false;
+        const DRW_PlotSettings& settings = plotSettings_.front();
+        return settings.handle != 0
+            && (expectedHandle == 0 || settings.handle == expectedHandle)
+            && settings.handle
+                == plotSettingsDictionary->m_entries.front().m_handle
+            && settings.parentHandle == plotSettingsDictionaryHandle_
+            && settings.pageSetupName == expectedPageSetupName
+            && settings.printerConfig == "Local PDF.pc3"
+            && settings.marginLeft == 1.0
+            && settings.paperWidth == 210.0
+            && settings.paperHeight == 297.0;
+    }
+
+private:
+    std::size_t rootCount_ {0};
+    std::size_t plotSettingsRootCount_ {0};
+    std::uint32_t plotSettingsDictionaryHandle_ {0};
+    std::vector<DRW_Dictionary> dictionaries_;
+    std::vector<DRW_PlotSettings> plotSettings_;
+    dx_data data_;
+};
+
+bool runPlotSettingsNodGraphRoundTrip(
+    const std::filesystem::path& outputPath, DRW::Version version,
+    bool explicitHandle = false, bool emptyPageName = false) {
+    if (std::filesystem::exists(outputPath)) {
+        std::cerr << "Refusing to replace existing PlotSettings graph output\n";
+        return false;
+    }
+    dwgRW output(outputPath.string().c_str());
+    PlotSettingsNodGraphWriter source(output, explicitHandle, emptyPageName);
+    const bool written = output.write(&source, version, true);
+    if (!written || !source.registered() || !source.written()
+        || !source.frameCaptured()) {
+        const DRW_OperationDiagnostic diagnostic = output.getLastDiagnostic();
+        std::cerr << "PlotSettings graph write failed: " << diagnostic.code
+                  << " — " << diagnostic.message << '\n';
+        return false;
+    }
+
+    dwgRW input(outputPath.string().c_str());
+    PlotSettingsNodGraphReader capture;
+    const bool read = input.read(&capture, false);
+    if (!read || !capture.hasClosedGraph(source.expectedPageSetupName(),
+                                         source.expectedHandle())) {
+        std::cerr << "PlotSettings NOD graph did not close on readback"
+                  << " (read=" << read << ")\n";
+        return false;
+    }
+    return true;
+}
 
 class CliBatchDwgSource final : public dx_iface {
 public:
@@ -23726,16 +23965,28 @@ bool runDwgEedBoundaryFollowingObject() {
     const bool written = writer.write(&source, DRW::AC1021, true)
         && source.appRegistered && source.wrotePayloadLine
         && source.wroteFollowingLine;
-    if (!written)
+    if (!written) {
+        const DRW_OperationDiagnostic diagnostic = writer.getLastDiagnostic();
+        std::cerr << "DWG EED boundary write failed: app="
+                  << source.appRegistered << " payload="
+                  << source.wrotePayloadLine << " following="
+                  << source.wroteFollowingLine << " diagnostic="
+                  << diagnostic.code << " — " << diagnostic.message << '\n';
         return false;
+    }
 
     dx_data readback;
     dx_iface sink;
     sink.cData = &readback;
     sink.currentBlock = readback.mBlock;
     dwgRW reader(output.string().c_str());
-    if (!reader.read(&sink, false) || readback.mBlock == nullptr)
+    const bool read = reader.read(&sink, false);
+    if (!read || readback.mBlock == nullptr) {
+        std::cerr << "DWG EED boundary read failed: read=" << read
+                  << " block=" << (readback.mBlock != nullptr)
+                  << " error=" << reader.getError() << '\n';
         return false;
+    }
 
     std::vector<const DRW_Line*> lines;
     for (const DRW_Entity* entity : readback.mBlock->ent) {
@@ -23747,32 +23998,53 @@ bool runDwgEedBoundaryFollowingObject() {
         || lines[0]->basePoint.x != 1.0
         || lines[1]->basePoint.x != 901.0
         || lines[1]->secPoint.z != 906.0
-        || lines[0]->extData.size() != values.size() + 2u
-        || !lines[1]->extData.empty())
+        || lines[0]->extData.size() != values.size() + 1u
+        || !lines[1]->extData.empty()) {
+        std::cerr << "DWG EED boundary projection failed: lines="
+                  << lines.size() << " payload-items="
+                  << (lines.empty() ? 0u : lines[0]->extData.size())
+                  << " following-items="
+                  << (lines.size() < 2u ? 0u : lines[1]->extData.size())
+                  << " error=" << reader.getError() << '\n';
         return false;
+    }
 
     // The writer emits a second physical EED chunk for the 129-byte final
-    // item rather than splitting an item. The local reader projects that
-    // physical repeat as a second same-APPID group; this is only a structural
-    // round-trip observation, not independent semantic acceptance.
+    // item rather than splitting an item. The local reader coalesces physical
+    // repeats into one logical APPID group while preserving item order; this
+    // is a structural round-trip observation, not independent semantic
+    // acceptance.
     std::size_t valueIndex = 0;
     for (std::size_t index = 0; index < lines[0]->extData.size(); ++index) {
         const auto& item = lines[0]->extData[index];
-        if (index == 0u || index == 258u) {
+        if (index == 0u) {
             if (item == nullptr || item->code() != 1001
                 || item->type() != DRW_Variant::STRING
-                || std::string(item->c_str()) != "EED_BOUNDARY_APP")
+                || std::string(item->c_str()) != "EED_BOUNDARY_APP") {
+                std::cerr << "DWG EED boundary APPID marker mismatch at "
+                          << index << '\n';
                 return false;
+            }
         } else {
             if (valueIndex >= values.size() || item == nullptr
                 || item->code() != 1000
                 || item->type() != DRW_Variant::STRING
-                || item->c_str() != values[valueIndex])
+                || item->c_str() != values[valueIndex]) {
+                std::cerr << "DWG EED boundary item mismatch at " << index
+                          << " value=" << valueIndex << " code="
+                          << (item == nullptr ? -1 : item->code()) << '\n';
                 return false;
+            }
             ++valueIndex;
         }
     }
-    return valueIndex == values.size();
+    const bool passed = valueIndex == values.size()
+        && lines[0]->extData.size() == values.size() + 1u;
+    if (!passed)
+        std::cerr << "DWG EED boundary logical group mismatch: values="
+                  << valueIndex << " expected=" << values.size()
+                  << " items=" << lines[0]->extData.size() << '\n';
+    return passed;
 }
 
 bool runDwgReadReportBounds() {
@@ -34153,6 +34425,52 @@ bool runBlockRecordXrefMetadataRoundTrip(
 } // namespace
 
 int main(int argc, char** argv) {
+    if ((argc == 3 || argc == 4)
+        && std::string(argv[1]) == "--generate-plotsettings-nod-graph") {
+        DRW::Version version = DRW::AC1015;
+        if (argc == 4) {
+            const std::string token = argv[3];
+            if (token == "AC1015") version = DRW::AC1015;
+            else if (token == "AC1027") version = DRW::AC1027;
+            else if (token == "AC1032") version = DRW::AC1032;
+            else {
+                std::cerr << "Unsupported PlotSettings graph version\n";
+                return 1;
+            }
+        }
+        return runPlotSettingsNodGraphRoundTrip(argv[2], version) ? 0 : 1;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--plotsettings-nod-graph") {
+        const auto nonce = std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count());
+        const auto base = std::filesystem::temp_directory_path()
+            / ("libdxfrw-plotsettings-nod-graph-" + nonce);
+        std::error_code ignored;
+        bool passed = true;
+        for (const auto& version : {
+                 std::pair<const char*, DRW::Version>{"AC1015", DRW::AC1015},
+                 {"AC1027", DRW::AC1027}}) {
+            const std::string stem = base.string() + "-" + version.first;
+            const std::array<std::tuple<const char*, bool, bool>, 3> cases{{
+                {"generated", false, false},
+                {"explicit", true, false},
+                {"explicit-unnamed", true, true},
+            }};
+            for (const auto& testCase : cases) {
+                const std::filesystem::path outputPath = stem + "-"
+                    + std::get<0>(testCase) + ".dwg";
+                passed = runPlotSettingsNodGraphRoundTrip(
+                             outputPath, version.second,
+                             std::get<1>(testCase), std::get<2>(testCase))
+                    && passed;
+                std::filesystem::remove(outputPath, ignored);
+            }
+        }
+        std::cout << "Generated PlotSettings NOD graph round trips: "
+                  << (passed ? "PASS" : "FAIL") << '\n';
+        return passed ? 0 : 1;
+    }
     if ((argc == 3 || argc == 4)
         && std::string(argv[1]) == "--generate-cli-batch-source") {
         if (std::filesystem::exists(argv[2])) {

@@ -648,7 +648,8 @@ bool dwgWriter15::writeDwgHeader() {
         // Propagate encode failure: writeDwgHeader reports success as a bool.
         if (!m_header->encodeDwgForWriter(
                 m_version, &m_buf, &m_buf, nullptr,
-                DRW::DwgNamedObjectsDictionaryHandle))
+                DRW::DwgNamedObjectsDictionaryHandle,
+                m_plotSettingsDictionaryHandle))
             return false;
         if (!recordHeaderHandseedOffset(dataStartBit))
             return false;
@@ -1351,6 +1352,14 @@ dwgWriter::CompoundWriteCheckpoint dwgWriter15::checkpointCompoundWrite() const 
         m_emittedDwgNamedObjectDictionaryEntries;
     checkpoint.dwgNamedObjectDictionaryComplete =
         m_dwgNamedObjectDictionaryComplete;
+    checkpoint.plotSettingsDictionaryHandle =
+        m_plotSettingsDictionaryHandle;
+    checkpoint.deferredPlotSettingsDictionary =
+        m_deferredPlotSettingsDictionary;
+    checkpoint.deferredPlotSettingsDictionaryEmitted =
+        m_deferredPlotSettingsDictionaryEmitted;
+    checkpoint.deferredPlotSettingsEntryCount =
+        m_deferredPlotSettingsEntries.size();
     checkpoint.emittedDwgGroupDictionaryEntries =
         m_emittedDwgGroupDictionaryEntries;
     checkpoint.emittedDwgGroupFrames = m_emittedDwgGroupFrames;
@@ -1526,6 +1535,17 @@ void dwgWriter15::rollbackCompoundWrite(
         checkpoint.emittedDwgNamedObjectDictionaryEntries;
     m_dwgNamedObjectDictionaryComplete =
         checkpoint.dwgNamedObjectDictionaryComplete;
+    m_plotSettingsDictionaryHandle =
+        checkpoint.plotSettingsDictionaryHandle;
+    m_deferredPlotSettingsDictionary =
+        checkpoint.deferredPlotSettingsDictionary;
+    m_deferredPlotSettingsDictionaryEmitted =
+        checkpoint.deferredPlotSettingsDictionaryEmitted;
+    if (checkpoint.deferredPlotSettingsEntryCount
+        <= m_deferredPlotSettingsEntries.size()) {
+        m_deferredPlotSettingsEntries.resize(
+            checkpoint.deferredPlotSettingsEntryCount);
+    }
     m_emittedDwgGroupDictionaryEntries =
         checkpoint.emittedDwgGroupDictionaryEntries;
     m_emittedDwgGroupFrames = checkpoint.emittedDwgGroupFrames;
@@ -2280,10 +2300,18 @@ void dwgWriter15::invalidateEmittedDwgGroupFrameIndex() noexcept {
 
 bool dwgWriter15::registerDwgNamedObjectDictionaryEntry(
     const std::string& name, std::uint32_t childHandle) {
+    std::string normalizedName;
+    try {
+        normalizedName = toUpperCase(name);
+    } catch (const std::exception&) {
+        return false;
+    }
+    const bool plotSettingsEntry = normalizedName == "ACAD_PLOTSETTINGS";
     if (m_dwgTableRecordsComplete || name.empty() || childHandle == 0
         || childHandle == DRW::DwgNamedObjectsDictionaryHandle
         || childHandle == DRW::DwgAcadGroupDictionaryHandle
-        || toUpperCase(name) == "ACAD_GROUP"
+        || normalizedName == "ACAD_GROUP"
+        || (plotSettingsEntry && m_plotSettingsDictionaryHandle != 0)
         || !ensurePendingDwgDictionaryIndexes()
         || m_pendingDwgGroupHandles.find(childHandle)
             != m_pendingDwgGroupHandles.end()
@@ -2302,6 +2330,8 @@ bool dwgWriter15::registerDwgNamedObjectDictionaryEntry(
         try {
             m_pendingDwgNamedObjectDictionaryEntries.push_back(
                 {name, childHandle});
+            if (plotSettingsEntry)
+                m_plotSettingsDictionaryHandle = childHandle;
         } catch (...) {
             m_pendingDwgNamedObjectDictionaryNames.erase(nameResult.first);
             if (handleResult.second)
@@ -2310,6 +2340,48 @@ bool dwgWriter15::registerDwgNamedObjectDictionaryEntry(
             return false;
         }
     } catch (const std::exception&) {
+        return false;
+    }
+    return true;
+}
+
+bool dwgWriter15::registerPlotSettingsObjectClass(std::uint32_t handle) {
+    if (m_deferredPlotSettingsDictionary) {
+        if (handle == 0)
+            return dwgWriter::registerPlotSettingsObjectClass(0);
+        return dwgWriter::registerPlotSettingsObjectClass(handle);
+    }
+
+    // A caller-supplied PLOTSETTINGS dictionary is already part of the
+    // source graph. Keep its records and key associations on that path.
+    if (m_plotSettingsDictionaryHandle != 0) {
+        if (handle == 0)
+            return false;
+        return dwgWriter::registerPlotSettingsObjectClass(handle);
+    }
+
+    if (m_dwgTableRecordsComplete || m_dwgClassesFrozen)
+        return false;
+
+    const CompoundWriteCheckpoint checkpoint = checkpointPublicTransaction();
+    // Reserve an explicit object identity before allocating the dictionary
+    // handle, so the generated owner cannot collide with a selected record.
+    if (handle != 0
+        && !dwgWriter::registerPlotSettingsObjectClass(handle)) {
+        rollbackCompoundWrite(checkpoint);
+        return false;
+    }
+    const std::uint32_t dictionaryHandle = m_handles.next();
+    if (dictionaryHandle == 0
+        || !registerDwgNamedObjectDictionaryEntry(
+            "ACAD_PLOTSETTINGS", dictionaryHandle)) {
+        rollbackCompoundWrite(checkpoint);
+        return false;
+    }
+    m_deferredPlotSettingsDictionary = true;
+    if (handle == 0
+        && !dwgWriter::registerPlotSettingsObjectClass(0)) {
+        rollbackCompoundWrite(checkpoint);
         return false;
     }
     return true;
@@ -2375,6 +2447,8 @@ bool dwgWriter15::getEmittedDwgNamedObjectDictionaryEntries(
 bool dwgWriter15::validateDwgNamedObjectDictionaryEntries() const {
     if (!m_dwgNamedObjectDictionaryComplete
         || !m_dwgGroupDictionaryComplete
+        || (m_deferredPlotSettingsDictionary
+            && !m_deferredPlotSettingsDictionaryEmitted)
         || m_emittedDwgNamedObjectDictionaryEntries.empty()) {
         return false;
     }
@@ -2401,6 +2475,22 @@ bool dwgWriter15::validateDwgNamedObjectDictionaryEntries() const {
             != m_pendingDwgGroupDictionaryEntries
         || m_emittedDwgGroupFrames != m_pendingDwgGroupDictionaryEntries) {
         return false;
+    }
+
+    if (m_deferredPlotSettingsDictionary) {
+        const auto plotSettingsEntry = std::find_if(
+            m_emittedDwgNamedObjectDictionaryEntries.cbegin(),
+            m_emittedDwgNamedObjectDictionaryEntries.cend(),
+            [this](const DRW::DwgNamedObjectDictionaryEntry& entry) {
+                return entry.name == "ACAD_PLOTSETTINGS"
+                    && entry.childHandle
+                        == m_plotSettingsDictionaryHandle;
+            });
+        if (m_plotSettingsDictionaryHandle == 0
+            || plotSettingsEntry
+                == m_emittedDwgNamedObjectDictionaryEntries.cend()
+            || m_deferredPlotSettingsEntries.empty())
+            return false;
     }
 
     std::set<std::string> groupNames;
@@ -3512,6 +3602,25 @@ bool dwgWriter15::writePlotSettings(
         return false;
 
     DRW_PlotSettings object = plotSettings;
+    const bool appendToDeferredDictionary =
+        m_deferredPlotSettingsDictionary;
+    if (appendToDeferredDictionary) {
+        if (m_deferredPlotSettingsDictionaryEmitted
+            || m_plotSettingsDictionaryHandle == 0
+            || (object.parentHandle != 0
+                && object.parentHandle != m_plotSettingsDictionaryHandle
+                && object.parentHandle
+                    != DRW::DwgNamedObjectsDictionaryHandle)
+            || m_deferredPlotSettingsEntries.size()
+                >= DRW_Dictionary::kMaxEntries)
+            return false;
+        object.parentHandle = m_plotSettingsDictionaryHandle;
+    } else if (plotSettings.handle == 0
+               && m_plotSettingsDictionaryHandle != 0) {
+        // A handle-less object cannot be inserted into a caller-managed
+        // dictionary: its dictionary entry needs the generated object handle.
+        return false;
+    }
     if (!prepareDwgCommonObjectState(object, m_version))
         return false;
     std::vector<DRW_Entity::PendingHandleRef> appIdRefs;
@@ -3524,20 +3633,82 @@ bool dwgWriter15::writePlotSettings(
         object.handle = m_handles.next();
     else
         m_handles.reserve(object.handle);
+
+    DRW_Dictionary::Entry deferredEntry;
+    if (appendToDeferredDictionary) {
+        std::string key;
+        try {
+            if (object.pageSetupName.empty()) {
+                object.pageSetupName = "LIBDXFRW_PLOTSETTINGS_"
+                    + std::to_string(object.handle);
+            }
+            key = toUpperCase(object.pageSetupName);
+            for (const DRW_Dictionary::Entry& entry :
+                 m_deferredPlotSettingsEntries) {
+                if (toUpperCase(entry.m_name) == key)
+                    return false;
+            }
+            m_deferredPlotSettingsEntries.reserve(
+                m_deferredPlotSettingsEntries.size() + 1u);
+            deferredEntry.m_name = object.pageSetupName;
+        } catch (const std::exception&) {
+            return false;
+        }
+        deferredEntry.m_handle = object.handle;
+    }
     if (!emitPlotSettingsObject(object.handle, object, appIdRefs, layerRefs)) {
         m_objectEedWriteFailure = !object.extData.empty();
         return false;
     }
     const std::uint16_t classNumber = typedDwgClassNum(
         "AcDbPlotSettings", "PLOTSETTINGS", 0);
+    bool classInstanceRecorded = false;
     if (plotSettings.handle != 0) {
         markDwgClassInstanceEmitted(object.handle);
         std::uint16_t emittedClassNumber = 0;
-        return getDwgClassInstanceClass(object.handle, emittedClassNumber)
-            ? emittedClassNumber == classNumber
-            : false;
+        classInstanceRecorded =
+            getDwgClassInstanceClass(object.handle, emittedClassNumber)
+            && emittedClassNumber == classNumber;
+    } else {
+        classInstanceRecorded = noteDwgClassInstanceEmitted(classNumber);
     }
-    return noteDwgClassInstanceEmitted(classNumber);
+    if (!classInstanceRecorded)
+        return false;
+    if (appendToDeferredDictionary)
+        m_deferredPlotSettingsEntries.push_back(std::move(deferredEntry));
+    return true;
+}
+
+bool dwgWriter15::completeDeferredDwgObjects() {
+    if (!m_deferredPlotSettingsDictionary)
+        return true;
+    if (m_deferredPlotSettingsDictionaryEmitted)
+        return true;
+    if (!m_dwgTableRecordsComplete || !m_dwgNamedObjectDictionaryComplete
+        || m_plotSettingsDictionaryHandle == 0
+        || m_deferredPlotSettingsEntries.empty()
+        || m_deferredPlotSettingsEntries.size()
+            > DRW_Dictionary::kMaxEntries)
+        return false;
+
+    DRW_Dictionary dictionary;
+    dictionary.handle = m_plotSettingsDictionaryHandle;
+    dictionary.parentHandle = DRW::DwgNamedObjectsDictionaryHandle;
+    dictionary.cloning = 1;
+    dictionary.hardOwner = 1;
+    try {
+        dictionary.m_entries = m_deferredPlotSettingsEntries;
+    } catch (const std::exception&) {
+        return false;
+    }
+
+    const CompoundWriteCheckpoint checkpoint = checkpointCompoundWrite();
+    if (!writeDictionary(dictionary)) {
+        rollbackCompoundWrite(checkpoint);
+        return false;
+    }
+    m_deferredPlotSettingsDictionaryEmitted = true;
+    return true;
 }
 
 // LAYOUT (ODA fixed type 82, §20.4.84) — no class registration required.

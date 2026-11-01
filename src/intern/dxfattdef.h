@@ -238,7 +238,7 @@ private:
         for(std::size_t i=0;i<a.m_r2018ColumnHeights.size();++i)
             if(!real(a.m_r2018ColumnHeights[i],b.m_r2018ColumnHeights[i]))return false;
         return std::tie(a.linespacingStyle,a.m_definedHeightPresent,a.m_backgroundFlags,a.m_backgroundColor,
-            a.m_backgroundColorTrue,a.m_backgroundColorName,a.m_backgroundTransparency,a.m_r2018IsNotAnnotative,
+            a.m_backgroundColorTrue,a.m_backgroundTrueColor,a.m_backgroundColorName,a.m_backgroundTransparency,a.m_r2018IsNotAnnotative,
             a.m_r2018ReallyLocked,a.m_r2018Version,a.m_r2018DefaultFlag,a.m_r2018AppIdHandle,a.m_r2018Attachment,
             a.m_r2018ColumnType,a.m_r2018ColumnCount,a.m_r2018ColumnAutoHeight,a.m_r2018ColumnFlowReversed,
             a.m_r2018DxfColumnContextPresent,a.m_r2018AnnotativeData,a.m_r2018AnnotativeUnknown,
@@ -246,7 +246,7 @@ private:
             a.m_backgroundColorDwgIndex,a.m_backgroundColorDwgMetadataPresent,a.hasXAxisVec,
             a.m_dxfOrientationSeen,a.m_dxfOrientationSnapshotValid)
             ==std::tie(b.linespacingStyle,b.m_definedHeightPresent,b.m_backgroundFlags,b.m_backgroundColor,
-            b.m_backgroundColorTrue,b.m_backgroundColorName,b.m_backgroundTransparency,b.m_r2018IsNotAnnotative,
+            b.m_backgroundColorTrue,b.m_backgroundTrueColor,b.m_backgroundColorName,b.m_backgroundTransparency,b.m_r2018IsNotAnnotative,
             b.m_r2018ReallyLocked,b.m_r2018Version,b.m_r2018DefaultFlag,b.m_r2018AppIdHandle,b.m_r2018Attachment,
             b.m_r2018ColumnType,b.m_r2018ColumnCount,b.m_r2018ColumnAutoHeight,b.m_r2018ColumnFlowReversed,
             b.m_r2018DxfColumnContextPresent,b.m_r2018AnnotativeData,b.m_r2018AnnotativeUnknown,

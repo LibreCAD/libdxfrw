@@ -4333,6 +4333,7 @@ AcDsBlobTestSection makeTwoPageAcDsSection(
 class ModelerDispatchReader final : public dwgReader27 {
 public:
     using dwgReader::readDwgBlocks;
+    using dwgReader::readDwgEntities;
     using dwgReader::walkBlockRecordEntities;
     using dwgReader18::captureRawDwgDataSections;
 
@@ -4398,8 +4399,22 @@ public:
         dwgBuffer input(bytes.data(), bytes.size(), &decoder);
         return dwgReader::readDwgBlocks(sink, &input);
     }
+    bool readEntities(DRW_Interface& sink) {
+        return dwgReader::readDwgEntities(
+            sink, fileBuf.get(), DwgIntegrityAddressSpace::PhysicalFile);
+    }
     const std::vector<DwgEntityFailureDiagnostic>& entityFailures() const {
         return m_entityFailureDiagnostics;
+    }
+    const std::vector<DwgIntegrityDiagnostic>& integrityDiagnostics() const {
+        return m_integrityDiagnostics;
+    }
+    std::size_t entityParseFailures() const { return m_entityParseFailures; }
+    std::uint64_t orphanedEntityRejections() const {
+        return m_orphanedEntityRejections;
+    }
+    bool entitySweepContained() const {
+        return entitySweepFailureContained();
     }
     std::size_t dataStorageLinkFailures() const {
         return m_dataStorageLinkFailures;
@@ -6783,6 +6798,104 @@ void testModelerBlockWalkRejectsBadOwnership(TestContext& t) {
              "entity whose encoded owner differs from BLOCK_RECORD is quarantined");
 }
 
+void testOrphanEntitySweepRecovery(TestContext& t) {
+    constexpr std::uint32_t orphanHandle = 0xA10u;
+    constexpr std::uint32_t validHandle = 0xA11u;
+    constexpr std::uint32_t missingOwner = 0x770u;
+    std::ofstream output;
+    DRW_Header header;
+    ModelerDispatchFrameWriter writer(&output, &header);
+    const bool generated = writer.encodeEmptySolid(orphanHandle, missingOwner)
+        && writer.encodeEmptySolid(validHandle, DRW::NoHandle);
+    t.expect(generated,
+             "generated AC1027 modeler frames cover an orphan and a valid peer");
+    if (!generated)
+        return;
+
+    std::vector<std::uint8_t> bytes = writer.buffer();
+    dwgRW parent("");
+    ModelerDispatchReader reader(
+        std::unique_ptr<dwgBuffer>(new dwgBuffer(bytes.data(), bytes.size())),
+        &parent);
+    reader.setFormatVersion(DRW::AC1027);
+    bool mappedAll = true;
+    for (const auto& frame : writer.objectOffsets()) {
+        mappedAll = reader.ObjectMap.emplace(
+            frame.first, objHandle(38u, frame.first, frame.second)).second
+            && mappedAll;
+    }
+    t.expect(mappedAll && reader.ObjectMap.size() == 2u,
+             "generated entity frames enter the sweep map exactly once");
+    if (!mappedAll)
+        return;
+
+    ModelerDispatchSink sink;
+    const bool read = reader.readEntities(sink);
+    t.expect(!read && reader.entitySweepContained()
+                 && reader.orphanedEntityRejections() == 1u
+                 && reader.entityParseFailures() == 1u,
+             "one missing-owner rejection is reported as contained after the sweep");
+    t.expect(sink.modeler.size() == 1u
+                 && sink.modeler.front().entity.handle == validHandle,
+             "orphan rejection does not block publication of the valid peer");
+
+    std::vector<DwgIntegrityDiagnostic> orphanDiagnostics;
+    for (const DwgIntegrityDiagnostic& diagnostic :
+         reader.integrityDiagnostics()) {
+        if (diagnostic.kind
+            == DwgIntegrityCheckKind::EntityOwnerRecordMissing)
+            orphanDiagnostics.push_back(diagnostic);
+    }
+    t.expect(orphanDiagnostics.size() == 1u
+                 && orphanDiagnostics.front().severity
+                     == DwgIntegritySeverity::Warning
+                 && orphanDiagnostics.front().phase
+                     == DwgIntegrityPhase::ObjectFrame
+                 && orphanDiagnostics.front().logicalHandle == orphanHandle
+                 && orphanDiagnostics.front().hasLogicalHandle
+                 && orphanDiagnostics.front().expected == missingOwner
+                 && orphanDiagnostics.front().hasExpected,
+             "orphan diagnostic identifies its frame and missing owner");
+
+    constexpr std::uint32_t insertHandle = 0xA12u;
+    constexpr std::uint32_t erasedBlockRecord = 0x9030u;
+    ModelerDispatchFrameWriter insertWriter(&output, &header);
+    const bool insertGenerated = insertWriter.encodeInsert(
+        insertHandle, DRW::NoHandle, erasedBlockRecord);
+    t.expect(insertGenerated,
+             "generated AC1027 INSERT references the erased block record");
+    if (!insertGenerated)
+        return;
+    bytes = insertWriter.buffer();
+    ModelerDispatchReader insertReader(
+        std::unique_ptr<dwgBuffer>(new dwgBuffer(bytes.data(), bytes.size())),
+        &parent);
+    insertReader.setFormatVersion(DRW::AC1027);
+    insertReader.m_danglingBlockRecords.insert(erasedBlockRecord);
+    insertReader.ObjectMap.emplace(insertHandle,
+                                   objHandle(7u, insertHandle, 0u));
+    ModelerDispatchSink insertSink;
+    const bool insertRead = insertReader.readEntities(insertSink);
+    t.expect(!insertRead && !insertReader.entitySweepContained()
+                 && insertReader.orphanedEntityRejections() == 0u
+                 && insertSink.inserts.empty(),
+             "INSERT to an erased BLOCK_RECORD fails without being classified as a recoverable orphan");
+    const auto erasedReference = std::find_if(
+        insertReader.integrityDiagnostics().cbegin(),
+        insertReader.integrityDiagnostics().cend(),
+        [](const DwgIntegrityDiagnostic& diagnostic) {
+            return diagnostic.kind
+                == DwgIntegrityCheckKind::EntityBlockRecordErased;
+        });
+    t.expect(erasedReference != insertReader.integrityDiagnostics().cend()
+                 && erasedReference->severity == DwgIntegritySeverity::Error
+                 && erasedReference->logicalHandle == insertHandle
+                 && erasedReference->hasLogicalHandle
+                 && erasedReference->expected == erasedBlockRecord
+                 && erasedReference->hasExpected,
+             "erased block reference error identifies the INSERT and missing target");
+}
+
 void testSpaceBlockDelimiterOwner(TestContext& t) {
     constexpr std::uint32_t blockRecordHandle = 0x680u;
     constexpr std::uint32_t blockHandle = 0x681u;
@@ -6833,6 +6946,270 @@ void testSpaceBlockDelimiterOwner(TestContext& t) {
                  && sink.blocks == std::vector<std::string>{blockName}
                  && sink.endBlocks == 1u,
              "owner-bearing paper-space delimiters publish one complete scope");
+}
+
+class TableControlRecoveryReader final : public dwgReader15 {
+public:
+    explicit TableControlRecoveryReader(std::vector<std::uint8_t>& bytes)
+        : dwgReader15(std::make_unique<dwgBuffer>(bytes.data(), bytes.size()),
+                      nullptr) {
+        version = DRW::AC1015;
+        decoder.setVersion(version, false);
+    }
+
+    bool readTables(DRW_Header& header, std::vector<std::uint8_t>& bytes) {
+        dwgBuffer input(bytes.data(), bytes.size(), &decoder);
+        return dwgReader::readDwgTables(header, &input);
+    }
+
+    bool readTrackedAc1015Header(
+        DRW_Header& header,
+        std::map<std::int16_t, std::uint32_t>& controlHandles) {
+        if (!readFileHeader() || !readDwgHeader(header)
+            || !readDwgClasses() || !readDwgHandles())
+            return false;
+        for (const auto& object : ObjectMap) {
+            DwgObjectFrame frame;
+            if (!frame.readAt(*fileBuf, version, object.second.loc))
+                return false;
+            dwgBuffer body(frame.body().data(), frame.body().size(), &decoder);
+            const auto type = static_cast<std::int16_t>(
+                body.getObjType(version));
+            switch (type) {
+            case DRW::DwgLTypeControlObjectType:
+            case DRW::DwgLayerControlObjectType:
+            case DRW::DwgStyleControlObjectType:
+            case DRW::DwgDimStyleControlObjectType:
+            case DRW::DwgVPortControlObjectType:
+            case DRW::DwgBlockControlObjectType:
+            case DRW::DwgAppIdControlObjectType:
+            case DRW::DwgViewControlObjectType:
+            case DRW::DwgUcsControlObjectType:
+                if (!body.isGood()
+                    || !controlHandles.emplace(type, object.first).second)
+                    return false;
+                break;
+            default:
+                break;
+            }
+        }
+        return controlHandles.size() == 9u;
+    }
+
+    const std::vector<DwgIntegrityDiagnostic>& diagnostics() const {
+        return m_integrityDiagnostics;
+    }
+
+    std::size_t danglingBlockRecords() const {
+        return m_danglingBlockRecords.size();
+    }
+
+    bool tablesEmpty() const {
+        return ltypemap.empty() && layermap.empty() && stylemap.empty()
+            && dimstylemap.empty() && vportmap.empty()
+            && blockRecordmap.empty() && appIdmap.empty()
+            && viewmap.empty() && ucsmap.empty();
+    }
+};
+
+struct GeneratedTableControls {
+    using Listed = std::map<std::int16_t, std::vector<std::uint32_t>>;
+    DRW_Header header;
+    std::vector<std::uint8_t> bytes;
+    std::vector<objHandle> objects;
+
+    static dwgHandle handle(std::uint32_t reference) {
+        dwgHandle result;
+        result.code = DRW::DwgNullReference;
+        result.ref = reference;
+        result.ref64 = reference;
+        for (std::uint32_t remaining = reference; remaining != 0u;
+             remaining >>= 8u)
+            ++result.size;
+        return result;
+    }
+
+    static bool usesBitShort(std::int16_t type) {
+        return type == DRW::DwgLTypeControlObjectType
+            || type == DRW::DwgUcsControlObjectType
+            || type == DRW::DwgVPortControlObjectType
+            || type == DRW::DwgAppIdControlObjectType
+            || type == DRW::DwgDimStyleControlObjectType;
+    }
+
+    static bool hasPhantoms(std::int16_t type) {
+        return type == DRW::DwgBlockControlObjectType
+            || type == DRW::DwgLTypeControlObjectType;
+    }
+
+    static std::vector<std::uint8_t> makeFrame(
+        std::int16_t type, std::uint32_t controlHandle,
+        const std::vector<std::uint32_t>& entries,
+        const std::vector<std::uint32_t>& phantoms) {
+        dwgBufferW body;
+        body.putObjType(DRW::AC1015, static_cast<std::uint16_t>(type));
+        body.putRawLong32(0u); // R2000 object size: inline handle stream.
+        body.putHandle(handle(controlHandle));
+        body.putBitShort(0u); // No EED.
+        body.putBitLong(0); // No reactors.
+        if (usesBitShort(type))
+            body.putBitShort(static_cast<std::uint16_t>(entries.size()));
+        else
+            body.putBitLong(static_cast<std::int32_t>(entries.size()));
+        if (type == DRW::DwgDimStyleControlObjectType)
+            body.putRawChar8(0u); // Unknown hard-handle counter.
+        body.putHandle(handle(0u)); // Null control handle.
+        body.putHandle(handle(0u)); // Null extension dictionary.
+        for (const std::uint32_t entry : entries)
+            body.putHandle(handle(entry));
+        if (hasPhantoms(type)) {
+            for (const std::uint32_t phantom : phantoms)
+                body.putHandle(handle(phantom));
+        }
+        body.alignToByte();
+
+        dwgBufferW frame;
+        frame.putModularShort(static_cast<std::int32_t>(body.size()));
+        frame.putBytes(body.data().data(), body.size());
+        frame.putRawShort16(frame.crc16(0xC0C1u, 0u, frame.size()));
+        return frame.data();
+    }
+
+    explicit GeneratedTableControls(
+        const DRW_Header& sourceHeader,
+        const std::map<std::int16_t, std::uint32_t>& controls,
+        const Listed& listed = Listed(),
+        std::vector<std::uint32_t> blockPhantoms = {0u, 0u})
+        : header(sourceHeader) {
+        for (const auto& entry : controls) {
+            const std::int16_t type = entry.first;
+            const std::uint32_t controlHandle = entry.second;
+            const auto listedEntries = listed.find(type);
+            const std::vector<std::uint32_t> entriesForControl =
+                listedEntries == listed.end()
+                    ? std::vector<std::uint32_t>()
+                    : listedEntries->second;
+            const std::vector<std::uint32_t> phantomsForControl =
+                type == DRW::DwgBlockControlObjectType
+                    ? blockPhantoms
+                    : std::vector<std::uint32_t>{0u, 0u};
+            const auto frame = makeFrame(type, controlHandle,
+                                         entriesForControl,
+                                         phantomsForControl);
+            if (frame.empty())
+                continue;
+            objects.emplace_back(static_cast<std::uint32_t>(type),
+                                 controlHandle,
+                                 static_cast<std::uint32_t>(bytes.size()));
+            bytes.insert(bytes.end(), frame.cbegin(), frame.cend());
+        }
+    }
+
+    bool install(TableControlRecoveryReader& reader) const {
+        for (const objHandle& object : objects) {
+            if (!reader.ObjectMap.emplace(object.handle, object).second)
+                return false;
+        }
+        return true;
+    }
+};
+
+void testErasedBlockRecordTableRecovery(TestContext& t) {
+    const auto samplePath = std::filesystem::path(
+        LIBDXFRW_READER_FIXTURE_DIR) / "ordinary_enc_AC1015.dwg";
+    std::ifstream sampleInput(samplePath, std::ios::binary);
+    const bool sampleOpened = sampleInput.is_open();
+    std::vector<std::uint8_t> sampleBytes(
+        (std::istreambuf_iterator<char>(sampleInput)),
+        std::istreambuf_iterator<char>());
+    t.expect(sampleOpened,
+             "tracked AC1015 source fixture is available for its header profile");
+    if (sampleBytes.empty())
+        return;
+    TableControlRecoveryReader sourceReader(sampleBytes);
+    DRW_Header sourceHeader;
+    std::map<std::int16_t, std::uint32_t> controlHandles;
+    const bool sourcePrepared = sourceReader.readTrackedAc1015Header(
+        sourceHeader, controlHandles);
+    t.expect(sourcePrepared,
+             "tracked AC1015 source header supplies the nine control handles");
+    if (!sourcePrepared)
+        return;
+
+    {
+        GeneratedTableControls drawing(
+            sourceHeader, controlHandles,
+            {{DRW::DwgBlockControlObjectType,
+              {0x9030u, 0x9031u, 0x9032u}}});
+        TableControlRecoveryReader reader(drawing.bytes);
+        t.expect(drawing.install(reader),
+                 "generated AC1015 control frames install with unique handles");
+        const bool read = reader.readTables(drawing.header, drawing.bytes);
+        t.expect(read && reader.danglingBlockRecords() == 3u
+                     && reader.ObjectMap.empty(),
+                 "BLOCK_CONTROL skips and records absent ordinary records");
+        std::vector<std::pair<std::uint32_t, std::uint64_t>> reported;
+        for (const DwgIntegrityDiagnostic& diagnostic : reader.diagnostics()) {
+            if (diagnostic.kind
+                != DwgIntegrityCheckKind::TableControlDanglingHandle)
+                continue;
+            t.expect(diagnostic.severity == DwgIntegritySeverity::Warning
+                         && diagnostic.phase == DwgIntegrityPhase::SectionParser
+                         && diagnostic.hasLogicalHandle && diagnostic.hasExpected,
+                     "dangling block record diagnostic carries warning severity, phase, and links");
+            reported.emplace_back(diagnostic.logicalHandle, diagnostic.expected);
+        }
+        const std::vector<std::pair<std::uint32_t, std::uint64_t>> expected{
+            {0x9030u, controlHandles.at(DRW::DwgBlockControlObjectType)},
+            {0x9031u, controlHandles.at(DRW::DwgBlockControlObjectType)},
+            {0x9032u, controlHandles.at(DRW::DwgBlockControlObjectType)}};
+        t.expect(reported == expected,
+                 "each missing BLOCK_RECORD diagnostic identifies its control and handle");
+    }
+
+    for (const auto& scenario : {
+             std::pair<const char*, std::vector<std::uint32_t>>{
+                 "model space", {0x9040u, 0u}},
+             {"paper space", {0u, 0x9041u}},
+             {"both phantom records", {0x9040u, 0x9041u}}}) {
+        GeneratedTableControls drawing(
+            sourceHeader, controlHandles, {}, scenario.second);
+        TableControlRecoveryReader reader(drawing.bytes);
+        const bool installed = drawing.install(reader);
+        const bool read = installed
+            && reader.readTables(drawing.header, drawing.bytes);
+        t.expect(installed && !read && reader.danglingBlockRecords() == 0u
+                     && reader.tablesEmpty()
+                     && reader.ObjectMap.size() == drawing.objects.size(),
+                 std::string("missing ") + scenario.first
+                     + " phantom record fails and rolls back the table phase");
+    }
+
+    {
+        // BLOCK_CONTROL's absent record is first tolerated; the later APPID
+        // control lists another absent record and must roll the whole phase
+        // back while retaining the earlier warning as diagnostic evidence.
+        GeneratedTableControls drawing(
+            sourceHeader, controlHandles,
+            {{DRW::DwgBlockControlObjectType, {0x9030u}},
+             {DRW::DwgAppIdControlObjectType, {0x9001u}}});
+        TableControlRecoveryReader reader(drawing.bytes);
+        const bool installed = drawing.install(reader);
+        const bool read = installed
+            && reader.readTables(drawing.header, drawing.bytes);
+        t.expect(installed && !read && reader.danglingBlockRecords() == 0u
+                     && reader.tablesEmpty()
+                     && reader.ObjectMap.size() == drawing.objects.size(),
+                 "later non-block missing record rolls back skipped block records and consumed controls");
+        std::size_t danglingWarnings = 0u;
+        for (const DwgIntegrityDiagnostic& diagnostic : reader.diagnostics()) {
+            if (diagnostic.kind
+                == DwgIntegrityCheckKind::TableControlDanglingHandle)
+                ++danglingWarnings;
+        }
+        t.expect(danglingWarnings == 1u,
+                 "rollback retains the earlier dangling-record diagnostic");
+    }
 }
 
 void testMixedMissingBlockOwnership(TestContext& t) {
@@ -7088,6 +7465,35 @@ void testBoundedEedApplicationChunks(TestContext& t) {
                  && validInput.getRawLong32()
                         == static_cast<std::int32_t>(objectSentinel),
              "valid EED termination leaves the following object sentinel untouched");
+
+    std::vector<DwgEedChunk> repeatedApplications(3u);
+    repeatedApplications[0].appHandle = 0x123u;
+    repeatedApplications[0].items.emplace_back(1070, 1);
+    repeatedApplications[0].items.emplace_back(1003, std::string("LAYER_A"));
+    repeatedApplications[0].layerRefs.push_back({1u, 0xAAu});
+    repeatedApplications[1].appHandle = 0x456u;
+    repeatedApplications[1].items.emplace_back(1000, std::string("OTHER"));
+    repeatedApplications[2].appHandle = 0x123u;
+    repeatedApplications[2].items.emplace_back(1070, 2);
+    repeatedApplications[2].items.emplace_back(1003, std::string("LAYER_B"));
+    repeatedApplications[2].layerRefs.push_back({1u, 0xBBu});
+    const bool groupedApplications =
+        coalesceDwgEedChunksByApp(repeatedApplications);
+    t.expect(groupedApplications && repeatedApplications.size() == 2u
+                 && repeatedApplications[0].appHandle == 0x123u
+                 && repeatedApplications[0].items.size() == 4u
+                 && repeatedApplications[0].items[0].i_val() == 1
+                 && repeatedApplications[0].items[2].i_val() == 2
+                 && repeatedApplications[0].layerRefs.size() == 2u
+                 && repeatedApplications[0].layerRefs[0].itemIndex == 1u
+                 && repeatedApplications[0].layerRefs[0].handleRef == 0xAAu
+                 && repeatedApplications[0].layerRefs[1].itemIndex == 3u
+                 && repeatedApplications[0].layerRefs[1].handleRef == 0xBBu
+                 && repeatedApplications[1].appHandle == 0x456u
+                 && repeatedApplications[1].items.size() == 1u
+                 && repeatedApplications[1].items[0].content.s != nullptr
+                 && *repeatedApplications[1].items[0].content.s == "OTHER",
+             "repeated physical EED chunks become one ordered logical APPID group with remapped layer refs");
 
     const std::vector<std::uint8_t> malformedData{4u, 4u, 0x7Fu};
     const std::vector<std::uint8_t> followingData{70u, 0x78u, 0x56u};
@@ -16601,6 +17007,14 @@ int runAssociativeRawCarrierRetention(const std::string& path) {
 }  // namespace
 
 int main(int argc, char** argv) {
+    if (argc == 2
+        && std::string(argv[1]) == "--bounded-eed-application-chunks") {
+        TestContext focused;
+        testBoundedEedApplicationChunks(focused);
+        std::cout << "Bounded EED application chunks: "
+                  << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return focused.failures == 0 ? 0 : 1;
+    }
     if (argc == 3 && std::string(argv[1]) == "--persistent-manager-source-prefix")
         return runPersistentManagerSourcePrefix(argv[2]);
     if (argc == 2 && std::string(argv[1]) == "--persistent-manager-prefix-dispatch") {
@@ -16753,6 +17167,20 @@ int main(int argc, char** argv) {
         return focused.failures == 0 ? 0 : 1;
     }
     if (argc == 2
+        && std::string(argv[1]) == "--orphan-entity-sweep-recovery") {
+        TestContext focused;
+        testOrphanEntitySweepRecovery(focused);
+        std::cout << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return focused.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
+        && std::string(argv[1]) == "--erased-block-record-table-recovery") {
+        TestContext focused;
+        testErasedBlockRecordTableRecovery(focused);
+        std::cout << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return focused.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
         && std::string(argv[1]) == "--space-block-delimiter-owner") {
         TestContext focused;
         testSpaceBlockDelimiterOwner(focused);
@@ -16871,7 +17299,9 @@ int main(int argc, char** argv) {
     testBlockRecordXrefIndexRetention(context);
     testLegacyLayoutBlockChains(context);
     testModelerBlockWalkRejectsBadOwnership(context);
+    testOrphanEntitySweepRecovery(context);
     testSpaceBlockDelimiterOwner(context);
+    testErasedBlockRecordTableRecovery(context);
     testMixedMissingBlockOwnership(context);
     testBoundedEedApplicationChunks(context);
     testMalformedEedEntityDoesNotBlockFollowingEntity(context);

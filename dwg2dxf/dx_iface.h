@@ -1227,6 +1227,7 @@ public:
             || !hasUnchangedDwgDictionaryVars()
             || !hasUnchangedDwgScales()
             || !hasUnchangedDwgLayoutOutputSources()
+            || !hasUnchangedDwgPlotSettingsSources()
             || !hasUnchangedDxfMLineStyles() || !hasUnchangedDxfMLineConsumers()) {
             dxfW->writeRawDxfObject(nullptr);
             return;
@@ -2447,6 +2448,17 @@ private:
     bool m_standardDwgOutputInspected{false};
     bool m_standardDwgOutputFinalized{false};
     bool m_standardDwgOutputPublished{false};
+    struct DwgPlotSettingsOutputProof {
+        std::uint64_t generation{0u};
+        std::uint32_t source{0u}, emitted{0u}, owner{0u};
+        std::vector<std::uint32_t> references;
+    };
+    std::map<std::uint32_t, DwgPlotSettingsOutputProof>
+        m_dwgPlotSettingsOutputProofs;
+    std::size_t m_dwgPlotSettingsOutputBytes{0u};
+    bool m_dwgPlotSettingsOutputInspected{false};
+    bool m_dwgPlotSettingsOutputFinalized{false};
+    bool m_dwgPlotSettingsOutputPublished{false};
     struct RasterOutputProof {
         dxfRW::ImageDefinitionKey definition;
         std::uint32_t sourceReactor{0}, emitted{0}, owner{0}, extension{0};
@@ -2509,6 +2521,12 @@ private:
     void resetStandardDwgOutputProofs() noexcept;
     bool inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
     bool inspectStandardDwgTablesOutput(const dxfRW::DxfTablesWriteView& view) noexcept;
+    bool retainDwgPlotSettingsPublication(
+        const DRW_DwgFramePublication& publication) noexcept;
+    bool hasUnchangedDwgPlotSettingsSources() const noexcept;
+    bool inspectDwgPlotSettingsOutput(
+        const dxfRW::DxfObjectsWriteView& view) noexcept;
+    bool finalizeDwgPlotSettingsOutputProofs() noexcept;
     bool hasQualifiedStandardDwgOutputNames(std::uint64_t generation,
                                           std::uint32_t handle, bool finalizing) const;
     bool finalizeStandardDwgOutputProofs() noexcept;

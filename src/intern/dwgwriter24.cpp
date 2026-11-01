@@ -103,7 +103,8 @@ bool dwgWriter24::writeDwgHeader() {
         // Propagate encode failure: writeDwgHeader reports success as a bool.
         if (!m_header->encodeDwgForWriter(
                 m_version, &dataBuf, &handleBuf, &strBuf,
-                DRW::DwgNamedObjectsDictionaryHandle))
+                DRW::DwgNamedObjectsDictionaryHandle,
+                m_plotSettingsDictionaryHandle))
             return false;
         dataBuf.alignToByte();
         strBuf.alignToByte();

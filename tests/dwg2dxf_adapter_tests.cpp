@@ -4701,11 +4701,16 @@ bool multipleSelectedXrecords(bool faultsOnly = false, bool branches = false) {
             if (!write(targetVersion,binary) || !captured || !retained || !readback()) return fail("multiple selected facade export/readback refused or changed selected order/edges");
             if (native) for (const auto handle : {0xD010u,0xD020u,0xD030u,0xD040u,0xD050u}) {
                 const bool modern = version > DRW::AC1018;
+                const bool legacyDictionary = version == DRW::AC1015
+                    && (handle == 0xD010u || handle == 0xD050u);
                 if (Access::standardSourceEligible(data,handle) != modern
-                    || Access::standardOutputHas(exporter,handle) != (modern && handle != 0xD040u)) return fail("multiple native selected/unselected proof qualification changed");
+                    || Access::standardOutputHas(exporter,handle)
+                        != ((modern && handle != 0xD040u)
+                            || legacyDictionary)) return fail("multiple native selected/unselected proof qualification changed");
             }
             if (native && branches && (Access::standardSourceEligible(data,0xD060u) != (version > DRW::AC1018)
-                || Access::standardOutputHas(exporter,0xD060u) != (version > DRW::AC1018))) return fail("second native dictionary branch proof missing or upgraded");
+                || Access::standardOutputHas(exporter,0xD060u)
+                    != (version > DRW::AC1018 || version == DRW::AC1015))) return fail("second native dictionary branch proof missing or upgraded");
             ++exports;
             dx_data actual; dx_iface reader;
             if (!reader.fileImport(target.string(),&actual,false) || !exporter.fileExport(target.string(),targetVersion,!binary,&actual,false,true)
@@ -5006,9 +5011,14 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false) {
                     + std::to_string(static_cast<int>(outputVersion)) + " format="
                     + std::to_string(format) + " binary="
                     + std::to_string(binary));
-            if (native) for (const auto h : {0xE010u,0xE020u,0xE030u,0xE040u,0xE050u,0xE060u})
+            if (native) for (const auto h : {0xE010u,0xE020u,0xE030u,0xE040u,0xE050u,0xE060u}) {
+                const bool legacyDictionary = version == DRW::AC1015
+                    && (h == 0xE010u || h == 0xE030u);
                 if (Access::standardSourceEligible(data,h) != (version > DRW::AC1018)
-                    || Access::standardOutputHas(exporter,h) != (version > DRW::AC1018 && h != 0xE060u)) return fail("XRECORD extension source/output proof gate changed");
+                    || Access::standardOutputHas(exporter,h)
+                        != ((version > DRW::AC1018 && h != 0xE060u)
+                            || legacyDictionary)) return fail("XRECORD extension source/output proof gate changed");
+            }
             ++exports;
             dx_data actual; dx_iface reader;
             if (!reader.fileImport(target.string(),&actual,false) || !exporter.fileExport(target.string(),outputVersion,!binary,&actual,false,true)
@@ -5592,10 +5602,15 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
                     dx_dxfProxyGraphicsPolicy::Compatible,dx_dwgReadCompletenessPolicy::AllowPartial))
                 return fail("standard compatible projection failed source=" + std::to_string(version) + " target=" + std::to_string(outputVersion)
                     + " binary=" + std::to_string(binary) + " materialEmitted=" + std::to_string(exporter.emitted) + " applicationScope=" + std::to_string(scope));
-            for (const auto handle : {0xB010u,0xB020u,0xB030u}) if (Access::standardOutputHas(exporter,handle) != modern)
-                return fail("standard chunk modeled output proof missing kind-handle=" + std::to_string(handle)
-                    + " size=" + std::to_string(size) + " source=" + std::to_string(version) + " target=" + std::to_string(outputVersion)
-                    + " binary=" + std::to_string(binary));
+            for (const auto handle : {0xB010u,0xB020u,0xB030u}) {
+                const bool legacyDictionary = version == DRW::AC1015
+                    && handle == 0xB010u;
+                if (Access::standardOutputHas(exporter,handle)
+                    != (modern || legacyDictionary))
+                    return fail("standard chunk modeled output proof missing kind-handle=" + std::to_string(handle)
+                        + " size=" + std::to_string(size) + " source=" + std::to_string(version) + " target=" + std::to_string(outputVersion)
+                        + " binary=" + std::to_string(binary));
+            }
             dx_data actual; dx_iface reader;
             if (!reader.fileImport(target.string(),&actual,false) || actual.groups.size() != 1u || actual.xRecords.size() != 1u)
                 return fail("standard chunk actual output/readback failed");
@@ -5709,8 +5724,13 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
                 if (wrote || retained != sentinel) return fail("late native XRECORD application edit was published");
                 exporter.afterObjects = {}; exporter.beforeFinalize = {}; data.xRecords.front() = original;
                 if (!Access::unchanged(importer) || !write()) return fail("restored native XRECORD source did not retry");
-                for (const auto handle : {0xB010u,0xB020u,0xB030u}) if (Access::standardOutputHas(exporter,handle) != modern)
-                    return fail("restored native application retry changed source qualification");
+                for (const auto handle : {0xB010u,0xB020u,0xB030u}) {
+                    const bool legacyDictionary = version == DRW::AC1015
+                        && handle == 0xB010u;
+                    if (Access::standardOutputHas(exporter,handle)
+                        != (modern || legacyDictionary))
+                        return fail("restored native application retry changed source qualification");
+                }
                 dx_data readback; dx_iface reread;
                 if (!reread.fileImport(target.string(),&readback,false) || readback.xRecords.size() != 1u || readback.groups.size() != 1u
                     || !applicationEqual(readback.xRecords.front(),scope,readback.groups.front().handle,true)

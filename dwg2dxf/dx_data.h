@@ -2163,6 +2163,16 @@ private:
     using StandardDwgOrdinalKey = std::pair<std::uint64_t, std::uint64_t>;
     using StandardDwgLocationKey = std::pair<std::uint64_t,
         std::pair<DRW_DwgFrameOffsetSpace, std::uint32_t>>;
+    struct DwgPlotSettingsSourceFrame {
+        DRW_PlotSettings typedBaseline;
+        DRW_DwgFramePublication publication;
+        std::size_t callbackOrdinal{0u};
+        bool publicationSeen{false};
+    };
+    std::map<StandardDwgFrameKey, DwgPlotSettingsSourceFrame>
+        m_dwgPlotSettingsSources;
+    std::size_t m_dwgPlotSettingsSourceRetainedBytes{0u};
+    bool m_dwgPlotSettingsSourceCaptureFailed{false};
     // IMAGEDEF/reactor source correlation is deliberately separate from the
     // qualified standard-object output lane. These records never increase its
     // completeness counters or acquire output certificates by self-readback.

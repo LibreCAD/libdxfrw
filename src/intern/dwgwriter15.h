@@ -87,9 +87,18 @@ public:
     bool writeDwgHeader() override;
     bool writeDwgClasses() override;
     bool writeDwgObjects() override;
+    bool completeDeferredDwgObjects() override;
     bool writeDwgHandles() override;
     bool writeSecondHeader() override;
     bool finalize() override;
+    std::size_t compactDeferredPlotSettingsEntryCount() const override {
+        return m_deferredPlotSettingsEntries.size();
+    }
+    void rollbackCompactDeferredPlotSettingsEntries(
+        std::size_t entryCount) override {
+        if (entryCount <= m_deferredPlotSettingsEntries.size())
+            m_deferredPlotSettingsEntries.resize(entryCount);
+    }
 
     /// Encode a single entity into the object stream.  See
     /// dwgWriter::encodeEntity for the contract.
@@ -163,6 +172,8 @@ public:
         std::vector<std::uint32_t>& handles) const override;
     bool registerDwgNamedObjectDictionaryEntry(
         const std::string& name, std::uint32_t childHandle) override;
+    bool registerPlotSettingsObjectClass(
+        std::uint32_t handle = 0) override;
     bool registerDwgGroupDictionaryEntry(
         const std::string& name, std::uint32_t groupHandle) override;
     bool getEmittedDwgNamedObjectDictionaryEntries(
@@ -669,6 +680,10 @@ protected:
     std::vector<DRW::DwgNamedObjectDictionaryEntry>
         m_emittedDwgNamedObjectDictionaryEntries;
     bool m_dwgNamedObjectDictionaryComplete {false};
+    std::uint32_t m_plotSettingsDictionaryHandle {0};
+    bool m_deferredPlotSettingsDictionary {false};
+    bool m_deferredPlotSettingsDictionaryEmitted {false};
+    std::vector<DRW_Dictionary::Entry> m_deferredPlotSettingsEntries;
     std::vector<DRW::DwgNamedObjectDictionaryEntry>
         m_pendingDwgGroupDictionaryEntries;
     std::vector<DRW::DwgNamedObjectDictionaryEntry>

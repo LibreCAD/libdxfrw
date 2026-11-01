@@ -369,6 +369,11 @@ public:
     /// on success.
     virtual bool writeDwgObjects() = 0;
 
+    /// Complete object graphs whose dictionary entries depend on objects
+    /// emitted by the adapter's writeObjects() callback. Most writers have
+    /// no deferred objects and therefore complete this phase immediately.
+    virtual bool completeDeferredDwgObjects() { return true; }
+
     /// Emit the HANDLES (object map) section terminator.  v1 with
     /// zero entities just emits the empty-page terminator.
     virtual bool writeDwgHandles() = 0;
@@ -496,6 +501,10 @@ public:
         std::vector<DRW::DwgNamedObjectDictionaryEntry>
             emittedDwgNamedObjectDictionaryEntries;
         bool dwgNamedObjectDictionaryComplete {false};
+        std::uint32_t plotSettingsDictionaryHandle {0};
+        bool deferredPlotSettingsDictionary {false};
+        bool deferredPlotSettingsDictionaryEmitted {false};
+        std::size_t deferredPlotSettingsEntryCount {0};
         std::vector<DRW::DwgNamedObjectDictionaryEntry>
             emittedDwgGroupDictionaryEntries;
         std::vector<DRW::DwgNamedObjectDictionaryEntry>
@@ -548,9 +557,10 @@ public:
         DRW::DwgObjectFrameProvenance currentDwgObjectFrameProvenance;
     };
 
-    /// The class-instance ledger state for one already-associated object
-    /// handle. This keeps a failed fixed-frame OBJECT rollback proportional to
-    /// one class instance instead of copying every document-wide class map.
+    /// The class-instance and bounded append-only PlotSettings state for one
+    /// already-associated object handle. This keeps a failed fixed-frame
+    /// OBJECT rollback proportional to one class instance and one vector
+    /// length instead of copying every document-wide class map.
     struct DwgClassInstanceCheckpoint {
         std::uint32_t handle {0};
         std::uint16_t classNumber {0};
@@ -558,6 +568,7 @@ public:
         bool emitted {false};
         bool hasEmissionCount {false};
         std::uint32_t emissionCount {0};
+        std::size_t deferredPlotSettingsEntryCount {0};
         bool valid {false};
     };
 
@@ -637,12 +648,15 @@ public:
             count != m_dwgClassInstanceEmissionCounts.end();
         if (checkpoint.hasEmissionCount)
             checkpoint.emissionCount = count->second;
+        checkpoint.deferredPlotSettingsEntryCount =
+            compactDeferredPlotSettingsEntryCount();
         checkpoint.valid = true;
         return checkpoint;
     }
 
-    /// Restore one registered handle's class ledger after a failed frame.
-    /// Other handles and class definitions are untouched.
+    /// Restore one registered handle's class ledger and compact deferred
+    /// PlotSettings append state after a failed frame. Other handles and class
+    /// definitions are untouched.
     void rollbackDwgClassInstance(
         const DwgClassInstanceCheckpoint& checkpoint) {
         if (!checkpoint.valid || checkpoint.handle == 0)
@@ -664,7 +678,17 @@ public:
         if (checkpoint.hasEmissionCount)
             m_dwgClassInstanceEmissionCounts.emplace(
                 checkpoint.classNumber, checkpoint.emissionCount);
+        rollbackCompactDeferredPlotSettingsEntries(
+            checkpoint.deferredPlotSettingsEntryCount);
     }
+
+    /// Fixed-object rollback hook for bounded derived state updated only
+    /// after a successful object frame. The base writer has no such entries.
+    virtual std::size_t compactDeferredPlotSettingsEntryCount() const {
+        return 0;
+    }
+    virtual void rollbackCompactDeferredPlotSettingsEntries(
+        std::size_t) {}
 
     /// Bind provenance to the next object frame. The binding is consumed by
     /// beginObject() or raw replay and is therefore never inherited by an
@@ -1049,7 +1073,7 @@ public:
         return registerTypedObjectClassRow<dwgTypedClassRowIndex("DbColor")>(handle);
     }
 
-    bool registerPlotSettingsObjectClass(std::uint32_t handle = 0) {
+    virtual bool registerPlotSettingsObjectClass(std::uint32_t handle = 0) {
         DwgClassDefinition definition;
         definition.m_classNum = typedDwgClassNum(
             "AcDbPlotSettings", "PLOTSETTINGS", 0);

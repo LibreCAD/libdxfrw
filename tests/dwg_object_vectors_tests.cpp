@@ -16986,6 +16986,53 @@ bool roundTripR2018Attribute(T& source, std::uint8_t expectedType,
                      == source.mtext->m_backgroundColorDwgIndex
                  && parsed.mtext->m_backgroundColorDwgMetadataPresent
                      == source.mtext->m_backgroundColorDwgMetadataPresent
+                 && parsed.mtext->m_r2018IsNotAnnotative
+                     == source.mtext->m_r2018IsNotAnnotative
+                 && parsed.mtext->m_r2018Version
+                     == source.mtext->m_r2018Version
+                 && parsed.mtext->m_r2018DefaultFlag
+                     == source.mtext->m_r2018DefaultFlag
+                 && parsed.mtext->m_r2018Attachment
+                     == source.mtext->m_r2018Attachment
+                 && parsed.mtext->m_r2018XAxisDir.x
+                     == source.mtext->m_r2018XAxisDir.x
+                 && parsed.mtext->m_r2018XAxisDir.y
+                     == source.mtext->m_r2018XAxisDir.y
+                 && parsed.mtext->m_r2018XAxisDir.z
+                     == source.mtext->m_r2018XAxisDir.z
+                 && parsed.mtext->m_r2018InsertionPoint.x
+                     == source.mtext->m_r2018InsertionPoint.x
+                 && parsed.mtext->m_r2018InsertionPoint.y
+                     == source.mtext->m_r2018InsertionPoint.y
+                 && parsed.mtext->m_r2018InsertionPoint.z
+                     == source.mtext->m_r2018InsertionPoint.z
+                 && parsed.mtext->m_r2018RectWidth
+                     == source.mtext->m_r2018RectWidth
+                 && parsed.mtext->m_r2018RectHeight
+                     == source.mtext->m_r2018RectHeight
+                 && parsed.mtext->m_r2018ExtentsWidth
+                     == source.mtext->m_r2018ExtentsWidth
+                 && parsed.mtext->m_r2018ExtentsHeight
+                     == source.mtext->m_r2018ExtentsHeight
+                 && parsed.mtext->m_r2018ColumnType
+                     == source.mtext->m_r2018ColumnType
+                 && parsed.mtext->m_r2018ColumnCount
+                     == source.mtext->m_r2018ColumnCount
+                 && parsed.mtext->m_r2018ColumnWidth
+                     == source.mtext->m_r2018ColumnWidth
+                 && parsed.mtext->m_r2018ColumnGutter
+                     == source.mtext->m_r2018ColumnGutter
+                 && parsed.mtext->m_r2018ColumnAutoHeight
+                     == source.mtext->m_r2018ColumnAutoHeight
+                 && parsed.mtext->m_r2018ColumnFlowReversed
+                     == source.mtext->m_r2018ColumnFlowReversed
+                 && parsed.mtext->m_r2018ColumnHeights
+                     == source.mtext->m_r2018ColumnHeights
+                 && parsed.mtext->m_r2018AppIdHandle
+                     == (source.mtext->m_r2018AppIdHandle == 0
+                            && source.mtext->m_r2018IsNotAnnotative
+                            ? DRW::DwgAcadAppIdHandle
+                            : source.mtext->m_r2018AppIdHandle)
                  && parsed.m_r2018OuterAnnotativeData
                      == source.m_r2018OuterAnnotativeData
                  && parsed.m_r2018OuterAnnotativeUnknown
@@ -17044,6 +17091,24 @@ void testR2018AttributeOuterAnnotativeVectors(TestContext& t) {
         if (nonempty)
             attrib.mtext->m_backgroundColorName = "nested-color";
         if (nonempty) {
+            attrib.mtext->m_r2018IsNotAnnotative = true;
+            attrib.mtext->m_r2018Version = 4;
+            attrib.mtext->m_r2018DefaultFlag = true;
+            attrib.mtext->m_r2018Attachment = 5;
+            attrib.mtext->m_r2018XAxisDir = DRW_Coord(1.0, 0.0, 0.0);
+            attrib.mtext->m_r2018InsertionPoint =
+                DRW_Coord(10.0, 20.0, 0.0);
+            attrib.mtext->m_r2018RectWidth = 30.0;
+            attrib.mtext->m_r2018RectHeight = 8.0;
+            attrib.mtext->m_r2018ExtentsWidth = 29.0;
+            attrib.mtext->m_r2018ExtentsHeight = 7.0;
+            attrib.mtext->m_r2018ColumnType = 2;
+            attrib.mtext->m_r2018ColumnCount = 2;
+            attrib.mtext->m_r2018ColumnWidth = 12.0;
+            attrib.mtext->m_r2018ColumnGutter = 1.0;
+            attrib.mtext->m_r2018ColumnAutoHeight = false;
+            attrib.mtext->m_r2018ColumnFlowReversed = true;
+            attrib.mtext->m_r2018ColumnHeights = {6.0, 7.0};
             attrib.m_r2018OuterAnnotativeData = payload;
             attrib.m_r2018OuterAnnotativeAppHandle = 0x1234u;
         }
@@ -17070,6 +17135,23 @@ void testR2018AttributeOuterAnnotativeVectors(TestContext& t) {
         attdef.mtext->m_backgroundColorName = "nested-black";
         attdef.mtext->m_backgroundColorDwgIndex = 0u;
         if (nonempty) {
+            attdef.mtext->m_r2018IsNotAnnotative = true;
+            attdef.mtext->m_r2018Version = 3;
+            attdef.mtext->m_r2018DefaultFlag = true;
+            attdef.mtext->m_r2018Attachment = 4;
+            attdef.mtext->m_r2018XAxisDir = DRW_Coord(1.0, 0.0, 0.0);
+            attdef.mtext->m_r2018InsertionPoint = DRW_Coord(3.0, 4.0, 0.0);
+            attdef.mtext->m_r2018RectWidth = 24.0;
+            attdef.mtext->m_r2018RectHeight = 8.0;
+            attdef.mtext->m_r2018ExtentsWidth = 23.0;
+            attdef.mtext->m_r2018ExtentsHeight = 7.0;
+            attdef.mtext->m_r2018ColumnType = 2;
+            attdef.mtext->m_r2018ColumnCount = 2;
+            attdef.mtext->m_r2018ColumnWidth = 10.0;
+            attdef.mtext->m_r2018ColumnGutter = 0.5;
+            attdef.mtext->m_r2018ColumnAutoHeight = false;
+            attdef.mtext->m_r2018ColumnFlowReversed = true;
+            attdef.mtext->m_r2018ColumnHeights = {5.0, 6.0};
             attdef.m_r2018OuterAnnotativeData = payload;
             attdef.m_r2018OuterAnnotativeAppHandle = 0x1234u;
         }

@@ -36,6 +36,7 @@
 #include <string>
 #include <cmath>
 #include <memory>
+#include <optional>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -913,6 +914,21 @@ public:
     }
     std::uint64_t rawDwgLayerReference() const noexcept {
         return dwgRawLayerReference;
+    }
+    struct ActiveDwgLayerReference {
+        std::uint64_t reference;
+        DRW::Version sourceVersion;
+    };
+    /// Return source provenance only while the original layer spelling and
+    /// variant identity are intact. Edited XDATA must not replay an unresolved
+    /// handle from the source drawing.
+    std::optional<ActiveDwgLayerReference>
+    activeDwgLayerReference() const noexcept {
+        if (!hasDwgRawLayerReference || vType != STRING || vCode != 1003 ||
+            content.s != &sdata || sdata != dwgRawLayerReferenceText)
+            return std::nullopt;
+        return ActiveDwgLayerReference{dwgRawLayerReference,
+                                       dwgRawLayerReferenceVersion};
     }
     void setDwgCmColor(DRW_DwgCmColor color) {
         dwgCmColor = std::make_shared<const DRW_DwgCmColor>(std::move(color));

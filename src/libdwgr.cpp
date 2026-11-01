@@ -1030,6 +1030,10 @@ void dwgRW::captureReaderDiagnostics(bool readSucceeded) {
     // them.
     m_entityParseFailures = reader->m_entityParseFailures;
     m_objectParseFailures = reader->m_objectParseFailures;
+    m_danglingBlockRecords = reader->m_danglingBlockRecords.size();
+    m_orphanedEntities = static_cast<size_t>(std::min<std::uint64_t>(
+        reader->m_orphanedEntityRejections,
+        static_cast<std::uint64_t>((std::numeric_limits<size_t>::max)())));
     m_classesCrcMismatch = reader->m_classesCrcMismatch;
     m_r2007CrcMismatch = reader->m_r2007CrcMismatch;
     m_r2004CrcMismatch = reader->m_r2004CrcMismatch;
@@ -1069,6 +1073,8 @@ void dwgRW::resetReadDiagnostics() {
     m_hasRecognizedSourceCodePage = false;
     m_entityParseFailures = 0;
     m_objectParseFailures = 0;
+    m_danglingBlockRecords = 0;
+    m_orphanedEntities = 0;
     m_classesCrcMismatch = 0;
     m_r2007CrcMismatch = 0;
     m_r2004CrcMismatch = 0;
@@ -1150,6 +1156,18 @@ size_t dwgRW::getEntityParseFailures() const {
     // read()). Fall back to live reader for the unusual case of a
     // caller querying mid-read.
     return reader ? reader->m_entityParseFailures : m_entityParseFailures;
+}
+
+size_t dwgRW::getDanglingBlockRecords() const {
+    return reader ? reader->m_danglingBlockRecords.size()
+                  : m_danglingBlockRecords;
+}
+
+size_t dwgRW::getOrphanedEntities() const {
+    const std::uint64_t live = reader ? reader->m_orphanedEntityRejections
+                                      : m_orphanedEntities;
+    return static_cast<size_t>(std::min<std::uint64_t>(
+        live, static_cast<std::uint64_t>((std::numeric_limits<size_t>::max)())));
 }
 
 size_t dwgRW::getObjectParseFailures() const {
@@ -1845,6 +1863,12 @@ bool dwgRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
             recordEmitStageFailure(
                 "dwg-object-callback",
                 "DWG object callback reported a required write failure");
+        if (ok && !writer->completeDeferredDwgObjects()) {
+            ok = false;
+            recordEmitStageFailure(
+                "dwg-deferred-objects",
+                "DWG deferred object graph completion failed");
+        }
         if (ok) {
             const bool filterFinalized = iface->finalizeDwgWrite();
             if (!filterFinalized || m_requiredWriteFailure) {
@@ -3758,10 +3782,11 @@ bool dwgRW::writePlotSettings(DRW_PlotSettings *object) {
     auto *w = asWriter15(writer);
     if (w == nullptr)
         return recordWriteResult(WriteSkipKind::Object, false);
-    // The explicit-handle path emits one PlotSettings frame and only consumes
-    // that handle's pre-registered class-instance entry. The zero-handle path
-    // instead records a class-wide emission count with no handle key, so keep
-    // its comprehensive transaction until that count has a bounded checkpoint.
+    // The explicit-handle path emits one frame, consumes its registered class
+    // instance, and may append one deferred dictionary entry. Its compact
+    // checkpoint captures both effects. The zero-handle path records a
+    // class-wide emission count with no handle key, so retain the comprehensive
+    // transaction until that count has a bounded checkpoint.
     if (object->handle != 0) {
         return writeFixedObjectFrameTransaction(
             WriteSkipKind::Object, w, object, nullptr,
@@ -4540,7 +4565,7 @@ bool dwgRW::processDwg() {
             ret = false;
         }
     }
-    if (ret && !ret2) {
+    if (ret && !ret2 && !reader->entitySweepFailureContained()) {
         recordOperationDiagnostic(
             DRW::OperationPhase::Entities, DRW::OperationCause::ReadFailure,
             "read-entities", "the DWG entities could not be read");

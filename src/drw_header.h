@@ -375,7 +375,8 @@ private:
     /// writer's reserved graph; source HEADER provenance remains separate.
     [[nodiscard]] bool encodeDwgForWriter(
         DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
-        dwgBufferW *strBuf, std::uint32_t namedObjectDictionaryHandle);
+        dwgBufferW *strBuf, std::uint32_t namedObjectDictionaryHandle,
+        std::uint32_t plotSettingsDictionaryHandle);
     bool parseCodeImpl(int code, const std::unique_ptr<dxfReader>& reader,
                        bool deferText);
     bool finalizeDxfHeader(const std::unique_ptr<dxfReader>& reader);

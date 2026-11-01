@@ -33,6 +33,7 @@
 #include <cstdint>
 #include <functional>
 #include <limits>
+#include <map>
 #include <string>
 #include <memory>
 #include <set>
@@ -164,7 +165,17 @@ enum class DwgIntegrityCheckKind : std::uint8_t {
     HeaderSectionCrc,
     HeaderSectionCompatibility,
     HeaderSectionUnclaimedData,
-    NamedObjectDictionaryReference
+    NamedObjectDictionaryReference,
+    /// BLOCK_CONTROL lists a BLOCK_RECORD handle that is absent from the
+    /// object map. Ordinary erased entries are skipped and reported; model
+    /// and paper space phantom entries remain structural failures.
+    TableControlDanglingHandle,
+    /// An entity belongs to a BLOCK_RECORD that is absent from the drawing.
+    /// The entity is rejected and reported as an orphan during recovery.
+    EntityOwnerRecordMissing,
+    /// An INSERT references an erased BLOCK_RECORD listed by BLOCK_CONTROL.
+    /// The reference cannot be delivered without silently changing meaning.
+    EntityBlockRecordErased
 };
 
 /// Version of the field and enum contract carried by DwgIntegrityDiagnostic.
@@ -386,6 +397,12 @@ public:
         }
     };
     WriteSkipCounters getWriteSkipCounters() const { return m_writeSkipCounters; }
+    /// Compatibility with LibreCAD's bundled writer. DWG omissions are
+    /// summarized by getWriteSkipCounters(); per-record names are not kept.
+    const std::map<std::string, std::size_t>& leftOut() const {
+        static const std::map<std::string, std::size_t> empty;
+        return empty;
+    }
     /// Mark the current callback-driven write as incomplete. Ordinary
     /// per-record false returns remain recoverable skips; callers use this
     /// latch when a required phase item could not be emitted.
@@ -786,6 +803,10 @@ public:
     /// Zero on a clean load. Surface alongside the entity count so users
     /// know how many entities were skipped.
     size_t getEntityParseFailures() const;
+    /// Records listed in BLOCK_CONTROL but absent from the DWG object map.
+    size_t getDanglingBlockRecords() const;
+    /// Entity frames rejected because their owner BLOCK_RECORD was erased.
+    size_t getOrphanedEntities() const;
     /// Per-object parseDwg failures accumulated during the OBJECTS-section
     /// load. Like getEntityParseFailures, these are non-fatal warnings — the
     /// file still loads with the surviving objects. Zero on a clean load.
@@ -970,6 +991,8 @@ private:
     /// Captured from reader->m_entityParseFailures before reader.reset()
     /// so getEntityParseFailures() works post-read.
     size_t m_entityParseFailures { 0 };
+    size_t m_danglingBlockRecords { 0 };
+    size_t m_orphanedEntities { 0 };
     /// Captured from reader->m_objectParseFailures before reader.reset()
     /// so getObjectParseFailures() works post-read.
     size_t m_objectParseFailures { 0 };
@@ -1048,6 +1071,12 @@ public:
     }
     size_t getEntityParseFailures() const {
         return implementation.getEntityParseFailures();
+    }
+    size_t getDanglingBlockRecords() const {
+        return implementation.getDanglingBlockRecords();
+    }
+    size_t getOrphanedEntities() const {
+        return implementation.getOrphanedEntities();
     }
     std::unordered_map<std::string, size_t> getSkippedCustomClasses() const {
         return implementation.getSkippedCustomClasses();

@@ -2691,6 +2691,15 @@ public:
      * -1 rather than 0 for "absent", matching DRW_Entity::color24: 0 is a
      * legal true colour (black), and a zero sentinel silently drops it. */
     std::int32_t m_backgroundColorTrue = -1;
+    /** Legacy LibreCAD field name retained for source compatibility.
+     *
+     * New code should use m_backgroundColorTrue. Both members are kept
+     * separate because existing consumers assign these public fields
+     * directly; backgroundTrueColorForOutput() reconciles the legacy field
+     * when an older consumer constructs an MTEXT for writing. Readers keep
+     * both fields synchronized.
+     */
+    std::int32_t m_backgroundTrueColor = -1;
     std::string m_backgroundColorName;  /*!< background fill colour by name, code 431 */
     std::int32_t m_backgroundTransparency = 0;
     bool m_r2018IsNotAnnotative = false;
@@ -2727,6 +2736,10 @@ public:
     std::uint8_t m_backgroundColorDwgFlags = 0u;
     std::uint16_t m_backgroundColorDwgIndex = 0u;
     bool m_backgroundColorDwgMetadataPresent = false;
+    std::int32_t backgroundTrueColorForOutput() const noexcept {
+        return m_backgroundColorTrue != -1 ? m_backgroundColorTrue
+                                           : m_backgroundTrueColor;
+    }
 private:
     bool hasXAxisVec; /* renamed by djm for better description */
     enum class DxfOrientationMode { LegacyApi, Rotation, Direction };

@@ -1142,6 +1142,18 @@ if(LIBDXFRW_BUILD_TESTS)
     target_link_libraries(libdxfrw_dwg_reader_matrix_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_dwg_reader_matrix
         COMMAND libdxfrw_dwg_reader_matrix_tests)
+    add_test(NAME libdxfrw_dwg_erased_block_record_table_recovery
+        COMMAND libdxfrw_dwg_reader_matrix_tests
+            --erased-block-record-table-recovery)
+    set_tests_properties(libdxfrw_dwg_erased_block_record_table_recovery
+        PROPERTIES LABELS "fast;dwg;tables;generated;AC1015"
+        TIMEOUT 30)
+    add_test(NAME libdxfrw_dwg_orphan_entity_sweep_recovery
+        COMMAND libdxfrw_dwg_reader_matrix_tests
+            --orphan-entity-sweep-recovery)
+    set_tests_properties(libdxfrw_dwg_orphan_entity_sweep_recovery
+        PROPERTIES LABELS "fast;dwg;entities;generated;AC1027"
+        TIMEOUT 30)
     # These DWG test executables share generated fixed temp paths. Serialize
     # the CTest entries within a build until each harness owns unique paths.
     set_property(TEST libdxfrw_dwg_local_roundtrip
@@ -1196,6 +1208,11 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dwg_local_roundtrip --block-record-xref-roundtrip)
     set_tests_properties(libdxfrw_dwg_block_record_xref_roundtrip PROPERTIES
         LABELS "fast;dwg;xref;generated;roundtrip"
+        TIMEOUT 60)
+    add_test(NAME libdxfrw_dwg_plotsettings_nod_graph
+        COMMAND libdxfrw_dwg_local_roundtrip --plotsettings-nod-graph)
+    set_tests_properties(libdxfrw_dwg_plotsettings_nod_graph PROPERTIES
+        LABELS "fast;dwg;plotsettings;generated;roundtrip"
         TIMEOUT 60)
     add_test(NAME libdxfrw_dwg_block_owner_membership_index
         COMMAND libdxfrw_dwg_local_roundtrip --block-owner-membership-index)
@@ -1906,6 +1923,12 @@ if(LIBDXFRW_BUILD_TESTS)
     target_link_libraries(libdxfrw_dxf_fixture_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_dxf_fixtures
         COMMAND libdxfrw_dxf_fixture_tests)
+    add_test(NAME libdxfrw_mtext_legacy_truecolor_compatibility
+        COMMAND libdxfrw_dxf_fixture_tests
+            --mtext-legacy-truecolor-compatibility)
+    set_tests_properties(libdxfrw_mtext_legacy_truecolor_compatibility
+        PROPERTIES LABELS "fast;dxf;generated;compatibility"
+        TIMEOUT 30)
     add_test(NAME libdxfrw_dxf_proxy_graphic_loss_policy
         COMMAND libdxfrw_dxf_fixture_tests --proxy-graphic-loss-policy)
     set_tests_properties(libdxfrw_dxf_proxy_graphic_loss_policy PROPERTIES

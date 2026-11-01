@@ -11330,7 +11330,21 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                     != data->sourceVersion)
                             return reject();
                     } else if (frame.plotSettings != nullptr) {
-                        if (data->sourceFormat != dx_source_format::DXF
+                        const bool dxfSource =
+                            data->sourceFormat == dx_source_format::DXF;
+                        // DWG PLOTSETTINGS has a complete typed field reader
+                        // and writer, but the graph currently proves only the
+                        // no-reference shade modes for that source profile.
+                        // Keep VisualStyle/RenderSettings references on the
+                        // separately qualified DXF raw-carrier paths.
+                        const bool typedDwgSource =
+                            data->sourceFormat == dx_source_format::DWG
+                            && data->sourceVersion >= DRW::AC1015
+                            && data->sourceVersion <= DRW::AC1027
+                            && frame.plotSettings->shadePlotMode >= 0
+                            && frame.plotSettings->shadePlotMode <= 3
+                            && frame.plotSettings->shadePlotHandle.ref == 0;
+                        if ((!dxfSource && !typedDwgSource)
                             || frame.plotSettings->parentHandle
                                 != entry.parentHandle
                             || frame.plotSettings->shadePlotMode < 0
@@ -11341,8 +11355,8 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                     ? frame.plotSettings->shadePlotHandle.ref == 0
                                     : frame.plotSettings->shadePlotHandle.ref != 0))
                             return reject(ExtensionGraphFailure::InvalidGraph,
-                                "standalone PLOTSETTINGS requires a DXF source "
-                                "and a supported mode/reference pair");
+                                "standalone PLOTSETTINGS source profile or "
+                                "shade mode/reference pair is unsupported");
                     } else if (frame.material != nullptr) {
                         if (data->sourceFormat == dx_source_format::DWG) {
                             if (data->sourceVersion != DRW::AC1024
@@ -15514,8 +15528,293 @@ bool estimatePlotSettingsTypedBytes(
         && addStringPayloadBytes(settings.paperSize, estimate)
         && addStringPayloadBytes(settings.plotViewName, estimate)
         && addStringPayloadBytes(settings.currentStyleSheet, estimate)
+        && addVectorPayloadBytes(settings.dwgEedAppIdReferences, estimate)
+        && addVectorPayloadBytes(settings.dwgEedLayerReferences, estimate)
         && addAssociativeSlotBytes(1u, 2u * sizeof(void*), estimate)
         && estimate <= dx_iface::PlotSettingsCaptureMaxRetainedBytes;
+}
+
+bool samePlotSettingsPendingReference(
+        const DRW_TableEntry::PendingHandleRef& left,
+        const DRW_TableEntry::PendingHandleRef& right) noexcept {
+    return left.indexInExtData == right.indexInExtData
+        && left.handleRef == right.handleRef
+        && left.rawHandleRef == right.rawHandleRef
+        && left.useRawHandleRef == right.useRawHandleRef;
+}
+
+bool samePlotSettingsSourceModel(const DRW_PlotSettings& left,
+                                 const DRW_PlotSettings& right) noexcept {
+    if (left.tType != right.tType || left.handle != right.handle
+        || left.parentHandle != right.parentHandle || left.name != right.name
+        || left.flags != right.flags || left.reactorHandles != right.reactorHandles
+        || left.xDictHandle != right.xDictHandle
+        || left.extensionDictionaryFlag() != right.extensionDictionaryFlag()
+        || left.reactorCount() != right.reactorCount()
+        || left.hasDwgCommonLinkTail() != right.hasDwgCommonLinkTail()
+        || left.hasDataStorageBinaryData() != right.hasDataStorageBinaryData()
+        || left.extData.size() != right.extData.size()
+        || left.appData.size() != right.appData.size()
+        || left.dwgEedAppIdReferences.size()
+            != right.dwgEedAppIdReferences.size()
+        || left.dwgEedLayerReferences.size()
+            != right.dwgEedLayerReferences.size())
+        return false;
+
+    for (std::size_t index = 0; index < left.extData.size(); ++index) {
+        const DRW_Variant* a = left.extData[index];
+        const DRW_Variant* b = right.extData[index];
+        if (a == nullptr || b == nullptr || !retainedVariantEqual(*a, *b)
+            || a->rawDwgLayerReference() != b->rawDwgLayerReference())
+            return false;
+    }
+    auto leftApp = left.appData.begin();
+    auto rightApp = right.appData.begin();
+    for (; leftApp != left.appData.end(); ++leftApp, ++rightApp) {
+        if (leftApp->size() != rightApp->size())
+            return false;
+        auto a = leftApp->begin();
+        auto b = rightApp->begin();
+        for (; a != leftApp->end(); ++a, ++b)
+            if (!retainedVariantEqual(*a, *b)
+                || a->rawDwgLayerReference()
+                    != b->rawDwgLayerReference())
+                return false;
+    }
+    for (std::size_t index = 0;
+         index < left.dwgEedAppIdReferences.size(); ++index)
+        if (!samePlotSettingsPendingReference(
+                left.dwgEedAppIdReferences[index],
+                right.dwgEedAppIdReferences[index]))
+            return false;
+    for (std::size_t index = 0;
+         index < left.dwgEedLayerReferences.size(); ++index)
+        if (!samePlotSettingsPendingReference(
+                left.dwgEedLayerReferences[index],
+                right.dwgEedLayerReferences[index]))
+            return false;
+
+    const std::array<double, 17> leftDoubles{{
+        left.marginLeft, left.marginBottom, left.marginRight, left.marginTop,
+        left.paperWidth, left.paperHeight, left.plotOriginX, left.plotOriginY,
+        left.windowMinX, left.windowMinY, left.windowMaxX, left.windowMaxY,
+        left.realWorldUnits, left.drawingUnits, left.scaleFactor,
+        left.paperImageOriginX, left.paperImageOriginY}};
+    const std::array<double, 17> rightDoubles{{
+        right.marginLeft, right.marginBottom, right.marginRight, right.marginTop,
+        right.paperWidth, right.paperHeight, right.plotOriginX, right.plotOriginY,
+        right.windowMinX, right.windowMinY, right.windowMaxX, right.windowMaxY,
+        right.realWorldUnits, right.drawingUnits, right.scaleFactor,
+        right.paperImageOriginX, right.paperImageOriginY}};
+    for (std::size_t index = 0; index < leftDoubles.size(); ++index)
+        if (!retainedDoubleEqual(leftDoubles[index], rightDoubles[index]))
+            return false;
+    return left.plotLayoutFlags == right.plotLayoutFlags
+        && left.paperUnits == right.paperUnits
+        && left.plotRotation == right.plotRotation
+        && left.pageSetupName == right.pageSetupName
+        && left.printerConfig == right.printerConfig
+        && left.paperSize == right.paperSize
+        && left.plotViewName == right.plotViewName
+        && left.currentStyleSheet == right.currentStyleSheet
+        && left.plotType == right.plotType
+        && left.scaleType == right.scaleType
+        && left.shadePlotMode == right.shadePlotMode
+        && left.shadePlotResLevel == right.shadePlotResLevel
+        && left.shadePlotCustomDPI == right.shadePlotCustomDPI
+        && left.plotViewHandle.ref == right.plotViewHandle.ref
+        && left.shadePlotHandle.ref == right.shadePlotHandle.ref;
+}
+
+bool samePlotSettingsFields(const DRW_PlotSettings& source,
+                            const DRW_PlotSettings& actual) noexcept {
+    const std::array<double, 17> sourceDoubles{{
+        source.marginLeft, source.marginBottom, source.marginRight,
+        source.marginTop, source.paperWidth, source.paperHeight,
+        source.plotOriginX, source.plotOriginY, source.windowMinX,
+        source.windowMinY, source.windowMaxX, source.windowMaxY,
+        source.realWorldUnits, source.drawingUnits, source.scaleFactor,
+        source.paperImageOriginX, source.paperImageOriginY}};
+    const std::array<double, 17> actualDoubles{{
+        actual.marginLeft, actual.marginBottom, actual.marginRight,
+        actual.marginTop, actual.paperWidth, actual.paperHeight,
+        actual.plotOriginX, actual.plotOriginY, actual.windowMinX,
+        actual.windowMinY, actual.windowMaxX, actual.windowMaxY,
+        actual.realWorldUnits, actual.drawingUnits, actual.scaleFactor,
+        actual.paperImageOriginX, actual.paperImageOriginY}};
+    for (std::size_t index = 0; index < sourceDoubles.size(); ++index)
+        if (!retainedDoubleEqual(sourceDoubles[index], actualDoubles[index]))
+            return false;
+    return source.pageSetupName == actual.pageSetupName
+        && source.printerConfig == actual.printerConfig
+        && source.paperSize == actual.paperSize
+        && source.plotViewName == actual.plotViewName
+        && source.currentStyleSheet == actual.currentStyleSheet
+        && source.plotLayoutFlags == actual.plotLayoutFlags
+        && source.paperUnits == actual.paperUnits
+        && source.plotRotation == actual.plotRotation
+        && source.plotType == actual.plotType
+        && source.scaleType == actual.scaleType
+        && source.shadePlotMode == actual.shadePlotMode
+        && source.shadePlotResLevel == actual.shadePlotResLevel
+        && source.shadePlotCustomDPI == actual.shadePlotCustomDPI
+        && source.plotViewHandle.ref == actual.plotViewHandle.ref
+        && source.shadePlotHandle.ref == actual.shadePlotHandle.ref;
+}
+
+bool isAsciiPlotSettingsText(const std::string& value) noexcept {
+    return std::all_of(value.begin(), value.end(), [](unsigned char ch) {
+        return ch < 0x80u;
+    });
+}
+
+bool isSupportedDwgPlotSettingsSourceProfile(
+        const DRW_PlotSettings& source, DRW::Version version) noexcept {
+    const std::array<double, 17> values{{
+        source.marginLeft, source.marginBottom, source.marginRight,
+        source.marginTop, source.paperWidth, source.paperHeight,
+        source.plotOriginX, source.plotOriginY, source.windowMinX,
+        source.windowMinY, source.windowMaxX, source.windowMaxY,
+        source.realWorldUnits, source.drawingUnits, source.scaleFactor,
+        source.paperImageOriginX, source.paperImageOriginY}};
+    return version >= DRW::AC1015 && version <= DRW::AC1027
+        && source.tType == DRW::PLOTSETTINGS
+        && source.handle != 0u && source.handle != DRW::NoHandle
+        && source.parentHandle != 0u
+        && source.parentHandle != DRW::NoHandle
+        && source.pageSetupName.size()
+            <= dx_iface::PlotSettingsCaptureMaxRetainedBytes
+        && !source.pageSetupName.empty()
+        && isAsciiPlotSettingsText(source.pageSetupName)
+        && isAsciiPlotSettingsText(source.printerConfig)
+        && isAsciiPlotSettingsText(source.paperSize)
+        && isAsciiPlotSettingsText(source.plotViewName)
+        && isAsciiPlotSettingsText(source.currentStyleSheet)
+        && source.name.empty() && source.flags == 0
+        && source.shadePlotMode >= 0 && source.shadePlotMode <= 3
+        && source.shadePlotHandle.ref == 0u
+        && source.plotViewHandle.ref == 0u
+        && !source.hasDataStorageBinaryData()
+        && std::all_of(values.begin(), values.end(), [](double value) {
+            return std::isfinite(value);
+        });
+}
+
+bool isPlotSettingsFieldCode(int code, DRW::Version version) noexcept {
+    switch (code) {
+    case 1: case 2: case 4: case 6: case 7:
+    case 40: case 41: case 42: case 43: case 44: case 45: case 46:
+    case 47: case 48: case 49: case 70: case 72: case 73: case 74:
+    case 75: case 140: case 141: case 142: case 143: case 147: case 148:
+    case 149:
+        return true;
+    case 76: case 77: case 78:
+        return version > DRW::AC1015;
+    default:
+        return false;
+    }
+}
+
+bool isSupportedPlotSettingsXdataCode(int code) noexcept {
+    return (code >= 1000 && code <= 1005)
+        || (code >= 1010 && code <= 1013)
+        || (code >= 1020 && code <= 1023)
+        || (code >= 1030 && code <= 1033)
+        || (code >= 1040 && code <= 1042)
+        || code == 1070 || code == 1071;
+}
+
+bool parsePlotSettingsHexHandle(std::string_view text,
+                                std::uint32_t& handle) noexcept {
+    handle = 0u;
+    if (text.empty())
+        return false;
+    const auto parsed = std::from_chars(text.data(), text.data() + text.size(),
+                                        handle, 16);
+    return parsed.ec == std::errc{}
+        && parsed.ptr == text.data() + text.size()
+        && handle != 0u && handle != DRW::NoHandle;
+}
+
+// Independently inspect physical DXF group boundaries before trusting the
+// production parseCode result. Every writer-owned AcDbPlotSettings field must
+// occur once; appdata and XDATA are admitted only as separately compared
+// common metadata.
+bool validatePlotSettingsOutputFieldSpan(
+        std::string_view body, const dxfRW::DxfObjectsWriteView& view,
+        std::uint32_t expectedHandle, std::uint32_t expectedOwner) {
+    dx_standard_output::RecordCursor cursor(body, view);
+    dx_standard_output::RecordCursor::Token token;
+    unsigned selves = 0u, owners = 0u, subclasses = 0u;
+    unsigned appDepth = 0u;
+    bool bodyStarted = false, xdataStarted = false;
+    std::uint32_t self = 0u, owner = 0u;
+    std::set<int> fields;
+    while (!cursor.done()) {
+        if (!cursor.next(token))
+            return false;
+        if (token.code == 102) {
+            if (bodyStarted || xdataStarted)
+                return false;
+            if (token.text.size() > 1u && token.text.front() == '{') {
+                if (++appDepth > DRW::kMaxDxfApplicationGroupNesting)
+                    return false;
+            } else if (token.text == "}" && appDepth != 0u) {
+                --appDepth;
+            } else {
+                return false;
+            }
+            continue;
+        }
+        if (appDepth != 0u)
+            continue;
+        if (!bodyStarted) {
+            if (token.code == 5) {
+                if (++selves != 1u
+                    || !parsePlotSettingsHexHandle(token.text, self))
+                    return false;
+            } else if (token.code == 330) {
+                if (++owners != 1u
+                    || !parsePlotSettingsHexHandle(token.text, owner))
+                    return false;
+            } else if (token.code == 100) {
+                if (++subclasses != 1u
+                    || token.text != "AcDbPlotSettings")
+                    return false;
+                bodyStarted = true;
+            } else {
+                return false;
+            }
+            continue;
+        }
+        if (token.code >= 1000) {
+            if (!isSupportedPlotSettingsXdataCode(token.code))
+                return false;
+            xdataStarted = true;
+            continue;
+        }
+        if (xdataStarted || !isPlotSettingsFieldCode(token.code, view.version)
+            || !fields.insert(token.code).second)
+            return false;
+    }
+    if (appDepth != 0u || selves != 1u || owners != 1u || subclasses != 1u
+        || !bodyStarted || self != expectedHandle || owner != expectedOwner)
+        return false;
+    const std::array<int, 27> baseCodes{{
+        1, 2, 4, 6, 7, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
+        140, 141, 142, 143, 147, 148, 149, 70, 72, 73, 74, 75}};
+    for (const int code : baseCodes)
+        if (fields.count(code) != 1u)
+            return false;
+    if (view.version > DRW::AC1015) {
+        for (const int code : {76, 77, 78})
+            if (fields.count(code) != 1u)
+                return false;
+    } else if (fields.count(76) != 0u || fields.count(77) != 0u
+               || fields.count(78) != 0u) {
+        return false;
+    }
+    return fields.size() == (view.version > DRW::AC1015 ? 30u : 27u);
 }
 
 bool estimateDataStorageSectionBytes(
@@ -22111,6 +22410,135 @@ void dx_iface::retainStandardDwgObjectFrame(const DRW_UnsupportedObject& data) {
     }
 }
 
+bool dx_iface::retainDwgPlotSettingsPublication(
+        const DRW_DwgFramePublication& publication) noexcept {
+    if (cData == nullptr || !cData->dwgReadOutcome.attempted
+        || cData->sourceFormat != dx_source_format::DWG
+        || cData->importGeneration == 0u)
+        return false;
+    const auto reject = [this]() {
+        cData->m_dwgPlotSettingsSourceCaptureFailed = true;
+        cData->plotSettingsCaptureFailed = true;
+        return false;
+    };
+    if (cData->m_dwgPlotSettingsSourceCaptureFailed
+        || publication.m_version < DRW::AC1015
+        || publication.m_version > DRW::AC1027
+        || publication.m_handle == 0u
+        || publication.m_handle == DRW::NoHandle
+        || !publication.m_hasSourceLocation
+        || publication.m_sourceOffset
+            > (std::numeric_limits<std::uint32_t>::max)()
+        || (publication.m_sourceOffsetSpace
+                != DRW_DwgFrameOffsetSpace::PhysicalFile
+            && publication.m_sourceOffsetSpace
+                != DRW_DwgFrameOffsetSpace::DecodedBuffer)
+        || publication.m_encodedType < 500
+        || publication.m_resolvedType != publication.m_encodedType
+        || publication.m_isEntity || !publication.m_isCustomClass
+        || publication.m_carrier
+            != DRW_DwgFramePublication::Carrier::TypedAndRaw
+        || publication.m_recordName != "PLOTSETTINGS"
+        || publication.m_className != "AcDbPlotSettings"
+        || !publication.m_classStreamOrdinal.has_value()
+        || publication.m_numReactors < 0 || publication.m_xDictFlag > 1u
+        || !publication.m_controlHandles.empty()) {
+        return reject();
+    }
+
+    const dx_data::StandardDwgFrameKey key{
+        cData->importGeneration, publication.m_handle};
+    const auto typed = cData->m_dwgPlotSettingsSources.find(key);
+    const auto raw = cData->m_opaqueDwgSourceFrames.find(key);
+    if (typed == cData->m_dwgPlotSettingsSources.end()
+        || raw == cData->m_opaqueDwgSourceFrames.end()
+        || typed->second.publicationSeen) {
+        return reject();
+    }
+    const DRW_UnsupportedObject& sourceRaw = raw->second;
+    const DRW_PlotSettings& source = typed->second.typedBaseline;
+    if (source.handle != publication.m_handle
+        || source.tType != DRW::PLOTSETTINGS
+        || sourceRaw.m_handle != publication.m_handle
+        || sourceRaw.m_version != publication.m_version
+        || sourceRaw.m_objectType != publication.m_encodedType
+        || !sourceRaw.m_isCustomClass || sourceRaw.m_isEntity
+        || !sourceRaw.m_hasClassDefinition
+        || sourceRaw.m_recordName != publication.m_recordName
+        || sourceRaw.m_className != publication.m_className
+        || sourceRaw.m_objectOffset != publication.m_sourceOffset
+        || sourceRaw.m_objectSize != sourceRaw.m_rawBytes.size()
+        || sourceRaw.m_rawBytes.empty()
+        || sourceRaw.m_bodyBitSize
+            > static_cast<std::uint64_t>(sourceRaw.m_objectSize) * 8u
+        || sourceRaw.m_commonLinkEvidence
+            != publication.m_commonLinkEvidence
+        || sourceRaw.m_commonHandleDataValidated
+            != publication.m_commonHandleDataValidated) {
+        return reject();
+    }
+
+    const bool commonValidated = drwDwgCommonLinkEvidenceValidated(
+        publication.m_commonLinkEvidence);
+    if (commonValidated) {
+        if (sourceRaw.m_parentHandle != publication.m_parentHandle
+            || sourceRaw.m_reactorHandles != publication.m_reactorHandles
+            || sourceRaw.m_numReactors != publication.m_numReactors
+            || sourceRaw.m_xDictHandle != publication.m_xDictHandle
+            || sourceRaw.m_xDictFlag != publication.m_xDictFlag
+            || source.parentHandle != publication.m_parentHandle
+            || source.reactorHandles != publication.m_reactorHandles
+            || source.reactorCount() != publication.m_numReactors
+            || source.xDictHandle != publication.m_xDictHandle
+            || source.extensionDictionaryFlag() != publication.m_xDictFlag) {
+            return reject();
+        }
+    } else if (publication.m_commonLinkEvidence
+                   != DRW_DwgCommonLinkEvidence::Unknown
+               || publication.m_commonHandleDataValidated
+               || sourceRaw.m_commonHandleDataValidated) {
+        return reject();
+    }
+
+    for (const auto& existing : cData->m_dwgPlotSettingsSources) {
+        if (existing.first.first != cData->importGeneration)
+            continue;
+        if (existing.second.publicationSeen
+            && (existing.second.publication.m_sourceMapOrdinal
+                    == publication.m_sourceMapOrdinal
+                || (existing.second.publication.m_sourceOffsetSpace
+                        == publication.m_sourceOffsetSpace
+                    && existing.second.publication.m_sourceOffset
+                        == publication.m_sourceOffset))) {
+            return reject();
+        }
+    }
+
+    // The publication's inline object storage is included in the source-map
+    // node estimate captured with the typed baseline. Charge only its dynamic
+    // members here.
+    std::size_t retainedBytes = 0u;
+    if (!addVectorPayloadBytes(publication.m_reactorHandles, retainedBytes)
+        || !addVectorPayloadBytes(publication.m_controlHandles, retainedBytes)
+        || !addStringPayloadBytes(publication.m_recordName, retainedBytes)
+        || !addStringPayloadBytes(publication.m_className, retainedBytes)
+        || cData->plotSettingsRetainedBytes
+            > PlotSettingsCaptureMaxRetainedBytes
+        || retainedBytes > PlotSettingsCaptureMaxRetainedBytes
+            - cData->plotSettingsRetainedBytes) {
+        return reject();
+    }
+    try {
+        typed->second.publication = publication;
+        typed->second.publicationSeen = true;
+        cData->plotSettingsRetainedBytes += retainedBytes;
+        cData->m_dwgPlotSettingsSourceRetainedBytes += retainedBytes;
+        return true;
+    } catch (...) {
+        return reject();
+    }
+}
+
 void dx_iface::addDwgFramePublication(const DRW_DwgFramePublication& data) {
     if (cData == nullptr || !cData->dwgReadOutcome.attempted)
         return;
@@ -22119,6 +22547,11 @@ void dx_iface::addDwgFramePublication(const DRW_DwgFramePublication& data) {
         countDwgReadCallback(cData->dwgReadOutcome.observedReceiptCarriers[index]);
     if (isRasterDwgSource(data.m_resolvedType, data.m_recordName, data.m_className)) {
         retainRasterDwgPublication(data);
+        return;
+    }
+    if (data.m_recordName == "PLOTSETTINGS"
+        || data.m_className == "AcDbPlotSettings") {
+        (void)retainDwgPlotSettingsPublication(data);
         return;
     }
     const bool blockControlCandidate =
@@ -22852,7 +23285,117 @@ void dx_iface::resetStandardDwgOutputProofs() noexcept {
     m_standardDwgOutputInspected = false;
     m_standardDwgOutputFinalized = false;
     m_standardDwgOutputPublished = false;
+    m_dwgPlotSettingsOutputProofs.clear();
+    m_dwgPlotSettingsOutputBytes = 0u;
+    m_dwgPlotSettingsOutputInspected = false;
+    m_dwgPlotSettingsOutputFinalized = false;
+    m_dwgPlotSettingsOutputPublished = false;
     m_standardDwgLayerControlOutputProof = {};
+}
+
+bool dx_iface::hasUnchangedDwgPlotSettingsSources() const noexcept {
+    if (cData == nullptr)
+        return false;
+    if (cData->sourceFormat != dx_source_format::DWG
+        || !cData->dwgReadOutcome.attempted)
+        return true;
+    if (cData->m_dwgPlotSettingsSourceCaptureFailed
+        || cData->plotSettingsCaptureFailed
+        || cData->plotSettingsRetainedRecords < cData->plotSettings.size())
+        return false;
+    try {
+        const std::uint64_t generation = cData->importGeneration;
+        std::size_t sourceCount = 0u;
+        std::set<std::uint64_t> mapOrdinals;
+        std::set<std::pair<DRW_DwgFrameOffsetSpace, std::uint32_t>> locations;
+        std::map<std::size_t,
+            const dx_data::DwgPlotSettingsSourceFrame*> byCallbackOrdinal;
+        for (const auto& row : cData->m_dwgPlotSettingsSources) {
+            if (row.first.first != generation)
+                continue;
+            const auto& source = row.second;
+            const auto raw = cData->m_opaqueDwgSourceFrames.find(row.first);
+            if (!source.publicationSeen || source.typedBaseline.handle != row.first.second
+                || source.typedBaseline.tType != DRW::PLOTSETTINGS
+                || source.callbackOrdinal >= cData->plotSettings.size()
+                || source.publication.m_handle != row.first.second
+        || source.publication.m_version != cData->dwgReadOutcome.sourceVersion
+                || !source.publication.m_hasSourceLocation
+                || !source.publication.m_classStreamOrdinal.has_value()
+                || source.publication.m_recordName != "PLOTSETTINGS"
+                || source.publication.m_className != "AcDbPlotSettings"
+                || source.publication.m_carrier
+                    != DRW_DwgFramePublication::Carrier::TypedAndRaw
+                || !mapOrdinals.insert(
+                    source.publication.m_sourceMapOrdinal).second
+                || !locations.emplace(source.publication.m_sourceOffsetSpace,
+                                      source.publication.m_sourceOffset).second
+                || raw == cData->m_opaqueDwgSourceFrames.end()
+                || cData->m_opaqueDwgSourceFrameIdentities.count(row.first) != 1u)
+                return false;
+            if (!byCallbackOrdinal.emplace(source.callbackOrdinal,
+                                           &source).second)
+                return false;
+
+            const DRW_UnsupportedObject& frame = raw->second;
+            const auto& publication = source.publication;
+            if (frame.m_handle != publication.m_handle
+                || frame.m_version != publication.m_version
+                || frame.m_objectType != publication.m_encodedType
+                || !frame.m_isCustomClass || frame.m_isEntity
+                || frame.m_recordName != publication.m_recordName
+                || frame.m_className != publication.m_className
+                || frame.m_objectOffset != publication.m_sourceOffset
+                || frame.m_objectSize != frame.m_rawBytes.size()
+                || frame.m_bodyBitSize
+                    > static_cast<std::uint64_t>(frame.m_objectSize) * 8u
+                || frame.m_commonLinkEvidence
+                    != publication.m_commonLinkEvidence
+                || frame.m_commonHandleDataValidated
+                    != publication.m_commonHandleDataValidated)
+                return false;
+            if (drwDwgCommonLinkEvidenceValidated(
+                    publication.m_commonLinkEvidence)
+                && (frame.m_parentHandle != publication.m_parentHandle
+                    || frame.m_reactorHandles
+                        != publication.m_reactorHandles
+                    || frame.m_numReactors != publication.m_numReactors
+                    || frame.m_xDictHandle != publication.m_xDictHandle
+                    || frame.m_xDictFlag != publication.m_xDictFlag))
+                return false;
+            ++sourceCount;
+        }
+
+        std::size_t checkedCallbacks = 0u;
+        std::size_t callbackOrdinal = 0u;
+        for (const DRW_PlotSettings& live : cData->plotSettings) {
+            const auto source = byCallbackOrdinal.find(callbackOrdinal);
+            if (source != byCallbackOrdinal.end()) {
+                if (!samePlotSettingsSourceModel(
+                        source->second->typedBaseline, live))
+                    return false;
+                ++checkedCallbacks;
+            }
+            ++callbackOrdinal;
+        }
+        if (checkedCallbacks != byCallbackOrdinal.size())
+            return false;
+
+        std::size_t rawPlotSettingsCount = 0u;
+        for (const auto& row : cData->m_opaqueDwgSourceFrames) {
+            if (row.first.first != generation)
+                continue;
+            if (row.second.m_recordName == "PLOTSETTINGS"
+                || row.second.m_className == "AcDbPlotSettings") {
+                ++rawPlotSettingsCount;
+                if (cData->m_dwgPlotSettingsSources.count(row.first) != 1u)
+                    return false;
+            }
+        }
+        return sourceCount == rawPlotSettingsCount;
+    } catch (...) {
+        return false;
+    }
 }
 
 bool dx_iface::inspectStandardDwgTablesOutput(const dxfRW::DxfTablesWriteView& view) noexcept {
@@ -22963,6 +23506,107 @@ bool dx_iface::inspectStandardDwgTablesOutput(const dxfRW::DxfTablesWriteView& v
                 if (!add(frame, static_cast<std::uint32_t>(handle), true, cData->m_standardDwgLayerSources)) return fail();
             }
         }
+        for (const auto& source : cData->m_dwgPlotSettingsSources) {
+            if (source.first.first != cData->importGeneration)
+                continue;
+            const auto addPlotName = [this, &handles, &names](
+                    std::uint32_t handle, bool layer) {
+                const StandardDwgOutputNameKey key{
+                    cData->importGeneration, handle};
+                const auto addFailure = [this]() {
+                    m_standardDwgOutputNameProofs.clear();
+                    m_standardDwgOutputNameBytes = 0u;
+                    return false;
+                };
+                if (handle == 0u || handle == DRW::NoHandle)
+                    return addFailure();
+                const DRW_TableEntry* sourceName = nullptr;
+                bool sourceNameUnchanged = false;
+                std::uint32_t sourceNameIssues = 0u;
+                if (layer) {
+                    const auto found = cData->m_standardDwgLayerSources.find(key);
+                    if (found != cData->m_standardDwgLayerSources.end()) {
+                        sourceName = found->second.get();
+                        sourceNameUnchanged = found->second
+                            && found->second->hasUnchangedDwgSourceName();
+                        sourceNameIssues = found->second
+                            ? found->second->dwgNameDecodeIssues() : 0u;
+                    }
+                } else {
+                    const auto found = cData->m_standardDwgAppIdSources.find(key);
+                    if (found != cData->m_standardDwgAppIdSources.end()) {
+                        sourceName = found->second.get();
+                        sourceNameUnchanged = found->second
+                            && found->second->hasUnchangedDwgSourceName();
+                        sourceNameIssues = found->second
+                            ? found->second->dwgNameDecodeIssues() : 0u;
+                    }
+                }
+                if (sourceName == nullptr
+                    || !sourceNameUnchanged || sourceNameIssues != 0u
+                    || sourceName->name.empty()
+                    || !isAsciiPlotSettingsText(sourceName->name))
+                    return addFailure();
+                const auto existing = m_standardDwgOutputNameProofs.find(key);
+                if (existing != m_standardDwgOutputNameProofs.end())
+                    return existing->second.layer == layer;
+                const std::uint32_t emitted =
+                    dxfW->dxfWriteEmittedSourceTableHandle(handle);
+                if (emitted == 0u || emitted == DRW::NoHandle)
+                    return addFailure();
+                std::string nameKey;
+                if (!dx_symbol_output::nameKey(sourceName->name, nameKey))
+                    return addFailure();
+                const auto cost = sizeof(std::pair<
+                        const StandardDwgOutputNameKey,
+                        StandardDwgOutputNameProof>)
+                    + sizeof(std::pair<const std::uint32_t,
+                                       StandardDwgOutputNameProof*>)
+                    + sizeof(std::pair<const NameKey,
+                                       StandardDwgOutputNameProof*>)
+                    + 12u * sizeof(void*);
+                const auto keyBytes = nameKey.size() + 1u;
+                if (m_standardDwgOutputNameProofs.size()
+                        >= StandardDwgObjectCaptureMaxRecords
+                    || !standardDwgCaptureFits(
+                        m_standardDwgOutputNameBytes, cost)
+                    || !standardDwgCaptureFits(
+                        m_standardDwgOutputNameBytes + cost, keyBytes))
+                    return addFailure();
+                m_standardDwgOutputNameBytes += cost + keyBytes;
+                auto inserted = m_standardDwgOutputNameProofs.emplace(
+                    key, StandardDwgOutputNameProof{});
+                auto& proof = inserted.first->second;
+                proof.generation = cData->importGeneration;
+                proof.source = handle;
+                proof.emitted = emitted;
+                proof.layer = layer;
+                const auto byHandle = handles.emplace(emitted, &proof);
+                if (!byHandle.second) {
+                    proof.eligible = false;
+                    if (byHandle.first->second)
+                        byHandle.first->second->eligible = false;
+                    byHandle.first->second = nullptr;
+                }
+                const auto byName = names.emplace(
+                    NameKey{layer, std::move(nameKey)}, &proof);
+                if (!byName.second) {
+                    proof.eligible = false;
+                    if (byName.first->second)
+                        byName.first->second->eligible = false;
+                    byName.first->second = nullptr;
+                }
+                return true;
+            };
+            for (const auto& reference :
+                 source.second.typedBaseline.dwgEedAppIdReferences)
+                if (!addPlotName(reference.handleRef, false))
+                    return fail();
+            for (const auto& reference :
+                 source.second.typedBaseline.dwgEedLayerReferences)
+                if (!addPlotName(reference.handleRef, true))
+                    return fail();
+        }
         if (!dx_symbol_output::inspect(view, [&](const dx_symbol_output::NameRecord& row) {
             if (layerControl.inspected
                 && row.type == dx_symbol_output::Kind::Layer) {
@@ -23006,6 +23650,429 @@ bool dx_iface::inspectStandardDwgTablesOutput(const dxfRW::DxfTablesWriteView& v
         }
         return true;
     } catch (...) { return fail(); }
+}
+
+bool dx_iface::inspectDwgPlotSettingsOutput(
+        const dxfRW::DxfObjectsWriteView& view) noexcept {
+    if (cData == nullptr || dxfW == nullptr
+        || m_dwgPlotSettingsOutputInspected)
+        return false;
+    m_dwgPlotSettingsOutputInspected = true;
+    if (cData->sourceFormat != dx_source_format::DWG
+        || !cData->dwgReadOutcome.attempted)
+        return true;
+    if (!hasUnchangedDwgPlotSettingsSources())
+        return false;
+
+    try {
+        using SourceFrame = dx_data::DwgPlotSettingsSourceFrame;
+        std::map<std::uint32_t, const SourceFrame*> expected;
+        const auto* context = dxfW->getWritingContext();
+        if (context == nullptr) {
+            DRW_DBG("PlotSettings output writing context unavailable\n");
+            return false;
+        }
+
+        for (const auto& row : cData->m_dwgPlotSettingsSources) {
+            if (row.first.first != cData->importGeneration)
+                continue;
+            const auto& frame = row.second;
+            const auto& source = frame.typedBaseline;
+            if (!isSupportedDwgPlotSettingsSourceProfile(
+                    source, frame.publication.m_version))
+                return false;
+            if (!cData->hasCompleteDwgDictionaryEntry(
+                    source.parentHandle, source.pageSetupName.c_str(),
+                    source.handle))
+                return false;
+
+            const bool commonValidated =
+                drwDwgCommonLinkEvidenceValidated(
+                    frame.publication.m_commonLinkEvidence);
+            if (!commonValidated
+                && (frame.publication.m_commonLinkEvidence
+                        != DRW_DwgCommonLinkEvidence::Unknown
+                    || !source.reactorHandles.empty()
+                    || source.xDictHandle != 0u
+                    || source.extensionDictionaryFlag() != 0u
+                    || source.reactorCount() != 0
+                    || !source.appData.empty())) {
+                return false;
+            }
+
+            const std::uint32_t emitted = dxfW->remapHandle(source.handle);
+            const std::uint32_t owner =
+                dxfW->remapHandle(source.parentHandle);
+            if (emitted == 0u || emitted == DRW::NoHandle
+                || owner == 0u || owner == DRW::NoHandle
+                || context->ambiguousSourceHandles.count(source.handle) != 0u
+                || context->ambiguousSourceHandles.count(
+                    source.parentHandle) != 0u
+                || !expected.emplace(emitted, &frame).second)
+                return false;
+        }
+
+        if (expected.empty())
+            return true;
+        const bool needsTableNameProof = std::any_of(
+            expected.begin(), expected.end(), [](const auto& source) {
+                const DRW_PlotSettings& plot =
+                    source.second->typedBaseline;
+                return !plot.dwgEedAppIdReferences.empty()
+                    || !plot.dwgEedLayerReferences.empty();
+            });
+        if (needsTableNameProof && !m_standardDwgOutputNamesInspected)
+            return false;
+
+        const auto validateEedDependencies = [this](
+                const DRW_PlotSettings& source, std::uint64_t generation,
+                std::vector<std::uint32_t>& references) {
+            std::set<std::size_t> appIndexes;
+            std::set<std::size_t> layerIndexes;
+            const auto tableProof = [this, generation](
+                    std::uint32_t handle, bool layer,
+                    const DRW_TableEntry*& sourceTable,
+                    const StandardDwgOutputNameProof*& outputProof) {
+                const StandardDwgOutputNameKey key{generation, handle};
+                if (layer) {
+                    const auto row = cData->m_standardDwgLayerSources.find(key);
+                    if (row == cData->m_standardDwgLayerSources.end()
+                        || !row->second)
+                        return false;
+                    sourceTable = row->second.get();
+                } else {
+                    const auto row = cData->m_standardDwgAppIdSources.find(key);
+                    if (row == cData->m_standardDwgAppIdSources.end()
+                        || !row->second)
+                        return false;
+                    sourceTable = row->second.get();
+                }
+                const auto proof = m_standardDwgOutputNameProofs.find(key);
+                if (proof == m_standardDwgOutputNameProofs.end()
+                    || proof->second.generation != generation
+                    || proof->second.source != handle
+                    || proof->second.layer != layer || !proof->second.matched
+                    || !proof->second.eligible
+                    || dxfW->dxfWriteEmittedSourceTableHandle(handle)
+                        != proof->second.emitted)
+                    return false;
+                outputProof = &proof->second;
+                return true;
+            };
+            for (const auto& reference : source.dwgEedAppIdReferences) {
+                if (reference.indexInExtData >= source.extData.size()
+                    || reference.handleRef == 0u
+                    || reference.handleRef == DRW::NoHandle
+                    || !appIndexes.insert(reference.indexInExtData).second)
+                    return false;
+                const DRW_Variant* value =
+                    source.extData[reference.indexInExtData];
+                const DRW_TableEntry* appId = nullptr;
+                const StandardDwgOutputNameProof* output = nullptr;
+                if (value == nullptr || value->code() != 1001
+                    || value->type() != DRW_Variant::STRING
+                    || !value->content.s
+                    || !tableProof(reference.handleRef, false, appId,
+                                   output)
+                    || *value->content.s != appId->name
+                    || references.size()
+                        >= StandardDwgObjectCaptureMaxEntries)
+                    return false;
+                references.push_back(output->emitted);
+            }
+            for (const auto& reference : source.dwgEedLayerReferences) {
+                if (reference.indexInExtData >= source.extData.size()
+                    || reference.handleRef == 0u
+                    || reference.handleRef == DRW::NoHandle
+                    || !layerIndexes.insert(reference.indexInExtData).second)
+                    return false;
+                const DRW_Variant* value =
+                    source.extData[reference.indexInExtData];
+                const DRW_TableEntry* layer = nullptr;
+                const StandardDwgOutputNameProof* output = nullptr;
+                if (value == nullptr || value->code() != 1003
+                    || value->type() != DRW_Variant::STRING
+                    || !value->content.s || !value->isLayerRef()
+                    || value->rawDwgLayerReference()
+                        != reference.handleRef
+                    || !tableProof(reference.handleRef, true, layer,
+                                   output)
+                    || *value->content.s != layer->name)
+                    return false;
+            }
+            for (std::size_t index = 0u; index < source.extData.size(); ++index) {
+                const DRW_Variant* value = source.extData[index];
+                if (value == nullptr)
+                    return false;
+                if (value->code() == 1001
+                    && appIndexes.count(index) != 1u)
+                    return false;
+                if ((value->isLayerRef()
+                        || value->rawDwgLayerReference() != 0u)
+                    && layerIndexes.count(index) != 1u)
+                    return false;
+            }
+            return true;
+        };
+
+        const auto verifyOutputEedDependencies = [this](
+                const DRW_PlotSettings& source,
+                const DRW_PlotSettings& actual,
+                std::uint64_t generation) {
+            for (const auto& reference : source.dwgEedAppIdReferences) {
+                const DRW_Variant* expected =
+                    source.extData[reference.indexInExtData];
+                if (reference.indexInExtData >= actual.extData.size())
+                    return false;
+                const DRW_Variant* observed =
+                    actual.extData[reference.indexInExtData];
+                const auto output = m_standardDwgOutputNameProofs.find(
+                    {generation, reference.handleRef});
+                if (expected == nullptr || observed == nullptr
+                    || output == m_standardDwgOutputNameProofs.end()
+                    || !output->second.matched || !output->second.eligible
+                    || expected->code() != 1001
+                    || observed->code() != 1001
+                    || expected->type() != DRW_Variant::STRING
+                    || observed->type() != DRW_Variant::STRING
+                    || !expected->content.s || !observed->content.s
+                    || *expected->content.s != *observed->content.s)
+                    return false;
+            }
+            for (const auto& reference : source.dwgEedLayerReferences) {
+                const DRW_Variant* expected =
+                    source.extData[reference.indexInExtData];
+                if (reference.indexInExtData >= actual.extData.size())
+                    return false;
+                const DRW_Variant* observed =
+                    actual.extData[reference.indexInExtData];
+                const auto output = m_standardDwgOutputNameProofs.find(
+                    {generation, reference.handleRef});
+                if (expected == nullptr || observed == nullptr
+                    || output == m_standardDwgOutputNameProofs.end()
+                    || !output->second.layer || !output->second.matched
+                    || !output->second.eligible
+                    || expected->code() != 1003
+                    || observed->code() != 1003
+                    || expected->type() != DRW_Variant::STRING
+                    || observed->type() != DRW_Variant::STRING
+                    || !expected->content.s || !observed->content.s
+                    || *expected->content.s != *observed->content.s
+                    || expected->rawDwgLayerReference()
+                        != reference.handleRef
+                    || observed->rawDwgLayerReference() != 0u)
+                    return false;
+            }
+            return source.extData.size() == actual.extData.size();
+        };
+
+        dx_standard_output::Decoder decoder(view);
+        if (!decoder.good()) {
+            return false;
+        }
+        std::set<std::uint32_t> seen;
+        std::size_t referenceCount = 0u;
+        auto inspected = dx_standard_output::inspectSelected(
+            view,
+            [&expected](std::string_view name, std::uint32_t handle) {
+                const bool selected = name == "PLOTSETTINGS"
+                    && expected.find(handle) != expected.end();
+                return selected;
+            },
+            [&](const dx_standard_output::Shape& shape,
+                std::string_view body) {
+                const auto found = expected.find(shape.handle);
+                if (found == expected.end())
+                    return false;
+                if (!seen.insert(shape.handle).second)
+                    return false;
+                const SourceFrame& frame = *found->second;
+                const DRW_PlotSettings& source = frame.typedBaseline;
+                const std::uint32_t sourceHandle = source.handle;
+                const std::uint32_t emittedHandle = shape.handle;
+                const std::uint32_t emittedOwner =
+                    dxfW->remapHandle(source.parentHandle);
+                if (!validatePlotSettingsOutputFieldSpan(
+                        body, view, emittedHandle, emittedOwner))
+                    return false;
+
+                DwgPlotSettingsOutputProof proof;
+                proof.generation = cData->importGeneration;
+                proof.source = sourceHandle;
+                proof.emitted = emittedHandle;
+                proof.owner = emittedOwner;
+                if (!validateEedDependencies(
+                        source, proof.generation, proof.references))
+                    return false;
+
+                const auto map = [this, context, &source, emittedHandle,
+                                  emittedOwner](std::uint32_t sourceReference,
+                                                std::uint32_t& outputReference) {
+                    outputReference = 0u;
+                    if (sourceReference == 0u)
+                        return true;
+                    if (context->ambiguousSourceHandles.count(
+                            sourceReference) != 0u)
+                        return false;
+                    if (sourceReference == source.handle) {
+                        outputReference = emittedHandle;
+                        return true;
+                    }
+                    if (sourceReference == source.parentHandle) {
+                        outputReference = emittedOwner;
+                        return true;
+                    }
+                    outputReference =
+                        dxfW->dxfWriteEmittedSourceTableHandle(
+                            sourceReference);
+                    if (outputReference != 0u)
+                        return true;
+                    unsigned bindings = 0u;
+                    const auto table =
+                        context->sourceHandleToWrittenTableMap.find(
+                            sourceReference);
+                    if (table != context->sourceHandleToWrittenTableMap.end()) {
+                        outputReference = table->second;
+                        ++bindings;
+                    }
+                    const auto object =
+                        context->sourceHandleToWrittenObjectMap.find(
+                            sourceReference);
+                    if (object != context->sourceHandleToWrittenObjectMap.end()) {
+                        outputReference = object->second;
+                        ++bindings;
+                    }
+                    if (context->writtenSourceEntityHandles.count(
+                            sourceReference) != 0u) {
+                        const auto entity =
+                            context->sourceHandleToMintedMap.find(
+                                sourceReference);
+                        if (entity != context->sourceHandleToMintedMap.end()) {
+                            outputReference = entity->second;
+                            ++bindings;
+                        }
+                    }
+                    if (bindings != 1u) {
+                        outputReference = dxfW->remapHandle(sourceReference);
+                        return outputReference != 0u
+                            && outputReference != DRW::NoHandle
+                            && dxfW->dxfWriteRecordHandleCount(
+                                outputReference) == 1u;
+                    }
+                    return outputReference != 0u
+                        && outputReference != DRW::NoHandle;
+                };
+                const auto verifyLayer = [this, &frame](
+                        const DRW_Variant& sourceValue,
+                        const DRW_Variant& actualValue,
+                        std::vector<std::uint32_t>& references) {
+                    const std::uint64_t raw =
+                        sourceValue.rawDwgLayerReference();
+                    const auto role = std::find_if(
+                        frame.typedBaseline.dwgEedLayerReferences.begin(),
+                        frame.typedBaseline.dwgEedLayerReferences.end(),
+                        [&frame, &sourceValue](
+                                const DRW_TableEntry::PendingHandleRef& ref) {
+                            return ref.indexInExtData
+                                < frame.typedBaseline.extData.size()
+                                && frame.typedBaseline.extData[ref.indexInExtData]
+                                    == &sourceValue;
+                        });
+                    if (sourceValue.code() != 1003
+                        || actualValue.code() != 1003
+                        || !sourceValue.isLayerRef()
+                        || sourceValue.type() != DRW_Variant::STRING
+                        || actualValue.type() != DRW_Variant::STRING
+                        || !sourceValue.content.s || !actualValue.content.s
+                        || sourceValue.dwgCmColorValue()
+                        || actualValue.dwgCmColorValue()
+                        || actualValue.rawDwgLayerReference() != 0u
+                        || raw == 0u
+                        || raw > (std::numeric_limits<std::uint32_t>::max)()
+                        || role == frame.typedBaseline.dwgEedLayerReferences.end()
+                        || role->handleRef != raw)
+                        return false;
+                    const std::uint32_t handle =
+                        static_cast<std::uint32_t>(raw);
+                    const auto sourceLayer =
+                        cData->m_standardDwgLayerSources.find(
+                            {cData->importGeneration, handle});
+                    const auto output = m_standardDwgOutputNameProofs.find(
+                        {cData->importGeneration, handle});
+                    if (sourceLayer == cData->m_standardDwgLayerSources.end()
+                        || !sourceLayer->second || output == m_standardDwgOutputNameProofs.end()
+                        || !output->second.layer || !output->second.matched
+                        || !output->second.eligible
+                        || *sourceValue.content.s != sourceLayer->second->name
+                        || *actualValue.content.s != sourceLayer->second->name
+                        || references.size()
+                            >= StandardDwgObjectCaptureMaxEntries)
+                        return false;
+                    references.push_back(output->second.emitted);
+                    return true;
+                };
+
+                return decoder.decodeRecord<DRW_PlotSettings>(
+                    body, [&](const DRW_PlotSettings& actual) {
+                        if (!samePlotSettingsFields(source, actual)
+                            || actual.handle != emittedHandle
+                            || actual.parentHandle != emittedOwner
+                            || source.extData.size() != actual.extData.size()
+                            || !verifyOutputEedDependencies(
+                                source, actual, proof.generation))
+                            return false;
+                        bool commonMatched = false;
+                        if (drwDwgCommonLinkEvidenceValidated(
+                                frame.publication.m_commonLinkEvidence)) {
+                            commonMatched = dx_standard_output::commonEqual(
+                                source, actual, dx_standard_output::Family::Other,
+                                map, proof.references, verifyLayer);
+                        } else {
+                            std::uint32_t mappedSelf = 0u;
+                            std::uint32_t mappedOwner = 0u;
+                            commonMatched = source.flags == 0
+                                && actual.flags == 0
+                                && source.name.empty() && actual.name.empty()
+                                && source.reactorHandles.empty()
+                                && actual.reactorHandles.empty()
+                                && source.xDictHandle == 0u
+                                && actual.xDictHandle == 0u
+                                && source.appData.empty()
+                                && actual.appData.empty()
+                                && map(source.handle, mappedSelf)
+                                && map(source.parentHandle, mappedOwner)
+                                && mappedSelf == actual.handle
+                                && mappedOwner == actual.parentHandle
+                                && dx_standard_output::extendedDataTransportEqual(
+                                    source, actual, map, proof.references,
+                                    verifyLayer);
+                        }
+                        if (!commonMatched
+                            || proof.references.size()
+                                > StandardDwgObjectCaptureMaxEntries
+                                    - referenceCount)
+                            return false;
+                        referenceCount += proof.references.size();
+                        const auto cost = sizeof(std::pair<
+                                const std::uint32_t,
+                                DwgPlotSettingsOutputProof>)
+                            + 4u * sizeof(void*)
+                            + proof.references.size()
+                                * sizeof(std::uint32_t);
+                        if (!standardDwgCaptureFits(
+                                m_dwgPlotSettingsOutputBytes, cost)
+                            || m_dwgPlotSettingsOutputProofs.size()
+                                >= PlotSettingsCaptureMaxRecords)
+                            return false;
+                        m_dwgPlotSettingsOutputBytes += cost;
+                        return m_dwgPlotSettingsOutputProofs.emplace(
+                            sourceHandle, std::move(proof)).second;
+                    });
+            });
+        return inspected && seen.size() == expected.size();
+    } catch (...) {
+        return false;
+    }
 }
 
 bool dx_iface::hasQualifiedStandardDwgOutputNames(std::uint64_t generation,
@@ -37991,11 +39058,29 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
         std::map<std::uint32_t, const dx_data::StandardDwgObjectFrame*> expected;
         for (const auto& source : cData->m_standardDwgObjectFrames) {
             const auto& frame = source.second;
+            // AC1015 fixed DICTIONARY records carry their complete common
+            // links inside the typed object body. The legacy raw callback
+            // does not publish the modern separate-tail evidence bit, so
+            // keep that state Unknown while allowing output qualification
+            // only after the raw body, typed model, and complete membership
+            // receipt have all matched. The output decoder below then checks
+            // every emitted field, owner, and reference before qualification.
+            const bool completeLegacyDictionaryPayload =
+                frame.raw.m_version == DRW::AC1015
+                && frame.raw.m_objectType == dwgObjType::DICTIONARY
+                && frame.payloadMatched && frame.membershipSeen
+                && frame.dictionaryMembership.m_complete
+                && frame.dictionaryMembership.m_version
+                    == frame.raw.m_version
+                && frame.dictionaryMembership.m_dictionaryHandle
+                    == frame.raw.m_handle;
             // Unknown/opaque carriers and unmodeled source state are not
             // upgraded by a successful typed projection/readback.
             if (!frame.typedBaseline || !frame.payloadMatched || frame.opaquePayload
                 || !frame.hasNoObservedTextDecodeIssues()
-                || !drwDwgCommonLinkEvidenceValidated(frame.raw.m_commonLinkEvidence)
+                || (!drwDwgCommonLinkEvidenceValidated(
+                        frame.raw.m_commonLinkEvidence)
+                    && !completeLegacyDictionaryPayload)
                 || (frame.sourceCodePageFieldPresent && !frame.sourceCodePageRecognized)
                 || !hasQualifiedStandardDwgOutputNames(frame.generation, frame.raw.m_handle, false)) continue;
             const auto found = context->sourceHandleToWrittenObjectMap.find(source.first.second);
@@ -38290,6 +39375,144 @@ bool dx_iface::finalizeStandardDwgOutputProofs() noexcept {
         m_standardDwgOutputFinalized = true;
         return true;
     } catch (...) { return false; }
+}
+
+bool dx_iface::finalizeDwgPlotSettingsOutputProofs() noexcept {
+    if (cData == nullptr || cData->sourceFormat != dx_source_format::DWG
+        || !cData->dwgReadOutcome.attempted)
+        return true;
+    if (!hasUnchangedDwgPlotSettingsSources())
+        return false;
+    std::size_t expected = 0u;
+    for (const auto& source : cData->m_dwgPlotSettingsSources)
+        if (source.first.first == cData->importGeneration)
+            ++expected;
+    if (expected == 0u) {
+        m_dwgPlotSettingsOutputFinalized = true;
+        return m_dwgPlotSettingsOutputProofs.empty();
+    }
+    if (!dxfW || !m_dwgPlotSettingsOutputInspected
+        || m_dwgPlotSettingsOutputFinalized
+        || !m_standardDwgOutputFinalized
+        || m_dwgPlotSettingsOutputProofs.size() != expected)
+        return false;
+    try {
+        const auto* context = dxfW->getWritingContext();
+        if (context == nullptr)
+            return false;
+        for (const auto& row : cData->m_dwgPlotSettingsSources) {
+            if (row.first.first != cData->importGeneration)
+                continue;
+            const DRW_PlotSettings& source = row.second.typedBaseline;
+            const auto proofIt =
+                m_dwgPlotSettingsOutputProofs.find(row.first.second);
+            if (proofIt == m_dwgPlotSettingsOutputProofs.end())
+                return false;
+            const DwgPlotSettingsOutputProof& proof = proofIt->second;
+            const std::uint32_t owner =
+                dxfW->remapHandle(source.parentHandle);
+            if (proof.generation != cData->importGeneration
+                || proof.source != source.handle
+                || proof.emitted != dxfW->remapHandle(source.handle)
+                || proof.owner != owner
+                || context->ambiguousSourceHandles.count(source.handle) != 0u
+                || context->ambiguousSourceHandles.count(
+                    source.parentHandle) != 0u
+                || dxfW->dxfWriteRecordHandleCount(proof.emitted) != 1u
+                || !dxfW->dxfWriteRecordHasIdentity(
+                    proof.emitted, "PLOTSETTINGS", "OBJECTS")
+                || !dxfW->dxfWriteRecordHasOwner(proof.emitted, owner)
+                || !dxfW->dxfWriteSourceObjectHasIdentity(
+                    source.handle, proof.emitted, "PLOTSETTINGS", "OBJECTS",
+                    owner)
+                || !cData->hasCompleteDwgDictionaryEntry(
+                    source.parentHandle, source.pageSetupName.c_str(),
+                    source.handle))
+                return false;
+
+            if (!cData->hasNamedObjectDictionary
+                || cData->namedObjectDictionary.handle == 0u
+                || cData->namedObjectDictionary.handle == DRW::NoHandle)
+                return false;
+            const std::uint32_t nodHandle =
+                cData->namedObjectDictionary.handle;
+            if (!cData->hasCompleteDwgDictionaryEntry(
+                    nodHandle, "ACAD_PLOTSETTINGS", source.parentHandle))
+                return false;
+            const auto parentProof =
+                m_standardDwgOutputProofs.find(source.parentHandle);
+            const auto nodProof = m_standardDwgOutputProofs.find(nodHandle);
+            const std::uint32_t emittedParent =
+                dxfW->remapHandle(source.parentHandle);
+            const std::uint32_t emittedNod = dxfW->remapHandle(nodHandle);
+            if (parentProof == m_standardDwgOutputProofs.end()
+                || nodProof == m_standardDwgOutputProofs.end()
+                || parentProof->second.generation
+                    != cData->importGeneration
+                || nodProof->second.generation != cData->importGeneration
+                || parentProof->second.objectType != dwgObjType::DICTIONARY
+                || nodProof->second.objectType != dwgObjType::DICTIONARY
+                || parentProof->second.emitted != emittedParent
+                || parentProof->second.owner != emittedNod
+                || dxfW->dxfWriteRecordHandleCount(emittedParent) != 1u
+                || dxfW->dxfWriteRecordHandleCount(emittedNod) != 1u
+                || !dxfW->dxfWriteRecordHasIdentity(
+                    emittedParent, "DICTIONARY", "OBJECTS")
+                || !dxfW->dxfWriteRecordHasOwner(
+                    emittedParent, emittedNod)
+                || !dxfW->dxfWriteRecordHasIdentity(
+                    emittedNod, "DICTIONARY", "OBJECTS")
+                || std::count(parentProof->second.references.begin(),
+                              parentProof->second.references.end(),
+                              proof.emitted) != 1
+                || std::count(nodProof->second.references.begin(),
+                              nodProof->second.references.end(),
+                              emittedParent) != 1)
+                return false;
+            for (const std::uint32_t reference : proof.references)
+                if (reference == 0u || reference == DRW::NoHandle
+                    || dxfW->dxfWriteRecordHandleCount(reference) != 1u)
+                    return false;
+            const auto validateTableDependency =
+                [this](const DRW_TableEntry::PendingHandleRef& reference,
+                       bool layer) {
+                    const auto output = m_standardDwgOutputNameProofs.find(
+                        {cData->importGeneration, reference.handleRef});
+                    if (output == m_standardDwgOutputNameProofs.end()
+                        || output->second.generation
+                            != cData->importGeneration
+                        || output->second.source != reference.handleRef
+                        || output->second.layer != layer
+                        || !output->second.matched
+                        || !output->second.eligible)
+                        return false;
+                    const std::uint32_t expectedOwner =
+                        !layer && dxfW->getVersion() <= DRW::AC1014
+                            ? static_cast<std::uint32_t>(DRW::NoHandle)
+                            : output->second.table;
+                    return dxfW->dxfWriteSourceTableHasIdentity(
+                            reference.handleRef, output->second.emitted,
+                            layer ? "LAYER" : "APPID", expectedOwner)
+                        && dxfW->dxfWriteRecordHasIdentity(
+                            output->second.table, "TABLE", "TABLES")
+                        && (dxfW->getVersion() <= DRW::AC1014
+                            || dxfW->dxfWriteRecordHasOwner(
+                                output->second.table, 0u));
+                };
+            for (const auto& reference :
+                 source.dwgEedAppIdReferences)
+                if (!validateTableDependency(reference, false))
+                    return false;
+            for (const auto& reference :
+                 source.dwgEedLayerReferences)
+                if (!validateTableDependency(reference, true))
+                    return false;
+        }
+        m_dwgPlotSettingsOutputFinalized = true;
+        return true;
+    } catch (...) {
+        return false;
+    }
 }
 
 void dx_iface::addUnsupportedObject(const DRW_UnsupportedObject& data) {
@@ -57042,12 +58265,56 @@ void dx_iface::addPlotSettings(const DRW_PlotSettings* data) {
         return;
     }
 
+    const bool retainDwgSource = cData->sourceFormat == dx_source_format::DWG
+        && cData->dwgReadOutcome.attempted
+        && cData->importGeneration != 0u;
+    std::size_t sourceEstimate = 0u;
+    dx_data::StandardDwgFrameKey sourceKey{};
+    if (retainDwgSource) {
+        sourceKey = {cData->importGeneration, data->handle};
+        const std::size_t mapNodeOverhead = sizeof(std::pair<
+                const dx_data::StandardDwgFrameKey,
+                dx_data::DwgPlotSettingsSourceFrame>)
+            - sizeof(DRW_PlotSettings) + 4u * sizeof(void*);
+        sourceEstimate = estimatedBytes;
+        if (data->handle == 0u || data->handle == DRW::NoHandle
+            || cData->m_dwgPlotSettingsSources.size()
+                >= PlotSettingsCaptureMaxRecords
+            || cData->m_dwgPlotSettingsSources.count(sourceKey) != 0u
+            || !addAssociativeRetainedBytes(mapNodeOverhead, sourceEstimate)
+            || cData->plotSettingsRetainedBytes
+                > PlotSettingsCaptureMaxRetainedBytes - estimatedBytes
+            || sourceEstimate > PlotSettingsCaptureMaxRetainedBytes
+                - cData->plotSettingsRetainedBytes - estimatedBytes) {
+            cData->m_dwgPlotSettingsSourceCaptureFailed = true;
+            cData->plotSettingsCaptureFailed = true;
+            return;
+        }
+    }
+
     try {
+        const std::size_t callbackOrdinal = cData->plotSettings.size();
         cData->plotSettings.push_back(*data);
         ++cData->plotSettingsRetainedRecords;
         cData->plotSettingsRetainedBytes += estimatedBytes;
+        if (retainDwgSource) {
+            dx_data::DwgPlotSettingsSourceFrame source;
+            source.typedBaseline = *data;
+            source.callbackOrdinal = callbackOrdinal;
+            const auto inserted = cData->m_dwgPlotSettingsSources.emplace(
+                sourceKey, std::move(source));
+            if (!inserted.second) {
+                cData->m_dwgPlotSettingsSourceCaptureFailed = true;
+                cData->plotSettingsCaptureFailed = true;
+                return;
+            }
+            cData->plotSettingsRetainedBytes += sourceEstimate;
+            cData->m_dwgPlotSettingsSourceRetainedBytes += sourceEstimate;
+        }
     } catch (...) {
         cData->plotSettingsCaptureFailed = true;
+        if (retainDwgSource)
+            cData->m_dwgPlotSettingsSourceCaptureFailed = true;
     }
 }
 
@@ -63200,6 +64467,7 @@ bool dx_iface::finalizeDxfWrite() {
         || (cData != nullptr && !hasUnchangedStandardDwgObjectSources())
         || (cData != nullptr && !hasUnchangedRasterDwgSources())
         || !finalizeStandardDwgOutputProofs()
+        || !finalizeDwgPlotSettingsOutputProofs()
         || !finalizeRasterOutputProofs()
         || !finalizeDxfAssociativeGeometryOutput()
         || !finalizeDxfAssociativeValueOutput()
@@ -63278,6 +64546,10 @@ bool dx_iface::finalizeDxfWrite() {
                 || !qualifyCapturedIdentity(proof.first))
                 return false;
         }
+        for (const auto& proof : m_dwgPlotSettingsOutputProofs)
+            if (proof.second.generation != cData->importGeneration
+                || !qualifyCapturedIdentity(proof.first))
+                return false;
         for (const auto& proof : m_dwgAssociativeVariableOutputProofs)
             if (!qualifyCapturedIdentity(proof.sourceHandle))
                 return false;
@@ -68427,7 +69699,16 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         })) {
         delete dxfW; dxfW=nullptr; return false;
     }
-    const bool needsStandardNames = std::any_of(cData->m_standardDwgObjectFrames.begin(),
+    const bool needsPlotSettingsNames = std::any_of(
+        cData->m_dwgPlotSettingsSources.begin(),
+        cData->m_dwgPlotSettingsSources.end(),
+        [generation = cData->importGeneration](const auto& source) {
+            return source.first.first == generation
+                && (!source.second.typedBaseline.dwgEedAppIdReferences.empty()
+                    || !source.second.typedBaseline.dwgEedLayerReferences.empty());
+        });
+    const bool needsStandardNames = needsPlotSettingsNames
+        || std::any_of(cData->m_standardDwgObjectFrames.begin(),
         cData->m_standardDwgObjectFrames.end(), [](const auto& source) {
             return !source.second.appIdDependencies.empty() || !source.second.layerDependencies.empty();
         });
@@ -68589,6 +69870,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             if (!cData->m_standardDwgObjectFrames.empty()
                 && !inspectStandardDwgOutput(view))
                 return reject("standard DWG object frame");
+            if (cData->sourceFormat == dx_source_format::DWG
+                && cData->dwgReadOutcome.attempted
+                && !inspectDwgPlotSettingsOutput(view))
+                return reject("PLOTSETTINGS DWG source/output field and reference proof");
             if (needsDwgDynamicBlockOutput
                 && !inspectDwgDynamicBlockOutput(
                     view, debug || requireResolvedOwners))
@@ -68954,6 +70239,9 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     if (success && m_standardDwgOutputInspected && m_standardDwgOutputFinalized)
         m_standardDwgOutputPublished = true;
+    if (success && m_dwgPlotSettingsOutputInspected
+        && m_dwgPlotSettingsOutputFinalized)
+        m_dwgPlotSettingsOutputPublished = true;
     if (success && m_rasterOutputInspected && m_rasterOutputFinalized)
         m_rasterOutputPublished = true;
     if (success && m_generatedRootOutputInspected && m_generatedRootOutputFinalized)

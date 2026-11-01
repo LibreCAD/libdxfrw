@@ -1013,6 +1013,13 @@ readDwgEed(DRW::Version version, dwgBuffer &buffer,
            std::vector<DwgEedChunk> &chunks,
            std::uint64_t endBit = (std::numeric_limits<std::uint64_t>::max)());
 
+/// Coalesce physical EED chunks that belong to the same APPID into one
+/// logical application group for DRW::extData. Preserve first-seen APPID
+/// order and each application's item order; DXF permits one XDATA group per
+/// APPID on a record. This does not change readDwgEed's physical-chunk API.
+[[nodiscard]] bool coalesceDwgEedChunksByApp(
+    std::vector<DwgEedChunk> &chunks);
+
 /// Read one or more handle references without publishing a partial result.
 /// `offset` selects the DWG relative-handle transformation used by common
 /// object/entity owner fields; ordinary reactor handles use false.
@@ -1103,10 +1110,12 @@ public:
   void reset() {
     DRW_TableEntry::reset();
     handlesList.clear();
+    phantomHandles.clear();
   }
   bool parseDwg(DRW::Version version, dwgBuffer *buf,
                 std::uint32_t bs = 0) override;
   std::list<std::uint32_t> handlesList;
+  std::list<std::uint32_t> phantomHandles;
 };
 
 class DwgCodePageTestAccess;
@@ -1434,6 +1443,9 @@ protected:
   [[nodiscard]] virtual bool readDwgBlocks(DRW_Interface &intfa) = 0;
   [[nodiscard]] virtual bool readDwgEntities(DRW_Interface &intfa) = 0;
   [[nodiscard]] virtual bool readDwgObjects(DRW_Interface &intfa) = 0;
+  [[nodiscard]] bool entitySweepFailureContained() const noexcept {
+    return m_entitySweepContained;
+  }
 
   [[nodiscard]] virtual bool
   readDwgEntity(dwgBuffer *dbuf, objHandle &obj, DRW_Interface &intfa,
@@ -1589,6 +1601,14 @@ protected:
       bool hasValues = false) noexcept;
   void recordObjectFrameFailure(const objHandle &object,
                                 DwgIntegrityAddressSpace offsetSpace) noexcept;
+  void recordDanglingControlHandle(std::uint32_t controlHandle,
+                                   std::uint32_t recordHandle) noexcept;
+  void recordOrphanedEntity(const objHandle &object,
+                            std::uint32_t ownerHandle,
+                            DwgIntegrityAddressSpace offsetSpace) noexcept;
+  void recordErasedBlockReference(const objHandle &object,
+                                  std::uint32_t blockRecordHandle,
+                                  DwgIntegrityAddressSpace offsetSpace) noexcept;
   bool hasUsableDwgNodReference() const noexcept;
   void warnDwgNodReference(std::uint64_t expected, std::uint64_t observed,
                           const objHandle *object = nullptr,
@@ -2081,6 +2101,9 @@ public:
   /// Section-level (structural) failures still propagate via the
   /// bool return from each section method.
   size_t m_entityParseFailures = 0;
+  std::unordered_set<std::uint32_t> m_danglingBlockRecords;
+  std::uint64_t m_orphanedEntityRejections{0};
+  bool m_entitySweepContained{false};
   /// Per-object parseDwg failures accumulated in readDwgObjects. Mirrors
   /// m_entityParseFailures — non-fatal warnings tracked for caller reporting.
   size_t m_objectParseFailures = 0;
@@ -2338,12 +2361,22 @@ private:
                 ownerIt->second->entMap.cbegin(),
                 ownerIt->second->entMap.cend(),
                 [&](std::uint32_t handle) { return handle == e.handle; });
-        ownerMismatch =
-            e.eType != DRW::ATTRIB && e.eType != DRW::SEQEND &&
-            e.parentHandle != DRW::NoHandle
-            // The R2004+ ownership list is authoritative. A stale
-            // owner value without an entMap claim remains recoverable.
-            && ownerClaimsEntity;
+        const bool ordinaryEntity = e.eType != DRW::ATTRIB &&
+                                    e.eType != DRW::SEQEND &&
+                                    e.parentHandle != DRW::NoHandle;
+        if (ordinaryEntity && ownerIt == blockRecordmap.end()) {
+          // The entity names a block record that the file no longer contains.
+          // Reject only this frame; the phase runner reports the contained
+          // orphan after the sweep and continues with the rest of the file.
+          if (m_orphanedEntityRejections !=
+              std::numeric_limits<std::uint64_t>::max())
+            ++m_orphanedEntityRejections;
+          ownerMismatch = true;
+        } else {
+          // The R2004+ ownership list is authoritative. A stale owner value
+          // without an entMap claim remains recoverable.
+          ownerMismatch = ordinaryEntity && ownerClaimsEntity;
+        }
       } else if (expectedBlockEntityOwner != DRW::NoHandle) {
         ownerMismatch = e.eType != DRW::ATTRIB && e.eType != DRW::SEQEND &&
                         e.parentHandle != expectedBlockEntityOwner;

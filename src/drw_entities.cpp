@@ -78,7 +78,6 @@ struct EmbeddedMTextHandleInfo {
     bool m_hasEdgeVisualStyle = false;
     bool m_hasStyleHandle = true;
     bool m_hasR2018AppIdHandle = false;
-    bool m_hasAnnotativeAppHandle = false;
 };
 static bool parseEmbeddedMTextDwg(DRW::Version version, dwgBuffer *buf,
                                   dwgBuffer *sBuf, DRW_MText& mtext,
@@ -4615,20 +4614,23 @@ bool DRW_Entity::parseDwg(DRW::Version version, dwgBuffer *buf, dwgBuffer* strBu
     std::vector<DwgEedChunk> eedChunks;
     if (!readDwgEed(version, *buf, eedChunks, bodyEndBit))
         return false;
+    if (!coalesceDwgEedChunksByApp(eedChunks))
+        return false;
     if (!bodyWithinBounds())
         return false;
     std::vector<std::shared_ptr<DRW_Variant>> parsedExtData;
     std::vector<PendingHandleRef> parsedAppIdResolutions;
     std::vector<PendingHandleRef> parsedLayerRefResolutions;
     try {
-        for (const DwgEedChunk& chunk : eedChunks) {
+        for (DwgEedChunk& chunk : eedChunks) {
             const std::size_t appIndex =
                 extData.size() + parsedExtData.size();
             parsedExtData.push_back(
                 std::make_shared<DRW_Variant>(1001, std::string{}));
             parsedAppIdResolutions.push_back({appIndex, chunk.appHandle});
-            for (const DRW_Variant& item : chunk.items)
-                parsedExtData.push_back(std::make_shared<DRW_Variant>(item));
+            for (DRW_Variant& item : chunk.items)
+                parsedExtData.push_back(
+                    std::make_shared<DRW_Variant>(std::move(item)));
             for (const DwgEedHandleRef& ref : chunk.layerRefs) {
                 parsedLayerRefResolutions.push_back(
                     {appIndex + 1 + ref.itemIndex, ref.handleRef});
@@ -6523,6 +6525,72 @@ void writeMTextBackgroundCmc(DRW::Version version, dwgBufferW *body,
   }
 }
 
+bool writeR2018MTextContext(dwgBufferW& body, const DRW_MText& mtext) {
+  body.putBit(mtext.m_r2018IsNotAnnotative ? 1 : 0);
+  if (!mtext.m_r2018IsNotAnnotative)
+    return body.isGood();
+
+  const auto finitePoint = [](const DRW_Coord& point) {
+    return std::isfinite(point.x) && std::isfinite(point.y)
+        && std::isfinite(point.z);
+  };
+  if (!finitePoint(mtext.m_r2018XAxisDir)
+      || !finitePoint(mtext.m_r2018InsertionPoint)
+      || !std::isfinite(mtext.m_r2018RectWidth)
+      || !std::isfinite(mtext.m_r2018RectHeight)
+      || !std::isfinite(mtext.m_r2018ExtentsHeight)
+      || !std::isfinite(mtext.m_r2018ExtentsWidth)
+      || mtext.m_r2018ColumnType > 2 || mtext.m_r2018ColumnCount < 0
+      || mtext.m_r2018ColumnCount > kMaxMTextColumnHeights
+      || mtext.m_r2018ColumnHeights.size()
+          > static_cast<std::size_t>(kMaxMTextColumnHeights))
+    return false;
+
+  body.putBitShort(mtext.m_r2018Version);
+  body.putBit(mtext.m_r2018DefaultFlag ? 1 : 0);
+  body.putBitLong(mtext.m_r2018Attachment);
+  body.put3BitDouble(mtext.m_r2018XAxisDir);
+  body.put3BitDouble(mtext.m_r2018InsertionPoint);
+  body.putBitDouble(mtext.m_r2018RectWidth);
+  body.putBitDouble(mtext.m_r2018RectHeight);
+  body.putBitDouble(mtext.m_r2018ExtentsWidth);
+  body.putBitDouble(mtext.m_r2018ExtentsHeight);
+  body.putBitShort(mtext.m_r2018ColumnType);
+  if (mtext.m_r2018ColumnType != 0) {
+    if (!std::isfinite(mtext.m_r2018ColumnWidth)
+        || !std::isfinite(mtext.m_r2018ColumnGutter))
+      return false;
+    std::int32_t columnCount = mtext.m_r2018ColumnCount;
+    if (!mtext.m_r2018ColumnAutoHeight && mtext.m_r2018ColumnType == 2
+        && !mtext.m_r2018ColumnHeights.empty()) {
+      columnCount = static_cast<std::int32_t>(
+          mtext.m_r2018ColumnHeights.size());
+    }
+    if (!mtext.m_r2018ColumnAutoHeight && mtext.m_r2018ColumnType == 2
+        && !mtext.m_r2018ColumnHeights.empty()
+        && static_cast<std::size_t>(columnCount)
+            != mtext.m_r2018ColumnHeights.size())
+      return false;
+    body.putBitLong(columnCount);
+    body.putBitDouble(mtext.m_r2018ColumnWidth);
+    body.putBitDouble(mtext.m_r2018ColumnGutter);
+    body.putBit(mtext.m_r2018ColumnAutoHeight ? 1 : 0);
+    body.putBit(mtext.m_r2018ColumnFlowReversed ? 1 : 0);
+    if (!mtext.m_r2018ColumnAutoHeight && mtext.m_r2018ColumnType == 2) {
+      for (std::int32_t index = 0; index < columnCount; ++index) {
+        const double height = static_cast<std::size_t>(index)
+                < mtext.m_r2018ColumnHeights.size()
+            ? mtext.m_r2018ColumnHeights[static_cast<std::size_t>(index)]
+            : 0.0;
+        if (!std::isfinite(height))
+          return false;
+        body.putBitDouble(height);
+      }
+    }
+  }
+  return body.isGood();
+}
+
 } // namespace
 
 bool DRW_MText::encodeDwg(DRW::Version version, dwgBufferW *buf,
@@ -6580,49 +6648,8 @@ bool DRW_MText::encodeDwg(DRW::Version version, dwgBufferW *buf,
     }
   }
   if (version >= DRW::AC1032) {
-    buf->putBit(m_r2018IsNotAnnotative ? 1 : 0);
-    if (m_r2018IsNotAnnotative) {
-      buf->putBitShort(m_r2018Version);
-      buf->putBit(m_r2018DefaultFlag ? 1 : 0);
-      buf->putBitLong(m_r2018Attachment);
-      buf->put3BitDouble(m_r2018XAxisDir);
-      buf->put3BitDouble(m_r2018InsertionPoint);
-      buf->putBitDouble(m_r2018RectWidth);
-      buf->putBitDouble(m_r2018RectHeight);
-      buf->putBitDouble(m_r2018ExtentsHeight);
-      buf->putBitDouble(m_r2018ExtentsWidth);
-      if (m_r2018ColumnType > 2 || m_r2018ColumnCount < 0 ||
-          m_r2018ColumnCount > kMaxMTextColumnHeights ||
-          m_r2018ColumnHeights.size() >
-              static_cast<std::size_t>(kMaxMTextColumnHeights))
-        return false;
-      buf->putBitShort(m_r2018ColumnType);
-      if (m_r2018ColumnType != 0) {
-        std::int32_t columnCount = m_r2018ColumnCount;
-        if (!m_r2018ColumnAutoHeight && m_r2018ColumnType == 2 &&
-            !m_r2018ColumnHeights.empty()) {
-          columnCount = static_cast<std::int32_t>(m_r2018ColumnHeights.size());
-        }
-        if (!m_r2018ColumnAutoHeight && m_r2018ColumnType == 2 &&
-            static_cast<std::size_t>(columnCount) !=
-                m_r2018ColumnHeights.size())
-          return false;
-        buf->putBitLong(columnCount);
-        buf->putBitDouble(m_r2018ColumnWidth);
-        buf->putBitDouble(m_r2018ColumnGutter);
-        buf->putBit(m_r2018ColumnAutoHeight ? 1 : 0);
-        buf->putBit(m_r2018ColumnFlowReversed ? 1 : 0);
-        if (!m_r2018ColumnAutoHeight && m_r2018ColumnType == 2) {
-          for (std::int32_t i = 0; i < columnCount; ++i) {
-            const double columnHeight =
-                static_cast<size_t>(i) < m_r2018ColumnHeights.size()
-                    ? m_r2018ColumnHeights[static_cast<size_t>(i)]
-                    : 0.0;
-            buf->putBitDouble(columnHeight);
-          }
-        }
-      }
-    }
+    if (!writeR2018MTextContext(*buf, *this))
+      return false;
   }
 
   if (!encodeDwgEntHandle(version, buf, handleBuf))
@@ -15121,6 +15148,7 @@ static bool parseEmbeddedMTextDwgFields(
             mtext.m_backgroundColor = static_cast<int>(backgroundColor);
             mtext.m_backgroundColorTrue =
                 backgroundHasRgb ? (backgroundRgb & 0xFFFFFF) : -1;
+            mtext.m_backgroundTrueColor = mtext.m_backgroundColorTrue;
             mtext.m_backgroundColorName = backgroundColorBookName.empty()
                 ? std::move(backgroundColorName)
                 : backgroundColorBookName + "$" + backgroundColorName;
@@ -15136,31 +15164,64 @@ static bool parseEmbeddedMTextDwgFields(
     if (version >= DRW::AC1032) {
         mtext.m_r2018ColumnHeights.clear();
         if (!readBoundedBit(*buf, bodyEndBit,
-                            mtext.m_r2018IsNotAnnotative)
-            || !readBoundedBit(*buf, bodyEndBit,
-                               mtext.m_r2018ReallyLocked))
+                            mtext.m_r2018IsNotAnnotative))
             return false;
-        info.m_hasR2018AppIdHandle = mtext.m_r2018IsNotAnnotative;
-    }
-
-    std::uint16_t annotativeSize = 0;
-    if (!readBoundedBitShort(*buf, bodyEndBit, annotativeSize))
-        return false;
-    if (annotativeSize > 0) {
-        std::vector<std::uint8_t> annotativeData;
-        if (!DRW::reserve(annotativeData, annotativeSize))
-            return false;
-        for (std::uint16_t i = 0; i < annotativeSize; ++i) {
-            std::uint8_t value = 0;
-            if (!readBoundedRawChar8(*buf, bodyEndBit, value))
+        if (mtext.m_r2018IsNotAnnotative) {
+            info.m_hasR2018AppIdHandle = true;
+            if (!readBoundedBitShort(*buf, bodyEndBit,
+                                     mtext.m_r2018Version)
+                || !readBoundedBit(*buf, bodyEndBit,
+                                   mtext.m_r2018DefaultFlag)
+                || !readBoundedBitLong(*buf, bodyEndBit,
+                                       mtext.m_r2018Attachment)
+                || !readBoundedBitCoord(*buf, bodyEndBit,
+                                        mtext.m_r2018XAxisDir)
+                || !readBoundedBitCoord(*buf, bodyEndBit,
+                                        mtext.m_r2018InsertionPoint)
+                || !readBoundedBitDouble(*buf, bodyEndBit,
+                                         mtext.m_r2018RectWidth)
+                || !readBoundedBitDouble(*buf, bodyEndBit,
+                                         mtext.m_r2018RectHeight)
+                || !readBoundedBitDouble(*buf, bodyEndBit,
+                                         mtext.m_r2018ExtentsWidth)
+                || !readBoundedBitDouble(*buf, bodyEndBit,
+                                         mtext.m_r2018ExtentsHeight)
+                || !readBoundedBitShort(*buf, bodyEndBit,
+                                        mtext.m_r2018ColumnType)
+                || mtext.m_r2018ColumnType > 2)
                 return false;
-            annotativeData.push_back(value);
+            if (mtext.m_r2018ColumnType != 0) {
+                if (!readBoundedBitLong(*buf, bodyEndBit,
+                                        mtext.m_r2018ColumnCount)
+                    || !isValidCount(mtext.m_r2018ColumnCount,
+                                     kMaxMTextColumnHeights)
+                    || !readBoundedBitDouble(*buf, bodyEndBit,
+                                             mtext.m_r2018ColumnWidth)
+                    || !readBoundedBitDouble(*buf, bodyEndBit,
+                                             mtext.m_r2018ColumnGutter)
+                    || !readBoundedBit(*buf, bodyEndBit,
+                                       mtext.m_r2018ColumnAutoHeight)
+                    || !readBoundedBit(*buf, bodyEndBit,
+                                       mtext.m_r2018ColumnFlowReversed))
+                    return false;
+                if (!mtext.m_r2018ColumnAutoHeight
+                    && mtext.m_r2018ColumnType == 2
+                    && mtext.m_r2018ColumnCount > 0) {
+                    if (!DRW::reserve(mtext.m_r2018ColumnHeights,
+                                      mtext.m_r2018ColumnCount))
+                        return false;
+                    for (std::int32_t index = 0;
+                         index < mtext.m_r2018ColumnCount; ++index) {
+                        double columnHeight = 0.0;
+                        if (!readBoundedBitDouble(*buf, bodyEndBit,
+                                                  columnHeight)
+                            || !std::isfinite(columnHeight))
+                            return false;
+                        mtext.m_r2018ColumnHeights.push_back(columnHeight);
+                    }
+                }
+            }
         }
-        mtext.m_r2018AnnotativeData = std::move(annotativeData);
-        info.m_hasAnnotativeAppHandle = true;
-        if (!readBoundedBitShort(*buf, bodyEndBit,
-                                 mtext.m_r2018AnnotativeUnknown))
-            return false;
     }
     return buf->isGood() && sBuf->isGood()
         && currentDwgBit(buf) <= bodyEndBit
@@ -15314,10 +15375,6 @@ static bool consumeEmbeddedMTextHandles(
     if (info.m_hasR2018AppIdHandle && !readHandle(false, appId))
         return false;
 
-    dwgHandle annotativeApp;
-    if (info.m_hasAnnotativeAppHandle && !readHandle(false, annotativeApp))
-        return false;
-
     if (mtext != nullptr) {
         if (info.m_ownerHandle)
             mtext->parentHandle = owner.ref;
@@ -15346,8 +15403,6 @@ static bool consumeEmbeddedMTextHandles(
             mtext->styleH = style;
         if (info.m_hasR2018AppIdHandle)
             mtext->m_r2018AppIdHandle = appId.ref;
-        if (info.m_hasAnnotativeAppHandle)
-            mtext->m_r2018AnnotativeAppHandle = annotativeApp.ref;
     }
     *buf = probe;
     return true;
@@ -15401,7 +15456,11 @@ static bool encodeEmbeddedMTextEntityMode(DRW::Version version, dwgBufferW *buf,
 static bool encodeEmbeddedMTextDwg(DRW::Version version, dwgBufferW *buf,
                                    dwgBufferW *strBuf, dwgBufferW *handleBuf,
                                    const DRW_MText &mtext) {
-  if (!std::isfinite(mtext.m_definedHeight))
+  if (!std::isfinite(mtext.m_definedHeight)
+      || mtext.m_r2018ReallyLocked
+      || !mtext.m_r2018AnnotativeData.empty()
+      || mtext.m_r2018AnnotativeUnknown != 0
+      || mtext.m_r2018AnnotativeAppHandle != 0)
     return false;
   const bool hasBackground =
       (mtext.m_backgroundFlags & 0x01) ||
@@ -15409,7 +15468,7 @@ static bool encodeEmbeddedMTextDwg(DRW::Version version, dwgBufferW *buf,
   MTextBackgroundCmc backgroundCmc;
   if (hasBackground && !prepareMTextBackgroundCmc(
                            version, buf, strBuf, mtext.m_backgroundColor,
-                           mtext.m_backgroundColorTrue, mtext.m_backgroundScale,
+                           mtext.backgroundTrueColorForOutput(), mtext.m_backgroundScale,
                            mtext.m_backgroundColorName,
                            mtext.m_backgroundColorDwgMethod,
                            mtext.m_backgroundColorDwgFlags,
@@ -15439,23 +15498,13 @@ static bool encodeEmbeddedMTextDwg(DRW::Version version, dwgBufferW *buf,
   if (hasBackground) {
     buf->putBitDouble(mtext.m_backgroundScale); // BitDouble, not BitLong
     writeMTextBackgroundCmc(version, buf, strBuf, mtext.m_backgroundColor,
-                            mtext.m_backgroundColorTrue, backgroundCmc);
+                            mtext.backgroundTrueColorForOutput(), backgroundCmc);
     buf->putBitLong(mtext.m_backgroundTransparency);
   }
 
-  buf->putBit(mtext.m_r2018IsNotAnnotative ? 1 : 0);
-  buf->putBit(mtext.m_r2018ReallyLocked ? 1 : 0);
-
-  if (mtext.m_r2018AnnotativeData.size() >
-      std::numeric_limits<std::uint16_t>::max())
+  if (version >= DRW::AC1032
+      && !writeR2018MTextContext(*buf, mtext))
     return false;
-  buf->putBitShort(
-      static_cast<std::uint16_t>(mtext.m_r2018AnnotativeData.size()));
-  for (std::uint8_t byte : mtext.m_r2018AnnotativeData)
-    buf->putRawChar8(byte);
-  if (!mtext.m_r2018AnnotativeData.empty()) {
-    buf->putBitShort(mtext.m_r2018AnnotativeUnknown);
-  }
 
   dwgBufferW *hb = handleBuf ? handleBuf : buf;
   if (mtext.parentHandle != DRW::NoHandle)
@@ -15486,10 +15535,6 @@ static bool encodeEmbeddedMTextDwg(DRW::Version version, dwgBufferW *buf,
   if (mtext.m_r2018IsNotAnnotative)
     putHardPointerHandle(
         hb, (mtext.m_r2018AppIdHandle == 0) ? 0x14 : mtext.m_r2018AppIdHandle);
-  if (!mtext.m_r2018AnnotativeData.empty())
-    putHardPointerHandle(hb, (mtext.m_r2018AnnotativeAppHandle == 0)
-                                 ? 0x14
-                                 : mtext.m_r2018AnnotativeAppHandle);
   return true;
 }
 }
@@ -15805,20 +15850,32 @@ bool DRW_Attrib::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs
     std::vector<std::uint8_t> parsedOuterAnnotativeData;
     std::uint16_t parsedOuterAnnotativeUnknown = 0;
     if (hasEmbeddedMText) {
+        dwgBuffer outerDataProbe = buf->forkIndependent();
         std::uint16_t annotativeSize = 0;
-        if (!readBoundedBitShort(*buf, bodyEndBit, annotativeSize)
-            || !DRW::reserve(parsedOuterAnnotativeData, annotativeSize))
+        if (!readBoundedBitShort(outerDataProbe, bodyEndBit, annotativeSize))
+            return fail();
+        const std::uint64_t outerDataStartBit = currentDwgBit(&outerDataProbe);
+        const std::uint64_t remainingBodyBits =
+            outerDataStartBit <= bodyEndBit ? bodyEndBit - outerDataStartBit : 0;
+        constexpr std::uint64_t minimumParentTailBits = 13u;
+        if (annotativeSize > 0
+            && (remainingBodyBits < minimumParentTailBits
+                || annotativeSize
+                    > (remainingBodyBits - minimumParentTailBits) / 8u))
+            return fail();
+        if (!DRW::reserve(parsedOuterAnnotativeData, annotativeSize))
             return fail();
         for (std::uint16_t index = 0; index < annotativeSize; ++index) {
             std::uint8_t byte = 0;
-            if (!readBoundedRawChar8(*buf, bodyEndBit, byte))
+            if (!readBoundedRawChar8(outerDataProbe, bodyEndBit, byte))
                 return fail();
             parsedOuterAnnotativeData.push_back(byte);
         }
         if (annotativeSize > 0
-            && !readBoundedBitShort(*buf, bodyEndBit,
-                                    parsedOuterAnnotativeUnknown))
+            && !readBoundedBitShort(outerDataProbe, bodyEndBit,
+                                     parsedOuterAnnotativeUnknown))
             return fail();
+        *buf = outerDataProbe;
     }
 
     // ATTRIB-specific fields
@@ -15833,10 +15890,10 @@ bool DRW_Attrib::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs
     std::uint8_t parsedAttribFlags = 0;
     bool parsedLockPosition = false;
     if (hasEmbeddedMText) {
-        // ODA §20.4.4's multiline branch has an unknown BS (documented 0)
-        // after the tag, not the single-line field-length value.
+        // Preserve the host BS as read. The ODA document describes it as an
+        // unknown zero-valued field in the multiline branch, while existing
+        // R2018 producers also emit nonzero values here.
         if (!readBoundedBitShort(*buf, bodyEndBit, parsedFieldLength)
-            || parsedFieldLength != 0
             || !readBoundedRawChar8(*buf, bodyEndBit, parsedAttribFlags))
             return fail();
     } else if (!readBoundedBitShort(*buf, bodyEndBit, parsedFieldLength)
@@ -15926,6 +15983,8 @@ bool DRW_Attrib::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs
 bool DRW_Attrib::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t bs, dwgBufferW *strBuf, dwgBufferW *handleBuf) {
     (void)bs;
     if (buf == nullptr
+        || m_fieldLength < 0
+        || m_fieldLength > std::numeric_limits<std::uint16_t>::max()
         || (version >= DRW::AC1024 && version < DRW::AC1032
             && (attVersion != 0 || mtext
                 || !m_r2018OuterAnnotativeData.empty()
@@ -15997,9 +16056,7 @@ bool DRW_Attrib::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t 
 
     // ATTRIB-specific tail
     sb->putVariableText(version, tag);                // tag TV
-    buf->putBitShort(hasEmbeddedMText
-                         ? 0u
-                         : static_cast<std::uint16_t>(m_fieldLength));
+    buf->putBitShort(static_cast<std::uint16_t>(m_fieldLength));
     buf->putRawChar8(attribFlags);                    // flags RC
     if (version >= DRW::AC1021) {
         buf->putBit(lockPosition ? 1 : 0);             // lock position B (R2007a+)
@@ -16111,7 +16168,6 @@ bool DRW_Attdef::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs
         if (!parseEmbeddedMTextDwg(version, buf, sBuf, *parsedMText,
                                    embeddedMTextHandles, bodyEndBit,
                                    stringEndBit)) {
-            DRW_DBG("R2018 multi-line ATTDEF payload failed\n");
             return fail();
         }
         hasEmbeddedMText = true;
@@ -16120,20 +16176,32 @@ bool DRW_Attdef::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs
     std::vector<std::uint8_t> parsedOuterAnnotativeData;
     std::uint16_t parsedOuterAnnotativeUnknown = 0;
     if (hasEmbeddedMText) {
+        dwgBuffer outerDataProbe = buf->forkIndependent();
         std::uint16_t annotativeSize = 0;
-        if (!readBoundedBitShort(*buf, bodyEndBit, annotativeSize)
-            || !DRW::reserve(parsedOuterAnnotativeData, annotativeSize))
+        if (!readBoundedBitShort(outerDataProbe, bodyEndBit, annotativeSize))
+            return fail();
+        const std::uint64_t outerDataStartBit = currentDwgBit(&outerDataProbe);
+        const std::uint64_t remainingBodyBits =
+            outerDataStartBit <= bodyEndBit ? bodyEndBit - outerDataStartBit : 0;
+        constexpr std::uint64_t minimumParentTailBits = 13u;
+        if (annotativeSize > 0
+            && (remainingBodyBits < minimumParentTailBits
+                || annotativeSize
+                    > (remainingBodyBits - minimumParentTailBits) / 8u))
+            return fail();
+        if (!DRW::reserve(parsedOuterAnnotativeData, annotativeSize))
             return fail();
         for (std::uint16_t index = 0; index < annotativeSize; ++index) {
             std::uint8_t byte = 0;
-            if (!readBoundedRawChar8(*buf, bodyEndBit, byte))
+            if (!readBoundedRawChar8(outerDataProbe, bodyEndBit, byte))
                 return fail();
             parsedOuterAnnotativeData.push_back(byte);
         }
         if (annotativeSize > 0
-            && !readBoundedBitShort(*buf, bodyEndBit,
-                                    parsedOuterAnnotativeUnknown))
+            && !readBoundedBitShort(outerDataProbe, bodyEndBit,
+                                     parsedOuterAnnotativeUnknown))
             return fail();
+        *buf = outerDataProbe;
     }
 
     UTF8STRING parsedTag;
@@ -16148,7 +16216,6 @@ bool DRW_Attdef::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs
     bool parsedLockPosition = false;
     if (hasEmbeddedMText) {
         if (!readBoundedBitShort(*buf, bodyEndBit, parsedFieldLength)
-            || parsedFieldLength != 0
             || !readBoundedRawChar8(*buf, bodyEndBit, parsedAttribFlags))
             return fail();
     } else if (!readBoundedBitShort(*buf, bodyEndBit, parsedFieldLength)
@@ -16239,6 +16306,8 @@ bool DRW_Attdef::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs
 bool DRW_Attdef::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t bs, dwgBufferW *strBuf, dwgBufferW *handleBuf) {
     (void)bs;
     if (buf == nullptr
+        || m_fieldLength < 0
+        || m_fieldLength > std::numeric_limits<std::uint16_t>::max()
         || (version >= DRW::AC1024 && version < DRW::AC1032
             && (attVersion != 0 || mtext
                 || !m_r2018OuterAnnotativeData.empty()
@@ -16307,9 +16376,7 @@ bool DRW_Attdef::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t 
     }
 
     sb->putVariableText(version, tag);
-    buf->putBitShort(hasEmbeddedMText
-                         ? 0u
-                         : static_cast<std::uint16_t>(m_fieldLength));
+    buf->putBitShort(static_cast<std::uint16_t>(m_fieldLength));
     buf->putRawChar8(attribFlags);
     if (version >= DRW::AC1021) {
         buf->putBit(lockPosition ? 1 : 0);
@@ -16641,6 +16708,7 @@ bool DRW_MText::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
     // read back as the wrong kind of colour.
     case 421:
         m_backgroundColorTrue = reader->getInt32();
+        m_backgroundTrueColor = m_backgroundColorTrue;
         m_backgroundColorDwgMethod = 0xFFu;
         m_backgroundColorDwgFlags = 0u;
         m_backgroundColorDwgIndex = 0u;
@@ -16712,6 +16780,7 @@ void DRW_MText::resetDwgState() {
     m_backgroundScale = 0.0;
     m_backgroundColor = 0;
     m_backgroundColorTrue = -1;
+    m_backgroundTrueColor = -1;
     m_backgroundColorName.clear();
     m_backgroundColorDwgMethod = 0xFFu;
     m_backgroundColorDwgFlags = 0u;
@@ -17009,6 +17078,7 @@ bool DRW_MText::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
     m_backgroundColor = static_cast<int>(parsedBackgroundColor);
     m_backgroundColorTrue = parsedBackgroundColorHasRgb
         ? parsedBackgroundColorRgb : -1;
+    m_backgroundTrueColor = m_backgroundColorTrue;
     m_backgroundColorName = parsedBackgroundColorBookName.empty()
         ? std::move(parsedBackgroundColorName)
         : parsedBackgroundColorBookName + "$" + parsedBackgroundColorName;

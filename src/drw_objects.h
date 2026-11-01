@@ -3215,6 +3215,8 @@ public:
     shadePlotCustomDPI = 0;
     plotViewHandle = dwgHandle{};
     shadePlotHandle = dwgHandle{};
+    dwgEedAppIdReferences.clear();
+    dwgEedLayerReferences.clear();
     DRW_TableEntry::reset();
   }
 
@@ -3262,6 +3264,13 @@ public:
   int shadePlotCustomDPI;       /*!< code 78, BS (R2004+) */
   dwgHandle plotViewHandle;     /*!< code 6, R2004+ handle stream */
   dwgHandle shadePlotHandle;    /*!< code 333, R2007+ handle stream */
+
+  // Parser-only source roles for EED references. parseAttribs resolves the
+  // public XDATA values to names before callbacks; retain the original
+  // handles/indexes so a downstream output proof can bind those names to the
+  // source APPID/LAYER rows instead of trusting the resolved strings alone.
+  std::vector<PendingHandleRef> dwgEedAppIdReferences;
+  std::vector<PendingHandleRef> dwgEedLayerReferences;
 
 private:
   // Retained logical bytes for the five DXF text fields above; caller

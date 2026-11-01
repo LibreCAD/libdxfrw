@@ -847,8 +847,8 @@ bool isValidDxfEntityFields(const DRW_Entity& entity) {
             || !std::isfinite(mtext->m_backgroundScale)
             || !std::isfinite(mtext->m_definedHeight)
             || !std::isfinite(mtext->interlin)
-            || mtext->m_backgroundColorTrue < -1
-            || mtext->m_backgroundColorTrue > 0xFFFFFF
+            || mtext->backgroundTrueColorForOutput() < -1
+            || mtext->backgroundTrueColorForOutput() > 0xFFFFFF
             || mtext->m_backgroundColor < -255
             || mtext->m_backgroundColor > DRW::ColorByLayer)
             return false;
@@ -11243,8 +11243,8 @@ bool dxfRW::writeMTextBackground(DRW_MText *ent) {
         // 63 is required even when the colour is given as a true colour or by
         // name, so within this mode it goes out unconditionally.
         writer->writeInt16(63, ent->m_backgroundColor);
-        if (ent->m_backgroundColorTrue >= 0)
-            writer->writeInt32(421, ent->m_backgroundColorTrue);
+        if (ent->backgroundTrueColorForOutput() >= 0)
+            writer->writeInt32(421, ent->backgroundTrueColorForOutput());
         if (!ent->m_backgroundColorName.empty())
             writer->writeUtf8String(431, ent->m_backgroundColorName);
     }
@@ -28829,6 +28829,8 @@ bool dxfRW::writePlotSettings(DRW_PlotSettings *ent) {
     if (sourceHandle != 0
         && (handle == 0 || handle == DRW::NoHandle))
         return failDxfWrite();
+    RecordStateScope state(*this, ent);
+    DxfWriterRecordScope record(*writer);
     if (handle != 0) {
         if (!reserveHandle(handle))
             return false;
@@ -28852,7 +28854,17 @@ bool dxfRW::writePlotSettings(DRW_PlotSettings *ent) {
         result = writeExtData(ent->extData) && result;
     if (!result || writer->hasWriteError())
         m_writeError = true;
-    return result && !writer->hasWriteError();
+    if (!result || writer->hasWriteError())
+        return false;
+    if (sourceHandle != 0u
+        && !bindDxfWriteSourceObjectHandle(sourceHandle, handle))
+        return false;
+    if (!record.commit()) {
+        m_writeError = true;
+        return false;
+    }
+    state.commit();
+    return true;
 }
 
 void dxfRW::writePlotSettingsFields(const DRW_PlotSettings *ent) {

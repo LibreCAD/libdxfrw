@@ -50847,6 +50847,111 @@ void testMTextBackgroundModesWriteOnlyTheirOwnGroups(TestContext& t) {
     }
 }
 
+void testMTextLegacyTrueColorCompatibility(TestContext& t) {
+    const std::string contents = R"DXF(0
+SECTION
+2
+HEADER
+9
+$ACADVER
+1
+AC1021
+0
+ENDSEC
+0
+SECTION
+2
+ENTITIES
+0
+MTEXT
+5
+30
+8
+0
+10
+1.0
+20
+2.0
+30
+0.0
+40
+2.5
+41
+0.0
+1
+compatibility
+71
+1
+72
+5
+73
+1
+44
+1.0
+45
+1.5
+90
+1
+63
+5
+0
+ENDSEC
+0
+EOF
+)DXF";
+
+    const auto run = [&](const std::string& name, std::int32_t legacy,
+                         std::int32_t current, bool expectedWrite,
+                         const std::string& expectedColor) {
+        FixtureInterface interface_;
+        dx_data data;
+        const std::string stem = "mtext-legacy-truecolor-" + name;
+        t.expect(importTemporaryDxf(stem.c_str(), contents, interface_, data),
+                 "legacy API MTEXT source imports");
+        const DRW_MText* parsed = findMText(data);
+        t.expect(parsed != nullptr, "MTEXT source reaches the writer");
+        if (parsed == nullptr)
+            return;
+        auto* mtext = const_cast<DRW_MText*>(parsed);
+        mtext->m_backgroundTrueColor = legacy;
+        mtext->m_backgroundColorTrue = current;
+        interface_.attach(&data);
+
+        const auto output = std::filesystem::temp_directory_path()
+            / ("libdxfrw-mtext-legacy-truecolor-" + name + ".dxf");
+        std::error_code error;
+        std::filesystem::remove(output, error);
+        if (!expectedWrite) {
+            std::ofstream sentinel(output, std::ios::binary);
+            sentinel << "LEGACY_COLOR_SENTINEL";
+            sentinel.close();
+        }
+
+        const bool written = interface_.fileExport(
+            output.string(), DRW::AC1021, false, &data, false);
+        t.expect(written == expectedWrite,
+                 expectedWrite ? "compatible MTEXT true colour writes"
+                               : "invalid current true colour is rejected");
+        if (expectedWrite) {
+            const auto groups = groupsOfRecord(output, "MTEXT");
+            t.expect(hasGroup(groups, 421)
+                         && groupValue(groups, 421) == expectedColor,
+                     "MTEXT emits the reconciled true colour");
+        } else {
+            std::ifstream saved(output, std::ios::binary);
+            const std::string value((std::istreambuf_iterator<char>(saved)),
+                                    std::istreambuf_iterator<char>());
+            t.expect(value == "LEGACY_COLOR_SENTINEL",
+                     "invalid true colour preserves the existing destination");
+        }
+        std::filesystem::remove(output, error);
+    };
+
+    run("legacy-field", 0x123456, -1, true, "1193046");
+    run("current-field-wins", 0x123456, 0x654321, true, "6636321");
+    run("invalid-current-field", 0x123456, -2, false, std::string());
+}
+
 void testMTextBlackBackgroundColourSurvives(TestContext& t) {
     // 421 is a 24-bit RGB in which 0 is a legal value: pure black. A zero
     // sentinel for "absent" silently dropped it -- the same class of loss this
@@ -60219,6 +60324,14 @@ int main(int argc, char** argv) {
                   << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
         return context.failures == 0 ? 0 : 1;
     }
+    if (argc == 2
+        && std::string(argv[1]) == "--mtext-legacy-truecolor-compatibility") {
+        TestContext context;
+        testMTextLegacyTrueColorCompatibility(context);
+        std::cout << "MTEXT legacy true colour API compatibility: "
+                  << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--ucs-orthographic-options") {
         TestContext context;
         testUcsOrthographicOptions(context);
@@ -60505,6 +60618,7 @@ int main(int argc, char** argv) {
     testMTextDefinedHeightPresence(context);
     testMTextWithoutBackgroundFillIsUnchanged(context);
     testMTextBackgroundModesWriteOnlyTheirOwnGroups(context);
+    testMTextLegacyTrueColorCompatibility(context);
     testMTextBlackBackgroundColourSurvives(context);
     testMTextRejectsAnUnsafeBackgroundColourName(context);
     if (context.failures != 0) {

@@ -3906,12 +3906,13 @@ namespace {
 
 bool DRW_Header::encodeDwg(DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
                            dwgBufferW *strBuf) {
-    return encodeDwgForWriter(version, buf, hBbuf, strBuf, 0);
+    return encodeDwgForWriter(version, buf, hBbuf, strBuf, 0, 0);
 }
 
 bool DRW_Header::encodeDwgForWriter(
         DRW::Version version, dwgBufferW *buf, dwgBufferW *hBbuf,
-        dwgBufferW *strBuf, std::uint32_t namedObjectDictionaryHandle) {
+        dwgBufferW *strBuf, std::uint32_t namedObjectDictionaryHandle,
+        std::uint32_t plotSettingsDictionaryHandle) {
     if (version != DRW::AC1015 && version != DRW::AC1018 &&
         version != DRW::AC1021 && version != DRW::AC1024 &&
         version != DRW::AC1027 &&
@@ -4319,7 +4320,8 @@ bool DRW_Header::encodeDwgForWriter(
         buf->putCP8Text(strVar(*this, "STYLESHEET"));
     }
     hBbuf->putHandle(makeSoftOwner(0));  // DICT LAYOUTS    (Phase 3.5)
-    hBbuf->putHandle(makeSoftOwner(0));  // DICT PLOTSETTINGS (Phase 3.5)
+    hBbuf->putHandle(makeHardPtr(plotSettingsDictionaryHandle));
+                                                     // DICT PLOTSETTINGS
     hBbuf->putHandle(makeSoftOwner(0));  // DICT PLOTSTYLES   (Phase 3.5)
     if (version > DRW::AC1015) {         // R2004+: 2 extra dict handles (parseDwg:2219-2223)
         hBbuf->putHandle(makeSoftOwner(0)); // DICT MATERIALS
