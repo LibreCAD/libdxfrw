@@ -16759,9 +16759,9 @@ bool DRW_TableStyle::parseCode(int code, const std::unique_ptr<dxfReader>& reade
     constexpr std::uint16_t kTextColor = 1u << 3;
     constexpr std::uint16_t kFillColor = 1u << 4;
     constexpr std::uint16_t kBackgroundEnabled = 1u << 5;
-    constexpr std::uint16_t kValueDataType = 1u << 6;
-    constexpr std::uint16_t kValueUnitType = 1u << 7;
-    constexpr std::uint16_t kRequiredRowFields = kTextStyleName | kTextHeight
+    static constexpr std::uint16_t kValueDataType = 1u << 6;
+    static constexpr std::uint16_t kValueUnitType = 1u << 7;
+    static constexpr std::uint16_t kRequiredRowFields = kTextStyleName | kTextHeight
         | kTextAlignment | kTextColor | kFillColor | kBackgroundEnabled;
     const auto rowComplete = [](
             const DRW_TableStyleRowStyle& row) {

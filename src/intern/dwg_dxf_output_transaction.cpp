@@ -548,8 +548,8 @@ bool DwgDxfOutputTransaction::verifyRange(
     char buffer[4096];
     std::size_t compared = 0;
     while (compared < expected.size()) {
-        const std::size_t count = std::min(sizeof(buffer),
-                                           expected.size() - compared);
+        const std::size_t count = (std::min)(
+            sizeof(buffer), expected.size() - compared);
         std::size_t readTotal = 0;
         while (readTotal < count) {
 #if defined(_WIN32)
