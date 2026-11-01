@@ -12164,6 +12164,296 @@ bool dynamicBlockActionDxfWriter(
     return true;
 }
 
+bool dynamicBlockLookupActionDxfWriter(
+        const std::filesystem::path& physicalSource = {}) {
+    struct RemoveTemporaryFile {
+        std::filesystem::path path;
+        ~RemoveTemporaryFile() {
+            std::error_code ignored;
+            std::filesystem::remove(path, ignored);
+        }
+    };
+    const auto nonce = std::chrono::steady_clock::now()
+                           .time_since_epoch()
+                           .count();
+    const auto makeObject = []() {
+        DRW_DynamicBlockObject object("BLOCKLOOKUPACTION");
+        object.handle = 0xE351u;
+        object.parentHandle = 0xE352u;
+        object.m_evalExprParsed = true;
+        object.m_parentId = std::numeric_limits<std::uint32_t>::max();
+        object.m_major = 29u;
+        object.m_minor = 2u;
+        object.m_valueCode = -9999;
+        object.m_nodeId = 0xE353u;
+        object.m_elementParsed = true;
+        object.m_elementName = "LookupTable";
+        object.m_elementMajor = 29u;
+        object.m_elementMinor = 2u;
+        object.m_eed1071 = 7;
+        object.m_actionCount = 2;
+        object.m_actionIndexes = {4, 9};
+        object.m_dependencyCount = 2;
+        object.m_dependencyHandles = {0xE360u, 0xE361u};
+        object.m_displayLocation = DRW_Coord(8.5, -3.25, 0.0);
+        object.m_lookupRowCount = 2;
+        object.m_lookupColumnCount = 2;
+        object.m_lookupExpressions = {"A=1", "B=2", "A=3", "B=4"};
+        object.m_lookupConnectionCodes = {{1, 2, 3}, {4, 5, 6}};
+        object.m_lookupConnectionNames = {
+            {"UnmatchedA", "ConnectionA"},
+            {"UnmatchedB", "ConnectionB"}};
+        object.m_lookupEntryFlags282 = {true, false};
+        object.m_lookupEntryFlags281 = {false, true};
+        object.m_lookupFlag280 = true;
+        object.m_bodyFullyDecoded = true;
+        return object;
+    };
+    const auto expectedCodes = [](const DRW_DynamicBlockObject& object) {
+        std::vector<int> codes{
+            5, 330, 100, 90, 98, 99, 100, 300, 98, 99, 1071, 100, 70};
+        codes.insert(codes.end(), object.m_actionIndexes.size(), 91);
+        codes.push_back(71);
+        codes.insert(codes.end(), object.m_dependencyHandles.size(), 330);
+        codes.insert(codes.end(), {1010, 1020, 1030, 100, 92, 93, 301});
+        codes.insert(codes.end(), object.m_lookupExpressions.size(), 302);
+        for (std::size_t column = 0u;
+             column < object.m_lookupConnectionCodes.size(); ++column)
+            codes.insert(codes.end(), {303, 94, 95, 96, 282, 305, 281, 304});
+        codes.push_back(280);
+        return codes;
+    };
+    const auto sameCoord = [](const DRW_Coord& lhs, const DRW_Coord& rhs) {
+        return lhs.x == rhs.x && lhs.y == rhs.y && lhs.z == rhs.z;
+    };
+    const auto matches = [&](const DRW_DynamicBlockObject& source,
+                             const DRW_DynamicBlockObject& output) {
+        return output.m_recordName == source.m_recordName
+            && output.m_kind == DRW_DynamicBlockObject::Kind::LookupAction
+            && output.handle == source.handle
+            && output.parentHandle == source.parentHandle
+            && output.m_bodyFullyDecoded && output.m_evalExprParsed
+            && output.m_elementParsed
+            && output.m_parentId
+                == std::numeric_limits<std::uint32_t>::max()
+            && output.m_major == 33u && output.m_minor == 29u
+            && output.m_elementMajor == 33u
+            && output.m_elementMinor == 29u
+            && output.m_nodeId == source.m_nodeId
+            && output.m_valueCode == -9999
+            && !output.m_hasValueDouble
+            && output.m_elementName == source.m_elementName
+            && output.m_eed1071 == source.m_eed1071
+            && output.m_actionCount == source.m_actionCount
+            && output.m_actionIndexes == source.m_actionIndexes
+            && output.m_dependencyCount == source.m_dependencyCount
+            && output.m_dependencyHandles == source.m_dependencyHandles
+            && sameCoord(output.m_displayLocation, source.m_displayLocation)
+            && output.m_lookupRowCount == source.m_lookupRowCount
+            && output.m_lookupColumnCount == source.m_lookupColumnCount
+            && output.m_lookupExpressions == source.m_lookupExpressions
+            && output.m_lookupConnectionCodes
+                == source.m_lookupConnectionCodes
+            && output.m_lookupConnectionNames
+                == source.m_lookupConnectionNames
+            && output.m_lookupEntryFlags282 == source.m_lookupEntryFlags282
+            && output.m_lookupEntryFlags281 == source.m_lookupEntryFlags281
+            && output.m_lookupFlag280 == source.m_lookupFlag280;
+    };
+    const auto writeAndRead = [&](const DRW_DynamicBlockObject& object,
+                                  bool binary) {
+        const std::filesystem::path output =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-dynamic-lookup-action-" + std::to_string(nonce)
+               + (binary ? "-bin.dxf" : "-asc.dxf"));
+        const RemoveTemporaryFile outputCleanup{output};
+        DynamicBlockActionWriterProbe iface;
+        iface.object = object;
+        dx_data writeData;
+        writeData.sourceFormat = dx_source_format::DWG;
+        writeData.sourceVersion = DRW::AC1024;
+        iface.cData = &writeData;
+        dxfRW writer(output.string().c_str());
+        iface.dxfW = &writer;
+
+        const std::string sentinel =
+            "invalid lookup action must preserve this\n";
+        {
+            std::ofstream existing(output,
+                std::ios::binary | std::ios::trunc);
+            existing << sentinel;
+            if (!existing)
+                return fail("could not create lookup-action sentinel");
+        }
+        iface.object.m_lookupConnectionCodes.front().pop_back();
+        if (writer.write(&iface, DRW::AC1024, binary) || iface.objectWritten)
+            return fail("mismatched lookup-column metadata was emitted");
+        {
+            std::ifstream existing(output, std::ios::binary);
+            const std::string preserved{
+                std::istreambuf_iterator<char>(existing),
+                std::istreambuf_iterator<char>()};
+            if (existing.bad() || preserved != sentinel)
+                return fail("failed lookup-action write replaced destination");
+        }
+        iface.object = object;
+        if (!writer.write(&iface, DRW::AC1024, binary)
+            || !iface.objectWritten) {
+            std::cerr << "lookup-action writer admission: handle="
+                      << object.handle << " owner=" << object.parentHandle
+                      << " body=" << object.m_bodyFullyDecoded
+                      << " eval=" << object.m_evalExprParsed
+                      << " element=" << object.m_elementParsed
+                      << " parentId=" << object.m_parentId
+                      << " evalVersion=" << object.m_major << '/'
+                      << object.m_minor << " elementVersion="
+                      << object.m_elementMajor << '/'
+                      << object.m_elementMinor << " value="
+                      << object.m_valueCode << '/' << object.m_hasValueDouble
+                      << '/' << object.m_valueDouble << " node="
+                      << object.m_nodeId << " actions=" << object.m_actionCount
+                      << '/' << object.m_actionIndexes.size()
+                      << " deps=" << object.m_dependencyCount << '/'
+                      << object.m_dependencyHandles.size()
+                      << " reactors=" << object.reactorHandles.size()
+                      << " appData=" << object.appData.size()
+                      << " extData=" << object.extData.size()
+                      << " xdict=" << object.xDictHandle
+                      << " grid=" << object.m_lookupRowCount << 'x'
+                      << object.m_lookupColumnCount << '/'
+                      << object.m_lookupExpressions.size()
+                      << " columns=" << object.m_lookupConnectionCodes.size()
+                      << '/' << object.m_lookupConnectionNames.size()
+                      << '/' << object.m_lookupEntryFlags282.size()
+                      << '/' << object.m_lookupEntryFlags281.size() << '\n';
+            return fail("corrected lookup-action write failed same-writer retry");
+        }
+
+        dx_data readback;
+        readback.sourceFormat = dx_source_format::DXF;
+        readback.sourceVersion = DRW::AC1024;
+        dx_iface readIface;
+        readIface.cData = &readback;
+        dxfRW reader(output.string().c_str());
+        if (!reader.read(&readIface, false)
+            || readback.dynamicBlockObjects.size() != 1u
+            || readback.rawDynamicBlockObjects.size() != 1u
+            || !matches(object, readback.dynamicBlockObjects.front()))
+            return fail("lookup-action typed readback changed fields");
+        const std::vector<int> expected = expectedCodes(object);
+        const DRW_RawDxfObject& raw = readback.rawDynamicBlockObjects.front();
+        if (raw.groups.size() != expected.size())
+            return fail("lookup-action output group count changed");
+        for (std::size_t index = 0u; index < expected.size(); ++index) {
+            if (raw.groups[index].code() != expected[index])
+                return fail("lookup-action exact DXF field order changed");
+        }
+        if (!binary) {
+            std::ifstream input(output, std::ios::binary);
+            std::vector<std::string> lines;
+            std::string line;
+            while (std::getline(input, line))
+                lines.push_back(line);
+            bool inTarget = false;
+            bool inserted = false;
+            for (std::size_t index = 0u; index + 1u < lines.size();
+                 index += 2u) {
+                int code = -1;
+                try {
+                    code = std::stoi(lines[index]);
+                } catch (...) {
+                    break;
+                }
+                if (code == 0) {
+                    inTarget = lines[index + 1u] == "BLOCKLOOKUPACTION";
+                    continue;
+                }
+                if (inTarget && code == 280) {
+                    lines.insert(lines.begin()
+                            + static_cast<std::ptrdiff_t>(index + 2u),
+                        {"70", "1"});
+                    inserted = true;
+                    break;
+                }
+            }
+            if (input.bad() || !inserted)
+                return fail("could not add lookup-action tail control");
+            const std::filesystem::path tailedOutput =
+                output.string() + ".tail.dxf";
+            const RemoveTemporaryFile tailedCleanup{tailedOutput};
+            {
+                std::ofstream tailed(tailedOutput,
+                    std::ios::binary | std::ios::trunc);
+                for (const std::string& value : lines)
+                    tailed << value << '\n';
+                if (!tailed)
+                    return fail("could not write lookup-action tail control");
+            }
+            dx_data tailedData;
+            tailedData.sourceFormat = dx_source_format::DXF;
+            tailedData.sourceVersion = DRW::AC1024;
+            dx_iface tailedIface;
+            tailedIface.cData = &tailedData;
+            dxfRW tailedReader(tailedOutput.string().c_str());
+            if (!tailedReader.read(&tailedIface, false)
+                || tailedData.dynamicBlockObjects.size() != 1u
+                || tailedData.rawDynamicBlockObjects.size() != 1u
+                || tailedData.dynamicBlockObjects.front().m_bodyFullyDecoded
+                || tailedData.dynamicBlockObjects.front().m_evalExprParsed
+                || tailedData.rawDynamicBlockObjects.front().groups.size()
+                    != expected.size() + 1u)
+                return fail("unknown lookup-action tail did not remain raw-only");
+        }
+        return true;
+    };
+
+    const DRW_DynamicBlockObject generated = makeObject();
+    for (const bool binary : {false, true}) {
+        if (!writeAndRead(generated, binary))
+            return false;
+    }
+
+    if (!physicalSource.empty()) {
+        dx_data source;
+        dx_iface sourceReader;
+        if (!sourceReader.fileImport(physicalSource.string(), &source, false)
+            || source.sourceFormat != dx_source_format::DWG
+            || source.sourceVersion != DRW::AC1024
+            || source.dwgReadOutcome.observations.objectParseFailures != 0u)
+            return fail("lookup-action witness is not a complete AC1024 read");
+        std::size_t count = 0u;
+        for (const DRW_DynamicBlockObject& object : source.dynamicBlockObjects) {
+            if (object.m_recordName != "BLOCKLOOKUPACTION")
+                continue;
+            if (object.m_kind != DRW_DynamicBlockObject::Kind::LookupAction
+                || object.handle != 0x22Fu || object.parentHandle != 0x201u
+                || !object.m_bodyFullyDecoded || !object.m_evalExprParsed
+                || !object.m_elementParsed
+                || object.m_major != 29u || object.m_minor != 37u
+                || object.m_elementMajor != 29u
+                || object.m_elementMinor != 37u
+                || object.m_lookupRowCount != 41
+                || object.m_lookupColumnCount != 7
+                || object.m_lookupExpressions.size()
+                    != static_cast<std::size_t>(object.m_lookupRowCount)
+                        * static_cast<std::size_t>(object.m_lookupColumnCount))
+                return fail("physical lookup action escaped the decoded profile");
+            ++count;
+            for (const bool binary : {false, true}) {
+                if (!writeAndRead(object, binary))
+                    return false;
+            }
+        }
+        if (count != 1u)
+            return fail("AC1024 lookup-action witness record count changed");
+        std::cerr << "Physical AC1024 BLOCKLOOKUPACTION passed record output, "
+                     "ASCII/Binary field-order proof, and fresh typed readback.\n";
+    }
+    std::cerr << "AC1024 BLOCKLOOKUPACTION writer passed ASCII/Binary "
+                 "rollback, same-writer retry, exact fields, and readback.\n";
+    return true;
+}
+
 class DynamicBlockTwoPointParameterWriterProbe final : public dx_iface {
 public:
     DRW_DynamicBlockObject object;
@@ -59753,6 +60043,12 @@ int main(int argc, char** argv) {
         && std::string(argv[1])
             == "--dynamic-block-actions-dxf-writer")
         return dynamicBlockActionDxfWriter(
+            argc == 3 ? std::filesystem::path(argv[2])
+                      : std::filesystem::path{}) ? 0 : 1;
+    if ((argc == 2 || argc == 3)
+        && std::string(argv[1])
+            == "--dynamic-block-lookup-action-dxf-writer")
+        return dynamicBlockLookupActionDxfWriter(
             argc == 3 ? std::filesystem::path(argv[2])
                       : std::filesystem::path{}) ? 0 : 1;
     if ((argc == 2 || argc == 3)

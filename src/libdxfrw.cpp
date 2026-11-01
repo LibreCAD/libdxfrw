@@ -22720,6 +22720,343 @@ bool dxfRW::processDynamicBlockObject() {
                 }
                 data.m_bodyFullyDecoded = completeBody;
             } else if (data.m_kind
+                           == DRW_DynamicBlockObject::Kind::LookupAction
+                       && data.m_recordName == "BLOCKLOOKUPACTION"
+                       && reader->getSourceVersion() == DRW::AC1024) {
+                // AC1024 DXF stores the lookup expression matrix row-major,
+                // followed by one connection/flag record per column.
+                const auto integerGroup = [](const DRW_Variant* group,
+                                             int code,
+                                             std::int32_t& value) {
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::INTEGER
+                        || group->i_val()
+                            < std::numeric_limits<std::int32_t>::min()
+                        || group->i_val()
+                            > std::numeric_limits<std::int32_t>::max())
+                        return false;
+                    value = static_cast<std::int32_t>(group->i_val());
+                    return true;
+                };
+                const auto stringGroup = [](const DRW_Variant* group,
+                                            int code,
+                                            std::string_view& value) {
+                    if (group == nullptr || group->code() != code
+                        || group->type() != DRW_Variant::STRING
+                        || group->c_str() == nullptr)
+                        return false;
+                    value = group->c_str();
+                    return true;
+                };
+                const auto markerGroup = [&stringGroup](
+                        const DRW_Variant* group, std::string_view marker) {
+                    std::string_view value;
+                    return stringGroup(group, 100, value)
+                        && value == marker;
+                };
+                std::size_t cursor = 2u;
+                const auto takeGroup = [&raw, &cursor](int code)
+                        -> const DRW_Variant* {
+                    if (cursor >= raw.groups.size())
+                        return nullptr;
+                    const DRW_Variant* group = &raw.groups[cursor++];
+                    return group->code() == code ? group : nullptr;
+                };
+                const auto hasRoom = [&raw, &cursor](std::size_t count,
+                                                     std::size_t reserved) {
+                    return cursor <= raw.groups.size()
+                        && reserved <= raw.groups.size() - cursor
+                        && count <= raw.groups.size() - cursor - reserved;
+                };
+                const auto takeInteger = [&](int code,
+                                             std::int32_t& value) {
+                    return integerGroup(takeGroup(code), code, value);
+                };
+                const auto takeString = [&](int code,
+                                            std::string_view& value) {
+                    return stringGroup(takeGroup(code), code, value);
+                };
+                const auto takeMarker = [&](std::string_view marker) {
+                    return markerGroup(takeGroup(100), marker);
+                };
+                const auto readCount = [&](int code, std::int32_t& value) {
+                    return takeInteger(code, value) && value >= 0;
+                };
+                const auto takeHandle = [&](int code,
+                                            std::uint32_t& value) {
+                    std::string_view text;
+                    std::uint64_t handle = 0u;
+                    if (!takeString(code, text)
+                        || !parseRawDxfHandleLexeme(text, handle)
+                        || handle == 0u
+                        || handle > std::numeric_limits<std::uint32_t>::max()
+                        || handle == DRW::NoHandle)
+                        return false;
+                    value = static_cast<std::uint32_t>(handle);
+                    return true;
+                };
+
+                std::int32_t nodeId = 0;
+                std::int32_t evalMajor = 0;
+                std::int32_t evalMinor = 0;
+                std::int32_t elementMajor = 0;
+                std::int32_t elementMinor = 0;
+                std::int32_t eed1071 = 0;
+                std::int32_t actionCount = 0;
+                std::int32_t dependencyCount = 0;
+                std::int32_t rowCount = 0;
+                std::int32_t columnCount = 0;
+                std::array<double, 3> displayLocation{};
+                std::vector<std::int32_t> actionIndexes;
+                std::vector<std::uint32_t> dependencyHandles;
+                std::vector<std::string_view> expressions;
+                std::vector<std::vector<std::int32_t>> connectionCodes;
+                std::vector<std::vector<std::string_view>> connectionNames;
+                std::vector<bool> entryFlags282;
+                std::vector<bool> entryFlags281;
+                std::string_view elementName;
+                bool completeBody = raw.groups.size() >= 22u
+                    && raw.groups[0].code() == 5
+                    && raw.groups[1].code() == 330
+                    && raw.groups[0].type() == DRW_Variant::STRING
+                    && raw.groups[1].type() == DRW_Variant::STRING
+                    && takeMarker("AcDbEvalExpr")
+                    && takeInteger(90, nodeId)
+                    && takeInteger(98, evalMajor)
+                    && takeInteger(99, evalMinor)
+                    && takeMarker("AcDbBlockElement")
+                    && takeString(300, elementName)
+                    && takeInteger(98, elementMajor)
+                    && takeInteger(99, elementMinor)
+                    && takeInteger(1071, eed1071)
+                    && takeMarker("AcDbBlockAction")
+                    && readCount(70, actionCount)
+                    && actionCount
+                        <= std::numeric_limits<std::int16_t>::max();
+                if (completeBody) {
+                    completeBody = hasRoom(
+                        static_cast<std::size_t>(actionCount), 9u);
+                }
+                if (completeBody) {
+                    try {
+                        actionIndexes.reserve(
+                            static_cast<std::size_t>(actionCount));
+                    } catch (...) {
+                        return setError(DRW::BAD_CODE_PARSED);
+                    }
+                    for (std::int32_t index = 0;
+                         index < actionCount && completeBody; ++index) {
+                        std::int32_t actionIndex = 0;
+                        completeBody = takeInteger(91, actionIndex);
+                        if (completeBody)
+                            actionIndexes.push_back(actionIndex);
+                    }
+                }
+                completeBody = completeBody
+                    && readCount(71, dependencyCount)
+                    && dependencyCount
+                        <= std::numeric_limits<std::int16_t>::max()
+                    && hasRoom(
+                        static_cast<std::size_t>(dependencyCount), 8u);
+                if (completeBody) {
+                    try {
+                        dependencyHandles.reserve(
+                            static_cast<std::size_t>(dependencyCount));
+                    } catch (...) {
+                        return setError(DRW::BAD_CODE_PARSED);
+                    }
+                    for (std::int32_t index = 0;
+                         index < dependencyCount && completeBody; ++index) {
+                        std::uint32_t handle = 0u;
+                        completeBody = takeHandle(330, handle);
+                        if (completeBody)
+                            dependencyHandles.push_back(handle);
+                    }
+                }
+                const auto takeDouble = [&](int code, double& value) {
+                    const DRW_Variant* group = takeGroup(code);
+                    if (group == nullptr || group->type() != DRW_Variant::DOUBLE
+                        || !std::isfinite(group->d_val()))
+                        return false;
+                    value = group->d_val();
+                    return true;
+                };
+                completeBody = completeBody
+                    && takeDouble(1010, displayLocation[0])
+                    && takeDouble(1020, displayLocation[1])
+                    && takeDouble(1030, displayLocation[2])
+                    && takeMarker("AcDbBlockLookupAction")
+                    && readCount(92, rowCount)
+                    && readCount(93, columnCount);
+                std::size_t entryCount = 0u;
+                std::size_t metadataGroupCount = 0u;
+                if (completeBody) {
+                    const std::size_t rows = static_cast<std::size_t>(rowCount);
+                    const std::size_t columns =
+                        static_cast<std::size_t>(columnCount);
+                    completeBody = rows <= DRW::kMaxDxfRawRecordGroups
+                        && columns <= DRW::kMaxDxfRawRecordGroups
+                        && (rows == 0u
+                            || columns
+                                <= std::numeric_limits<std::size_t>::max()
+                                    / rows);
+                    if (completeBody) {
+                        entryCount = rows * columns;
+                        completeBody = entryCount
+                                <= DRW::kMaxDxfRawRecordGroups
+                            && columns
+                                <= DRW::kMaxDxfRawRecordGroups / 8u;
+                    }
+                    if (completeBody)
+                        metadataGroupCount = columns * 8u;
+                    std::string_view emptyGridMarker;
+                    completeBody = completeBody
+                        && takeString(301, emptyGridMarker)
+                        && emptyGridMarker.empty()
+                        && hasRoom(entryCount + metadataGroupCount + 1u, 0u);
+                }
+                if (completeBody) {
+                    try {
+                        expressions.reserve(entryCount);
+                        connectionCodes.reserve(
+                            static_cast<std::size_t>(columnCount));
+                        connectionNames.reserve(
+                            static_cast<std::size_t>(columnCount));
+                        entryFlags282.reserve(
+                            static_cast<std::size_t>(columnCount));
+                        entryFlags281.reserve(
+                            static_cast<std::size_t>(columnCount));
+                    } catch (...) {
+                        return setError(DRW::BAD_CODE_PARSED);
+                    }
+                    for (std::size_t index = 0u;
+                         index < entryCount && completeBody; ++index) {
+                        std::string_view expression;
+                        completeBody = takeString(302, expression);
+                        if (completeBody)
+                            expressions.push_back(expression);
+                    }
+                    for (std::int32_t column = 0;
+                         column < columnCount && completeBody; ++column) {
+                        std::string_view emptyMarker;
+                        std::vector<std::int32_t> codes;
+                        std::vector<std::string_view> names;
+                        std::int32_t flag282 = 0;
+                        std::int32_t flag281 = 0;
+                        try {
+                            codes.reserve(3u);
+                            names.reserve(2u);
+                        } catch (...) {
+                            return setError(DRW::BAD_CODE_PARSED);
+                        }
+                        completeBody = takeString(303, emptyMarker)
+                            && emptyMarker.empty();
+                        for (const int code : {94, 95, 96}) {
+                            std::int32_t value = 0;
+                            completeBody = completeBody
+                                && takeInteger(code, value);
+                            if (completeBody)
+                                codes.push_back(value);
+                        }
+                        completeBody = completeBody
+                            && takeInteger(282, flag282)
+                            && (flag282 == 0 || flag282 == 1);
+                        std::string_view unmatchedName;
+                        std::string_view connectionName;
+                        completeBody = completeBody
+                            && takeString(305, unmatchedName)
+                            && takeInteger(281, flag281)
+                            && (flag281 == 0 || flag281 == 1)
+                            && takeString(304, connectionName);
+                        if (completeBody) {
+                            names.push_back(unmatchedName);
+                            names.push_back(connectionName);
+                            connectionCodes.push_back(std::move(codes));
+                            connectionNames.push_back(std::move(names));
+                            entryFlags282.push_back(flag282 != 0);
+                            entryFlags281.push_back(flag281 != 0);
+                        }
+                    }
+                }
+                std::int32_t flag280 = 0;
+                completeBody = completeBody
+                    && takeInteger(280, flag280)
+                    && (flag280 == 0 || flag280 == 1)
+                    && cursor == raw.groups.size()
+                    && nodeId >= 0
+                    && evalMajor == 33 && evalMinor == 29
+                    && elementMajor == 33 && elementMinor == 29;
+                if (completeBody) {
+                    DxfReadRetainedLeaseCheckpoint fieldCheckpoint(
+                        data.m_dxfRetainedStringLease);
+                    const auto retainName = [&](std::string_view value) {
+                        return retainDxfReadBytes(
+                            data.m_dxfRetainedStringLease,
+                            reader->retainedByteBudget(), value.size());
+                    };
+                    bool retained = retainName(elementName);
+                    for (const std::string_view expression : expressions)
+                        retained = retained && retainName(expression);
+                    for (const auto& names : connectionNames) {
+                        for (const std::string_view name : names)
+                            retained = retained && retainName(name);
+                    }
+                    if (!retained)
+                        return setError(DRW::BAD_CODE_PARSED);
+                    try {
+                        data.m_nodeId = static_cast<std::uint32_t>(nodeId);
+                        data.m_major = static_cast<std::uint32_t>(evalMajor);
+                        data.m_minor = static_cast<std::uint32_t>(evalMinor);
+                        data.m_parentId =
+                            std::numeric_limits<std::uint32_t>::max();
+                        data.m_valueCode = -9999;
+                        data.m_evalExprParsed = true;
+                        data.m_elementParsed = true;
+                        data.m_elementName.assign(
+                            elementName.data(), elementName.size());
+                        data.m_elementMajor =
+                            static_cast<std::uint32_t>(elementMajor);
+                        data.m_elementMinor =
+                            static_cast<std::uint32_t>(elementMinor);
+                        data.m_eed1071 = eed1071;
+                        data.m_actionCount = actionCount;
+                        data.m_actionIndexes = std::move(actionIndexes);
+                        data.m_dependencyCount = dependencyCount;
+                        data.m_dependencyHandles =
+                            std::move(dependencyHandles);
+                        data.m_displayLocation = DRW_Coord(
+                            displayLocation[0], displayLocation[1],
+                            displayLocation[2]);
+                        data.m_lookupRowCount = rowCount;
+                        data.m_lookupColumnCount = columnCount;
+                        data.m_lookupExpressions.reserve(expressions.size());
+                        for (const std::string_view expression : expressions)
+                            data.m_lookupExpressions.emplace_back(
+                                expression.data(), expression.size());
+                        data.m_lookupConnectionCodes =
+                            std::move(connectionCodes);
+                        data.m_lookupConnectionNames.resize(
+                            connectionNames.size());
+                        for (std::size_t column = 0u;
+                             column < connectionNames.size(); ++column) {
+                            auto& names = data.m_lookupConnectionNames[column];
+                            names.reserve(connectionNames[column].size());
+                            for (const std::string_view name :
+                                 connectionNames[column])
+                                names.emplace_back(name.data(), name.size());
+                        }
+                        data.m_lookupEntryFlags282 =
+                            std::move(entryFlags282);
+                        data.m_lookupEntryFlags281 =
+                            std::move(entryFlags281);
+                        data.m_lookupFlag280 = flag280 != 0;
+                    } catch (...) {
+                        return setError(DRW::BAD_CODE_PARSED);
+                    }
+                    fieldCheckpoint.commit();
+                }
+                data.m_bodyFullyDecoded = completeBody;
+            } else if (data.m_kind
                            == DRW_DynamicBlockObject::Kind::GripLocationComponent
                        && data.m_recordName
                            == "BLOCKGRIPLOCATIONCOMPONENT"
@@ -33858,7 +34195,11 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
             && ent->m_elementMajor == 29u && ent->m_elementMinor == 2u)
         || (ent->m_major == 33u && ent->m_minor == 29u
             && ent->m_elementMajor == 33u && ent->m_elementMinor == 29u);
-    const auto actionPrefixValid = [&]() {
+    const auto actionPrefixValid = [&](bool allowLookupSourceVersion) {
+        const bool lookupSourceVersion = allowLookupSourceVersion
+            && ent->m_major == 29u && ent->m_minor == 37u
+            && ent->m_elementMajor == 29u
+            && ent->m_elementMinor == 37u;
         if (!ent->m_bodyFullyDecoded || !ent->m_evalExprParsed
             || !ent->m_elementParsed
             || ent->m_nodeId > static_cast<std::uint32_t>(
@@ -33866,7 +34207,8 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
             || (ent->m_parentId != DRW::NoHandle
                 && ent->m_parentId
                     != std::numeric_limits<std::uint32_t>::max())
-            || !actionVersions || ent->m_valueCode != -9999
+            || (!actionVersions && !lookupSourceVersion)
+            || ent->m_valueCode != -9999
             || ent->m_hasValueDouble || ent->m_valueHandle != 0u
             || ent->m_actionCount < 0 || ent->m_dependencyCount < 0
             || ent->m_actionCount
@@ -33906,13 +34248,16 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
     };
     bool moveActionShape = ent->m_kind
             == DRW_DynamicBlockObject::Kind::MoveAction
-        && ent->m_recordName == "BLOCKMOVEACTION" && actionPrefixValid();
+        && ent->m_recordName == "BLOCKMOVEACTION"
+        && actionPrefixValid(false);
     bool scaleActionShape = ent->m_kind
             == DRW_DynamicBlockObject::Kind::ScaleAction
-        && ent->m_recordName == "BLOCKSCALEACTION" && actionPrefixValid();
+        && ent->m_recordName == "BLOCKSCALEACTION"
+        && actionPrefixValid(false);
     bool stretchActionShape = ent->m_kind
             == DRW_DynamicBlockObject::Kind::StretchAction
-        && ent->m_recordName == "BLOCKSTRETCHACTION" && actionPrefixValid();
+        && ent->m_recordName == "BLOCKSTRETCHACTION"
+        && actionPrefixValid(false);
     std::size_t moveActionGroupCount = 17u;
     std::size_t scaleActionGroupCount = 17u;
     std::size_t stretchActionGroupCount = 17u;
@@ -34032,6 +34377,63 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
     const bool moveAction = moveActionShape;
     const bool scaleAction = scaleActionShape;
     const bool stretchAction = stretchActionShape;
+    bool lookupAction = ent->m_kind
+            == DRW_DynamicBlockObject::Kind::LookupAction
+        && ent->m_recordName == "BLOCKLOOKUPACTION"
+        && version == DRW::AC1024 && actionPrefixValid(true)
+        && ent->m_valueDouble == 0.0;
+    std::size_t lookupActionGroupCount = 22u;
+    std::size_t lookupActionStringBytes = ent->m_elementName.size();
+    std::size_t lookupEntryCount = 0u;
+    if (lookupAction) {
+        if (ent->m_lookupRowCount < 0 || ent->m_lookupColumnCount < 0) {
+            lookupAction = false;
+        } else {
+            const std::size_t rowCount = static_cast<std::size_t>(
+                ent->m_lookupRowCount);
+            const std::size_t columnCount = static_cast<std::size_t>(
+                ent->m_lookupColumnCount);
+            if (rowCount > DRW::kMaxDxfRawRecordGroups
+                || columnCount > DRW::kMaxDxfRawRecordGroups
+                || (rowCount != 0u
+                    && columnCount > std::numeric_limits<std::size_t>::max()
+                        / rowCount)) {
+                lookupAction = false;
+            } else {
+                lookupEntryCount = rowCount * columnCount;
+                lookupAction = lookupAction
+                    && lookupEntryCount <= DRW::kMaxDxfRawRecordGroups
+                    && ent->m_lookupExpressions.size() == lookupEntryCount
+                    && ent->m_lookupConnectionCodes.size() == columnCount
+                    && ent->m_lookupConnectionNames.size() == columnCount
+                    && ent->m_lookupEntryFlags282.size() == columnCount
+                    && ent->m_lookupEntryFlags281.size() == columnCount
+                    && actionAddGroups(lookupActionGroupCount,
+                        static_cast<std::size_t>(ent->m_actionCount))
+                    && actionAddGroups(lookupActionGroupCount,
+                        static_cast<std::size_t>(ent->m_dependencyCount))
+                    && actionAddGroups(lookupActionGroupCount,
+                        lookupEntryCount)
+                    && columnCount <= DRW::kMaxDxfRawRecordGroups / 8u
+                    && actionAddGroups(lookupActionGroupCount,
+                        columnCount * 8u);
+                for (const UTF8STRING& expression : ent->m_lookupExpressions)
+                    lookupAction = lookupAction
+                        && actionAddString(lookupActionStringBytes,
+                                          expression.size());
+                for (std::size_t column = 0u;
+                     column < columnCount && lookupAction; ++column) {
+                    const auto& codes = ent->m_lookupConnectionCodes[column];
+                    const auto& names = ent->m_lookupConnectionNames[column];
+                    lookupAction = codes.size() == 3u && names.size() == 2u;
+                    for (const UTF8STRING& name : names)
+                        lookupAction = lookupAction
+                            && actionAddString(lookupActionStringBytes,
+                                              name.size());
+                }
+            }
+        }
+    }
     const bool twoPointParameterVersions =
         (ent->m_major == 29u && ent->m_minor == 2u
             && ent->m_elementMajor == 29u && ent->m_elementMinor == 2u)
@@ -34387,6 +34789,7 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
     if (!purgePreventer && !parameterDependencyBody && !proxyNode
         && !basePointParameter && !alignmentParameter && !flipAction
         && !moveAction && !scaleAction && !stretchAction
+        && !lookupAction
         && !twoPointParameter
         && !gripLocation
         && !visibilityGrip
@@ -34662,6 +35065,35 @@ bool dxfRW::writeDynamicBlockObject(DRW_DynamicBlockObject *ent) {
             && writer->writeDouble(140, ent->m_actionOffsetX)
             && writer->writeDouble(141, ent->m_actionOffsetY)
             && writer->writeInt16(280, 1);
+    } else if (written && lookupAction) {
+        written = writeActionPrefix()
+            && writer->writeString(100, "AcDbBlockLookupAction")
+            && writer->writeInt32(92, ent->m_lookupRowCount)
+            && writer->writeInt32(93, ent->m_lookupColumnCount)
+            && writer->writeUtf8String(301, "");
+        for (const UTF8STRING& expression : ent->m_lookupExpressions)
+            written = written && writer->writeUtf8String(302, expression);
+        for (std::size_t column = 0u;
+             column < ent->m_lookupConnectionCodes.size() && written;
+             ++column) {
+            const auto& codes = ent->m_lookupConnectionCodes[column];
+            const auto& names = ent->m_lookupConnectionNames[column];
+            written = writer->writeUtf8String(303, "")
+                && writer->writeInt32(94, codes[0])
+                && writer->writeInt32(95, codes[1])
+                && writer->writeInt32(96, codes[2])
+                && writer->writeInt16(282,
+                    static_cast<std::int16_t>(
+                        ent->m_lookupEntryFlags282[column] ? 1 : 0))
+                && writer->writeUtf8String(305, names[0])
+                && writer->writeInt16(281,
+                    static_cast<std::int16_t>(
+                        ent->m_lookupEntryFlags281[column] ? 1 : 0))
+                && writer->writeUtf8String(304, names[1]);
+        }
+        written = written
+            && writer->writeInt16(280,
+                static_cast<std::int16_t>(ent->m_lookupFlag280 ? 1 : 0));
     } else if (written && twoPointParameter) {
         written = writer->writeString(100, "AcDbEvalExpr")
             && writer->writeInt32(90,

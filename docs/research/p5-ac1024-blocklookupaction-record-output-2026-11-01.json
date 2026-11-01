@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1024-blocklookupaction-record-output-2026-11-01",
+  "date": "2026-11-01",
+  "phase": "P5",
+  "title": "Qualify the isolated AC1024 BLOCKLOOKUPACTION DXF record writer and readback",
+  "status": "ISOLATED_RECORD_OUTPUT_AND_READBACK_QUALIFIED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_sun_and_sky_demo.dwg",
+    "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+    "version": "AC1024",
+    "fixtureCommittedByThisWork": false,
+    "record": {
+      "classNumber": 528,
+      "className": "AcDbBlockLookupAction",
+      "recordName": "BLOCKLOOKUPACTION",
+      "handle": "0x22F",
+      "owner": "0x201",
+      "rows": 41,
+      "columns": 7,
+      "expressions": 287,
+      "evalExprSourceVersion": [29, 37],
+      "elementSourceVersion": [29, 37],
+      "parentId": 4294967295,
+      "valueCode": -9999,
+      "actionIndexes": 0,
+      "dependencyHandles": 0,
+      "columnRecords": 7,
+      "codesPerColumn": 3,
+      "namesPerColumn": 2
+    },
+    "sourceIntegrityContext": "The import reports a header checksum observation (expected 851, observed 855), while the selected object is fully decoded and the file reports zero entity/object parse failures. This receipt is limited to that selected object; it does not qualify whole-file completeness."
+  },
+  "schemaCrosscheck": {
+    "implementation": "ACadSharp current DXF objects-section writer",
+    "url": "https://raw.githubusercontent.com/DomCR/ACadSharp/master/src/ACadSharp/IO/DXF/DxfStreamWriter/DxfObjectsSectionWriter.cs",
+    "method": "Inspected writeBlockLookupAction at source lines 977-1011.",
+    "observed": "Emits the shared block-action prefix, row/column counts, an empty group 301, row-major group-302 expression values, then one per-column sequence of empty group 303; groups 94/95/96; 282; 305; 281; 304; and final group 280.",
+    "limits": "This is mutable peer-writer compatibility evidence, not an Autodesk normative field definition or an independent semantic evaluator."
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/CMakeLists.txt"
+    ],
+    "summary": "Add an AC1024-only typed DXF reader/writer for the row-major expression grid and per-column metadata. Admit the source EvalExpr/BlockElement version 29/37 only for BLOCKLOOKUPACTION and emit the DXF schema version 33/29. Bound dimensions, group count, and retained string data; unknown tails remain raw-only.",
+    "scope": "Record-level AC1024 ASCII/Binary transport and fresh libdxfrw readback. No complete EvaluationGraph, dictionary, dynamic-block graph, native evaluation, or consumer support is qualified."
+  },
+  "qualification": {
+    "ascii": "PASS: generated profile and physical source object write and read back; typed fields match, and emitted group-code order matches the expected prefix/grid/per-column layout.",
+    "binary": "PASS: generated profile and physical source object write and read back with the same typed-field equality.",
+    "versionMapping": "PASS: physical source pair 29/37 emits DXF pair 33/29; the 29/37 exception is local to this AC1024 record class.",
+    "unknownTail": "PASS refusal: an extra group after group 280 prevents typed-body publication while preserving the complete raw record.",
+    "failureAndRetry": "PASS: mismatched per-column code-vector length refuses output and preserves an existing destination sentinel; correcting the object and retrying with the same writer succeeds.",
+    "sourceProfile": "PASS: selected handle 0x22F is fully decoded from the local AC1024 sample; all expression, column-code, column-name, flag, action-prefix, and display fields match fresh readback."
+  },
+  "validation": {
+    "normalBuild": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS with configured warning-as-error flags."
+    },
+    "normalFocusedTests": {
+      "command": "ctest --test-dir build-gcc -R 'dwg2dxf_dynamic_block_(flip_action_writer|actions_writer|lookup_action_(writer|physical_writer))' --output-on-failure",
+      "result": "PASS, 4/4."
+    },
+    "asanBuild": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS."
+    },
+    "asanFocusedTests": {
+      "command": "ctest --test-dir build-asan-custom -R 'dwg2dxf_dynamic_block_(flip_action_writer|actions_writer|lookup_action_(writer|physical_writer))' --output-on-failure",
+      "result": "PASS, 4/4."
+    },
+    "hygiene": "git diff --check passed.",
+    "fullSuites": "NOT RUN; focused normal and ASan cohorts only."
+  },
+  "planImpact": {
+    "completedSliceRemoved": "AC1024 BLOCKLOOKUPACTION record-level ASCII/Binary writer, exact group sequence, typed readback, raw-only unknown-tail fallback, and rollback/retry proof.",
+    "remaining": "P5 remains open for the parentId projection and independent native dynamic-block evaluation. P4 graph closure and P8 consumer/platform qualification remain separate gates. This receipt promotes no support claim.",
+    "fixturesAdded": 0,
+    "externalItemsPromoted": 0
+  },
+  "sourceHashesSha256": {
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md": "7a7e5ea868ba6442dc9a91ac343d46dd069768ae20ed9421f283d94aab9bdd09",
+    "src/libdxfrw.cpp": "b373576ad301cb1edca08c47becc0e6c10f445609b094f7d65616a68a9dbc04c",
+    "tests/dwg2dxf_adapter_tests.cpp": "ed318a74aa741ba71386fdf530c25d65fb55a6edbbeded2b21d63eebfcf126ff",
+    "tests/CMakeLists.txt": "4cb2fef5f89b2d888e093616a97659fc4372dee2605633252f8ec71090fea285",
+    "normalTestExecutable": "a72ca7dac5c7df71c0f843058e6a35e7f238cbd93a0a0c5020413cfb1df557e3",
+    "asanTestExecutable": "fdf0a96c691a226956ce9acec9cf1d6e6a9b85c55bf87e112bd6812ab29ba543",
+    "sourceDWG": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881"
+  }
+}

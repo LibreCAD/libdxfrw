@@ -2465,6 +2465,35 @@ set_tests_properties(dwg2dxf_dynamic_block_actions_writer PROPERTIES
     TIMEOUT 30
 )
 
+# Exercise the source-qualified AC1024 BLOCKLOOKUPACTION grid and per-column
+# metadata in both encodings, including output rollback and retry.
+add_test(
+    NAME dwg2dxf_dynamic_block_lookup_action_writer
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --dynamic-block-lookup-action-dxf-writer
+)
+set_tests_properties(dwg2dxf_dynamic_block_lookup_action_writer PROPERTIES
+    LABELS "fast;dxf;adapter;dynamic-block"
+    TIMEOUT 30
+)
+
+# The physical sample is supplied locally and intentionally is not vendored.
+set(_lookup_action_ac1024_sample
+    "${CMAKE_CURRENT_SOURCE_DIR}/samples/AC1024/visualization_-_sun_and_sky_demo.dwg")
+if(EXISTS "${_lookup_action_ac1024_sample}")
+    add_test(
+        NAME dwg2dxf_dynamic_block_lookup_action_physical_writer
+        COMMAND libdxfrw_dwg2dxf_adapter_tests
+            --dynamic-block-lookup-action-dxf-writer
+            "${_lookup_action_ac1024_sample}"
+    )
+    set_tests_properties(dwg2dxf_dynamic_block_lookup_action_physical_writer
+        PROPERTIES
+        LABELS "fast;dxf;adapter;dynamic-block;sample;AC1024"
+        TIMEOUT 60
+    )
+endif()
+
 # Exercise the four AC1024 AcDbBlock2PtParameter subclasses with exact
 # ASCII/Binary field order, typed readback, and atomic rollback/retry.
 add_test(
