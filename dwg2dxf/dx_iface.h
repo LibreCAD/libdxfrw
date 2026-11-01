@@ -2760,6 +2760,22 @@ private:
                            bool debug) noexcept;
     bool inspectDwgLayoutBlockRecords(const dxfRW::DxfTablesWriteView&,
                                      bool debug) noexcept;
+    struct DwgLayerStateOutputSource {
+        std::uint32_t layerControlHandle{0u};
+        DRW_Dictionary extensionDictionary;
+        DRW_Dictionary layerStatesDictionary;
+    };
+    DwgLayerStateOutputSource m_dwgLayerStateOutputSource;
+    const dx_data* m_dwgLayerStateOutputOwner{nullptr};
+    std::uint64_t m_dwgLayerStateOutputGeneration{0u};
+    DRW::Version m_dwgLayerStateOutputSourceVersion{DRW::UNKNOWNV};
+    bool m_dwgLayerStateOutputPrepared{false};
+    bool m_dwgLayerStateOutputInspected{false};
+    bool prepareDwgLayerStateOutput(DRW::Version targetVersion,
+                                    bool debug) noexcept;
+    bool hasUnchangedDwgLayerStateOutputSource() const noexcept;
+    bool inspectDwgLayerStateOutput(const dxfRW::DxfObjectsWriteView&,
+                                    bool debug) noexcept;
     struct DxfMLineStyleSource {
         DRW_MLineStyle model, projection;
         DRW_RawDxfObject raw, output;

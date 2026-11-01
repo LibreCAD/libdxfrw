@@ -27644,6 +27644,406 @@ bool dx_iface::inspectDwgMLineStyles(
     }
 }
 
+bool dx_iface::prepareDwgLayerStateOutput(
+        DRW::Version targetVersion, bool debug) noexcept {
+    m_dwgLayerStateOutputSource = {};
+    m_dwgLayerStateOutputOwner = nullptr;
+    m_dwgLayerStateOutputGeneration = 0u;
+    m_dwgLayerStateOutputSourceVersion = DRW::UNKNOWNV;
+    m_dwgLayerStateOutputPrepared = false;
+    m_dwgLayerStateOutputInspected = false;
+    const auto skip = [debug](const char* reason) {
+        if (debug)
+            std::cerr << "LayerStates DWG output profile skipped: " << reason
+                      << '\n';
+        return true;
+    };
+    if (cData == nullptr)
+        return false;
+    if (cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1018
+        || targetVersion != DRW::AC1024)
+        return true;
+
+    std::uint32_t controlHandle = 0u;
+    std::uint32_t extensionHandle = 0u;
+    if (!cData->getLayerTableControlExtensionDictionary(
+            controlHandle, extensionHandle))
+        return false;
+    if (controlHandle == 0u || extensionHandle == 0u
+        || controlHandle == DRW::NoHandle
+        || extensionHandle == DRW::NoHandle)
+        return skip("source LAYER_CONTROL extension edge is absent");
+
+    const auto uniqueDictionary = [this](std::uint32_t handle)
+            -> const DRW_Dictionary* {
+        const DRW_Dictionary* found = nullptr;
+        for (const DRW_Dictionary& row : cData->dictionaries) {
+            if (row.handle != handle)
+                continue;
+            if (found != nullptr)
+                return nullptr;
+            found = &row;
+        }
+        return found;
+    };
+    const DRW_Dictionary* extension = uniqueDictionary(extensionHandle);
+    if (extension == nullptr || extension->handle != extensionHandle
+        || extension->parentHandle != controlHandle
+        || extension->hardOwner != 1 || extension->cloning != 1
+        || extension->countCap || !extension->hasCompleteDwgEntries()
+        || extension->m_entries.size() != 1u
+        || !extension->appData.empty() || !extension->extData.empty()
+        || !extension->reactorHandles.empty()
+        || extension->xDictHandle != 0u
+        || extension->hasDataStorageBinaryData()
+        || extension->hasDwgCommonLinkTail()
+        || !extension->pendingAppIdResolutions.empty()
+        || !extension->pendingLayerRefResolutions.empty())
+        return skip("LAYER_CONTROL extension dictionary is outside its one-entry profile");
+    const auto root = std::find_if(
+        extension->m_entries.begin(), extension->m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == "ACAD_LAYERSTATES";
+        });
+    if (root == extension->m_entries.end()
+        || std::count_if(extension->m_entries.begin(),
+                         extension->m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_LAYERSTATES";
+            }) != 1u)
+        return skip("unique ACAD_LAYERSTATES extension entry is absent");
+    const DRW_Dictionary* states = uniqueDictionary(root->m_handle);
+    if (states == nullptr || states->handle == 0u
+        || states->handle == DRW::NoHandle
+        || states->handle == extensionHandle
+        || states->parentHandle != extensionHandle
+        || states->hardOwner != 0 || states->cloning != 1
+        || states->countCap
+        || !states->hasCompleteDwgEntries() || !states->m_entries.empty()
+        || !states->appData.empty() || !states->extData.empty()
+        || states->xDictHandle != 0u
+        || states->hasDataStorageBinaryData()
+        || states->hasDwgCommonLinkTail()
+        || !states->pendingAppIdResolutions.empty()
+        || !states->pendingLayerRefResolutions.empty()
+        || states->reactorHandles
+            != std::vector<std::uint32_t>{extensionHandle})
+        return skip("ACAD_LAYERSTATES child dictionary is outside its empty profile");
+
+    const auto hasDictionaryFrame = [this](std::uint32_t handle,
+                                            const DRW_Dictionary& source) {
+        const dx_data::StandardDwgFrameKey key{
+            cData->importGeneration, handle};
+        if (cData->m_opaqueDwgSourceFrameIdentities.count(key) != 1u)
+            return false;
+        const auto standard = cData->m_standardDwgObjectFrames.find(key);
+        if (standard == cData->m_standardDwgObjectFrames.end()
+            || standard->second.raw.m_objectType != 42
+            || standard->second.raw.m_handle != handle
+            || standard->second.raw.m_version != DRW::AC1018
+            || standard->second.raw.m_isEntity
+            || standard->second.raw.m_hasDataStorage
+            || !standard->second.payloadMatched
+            || !standard->second.typedBaseline
+            || standard->second.opaquePayload)
+            return false;
+        const auto* baseline = dynamic_cast<const DRW_Dictionary*>(
+            standard->second.typedBaseline.get());
+        if (baseline == nullptr
+            || !standardDwgCommonEqual(source, *baseline, DRW::AC1018)
+            || source.hardOwner != baseline->hardOwner
+            || source.cloning != baseline->cloning
+            || source.countCap || baseline->countCap
+            || !source.hasCompleteDwgEntries()
+            || !baseline->hasCompleteDwgEntries()
+            || source.m_entries.size() != baseline->m_entries.size())
+            return false;
+        for (std::size_t index = 0u; index < source.m_entries.size(); ++index) {
+            const auto& expected = source.m_entries[index];
+            const auto& actual = baseline->m_entries[index];
+            if (expected.m_name != actual.m_name
+                || expected.m_handle != actual.m_handle
+                || expected.m_dxfHandleCode != actual.m_dxfHandleCode)
+                return false;
+        }
+        return true;
+    };
+    if (cData->importGeneration == 0u
+        || !hasDictionaryFrame(extensionHandle, *extension)
+        || !hasDictionaryFrame(states->handle, *states))
+        return skip("both dictionary callback identities must be source-bound");
+
+    m_dwgLayerStateOutputSource.layerControlHandle = controlHandle;
+    m_dwgLayerStateOutputSource.extensionDictionary = *extension;
+    m_dwgLayerStateOutputSource.layerStatesDictionary = *states;
+    m_dwgLayerStateOutputOwner = cData;
+    m_dwgLayerStateOutputGeneration = cData->importGeneration;
+    m_dwgLayerStateOutputSourceVersion = cData->sourceVersion;
+    m_dwgLayerStateOutputPrepared = true;
+    if (hasUnchangedDwgLayerStateOutputSource())
+        return true;
+    m_dwgLayerStateOutputSource = {};
+    m_dwgLayerStateOutputOwner = nullptr;
+    m_dwgLayerStateOutputGeneration = 0u;
+    m_dwgLayerStateOutputSourceVersion = DRW::UNKNOWNV;
+    m_dwgLayerStateOutputPrepared = false;
+    return skip("snapshot changed during capture");
+}
+
+bool dx_iface::hasUnchangedDwgLayerStateOutputSource() const noexcept {
+    if (!m_dwgLayerStateOutputPrepared)
+        return m_dwgLayerStateOutputOwner == nullptr
+            && m_dwgLayerStateOutputGeneration == 0u
+            && m_dwgLayerStateOutputSourceVersion == DRW::UNKNOWNV;
+    if (cData == nullptr || m_dwgLayerStateOutputOwner != cData
+        || m_dwgLayerStateOutputGeneration != cData->importGeneration
+        || m_dwgLayerStateOutputSourceVersion != DRW::AC1018
+        || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != m_dwgLayerStateOutputSourceVersion)
+        return false;
+    std::uint32_t controlHandle = 0u;
+    std::uint32_t extensionHandle = 0u;
+    if (!cData->getLayerTableControlExtensionDictionary(
+            controlHandle, extensionHandle)
+        || controlHandle != m_dwgLayerStateOutputSource.layerControlHandle
+        || extensionHandle
+            != m_dwgLayerStateOutputSource.extensionDictionary.handle)
+        return false;
+    const auto uniqueDictionary = [this](std::uint32_t handle)
+            -> const DRW_Dictionary* {
+        const DRW_Dictionary* found = nullptr;
+        for (const DRW_Dictionary& row : cData->dictionaries) {
+            if (row.handle != handle)
+                continue;
+            if (found != nullptr)
+                return nullptr;
+            found = &row;
+        }
+        return found;
+    };
+    const auto sameDictionary = [](const DRW_Dictionary& expected,
+                                  const DRW_Dictionary& actual) {
+        if (!standardDwgCommonEqual(expected, actual, DRW::AC1018)
+            || expected.hardOwner != actual.hardOwner
+            || expected.cloning != actual.cloning || expected.countCap
+            || actual.countCap
+            || !expected.hasCompleteDwgEntries()
+            || !actual.hasCompleteDwgEntries()
+            || expected.m_entries.size() != actual.m_entries.size())
+            return false;
+        for (std::size_t index = 0u; index < expected.m_entries.size(); ++index) {
+            const auto& a = expected.m_entries[index];
+            const auto& b = actual.m_entries[index];
+            if (a.m_name != b.m_name || a.m_handle != b.m_handle
+                || a.m_dxfHandleCode != b.m_dxfHandleCode)
+                return false;
+        }
+        return true;
+    };
+    const auto frameMatches = [this, &sameDictionary](
+                                  const DRW_Dictionary& source) {
+        const dx_data::StandardDwgFrameKey key{
+            cData->importGeneration, source.handle};
+        const auto frame = cData->m_standardDwgObjectFrames.find(key);
+        if (cData->m_opaqueDwgSourceFrameIdentities.count(key) != 1u
+            || frame == cData->m_standardDwgObjectFrames.end()
+            || frame->second.raw.m_objectType != 42
+            || frame->second.raw.m_handle != source.handle
+            || frame->second.raw.m_version != DRW::AC1018
+            || frame->second.raw.m_isEntity
+            || frame->second.raw.m_hasDataStorage
+            || !frame->second.payloadMatched
+            || !frame->second.typedBaseline
+            || frame->second.opaquePayload)
+            return false;
+        const auto* baseline = dynamic_cast<const DRW_Dictionary*>(
+            frame->second.typedBaseline.get());
+        return baseline != nullptr && sameDictionary(source, *baseline);
+    };
+    const DRW_Dictionary* extension = uniqueDictionary(extensionHandle);
+    const DRW_Dictionary* states = uniqueDictionary(
+        m_dwgLayerStateOutputSource.layerStatesDictionary.handle);
+    if (extension == nullptr || states == nullptr
+        || !sameDictionary(m_dwgLayerStateOutputSource.extensionDictionary,
+                           *extension)
+        || !sameDictionary(m_dwgLayerStateOutputSource.layerStatesDictionary,
+                           *states)
+        || !frameMatches(*extension) || !frameMatches(*states))
+        return false;
+    const auto root = std::find_if(
+        extension->m_entries.begin(), extension->m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == "ACAD_LAYERSTATES";
+        });
+    return root != extension->m_entries.end()
+        && std::count_if(extension->m_entries.begin(), extension->m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_LAYERSTATES";
+            }) == 1u
+        && root->m_handle == states->handle;
+}
+
+bool dx_iface::inspectDwgLayerStateOutput(
+        const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept {
+    m_dwgLayerStateOutputInspected = false;
+    if (!m_dwgLayerStateOutputPrepared)
+        return true;
+    const auto reject = [debug](const char* reason) {
+        if (debug)
+            std::cerr << "LayerStates DWG staged output rejected: " << reason
+                      << '\n';
+        return false;
+    };
+    if (cData == nullptr || dxfW == nullptr || view.version != DRW::AC1024
+        || !hasUnchangedDwgLayerStateOutputSource())
+        return reject("source snapshot or output version");
+    const auto& tableProof = m_standardDwgLayerControlOutputProof;
+    const auto& source = m_dwgLayerStateOutputSource;
+    if (!tableProof.inspected || !tableProof.matched
+        || tableProof.generation != m_dwgLayerStateOutputGeneration
+        || tableProof.sourceControl != source.layerControlHandle
+        || tableProof.sourceDictionary != source.extensionDictionary.handle
+        || tableProof.emittedTable != 2u)
+        return reject("LAYER_CONTROL to emitted LAYER TABLE proof");
+    try {
+        const auto mapHandle = [this, &source](std::uint32_t input,
+                                               std::uint32_t& output) {
+            output = 0u;
+            if (input == 0u)
+                return true;
+            if (input == source.layerControlHandle) {
+                output = 2u;
+                return true;
+            }
+            const auto* context = dxfW->getWritingContext();
+            if (input == DRW::NoHandle || context == nullptr
+                || context->ambiguousSourceHandles.count(input) != 0u)
+                return false;
+            output = dxfW->remapHandle(input);
+            return output != 0u && output != DRW::NoHandle;
+        };
+        std::uint32_t emittedExtension = 0u;
+        std::uint32_t emittedStates = 0u;
+        if (!mapHandle(source.extensionDictionary.handle, emittedExtension)
+            || !mapHandle(source.layerStatesDictionary.handle, emittedStates)
+            || emittedExtension == emittedStates
+            || dxfW->dxfWriteRecordHandleCount(2u) != 1u
+            || !dxfW->dxfWriteRecordHasIdentity(2u, "TABLE", "TABLES")
+            || !dxfW->dxfWriteRecordHasOwner(2u, 0u)
+            || dxfW->dxfWriteRecordHandleCount(emittedExtension) != 1u
+            || !dxfW->dxfWriteRecordHasIdentity(
+                emittedExtension, "DICTIONARY", "OBJECTS")
+            || !dxfW->dxfWriteRecordHasOwner(emittedExtension, 2u)
+            || dxfW->dxfWriteRecordHandleCount(emittedStates) != 1u
+            || !dxfW->dxfWriteRecordHasIdentity(
+                emittedStates, "DICTIONARY", "OBJECTS")
+            || !dxfW->dxfWriteRecordHasOwner(
+                emittedStates, emittedExtension))
+            return reject("dictionary identities or owner roles");
+
+        std::set<std::uint32_t> seen;
+        std::string_view selectedName;
+        bool bodyMismatch = false;
+        const bool inspected = dx_standard_output::inspectSelected(
+            view,
+            [&selectedName, emittedExtension, emittedStates](
+                    std::string_view name, std::uint32_t handle) {
+                selectedName = name;
+                return (handle == emittedExtension || handle == emittedStates)
+                    && name == "DICTIONARY";
+            },
+            [&](const auto& shape, std::string_view body) {
+                if (selectedName != "DICTIONARY"
+                    || !seen.insert(shape.handle).second)
+                    return false;
+                const DRW_Dictionary* expected =
+                    shape.handle == emittedExtension
+                    ? &source.extensionDictionary
+                    : shape.handle == emittedStates
+                        ? &source.layerStatesDictionary : nullptr;
+                if (expected == nullptr)
+                    return false;
+                dx_standard_output::Decoder decoder(view);
+                const bool decoded = decoder.decodeRecord<DRW_Dictionary>(
+                    body, [&](const DRW_Dictionary& actual) {
+                        std::vector<std::uint32_t> references;
+                        const bool equal = dx_standard_output::equal(
+                            *expected, actual, mapHandle, references);
+                        if (!equal) {
+                            bodyMismatch = true;
+                            if (debug)
+                                std::cerr << "LayerStates DICTIONARY body mismatch: source="
+                                          << expected->handle << " actual="
+                                          << actual.handle << " owner="
+                                          << actual.parentHandle << " entries="
+                                          << actual.m_entries.size() << " expectedEntries="
+                                          << expected->m_entries.size() << " reactors="
+                                          << actual.reactorHandles.size()
+                                          << " expected-owner=" << expected->parentHandle
+                                          << " expected-hard/cloning="
+                                          << expected->hardOwner << '/'
+                                          << expected->cloning << " actual-hard/cloning="
+                                          << actual.hardOwner << '/'
+                                          << actual.cloning << " flags="
+                                          << expected->flags << '/' << actual.flags
+                                          << " names=" << expected->name.size() << '/'
+                                          << actual.name.size() << " xdict="
+                                          << expected->xDictHandle << '/'
+                                          << actual.xDictHandle << " app/eed="
+                                          << expected->appData.size() << '/'
+                                          << actual.appData.size() << '/'
+                                          << expected->extData.size() << '/'
+                                          << actual.extData.size() << " entries="
+                                          << (expected->m_entries.empty() ? "-"
+                                              : expected->m_entries.front().m_name)
+                                          << ':'
+                                          << (expected->m_entries.empty() ? 0u
+                                              : expected->m_entries.front().m_handle)
+                                          << ':'
+                                          << (expected->m_entries.empty() ? 0
+                                              : static_cast<int>(expected->m_entries.front().m_dxfHandleCode))
+                                          << "/"
+                                          << (actual.m_entries.empty() ? "-"
+                                              : actual.m_entries.front().m_name)
+                                          << ':'
+                                          << (actual.m_entries.empty() ? 0u
+                                              : actual.m_entries.front().m_handle)
+                                          << ':'
+                                          << (actual.m_entries.empty() ? 0
+                                              : static_cast<int>(actual.m_entries.front().m_dxfHandleCode))
+                                          << '\n';
+                        }
+                        return equal;
+                    });
+                if (!decoded && debug)
+                    std::cerr << "LayerStates DICTIONARY decode mismatch: selected="
+                              << selectedName << " shape=" << shape.handle
+                              << " expected=" << expected->handle
+                              << " body-bytes=" << body.size() << '\n';
+                return decoded;
+            });
+        if (!inspected || seen.size() != 2u) {
+            if (debug)
+                std::cerr << "LayerStates staged scan detail: inspected="
+                          << inspected << " seen=" << seen.size()
+                          << " expected=2 bodyMismatch=" << bodyMismatch
+                          << " emitted=" << emittedExtension << '/'
+                          << emittedStates << '\n';
+            return reject("complete staged dictionary bodies or entry roles");
+        }
+        if (!recordOpaqueDwgOutputQualification(
+                source.extensionDictionary.handle)
+            || !recordOpaqueDwgOutputQualification(
+                source.layerStatesDictionary.handle))
+            return reject("callback identity qualification staging");
+        m_dwgLayerStateOutputInspected = true;
+        return true;
+    } catch (...) {
+        return reject("exception during staged dictionary decoding");
+    }
+}
+
 bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
     m_dwgLayoutOutputSources.clear();
     m_dwgNodDictionaryOutputSources.clear();
@@ -60494,6 +60894,7 @@ bool dx_iface::finalizeDxfWrite() {
         || !hasUnchangedDwgMLeaderStyleOutputSources()
         || !hasUnchangedDwgMLineStyleOutputSources()
         || !hasUnchangedDwgLayoutOutputSources()
+        || !hasUnchangedDwgLayerStateOutputSource()
         || !hasUnchangedDxfDynamicBlockReplaySources()
         || !hasUnchangedDxfAssociativeReplaySources()
         || (m_dxfDynamicReplayPrepared
@@ -60508,6 +60909,8 @@ bool dx_iface::finalizeDxfWrite() {
         || (!m_dwgLayoutOutputSources.empty()
             && (!m_dwgLayoutsObjectsInspected
                 || !m_dwgLayoutBlocksInspected))
+        || (m_dwgLayerStateOutputPrepared
+            && !m_dwgLayerStateOutputInspected)
         || (!m_dxfMLineLinetypes.empty() && !m_dxfMLineLinetypesInspected)
         || (!m_dxfMLineStyles.empty() && !m_dxfMLineStylesInspected)
         || (needsDxfMLineConsumerInspection() && m_dxfMLineConsumerInspected!=3u)) return false;
@@ -62216,6 +62619,12 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     m_dwgLayoutOutputSourceVersion = DRW::UNKNOWNV;
     m_dwgLayoutsObjectsInspected = false;
     m_dwgLayoutBlocksInspected = false;
+    m_dwgLayerStateOutputSource = {};
+    m_dwgLayerStateOutputOwner = nullptr;
+    m_dwgLayerStateOutputGeneration = 0u;
+    m_dwgLayerStateOutputSourceVersion = DRW::UNKNOWNV;
+    m_dwgLayerStateOutputPrepared = false;
+    m_dwgLayerStateOutputInspected = false;
     m_dxfMLeaderStyleState={}; m_dxfMLeaderStylesInspected=false;
     m_dxfMLineLinetypes.clear();m_dxfMLineAppIds.clear();m_dxfMLineLinetypesInspected=false;m_dxfMLineLinetypeCount=0u;
     m_dxfMaterialWriteDictionaries.clear();
@@ -63623,6 +64032,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     if (!prepareDwgLayouts(v, debug || requireResolvedOwners)) {
         reportPreflightFailure("LAYOUT DWG source/output snapshot");
+        return false;
+    }
+    if (!prepareDwgLayerStateOutput(v, debug || requireResolvedOwners)) {
+        reportPreflightFailure("LayerStates DWG source/output snapshot");
         return false;
     }
     if (!prepareDxfMLeaderStyles(v, binary, targetTextPolicy)) {
@@ -66014,6 +66427,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         && layerControlSourceDictionary != 0u;
     const bool needsDwgLayoutsOutput =
         !m_dwgLayoutOutputSources.empty();
+    const bool needsDwgLayerStateOutput =
+        m_dwgLayerStateOutputPrepared;
     if ((needsStandardNames || needsLayerControlOutput
             || m_dxfLayerMaterialState.active || !m_dxfMLineLinetypes.empty()
             || needsDwgLayoutsOutput) && !dxfW->setDxfTablesWriteInspector([this, needsStandardNames, needsLayerControlOutput, needsDwgLayoutsOutput, debug, requireResolvedOwners](const auto& view) {
@@ -66060,6 +66475,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             || needsDwgMLeaderStyleOutput
             || needsDwgMLineStyleOutput
             || needsDwgLayoutsOutput
+            || needsDwgLayerStateOutput
             || needsVisualStyleOutput
             || needsDwgAssociativeVariableOutput
             || needsDwgAssociativeDimensionDependencyOutput
@@ -66073,7 +66489,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             || needsDwgBlockRepresentationDataOutput
             || needsDwgDynamicBlockOutput
             || needsDxfDynamicReplay || needsDxfAssociativeReplay)
-        && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput, needsVisualStyleOutput, needsDwgDictionaryVarOutput, needsDwgScaleOutput, needsDwgMLeaderStyleOutput, needsDwgMLineStyleOutput, needsDwgLayoutsOutput, needsDwgAssociativeVariableOutput, needsDwgAssociativeDimensionDependencyOutput, needsDwgBlockRepresentationDataOutput, needsDwgDynamicBlockOutput, needsDxfDynamicReplay, needsDxfAssociativeReplay, debug, requireResolvedOwners](const auto& view) {
+        && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput, needsVisualStyleOutput, needsDwgDictionaryVarOutput, needsDwgScaleOutput, needsDwgMLeaderStyleOutput, needsDwgMLineStyleOutput, needsDwgLayoutsOutput, needsDwgLayerStateOutput, needsDwgAssociativeVariableOutput, needsDwgAssociativeDimensionDependencyOutput, needsDwgBlockRepresentationDataOutput, needsDwgDynamicBlockOutput, needsDxfDynamicReplay, needsDxfAssociativeReplay, debug, requireResolvedOwners](const auto& view) {
             const auto reject = [debug, requireResolvedOwners](
                     const char* stage) {
                 if (debug || requireResolvedOwners)
@@ -66139,6 +66555,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 && !inspectDwgLayouts(
                     view, debug || requireResolvedOwners))
                 return reject("LAYOUT DWG physical source/output binding");
+            if (needsDwgLayerStateOutput
+                && !inspectDwgLayerStateOutput(
+                    view, debug || requireResolvedOwners))
+                return reject("LayerStates DWG physical source/output binding");
             if (needsVisualStyleOutput
                 && !inspectDxfVisualStyles(view, debug))
                 return reject("VISUALSTYLE physical source identity/field binding");
