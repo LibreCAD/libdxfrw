@@ -2006,14 +2006,16 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
         int invisibility;
         int borderType;
         int lineWeight;
+        double doubleLineSpacing;
     };
     const std::array<std::vector<BorderExpectation>, 2> borderProfiles{{
-        {{1, 0x10, 0, 1, 0, 0}, {2, 0x08, 7, 0, 0, 0},
-         {4, 0x18, 3, 1, 0, 0}, {8, 0x01, 0, 0, 1, 0},
-         {0x10, 0x02, 0, 0, 0, 25},
-         {0x20, 0x1B, 12, 1, 1, 50}},
-        {{0x03, 0x0A, 7, 0, 0, -2}, {0x0C, 0x11, 0, 1, 1, 0},
-         {0x30, 0x1B, 3, 1, 1, 25}}
+        {{1, 0x10, 0, 1, 0, 0, 0.0}, {2, 0x08, 7, 0, 0, 0, 0.0},
+         {4, 0x18, 3, 1, 0, 0, 0.0}, {8, 0x01, 0, 0, 1, 0, 0.0},
+         {0x10, 0x02, 0, 0, 0, 25, 0.0},
+         {0x20, 0x1B, 12, 1, 1, 50, 0.0}},
+        {{0x03, 0x0A, 7, 0, 0, -2, 0.0},
+         {0x0C, 0x11, 0, 1, 1, 0, 0.0},
+         {0x30, 0x39, 3, 1, 2, 0, 0.5}}
     }};
     for (std::size_t run = 0; run < borderProfiles.size() * 2u; ++run) {
         const std::size_t profile = run % borderProfiles.size();
@@ -2056,6 +2058,7 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
             border.m_visible = expected.invisibility;
             border.m_borderType = expected.borderType;
             border.m_lineWeight = expected.lineWeight;
+            border.m_doubleLineSpacing = expected.doubleLineSpacing;
             cellStyle.m_borders.push_back(border);
         }
         table.m_dxfMetadata = metadata;
@@ -2063,7 +2066,7 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
 
         if (!exporter.fileExport(path.string(), DRW::AC1027, binary,
                                  &data, false))
-            return fail("selected edge visibility records were refused");
+            return fail("selected cell border profiles were refused");
 
         struct BorderWire {
             int edge = 0;
@@ -2147,7 +2150,7 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
                 || border.lineWeight != expected.lineWeight
                 || border.lineType != "0"
                 || border.invisibility != expected.invisibility
-                || border.doubleLineSpacing != 0.0)
+                || border.doubleLineSpacing != expected.doubleLineSpacing)
                 return fail("physical border edge fields changed");
         }
 
@@ -2171,7 +2174,8 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
                 || border.m_lineWeight != expected.lineWeight
                 || border.m_lineTypeHandle != 0u
                 || border.m_visible != expected.invisibility
-                || border.m_doubleLineSpacing != 0.0)
+                || border.m_doubleLineSpacing
+                    != expected.doubleLineSpacing)
                 return fail("typed border edge fields changed");
         }
 
@@ -2202,6 +2206,33 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
             return fail("lineweight refusal changed the caller model");
         lineWeightBorder->m_lineWeight = originalLineWeight;
 
+        const auto doubleBorder = std::find_if(
+            styleBorders.begin(), styleBorders.end(),
+            [](const DRW_TableStyleBorder& border) {
+                return (static_cast<std::uint32_t>(
+                    border.m_propertyOverrideFlags) & 0x20u) != 0u;
+            });
+        if (profile == 1u && doubleBorder == styleBorders.end())
+            return fail("double-spacing profile has no selected border");
+        if (doubleBorder != styleBorders.end()) {
+            const double originalSpacing = doubleBorder->m_doubleLineSpacing;
+            doubleBorder->m_doubleLineSpacing = -0.25;
+            const std::string spacingSentinel =
+                "PRESERVE_TABLECONTENT_SPACING_DESTINATION";
+            { std::ofstream out(path, std::ios::binary);
+              out << spacingSentinel; }
+            if (exporter.fileExport(path.string(), DRW::AC1027, binary,
+                                    &data, false))
+                return fail("negative double-line spacing was accepted");
+            { std::ifstream in(path, std::ios::binary);
+              if (std::string(std::istreambuf_iterator<char>(in), {})
+                  != spacingSentinel)
+                  return fail("spacing refusal changed the destination"); }
+            if (doubleBorder->m_doubleLineSpacing != -0.25)
+                return fail("spacing refusal changed the caller model");
+            doubleBorder->m_doubleLineSpacing = originalSpacing;
+        }
+
         DRW_TableStyleBorder& invalidBorder = styleBorders.front();
         const int originalBorderProperties =
             invalidBorder.m_propertyOverrideFlags;
@@ -2229,9 +2260,26 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
                 .m_cells[0].m_scope.m_style.m_borders.size()
                     != expectedBorders.size())
             return fail("corrected border retry readback differs");
+        const auto& retriedBorders = retried.tableContents.front()
+            .m_dxfMetadata->m_rows[0].m_cells[0].m_scope.m_style.m_borders;
+        for (std::size_t index = 0; index < expectedBorders.size(); ++index) {
+            const DRW_TableStyleBorder& border = retriedBorders[index];
+            const BorderExpectation& expected = expectedBorders[index];
+            if (border.m_edgeFlags != expected.edge
+                || border.m_propertyOverrideFlags != expected.propertyFlags
+                || border.m_borderType != expected.borderType
+                || border.m_color != expected.color
+                || border.m_lineWeight != expected.lineWeight
+                || border.m_lineTypeHandle != 0u
+                || border.m_visible != expected.invisibility
+                || border.m_doubleLineSpacing
+                    != expected.doubleLineSpacing)
+                return fail("corrected border retry fields differ");
+        }
     }
     std::cout << "TABLECONTENT cell border transport: one-hot/grouped edges, "
-                 "indexed color, visibility, single type and lineweight, "
+                 "indexed color, visibility, single/double type, lineweight "
+                 "and spacing, "
                  "ASCII/binary readback, refusal and retry passed\n";
     return true;
 }

@@ -29407,7 +29407,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             && style.m_bottomMargin == 0.0 && style.m_rightMargin == 0.0
             && style.m_marginHorizontalSpacing == 0.0
             && style.m_marginVerticalSpacing == 0.0;
-        const auto isSelectedSimpleBorder = [](
+        const auto isSelectedCellBorder = [](
                 const DRW_TableStyleBorder& border) {
             static constexpr std::array<int, 27> lineWeights{{
                 -3, -2, -1, 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40,
@@ -29420,23 +29420,31 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 && (edgeFlags & ~std::uint32_t{0x3Fu}) == 0u;
             const std::uint32_t propertyFlags =
                 static_cast<std::uint32_t>(border.m_propertyOverrideFlags);
-            constexpr std::uint32_t supportedPropertyMask = 0x1Bu;
+            constexpr std::uint32_t supportedPropertyMask = 0x3Bu;
             const bool supportedProperties = propertyFlags != 0u
                 && (propertyFlags & ~supportedPropertyMask) == 0u;
             const bool colorOverride = (propertyFlags & 0x08u) != 0u;
             const bool visibilityOverride = (propertyFlags & 0x10u) != 0u;
             const bool typeOverride = (propertyFlags & 0x01u) != 0u;
             const bool lineWeightOverride = (propertyFlags & 0x02u) != 0u;
+            const bool spacingOverride = (propertyFlags & 0x20u) != 0u;
             const bool supportedColor = colorOverride
                 ? border.m_color >= 1 && border.m_color <= 255
                 : border.m_color == 0;
             const bool supportedVisibility = visibilityOverride
                 ? (border.m_visible == 0 || border.m_visible == 1)
                 : border.m_visible == 0;
+            const bool supportedTypeAndSpacing = typeOverride
+                ? (border.m_borderType == 1 && !spacingOverride
+                    && border.m_doubleLineSpacing == 0.0)
+                    || (border.m_borderType == 2 && spacingOverride
+                        && std::isfinite(border.m_doubleLineSpacing)
+                        && border.m_doubleLineSpacing > 0.0)
+                : (border.m_borderType == 0 && !spacingOverride
+                    && border.m_doubleLineSpacing == 0.0);
             return supportedEdges && supportedProperties
                 && supportedColor && supportedVisibility
-                && (typeOverride ? border.m_borderType == 1
-                                 : border.m_borderType == 0)
+                && supportedTypeAndSpacing
                 && border.m_colorCmc.m_rgb == -1
                 && border.m_colorCmc.m_name.empty()
                 && border.m_colorCmc.m_bookName.empty()
@@ -29447,8 +29455,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                     ? std::find(lineWeights.begin(), lineWeights.end(),
                                 border.m_lineWeight) != lineWeights.end()
                     : border.m_lineWeight == 0)
-                && border.m_lineTypeHandle == 0u
-                && border.m_doubleLineSpacing == 0.0;
+                && border.m_lineTypeHandle == 0u;
         };
         const bool noBorders = style.m_borders.empty();
         const bool selectedBorder = [&]() {
@@ -29456,7 +29463,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 return false;
             std::uint32_t seenEdges = 0u;
             for (const DRW_TableStyleBorder& border : style.m_borders) {
-                if (!isSelectedSimpleBorder(border))
+                if (!isSelectedCellBorder(border))
                     return false;
                 const std::uint32_t edgeFlags =
                     static_cast<std::uint32_t>(border.m_edgeFlags);
