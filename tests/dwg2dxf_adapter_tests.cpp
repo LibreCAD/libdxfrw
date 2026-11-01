@@ -39920,6 +39920,19 @@ bool physicalAc1018DictionaryVarOutputReadback(
         || source.dictionaryVars.size() != 3u)
         return fail("physical AC1018 DICTIONARYVAR output source is not the qualified three-record profile");
 
+    auto invalidTextStyle = std::find_if(
+        source.textStyles.begin(), source.textStyles.end(),
+        [](const DRW_Textstyle& style) { return style.name.empty(); });
+    if (invalidTextStyle == source.textStyles.end()
+        || invalidTextStyle->handle != 0xDFu
+        || invalidTextStyle->font != "ltypeshp.shx"
+        || (invalidTextStyle->flags & 0x01) != 0)
+        return fail("physical AC1018 DICTIONARYVAR source empty STYLE profile changed");
+    // Keep this bounded OBJECTS test independent of the unrelated invalid
+    // STYLE row. Its output proof covers the DICTIONARYVAR graph only; the
+    // separate empty-STYLE selector verifies refusal and corrected retry.
+    invalidTextStyle->name = "ET_DICTIONARYVAR_PROFILE_ISOLATION";
+
     const auto ownerEntry = std::find_if(
         source.namedObjectDictionary.m_entries.begin(),
         source.namedObjectDictionary.m_entries.end(),
