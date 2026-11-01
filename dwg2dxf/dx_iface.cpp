@@ -25302,6 +25302,36 @@ bool mleaderPayloadEqual(const DRW_MLeaderStyle& left,
         && leftHandles.bitPos() == rightHandles.bitPos();
 }
 
+// Compare retained typed state directly. Encoding as DWG is a stronger and
+// different question: a DXF CMC can retain an ACI-zero/method combination
+// that this DWG encoder deliberately rejects as noncanonical. Source snapshot
+// checks must still detect edits without turning that encoding limitation into
+// a refusal to write the typed state to DXF.
+bool mleaderTypedPayloadEqual(const DRW_MLeaderStyle& left,
+        const DRW_MLeaderStyle& right) noexcept {
+    if (left.styleVersion != right.styleVersion)
+        return false;
+    for (const int code : mleaderDoubleCodes)
+        if (mleaderDoubleValue(left, code) != mleaderDoubleValue(right, code))
+            return false;
+    for (const int code : mleaderInt32Codes) {
+        if (isMLeaderColorCode(code)) {
+            if (!mleaderColorValuesEqual(left, right, code))
+                return false;
+        } else if (mleaderInt32Value(left, code)
+                   != mleaderInt32Value(right, code)) {
+            return false;
+        }
+    }
+    for (const int code : mleaderStringCodes)
+        if (mleaderStringValue(left, code) != mleaderStringValue(right, code))
+            return false;
+    for (const int code : mleaderHandleCodes)
+        if (mleaderHandleValue(left, code) != mleaderHandleValue(right, code))
+            return false;
+    return true;
+}
+
 bool mleaderPayloadBodyAndStringsEqual(const DRW_MLeaderStyle& left,
         const DRW_MLeaderStyle& right, DRW::Version version) {
     dwgBufferW leftBody, leftStrings, leftHandles;
@@ -25739,8 +25769,7 @@ bool dx_iface::hasUnchangedDwgMLeaderStyleOutputSources() const noexcept {
                 || !currentHandles.insert(current.handle).second
                 || !standardDwgCommonEqual(source->second.model, current,
                     cData->sourceVersion)
-                || !mleaderPayloadEqual(source->second.model, current,
-                    cData->sourceVersion))
+                || !mleaderTypedPayloadEqual(source->second.model, current))
                 return false;
         }
         return currentHandles.size()
@@ -25873,9 +25902,17 @@ bool dx_iface::inspectDwgMLeaderStyles(
     if (m_dwgMLeaderStyleOutputSources.empty())
         return true;
     if (dxfW == nullptr || cData == nullptr
-        || view.version != DRW::AC1024
-        || !hasUnchangedDwgMLeaderStyleOutputSources()
-        || !cData->hasNamedObjectDictionary)
+        || !hasUnchangedDwgMLeaderStyleOutputSources())
+        return false;
+
+    // The physical identity/field proof below is bound to one AC1024 source
+    // and its matching AC1024 output profile. Other DWG source or target
+    // versions still require an unchanged typed snapshot, but must not be
+    // rejected (or accidentally qualified) by this narrower receipt.
+    if (cData->sourceVersion != DRW::AC1024
+        || view.version != DRW::AC1024)
+        return true;
+    if (!cData->hasNamedObjectDictionary)
         return false;
 
     // This source packet admits only the independently witnessed physical

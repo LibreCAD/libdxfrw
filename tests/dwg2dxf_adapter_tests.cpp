@@ -51747,6 +51747,22 @@ bool generateRootMLeaderStyleControl(const std::filesystem::path& path,
         }
         writer->writeString(0, "ENDTAB");
         writer->writeString(0, "TABLE");
+        writer->writeString(2, "LAYER");
+        writer->writeString(5, "2");
+        writer->writeString(330, "0");
+        writer->writeString(100, "AcDbSymbolTable");
+        writer->writeInt16(70, 1);
+        writer->writeString(0, "LAYER");
+        writer->writeString(5, "10");
+        writer->writeString(330, "2");
+        writer->writeString(100, "AcDbSymbolTableRecord");
+        writer->writeString(100, "AcDbLayerTableRecord");
+        writer->writeString(2, "0");
+        writer->writeInt16(70, 0);
+        writer->writeInt16(62, 7);
+        writer->writeString(6, "MLEADER_LINE");
+        writer->writeString(0, "ENDTAB");
+        writer->writeString(0, "TABLE");
         writer->writeString(2, "STYLE");
         writer->writeString(5, "3");
         writer->writeString(330, "0");
@@ -52969,15 +52985,24 @@ bool rootMLeaderStyleWriterClosure(const std::filesystem::path& directory,
                 [&expectedEntry](const DRW_Dictionary::Entry& candidate) {
                     return candidate.m_name == expectedEntry.first;
                 });
+            if (entry == dictionary->m_entries.end())
+                return false;
             const auto style = std::find_if(
                 data.mLeaderStyles.begin(), data.mLeaderStyles.end(),
-                [&expectedEntry](const DRW_MLeaderStyle& candidate) {
-                    return candidate.name == expectedEntry.first;
+                [&expectedEntry, &entry, &dictionary](
+                        const DRW_MLeaderStyle& candidate) {
+                    return candidate.handle == entry->m_handle
+                        && candidate.parentHandle == dictionary->handle
+                        && (candidate.name.empty()
+                            || candidate.name == expectedEntry.first);
                 });
-            if (entry == dictionary->m_entries.end()
-                || style == data.mLeaderStyles.end()
-                || style->handle != entry->m_handle
-                || style->parentHandle != dictionary->handle
+            if (style == data.mLeaderStyles.end()
+                || std::count_if(data.mLeaderStyles.begin(),
+                    data.mLeaderStyles.end(), [&entry, &dictionary](
+                        const DRW_MLeaderStyle& candidate) {
+                        return candidate.handle == entry->m_handle
+                            && candidate.parentHandle == dictionary->handle;
+                    }) != 1
                 || style->textHeight != expectedEntry.second)
                 return false;
         }
@@ -56661,11 +56686,64 @@ bool mleaderStylePackedColorProjection(
         return false;
 
     const auto findStyle = [](dx_data& data) -> DRW_MLeaderStyle* {
-        const auto found = std::find_if(data.mLeaderStyles.begin(),
-            data.mLeaderStyles.end(), [](const DRW_MLeaderStyle& candidate) {
-                return candidate.name == "STANDARD";
+        if (!data.hasNamedObjectDictionary)
+            return nullptr;
+        const auto rootEntry = std::find_if(
+            data.namedObjectDictionary.m_entries.begin(),
+            data.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_MLEADERSTYLE";
             });
-        return found == data.mLeaderStyles.end() ? nullptr : &*found;
+        if (rootEntry == data.namedObjectDictionary.m_entries.end()
+            || std::count_if(data.namedObjectDictionary.m_entries.begin(),
+                   data.namedObjectDictionary.m_entries.end(),
+                   [](const DRW_Dictionary::Entry& entry) {
+                       return entry.m_name == "ACAD_MLEADERSTYLE";
+                   }) != 1)
+            return nullptr;
+        const auto dictionary = std::find_if(data.dictionaries.begin(),
+            data.dictionaries.end(), [&data, rootEntry](
+                    const DRW_Dictionary& candidate) {
+                return candidate.handle == rootEntry->m_handle
+                    && candidate.parentHandle
+                        == data.namedObjectDictionary.handle;
+            });
+        if (dictionary == data.dictionaries.end()
+            || std::count_if(data.dictionaries.begin(), data.dictionaries.end(),
+                   [&data, rootEntry](const DRW_Dictionary& candidate) {
+                       return candidate.handle == rootEntry->m_handle
+                           && candidate.parentHandle
+                               == data.namedObjectDictionary.handle;
+                   }) != 1)
+            return nullptr;
+        const auto styleEntry = std::find_if(dictionary->m_entries.begin(),
+            dictionary->m_entries.end(), [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "STANDARD";
+            });
+        if (styleEntry == dictionary->m_entries.end()
+            || std::count_if(dictionary->m_entries.begin(),
+                   dictionary->m_entries.end(),
+                   [](const DRW_Dictionary::Entry& entry) {
+                       return entry.m_name == "STANDARD";
+                   }) != 1)
+            return nullptr;
+        const auto style = std::find_if(data.mLeaderStyles.begin(),
+            data.mLeaderStyles.end(), [dictionary, styleEntry](
+                    const DRW_MLeaderStyle& candidate) {
+                return candidate.handle == styleEntry->m_handle
+                    && candidate.parentHandle == dictionary->handle
+                    && (candidate.name.empty()
+                        || candidate.name == styleEntry->m_name);
+            });
+        if (style == data.mLeaderStyles.end()
+            || std::count_if(data.mLeaderStyles.begin(),
+                   data.mLeaderStyles.end(), [dictionary, styleEntry](
+                       const DRW_MLeaderStyle& candidate) {
+                       return candidate.handle == styleEntry->m_handle
+                           && candidate.parentHandle == dictionary->handle;
+                   }) != 1)
+            return nullptr;
+        return &*style;
     };
     const auto verifyColors = [&findStyle](dx_data& data,
             int leaderIndex, std::int32_t leaderRgb,
