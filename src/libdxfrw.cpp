@@ -29407,7 +29407,46 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             && style.m_bottomMargin == 0.0 && style.m_rightMargin == 0.0
             && style.m_marginHorizontalSpacing == 0.0
             && style.m_marginVerticalSpacing == 0.0;
-        const auto isSelectedCellBorder = [this](
+        const auto selectedBorderColorIsSupported = [](
+                int color, const DRW_TableStyleCmcColor& cmc) {
+            const auto safeColorName = [](const UTF8STRING& value) {
+                return value.size() <= 1024u * 1024u
+                    && value.find('$') == UTF8STRING::npos
+                    && isSafeDxfRecordText(value);
+            };
+            const std::uint8_t nameFlags = static_cast<std::uint8_t>(
+                (cmc.m_name.empty() ? 0u : 0x01u)
+                | (cmc.m_bookName.empty() ? 0u : 0x02u));
+            constexpr std::size_t maxColorNameBytes = 1024u * 1024u;
+            const bool combinedNameFits = cmc.m_bookName.empty()
+                || (!cmc.m_name.empty()
+                    && cmc.m_bookName.size() < maxColorNameBytes
+                    && cmc.m_name.size() <= maxColorNameBytes
+                        - cmc.m_bookName.size() - 1u);
+            if (color < 0 || color > 256 || cmc.m_rgb < -1
+                || cmc.m_rgb > 0xFFFFFF || cmc.m_flags != nameFlags
+                || cmc.m_reservedIndex != 0u
+                || !safeColorName(cmc.m_name)
+                || !safeColorName(cmc.m_bookName)
+                || !combinedNameFits)
+                return false;
+            switch (cmc.m_method) {
+            case 0:
+                return cmc.m_rgb < 0 && nameFlags == 0u;
+            case 0xC1:
+                return cmc.m_rgb < 0 && cmc.m_name.empty()
+                    && cmc.m_bookName.empty() && color == 0;
+            case 0xC2:
+                return cmc.m_rgb >= 0;
+            case 0xC3:
+                return cmc.m_rgb < 0 && cmc.m_name.empty()
+                    && cmc.m_bookName.empty() && color > 0 && color < 256;
+            default:
+                return false;
+            }
+        };
+        const auto isSelectedCellBorder = [this, &cmcIsDefault,
+                &selectedBorderColorIsSupported](
                 const DRW_TableStyleBorder& border) {
             static constexpr std::array<int, 27> lineWeights{{
                 -3, -2, -1, 0, 5, 9, 13, 15, 18, 20, 25, 30, 35, 40,
@@ -29430,8 +29469,10 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             const bool lineTypeOverride = (propertyFlags & 0x04u) != 0u;
             const bool spacingOverride = (propertyFlags & 0x20u) != 0u;
             const bool supportedColor = colorOverride
-                ? border.m_color >= 1 && border.m_color <= 255
-                : border.m_color == 0;
+                ? selectedBorderColorIsSupported(
+                    border.m_color, border.m_colorCmc)
+                : border.m_color == 0
+                    && cmcIsDefault(border.m_colorCmc);
             const bool supportedVisibility = visibilityOverride
                 ? (border.m_visible == 0 || border.m_visible == 1)
                 : border.m_visible == 0;
@@ -29446,12 +29487,6 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             return supportedEdges && supportedProperties
                 && supportedColor && supportedVisibility
                 && supportedTypeAndSpacing
-                && border.m_colorCmc.m_rgb == -1
-                && border.m_colorCmc.m_name.empty()
-                && border.m_colorCmc.m_bookName.empty()
-                && border.m_colorCmc.m_method == 0u
-                && border.m_colorCmc.m_flags == 0u
-                && border.m_colorCmc.m_reservedIndex == 0u
                 && (lineTypeOverride
                     ? dxfWriteSourceLinetypeTargetHandle(
                         border.m_lineTypeHandle) != 0u
@@ -30011,6 +30046,24 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 if (border.m_lineTypeHandle != 0u
                     && lineTypeHandle == 0u)
                     return false;
+                std::string dxfColorName;
+                if (!border.m_colorCmc.m_name.empty()) {
+                    try {
+                        dxfColorName.reserve(
+                            border.m_colorCmc.m_name.size()
+                            + (border.m_colorCmc.m_bookName.empty()
+                                ? 0u
+                                : border.m_colorCmc.m_bookName.size() + 1u));
+                        if (!border.m_colorCmc.m_bookName.empty()) {
+                            dxfColorName.append(
+                                border.m_colorCmc.m_bookName);
+                            dxfColorName.push_back('$');
+                        }
+                        dxfColorName.append(border.m_colorCmc.m_name);
+                    } catch (...) {
+                        return false;
+                    }
+                }
                 if (!writer->writeInt32(95, border.m_edgeFlags)
                     || !writer->writeString(302, "GRIDFORMAT")
                     || !writer->writeString(1, "GRIDFORMAT_BEGIN")
@@ -30022,6 +30075,8 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                     || (border.m_colorCmc.m_rgb >= 0
                         && !writer->writeInt32(420,
                             border.m_colorCmc.m_rgb))
+                    || (!dxfColorName.empty()
+                        && !writer->writeUtf8String(430, dxfColorName))
                     || !writer->writeInt32(92, border.m_lineWeight)
                     || !writer->writeString(340, toHexStr(lineTypeHandle))
                     || !writer->writeInt32(93, border.m_visible)

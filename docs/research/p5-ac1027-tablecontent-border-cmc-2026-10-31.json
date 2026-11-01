@@ -1,0 +1,84 @@
+{
+  "schema": "libdxfrw-dxf-implementation-receipt-v1",
+  "date": "2026-10-31",
+  "status": "SCOPED_IMPLEMENTATION_COMPLETE_NO_CLAIM_PROMOTION",
+  "workstream": "P5 / AC1027 TABLECONTENT border RGB and named-color CMC",
+  "basis": {
+    "authoritativeDwgSpecification": {
+      "title": "Open Design Specification for .dwg files v5.4.1",
+      "localPath": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sections": ["2.11 CmColor", "20.4.101.4 Cell style"],
+      "finding": "CMC carries an RGB value and optional color-name/book-name TV values selected by flag bits 0x01 and 0x02. TABLE cell border color is a CMC field with DXF scalar group 62. The DWG spec does not define a generic group-431 mapping for this nested TABLECONTENT color."
+    },
+    "dxfCompatibilityEvidence": [
+      {
+        "authority": "Autodesk AutoLISP acad_truecolordlg reference",
+        "url": "https://help.autodesk.com/cloudhelp/2017/PTB/AutoCAD-AutoLISP/files/GUID-E6FF435F-9E66-4F37-8770-2E3FB87B8E0B.htm",
+        "finding": "The documented color-book result carries an ACI group 62, true-color group 420, and group 430 using BOOK$ENTRY spelling."
+      },
+      {
+        "authority": "Autodesk DXF numerical group-code reference",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+        "finding": "Groups 420-427 are 32-bit true-color values; groups 430-437 are strings used for true-color names."
+      },
+      {
+        "authority": "LibreDWG independent DXF writer",
+        "url": "https://github.com/LibreDWG/libredwg/blob/master/src/out_dxf.c#L1200-L1280",
+        "finding": "dxf_CMC emits true color at base+420 and serializes book plus entry as one BOOK$ENTRY string at base+430; it does not emit group 431 as the book-name half."
+      }
+    ],
+    "localSchemaBoundary": "The nested TABLECONTENT decoder reuses the established color-field scope after group 62. It admits RGB-only, RGB plus color name, and RGB plus BOOK$ENTRY profiles. Group 431, book-only values, and ambiguous multiple '$' separators are refused or unrepresentable."
+  },
+  "profile": {
+    "version": "AC1027",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "fixture": "Runtime-authored TABLECONTENT records; no drawing fixture files were added.",
+    "coverage": [
+      "RGB-only color uses groups 62 and 420",
+      "RGB plus color name uses group 430",
+      "RGB plus color-book and entry uses group 430 BOOK$ENTRY spelling",
+      "All supported profiles preserve CMC method and optional-string flag bits",
+      "Physical output is checked independently from fresh typed readback",
+      "Unsupported CMC method and inconsistent optional-string flags preserve the destination and caller state; corrected same-adapter retry is checked"
+    ],
+    "exampleWire": {
+      "aci": 3,
+      "rgb": 1193046,
+      "bookEntryGroup430": "Generated Palette Ω$Accent Red é",
+      "group431": "not emitted for this CMC profile"
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "src/intern/dxftablecontent.h",
+      "tests/table_content_dxf_tests.cpp"
+    ],
+    "behavior": "The writer emits group 420 for RGB and composes color-book and entry strings into the group-430 BOOK$ENTRY representation. The nested TABLECONTENT decoder retains the combined text and projects its two components into the existing CMC carrier. It rejects unsupported group-431 input in this color scope and refuses ambiguous or unsupported name/book states before output publication.",
+    "failureRetry": "Invalid CMC method, mismatched name/book flag bits, and invalid border override state are refused without replacing a destination sentinel or mutating the caller model. The original model then succeeds on the same adapter, and fresh ASCII/binary readback matches all border fields and the remapped linetype target.",
+    "fixturePolicy": "All test inputs are generated at runtime; no external DWG/DXF fixture was added."
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_table_content_dxf_tests -j2",
+      "result": "PASS"
+    },
+    "focusedTest": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_table_content_cell_border_visibility_edges$' --output-on-failure",
+      "result": "PASS, 1/1, 0.64 seconds"
+    },
+    "diffCheck": "PASS: git diff --check",
+    "sha256": {
+      "src/libdxfrw.cpp": "fac464e8041aa5f6c88dbe9c054341af447cbfc7cae3ff4713ca15a32c71a1df",
+      "src/intern/dxftablecontent.h": "dbe98b06b439308006d2a36557a0958ec287ef95cdc231977189e9a17d169438",
+      "tests/table_content_dxf_tests.cpp": "ecd11ee58951fb0910a0429ac5cdc3593a7cd67519009dc79a21a0ceaa52e7b2",
+      "focusedExecutable": "39817ee1137421ce2c395e53ef20452a7026d39a8f685e90af3bdcc51e9495dd"
+    }
+  },
+  "limits": [
+    "This is a scoped serializer/parser profile, not native TABLE rendering or whole-document closure evidence.",
+    "The profile does not establish producer-authored TABLECONTENT samples, code-431 semantics in other object contexts, book-only colors, native CAD application acceptance, or a public support claim.",
+    "The test exercises the local reader against locally authored writer output; no independent CAD application was run."
+  ],
+  "next": "Continue with overlapping TABLECONTENT edge declarations; keep unsupported CMC compositions fail-closed until a class-specific witness supports them."
+}

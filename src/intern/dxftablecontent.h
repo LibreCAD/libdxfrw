@@ -157,14 +157,34 @@ class Decoder {
         }
         marker(309,"DATAMAP_END");
     }
-    void color(int& scalar, DRW_TableStyleCmcColor& metadataColor) {
+    void color(int& scalar, DRW_TableStyleCmcColor& metadataColor,
+               bool allowBorderColorNames = false) {
         scalar=integer(62);
         if (peek()==420) {
             metadataColor.m_rgb=integer(420);
             if (metadataColor.m_rgb<0 || metadataColor.m_rgb>0xFFFFFF) throw Unmatched{};
+            metadataColor.m_method=0xC2u;
         }
-        // Named-color presence needs its own witnessed schema, not guessed
-        // private TABLESTYLE parser flags. Such profiles remain raw.
+        if (peek()==430) {
+            if (!allowBorderColorNames || metadataColor.m_rgb<0) throw Unmatched{};
+            const std::string value=text(430);
+            if (value.empty()) throw Unmatched{};
+            const std::size_t separator=value.find('$');
+            if (separator==std::string_view::npos) {
+                metadataColor.m_name.assign(value);
+                metadataColor.m_flags|=0x01u;
+            } else {
+                if (separator==0u || separator+1u>=value.size()
+                    || value.find('$',separator+1u)!=std::string_view::npos)
+                    throw Unmatched{};
+                metadataColor.m_bookName.assign(value.substr(0u,separator));
+                metadataColor.m_name.assign(value.substr(separator+1u));
+                metadataColor.m_flags|=0x03u;
+            }
+        }
+        // Group 431 is not the CMC color-book field in this TABLECONTENT
+        // profile; color books use the BOOK$ENTRY spelling in group 430.
+        if (allowBorderColorNames && peek()==431) throw Unmatched{};
     }
     DRW_TableStyleContentFormat format() {
         DRW_TableStyleContentFormat result;
@@ -205,7 +225,7 @@ class Decoder {
                 if (border.m_edgeFlags==0 || (border.m_edgeFlags & ~0x3F)) throw Unmatched{};
                 marker(302,"GRIDFORMAT"); marker(1,"GRIDFORMAT_BEGIN");
                 border.m_propertyOverrideFlags=integer(90); border.m_borderType=integer(91);
-                color(border.m_color,border.m_colorCmc); border.m_lineWeight=integer(92);
+                color(border.m_color,border.m_colorCmc,true); border.m_lineWeight=integer(92);
                 border.m_lineTypeHandle=handle(340,ReferenceKind::LineType); border.m_visible=integer(93);
                 if (border.m_visible!=0 && border.m_visible!=1) throw Unmatched{};
                 border.m_doubleLineSpacing=real(40); marker(309,"GRIDFORMAT_END");

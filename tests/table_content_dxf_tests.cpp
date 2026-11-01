@@ -2008,27 +2008,37 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
         int lineWeight;
         double doubleLineSpacing;
         std::uint32_t lineTypeHandle;
+        std::uint8_t cmcFields;
     };
     constexpr std::uint32_t sourceLineTypeHandle = 0xC102u;
     const std::array<std::vector<BorderExpectation>, 2> borderProfiles{{
-        {{1, 0x10, 0, 1, 0, 0, 0.0, 0u},
-         {2, 0x08, 7, 0, 0, 0, 0.0, 0u},
-         {4, 0x18, 3, 1, 0, 0, 0.0, 0u},
-         {8, 0x01, 0, 0, 1, 0, 0.0, 0u},
-         {0x10, 0x02, 0, 0, 0, 25, 0.0, 0u},
-         {0x20, 0x1B, 12, 1, 1, 50, 0.0, 0u}},
-        {{0x03, 0x0A, 7, 0, 0, -2, 0.0, 0u},
-         {0x0C, 0x11, 0, 1, 1, 0, 0.0, 0u},
+        {{1, 0x10, 0, 1, 0, 0, 0.0, 0u, 0u},
+         {2, 0x08, 7, 0, 0, 0, 0.0, 0u, 0u},
+         {4, 0x18, 3, 1, 0, 0, 0.0, 0u, 0u},
+         {8, 0x01, 0, 0, 1, 0, 0.0, 0u, 0u},
+         {0x10, 0x02, 0, 0, 0, 25, 0.0, 0u, 0u},
+         {0x20, 0x1B, 12, 1, 1, 50, 0.0, 0u, 0u}},
+        {{0x03, 0x0A, 7, 0, 0, -2, 0.0, 0u, 0u},
+         {0x0C, 0x11, 0, 1, 1, 0, 0.0, 0u, 0u},
          {0x30, 0x3D, 3, 1, 2, 0, 0.5,
-          sourceLineTypeHandle}}
+          sourceLineTypeHandle, 0u}}
     }};
-    for (std::size_t run = 0; run < borderProfiles.size() * 2u; ++run) {
-        const std::size_t profile = run % borderProfiles.size();
-        const bool binary = run / borderProfiles.size() != 0u;
-        const std::vector<BorderExpectation>& expectedBorders =
-            borderProfiles[profile];
+    constexpr std::array<std::uint8_t, 3> extendedCmcProfiles{{1u, 3u, 7u}};
+    constexpr std::size_t basicRuns = 2u;
+    constexpr std::size_t runCount = basicRuns + extendedCmcProfiles.size() * 2u;
+    for (std::size_t run = 0; run < runCount; ++run) {
+        const std::size_t profile = run < basicRuns ? 0u : 1u;
+        const bool binary = run < basicRuns ? run != 0u
+            : (run - basicRuns) % 2u != 0u;
+        std::vector<BorderExpectation> expectedBorders = borderProfiles[profile];
+        if (profile == 1u) {
+            expectedBorders.back().cmcFields =
+                extendedCmcProfiles[(run - basicRuns) / 2u];
+        }
         const auto path = dir / (std::string("cell-border-edges-")
-            + std::to_string(profile) + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            + std::to_string(profile) + "-cmc-"
+            + std::to_string(expectedBorders.back().cmcFields)
+            + (binary ? "-binary.dxf" : "-ascii.dxf"));
         dx_data data;
         dx_iface exporter;
         exporter.cData = &data;
@@ -2072,14 +2082,37 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
             border.m_lineWeight = expected.lineWeight;
             border.m_doubleLineSpacing = expected.doubleLineSpacing;
             border.m_lineTypeHandle = expected.lineTypeHandle;
+            if ((expected.cmcFields & 0x01u) != 0u) {
+                border.m_colorCmc.m_rgb = 0x123456;
+                border.m_colorCmc.m_method = 0xC2u;
+                if ((expected.cmcFields & 0x02u) != 0u) {
+                    border.m_colorCmc.m_flags |= 0x01u;
+                    border.m_colorCmc.m_name = "Accent Red é";
+                }
+                if ((expected.cmcFields & 0x04u) != 0u) {
+                    border.m_colorCmc.m_flags |= 0x02u;
+                    border.m_colorCmc.m_bookName = "Generated Palette Ω";
+                }
+            }
             cellStyle.m_borders.push_back(border);
         }
         table.m_dxfMetadata = metadata;
         exporter.addTableContent(table);
 
         if (!exporter.fileExport(path.string(), DRW::AC1027, binary,
-                                 &data, false))
-            return fail("selected cell border profiles were refused");
+                                 &data, false)) {
+            std::string diagnosticText = "writer diagnostic unavailable";
+            if (exporter.dxfW != nullptr) {
+                const DRW_OperationDiagnostic diagnostic =
+                    exporter.dxfW->getLastDiagnostic();
+                diagnosticText = diagnostic.code + " " + diagnostic.message;
+            }
+            return fail("selected cell border profile "
+                + std::to_string(profile) + " CMC "
+                + std::to_string(expectedBorders.back().cmcFields)
+                + (binary ? " binary" : " ASCII") + " was refused: "
+                + diagnosticText);
+        }
 
         std::uint32_t emittedLineTypeHandle = 0u;
         std::string emittedLineTypeHandleText = "0";
@@ -2145,6 +2178,9 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
             int propertyFlags = -1;
             int borderType = -1;
             int color = -1;
+            int colorRgb = -1;
+            std::string colorName;
+            std::string colorBookName;
             int lineWeight = -1;
             std::string lineType;
             int invisibility = -1;
@@ -2191,6 +2227,12 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
                     current.borderType = static_cast<int>(tag.integer);
                 else if (tag.code == 62)
                     current.color = static_cast<int>(tag.integer);
+                else if (tag.code == 420)
+                    current.colorRgb = static_cast<int>(tag.integer);
+                else if (tag.code == 430)
+                    current.colorName = tag.text;
+                else if (tag.code == 431)
+                    current.colorBookName = tag.text;
                 else if (tag.code == 92)
                     current.lineWeight = static_cast<int>(tag.integer);
                 else if (tag.code == 340)
@@ -2219,6 +2261,13 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
                 || border.propertyFlags != expected.propertyFlags
                 || border.borderType != expected.borderType
                 || border.color != expected.color
+                || border.colorRgb != ((expected.cmcFields & 0x01u) != 0u
+                    ? 0x123456 : -1)
+                || border.colorName != ((expected.cmcFields & 0x02u) != 0u
+                    ? ((expected.cmcFields & 0x04u) != 0u
+                        ? "Generated Palette Ω$Accent Red é"
+                        : "Accent Red é") : "")
+                || !border.colorBookName.empty()
                 || border.lineWeight != expected.lineWeight
                 || border.lineType != (expected.lineTypeHandle == 0u
                     ? "0" : emittedLineTypeHandleText)
@@ -2246,6 +2295,17 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
                 || border.m_propertyOverrideFlags != expected.propertyFlags
                 || border.m_borderType != expected.borderType
                 || border.m_color != expected.color
+                || border.m_colorCmc.m_rgb != ((expected.cmcFields & 0x01u) != 0u
+                    ? 0x123456 : -1)
+                || border.m_colorCmc.m_name != ((expected.cmcFields & 0x02u) != 0u
+                    ? "Accent Red é" : "")
+                || border.m_colorCmc.m_bookName != ((expected.cmcFields & 0x04u) != 0u
+                    ? "Generated Palette Ω" : "")
+                || border.m_colorCmc.m_method
+                    != ((expected.cmcFields & 0x01u) != 0u
+                    ? 0xC2u : 0u)
+                || border.m_colorCmc.m_flags
+                    != static_cast<std::uint8_t>((expected.cmcFields >> 1u) & 0x03u)
                 || border.m_lineWeight != expected.lineWeight
                 || border.m_lineTypeHandle
                     != (expected.lineTypeHandle == 0u
@@ -2338,6 +2398,53 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
             lineTypeBorder->m_lineTypeHandle = originalLineTypeHandle;
         }
 
+        const auto extendedColorBorder = std::find_if(
+            styleBorders.begin(), styleBorders.end(),
+            [](const DRW_TableStyleBorder& border) {
+                return (static_cast<std::uint32_t>(
+                    border.m_propertyOverrideFlags) & 0x08u) != 0u
+                    && border.m_colorCmc.m_rgb >= 0;
+            });
+        if (profile == 1u
+            && extendedColorBorder == styleBorders.end())
+            return fail("extended-color profile has no RGB border");
+        if (extendedColorBorder != styleBorders.end()) {
+            const std::uint8_t originalMethod =
+                extendedColorBorder->m_colorCmc.m_method;
+            extendedColorBorder->m_colorCmc.m_method = 0xFFu;
+            const std::string colorSentinel =
+                "PRESERVE_TABLECONTENT_COLOR_DESTINATION";
+            { std::ofstream out(path, std::ios::binary);
+              out << colorSentinel; }
+            if (exporter.fileExport(path.string(), DRW::AC1027, binary,
+                                    &data, false))
+                return fail("unsupported border CMC method was accepted");
+            { std::ifstream in(path, std::ios::binary);
+              if (std::string(std::istreambuf_iterator<char>(in), {})
+                  != colorSentinel)
+                  return fail("CMC refusal changed the destination"); }
+            if (extendedColorBorder->m_colorCmc.m_method != 0xFFu)
+                return fail("CMC refusal changed the caller model");
+            extendedColorBorder->m_colorCmc.m_method = originalMethod;
+
+            const std::uint8_t originalFlags =
+                extendedColorBorder->m_colorCmc.m_flags;
+            extendedColorBorder->m_colorCmc.m_flags ^= 0x01u;
+            { std::ofstream out(path, std::ios::binary);
+              out << colorSentinel; }
+            if (exporter.fileExport(path.string(), DRW::AC1027, binary,
+                                    &data, false))
+                return fail("inconsistent CMC name flags were accepted");
+            { std::ifstream in(path, std::ios::binary);
+              if (std::string(std::istreambuf_iterator<char>(in), {})
+                  != colorSentinel)
+                  return fail("CMC flags refusal changed the destination"); }
+            if (extendedColorBorder->m_colorCmc.m_flags
+                != static_cast<std::uint8_t>(originalFlags ^ 0x01u))
+                return fail("CMC flags refusal changed the caller model");
+            extendedColorBorder->m_colorCmc.m_flags = originalFlags;
+        }
+
         DRW_TableStyleBorder& invalidBorder = styleBorders.front();
         const int originalBorderProperties =
             invalidBorder.m_propertyOverrideFlags;
@@ -2376,6 +2483,17 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
                 || border.m_propertyOverrideFlags != expected.propertyFlags
                 || border.m_borderType != expected.borderType
                 || border.m_color != expected.color
+                || border.m_colorCmc.m_rgb != ((expected.cmcFields & 0x01u) != 0u
+                    ? 0x123456 : -1)
+                || border.m_colorCmc.m_name != ((expected.cmcFields & 0x02u) != 0u
+                    ? "Accent Red é" : "")
+                || border.m_colorCmc.m_bookName != ((expected.cmcFields & 0x04u) != 0u
+                    ? "Generated Palette Ω" : "")
+                || border.m_colorCmc.m_method
+                    != ((expected.cmcFields & 0x01u) != 0u
+                    ? 0xC2u : 0u)
+                || border.m_colorCmc.m_flags
+                    != static_cast<std::uint8_t>((expected.cmcFields >> 1u) & 0x03u)
                 || border.m_lineWeight != expected.lineWeight
                 || border.m_lineTypeHandle
                     != (expected.lineTypeHandle == 0u
@@ -2387,8 +2505,8 @@ bool tableContentCellBorderVisibilityEdgesWriteTests(
         }
     }
     std::cout << "TABLECONTENT cell border transport: one-hot/grouped edges, "
-                 "indexed color, visibility, single/double type, lineweight, "
-                 "linetype and spacing, "
+                 "indexed/extended colors, visibility, single/double type, "
+                 "lineweight, linetype and spacing, "
                  "ASCII/binary readback, refusal and retry passed\n";
     return true;
 }

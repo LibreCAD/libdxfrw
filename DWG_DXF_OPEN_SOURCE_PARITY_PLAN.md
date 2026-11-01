@@ -49,7 +49,7 @@ Implementation history and evidence stay in Git and `docs/research/`.
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
 | P4 | OPEN — source/graph closure | Resolve reproduced source-required bodies and dependencies that still lack strict output/readback proof. For AC1018 `ET-Drawing-with-Border.dwg`, determine whether the 23 unqualified opaque callbacks can reference the empty-name STYLE at handle `0xDF` before assigning an output disposition; see the independent census [receipt](docs/research/p4-ac1018-empty-style-reference-census-2026-10-31.json). DXF readback currently stops in STYLE with `BAD_CODE_PARSED`; retain strict refusal until reachability and output are qualified. | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
-| P5 | OPEN — broader rendering/TABLE and dynamic-block semantics | Resolve native dynamic-block semantics and the parentId projection boundary for the two-root AC1024 graph; finish remaining rendering metadata/native rendering profiles, nested FIELDLIST/child graphs and source-backed FIELD profiles, independently evidenced block-cell geometry, the remaining CONTENTFORMAT/CELLSTYLEMAP profiles, extended TABLECONTENT border CMC/name/book colors and overlapping edge declarations, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
+| P5 | OPEN — broader rendering/TABLE and dynamic-block semantics | Resolve native dynamic-block semantics and the parentId projection boundary for the two-root AC1024 graph; finish remaining rendering metadata/native rendering profiles, nested FIELDLIST/child graphs and source-backed FIELD profiles, independently evidenced block-cell geometry, the remaining CONTENTFORMAT/CELLSTYLEMAP profiles, overlapping TABLECONTENT edge declarations, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
 | P8 | OPEN | Qualify LibreCAD/LibreCAD_3, FreeCAD, native platforms, ABI, packaging and release contracts on a composed candidate. | Relevant local conversion and output paths must be source-stable. |
@@ -151,12 +151,8 @@ reproduced missing provider, remap, collision or composed output failure.
    and semantics to that witness; keep unsupported payloads refused while
    preserving current block-reference and ATTDEF ownership validation.
 3. Complete only the remaining source- or consumer-backed CONTENTFORMAT string,
-   data/unit/domain/property combinations and CELLSTYLEMAP body/property
-   profiles. For borders, the remaining profiles are extended CMC RGB/name/book
-   colors (DXF groups 420/430/431) and overlapping edge declarations. The
-   in-progress color packet remains open until both physical output and fresh
-   typed readback preserve the selected CMC fields; group emission alone is not
-   completion.
+   data/unit/domain/property combinations, CELLSTYLEMAP body/property profiles,
+   and overlapping TABLECONTENT edge declarations.
    Cover the witnessed scope combinations and version gates; keep unsupported
    styles refused until schema and wire order are known.
 4. Complete source-bound AC1018 TABLE body and merge/presence profiles beyond the
