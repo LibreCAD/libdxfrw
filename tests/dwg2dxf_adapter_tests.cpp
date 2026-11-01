@@ -39281,6 +39281,94 @@ bool physicalTableStyleSourceProfile(
     return true;
 }
 
+bool physicalAc1018EmptyTextStyleOutputRefusal(
+        const std::filesystem::path& sourcePath) {
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1018)
+        return fail("physical empty-name STYLE source is not AC1018 DWG");
+
+    auto emptyStyle = std::find_if(
+        source.textStyles.begin(), source.textStyles.end(),
+        [](const DRW_Textstyle& style) { return style.name.empty(); });
+    if (emptyStyle == source.textStyles.end()
+        || emptyStyle->handle != 0xDFu
+        || emptyStyle->font != "ltypeshp.shx"
+        || emptyStyle->bigFont.size() != 0u
+        || (emptyStyle->flags & 0x01) != 0)
+        return fail("physical AC1018 empty-name STYLE profile changed");
+
+    const DRW_Textstyle original = *emptyStyle;
+    const auto stamp = std::chrono::steady_clock::now()
+                           .time_since_epoch().count();
+    for (const bool binary : {false, true}) {
+        const auto output = std::filesystem::temp_directory_path()
+            / ("libdxfrw-ac1018-empty-style-" + std::to_string(stamp)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        const std::string sentinel =
+            "preserve AC1018 empty-name STYLE destination\n";
+        {
+            std::ofstream prior(output, std::ios::binary);
+            if (!prior)
+                return fail("could not create empty-name STYLE destination sentinel");
+            prior << sentinel;
+            if (!prior)
+                return fail("could not write empty-name STYLE destination sentinel");
+        }
+
+        dx_iface exporter;
+        const bool invalidSourceWritten = exporter.fileExport(
+            output.string(), DRW::AC1024, binary, &source, false, true,
+            dx_dxfSourceTextPolicy::RequireValidSource,
+            DRW::DxfTextWritePolicy::RequireLossless,
+            dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+            dx_dwgReadCompletenessPolicy::AllowPartial);
+        std::ifstream refusedOutput(output, std::ios::binary);
+        const std::string refusedBytes{
+            std::istreambuf_iterator<char>(refusedOutput),
+            std::istreambuf_iterator<char>()};
+        if (invalidSourceWritten || refusedBytes != sentinel
+            || emptyStyle->name != original.name
+            || emptyStyle->handle != original.handle
+            || emptyStyle->font != original.font
+            || emptyStyle->flags != original.flags) {
+            std::filesystem::remove(output);
+            return fail("empty-name STYLE emission did not refuse atomically and preserve caller state");
+        }
+
+        emptyStyle->name = "ET_EMPTY_STYLE_RECOVERY";
+        if (!exporter.fileExport(
+                output.string(), DRW::AC1024, binary, &source, false, true,
+                dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::AllowPartial)) {
+            emptyStyle->name = original.name;
+            std::filesystem::remove(output);
+            return fail("corrected AC1018 STYLE profile could not retry on the same adapter");
+        }
+        dx_iface outputReader;
+        dx_data outputData;
+        if (!outputReader.fileImport(output.string(), &outputData, false)
+            || std::none_of(outputData.textStyles.begin(),
+                            outputData.textStyles.end(),
+                [](const DRW_Textstyle& style) {
+                    return style.name == "ET_EMPTY_STYLE_RECOVERY";
+                })) {
+            emptyStyle->name = original.name;
+            std::filesystem::remove(output);
+            return fail("corrected AC1018 STYLE retry did not freshly import");
+        }
+        emptyStyle->name = original.name;
+        std::filesystem::remove(output);
+    }
+    std::cerr << "Physical AC1018 empty-name STYLE is refused without output mutation; "
+                 "corrected ASCII/Binary retries freshly import.\n";
+    return true;
+}
+
 bool physicalTableStyleOutputReadback(
         const std::filesystem::path& sourcePath) {
     dx_iface sourceReader;
@@ -57806,6 +57894,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--tablestyle-physical-ac1018-source-profile")
         return physicalTableStyleSourceProfile(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--empty-textstyle-physical-ac1018-output-refusal")
+        return physicalAc1018EmptyTextStyleOutputRefusal(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--tablestyle-physical-output-readback")
         return physicalTableStyleOutputReadback(argv[2]) ? 0 : 1;

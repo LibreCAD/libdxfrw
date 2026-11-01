@@ -5594,6 +5594,7 @@ bool DRW_Textstyle::validatePayloadFields() const {
 
 bool DRW_Textstyle::validateDxf() const {
     return validatePayloadFields()
+        && (!name.empty() || (flags & 0x01) != 0)
         && flags <= std::numeric_limits<std::int16_t>::max()
         && genFlag <= std::numeric_limits<std::int16_t>::max();
 }

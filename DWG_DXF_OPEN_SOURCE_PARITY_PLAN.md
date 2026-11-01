@@ -1,6 +1,6 @@
 # DWG/DXF parity — remaining implementation plan
 
-Updated 2026-10-31. This file contains open work only. Implementation history and
+Updated 2026-11-01. This file contains open work only. Implementation history and
 completed-item evidence belong in Git and `docs/research/`, not in this queue.
 
 The objective remains full, evidence-backed DWG/DXF parity with the intended
@@ -48,7 +48,7 @@ Implementation history and evidence stay in Git and `docs/research/`.
 
 | ID | State | Remaining result | Dependency |
 | --- | --- | --- | --- |
-| P4 | OPEN — source/graph closure | Resolve reproduced source-required bodies and dependencies that still lack strict output/readback proof. For AC1018 `ET-Drawing-with-Border.dwg`, 19 of 23 opaque callbacks still lack output qualification; see the [current source/output evidence](docs/research/p4-ac1018-dictionaryvar-ac1024-output-binding-2026-10-31.json). Extend source reachability/profile evidence for the opaque callbacks, including the empty-name STYLE at handle `0xDF`; the existing [independent census](docs/research/p4-ac1018-empty-style-reference-census-2026-10-31.json) covers only LibreDWG's decoded view. Whole-file DXF readback still stops in STYLE with `BAD_CODE_PARSED`, so strict full-source conversion remains refused. | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
+| P4 | OPEN — source/graph closure | Resolve reproduced source-required bodies and dependencies that still lack strict output/readback proof. For AC1018 `ET-Drawing-with-Border.dwg`, 19 of 23 opaque callbacks still lack output qualification; see the [current source/output evidence](docs/research/p4-ac1018-dictionaryvar-ac1024-output-binding-2026-10-31.json). The empty-name STYLE at handle `0xDF` is now cross-checked against all 23 callback identities in LibreDWG's decoded object view; no callback body refers to it. The writer now fails closed on this invalid non-shape STYLE row, and a corrected ASCII/Binary retry reimports, but no source-qualified omission/replay disposition or strict whole-source conversion is established. See the [bounded STYLE safety receipt](docs/research/p4-ac1018-empty-style-output-safety-2026-11-01.json). | Keep read retention separate from output qualification. Preserve unknown tails and strict refusal; use existing repository inputs or locally authored fixtures, never add investigation DWGs. |
 | P5 | OPEN — broader rendering/TABLE and dynamic-block semantics | Resolve native dynamic-block semantics and the parentId projection boundary for the two-root AC1024 graph; finish remaining rendering metadata/native rendering profiles, nested FIELDLIST/child graphs and source-backed FIELD profiles, independently evidenced block-cell geometry, remaining source- or consumer-backed CONTENTFORMAT/CELLSTYLEMAP profiles, source-backed semantics for overlapping TABLECONTENT edge masks, and AC1018 TABLE. | Admit only source- or consumer-backed profiles; preserve role and handle dependencies and fail closed on unrepresented fields. |
 | P6 | OPEN | Resolve only DWG version/schema/semantic failures still reproduced against current code; close one representative family with source and independent consumer evidence. | Read ODA v5.4.1 and trace a real source before changing DWG layouts. |
 | P7 | OPEN | Close required ACIS/ACDS source-to-output associations and obtain independent 3D kernel meaning for claimed profiles. | Consume P4's qualified graph/output bindings when available; bind ACIS/ACDS source associations to emitted output for qualification. |
@@ -159,8 +159,9 @@ reproduced missing provider, remap, collision or composed output failure.
 4. Complete the remaining source-bound AC1018 TABLE body and merge/presence
    profiles. Preserve explicit zero and absence separately; do not infer
    visibility polarity from field transport.
-5. Qualify native TABLE rendering independently. Serializer readback does not
-   establish geometry, merge visibility or rendered style.
+5. Qualify native TABLE rendering independently. This gate concerns consumer
+   geometry, merge visibility and rendered style; serializer/readback evidence
+   remains scoped to its witnessed source profiles and does not close this gate.
 
 ## P6 — residual semantic and version audit
 
