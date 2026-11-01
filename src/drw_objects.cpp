@@ -696,6 +696,20 @@ std::uint64_t currentObjectDwgBit(const dwgBuffer *buf) {
     return buf->getPosition() * 8 + buf->getBitPos();
 }
 
+// R2004 object records keep their common owner/reactor/xdictionary handles
+// after the object body. The object-size field delimits the body, so a typed
+// parser can qualify that tail only when it consumed the complete frame,
+// leaving fewer than eight bits of byte-alignment padding.
+bool hasOnlyByteAlignmentRemaining(const dwgBuffer *buf) {
+    if (buf == nullptr || !buf->isGood()
+        || buf->size() > std::numeric_limits<std::uint64_t>::max() / 8u)
+        return false;
+    const std::uint64_t totalBits =
+        static_cast<std::uint64_t>(buf->size()) * 8u;
+    const std::uint64_t currentBit = currentObjectDwgBit(buf);
+    return currentBit <= totalBits && totalBits - currentBit < 8u;
+}
+
 // The object-size field includes the R2007+ string stream when present. Exact
 // body readers must stop before that detached stream; objects without a string
 // stream end at objSize because seekR2007StringStream() returns the object end
@@ -9875,8 +9889,14 @@ bool DRW_DictionaryVar::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint
     m_schema = parsedSchema;
     m_value = std::move(parsedValue);
     // R2007+ keeps the common owner/reactor/extension-dictionary tail
-    // independently bounded. Legacy inline tails remain unqualified.
-    setDwgCommonLinkTailValidated(version > DRW::AC1018);
+    // independently bounded. For AC1018, qualify the legacy inline tail only
+    // when the owner/reactor/xdictionary sequence consumes the complete object
+    // frame, leaving fewer than eight alignment bits. ODA v5.4.1 §20.4.74
+    // defines the DICTIONARYVAR body and common handle sequence.
+    const bool boundedLegacyTail = version == DRW::AC1018
+        && hasOnlyByteAlignmentRemaining(buf);
+    setDwgCommonLinkTailValidated(version > DRW::AC1018
+        || boundedLegacyTail);
     DRW_DBG("dictionary var schema: "); DRW_DBG(m_schema);
     DRW_DBG(" value: "); DRW_DBG(m_value); DRW_DBG("\n");
     return true;

@@ -39722,6 +39722,79 @@ bool physicalTableStyleOutputReadback(
     return true;
 }
 
+bool physicalAc1018DictionaryVarSourceProfile(
+        const std::filesystem::path& sourcePath) {
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1018
+        || !source.hasSingleSuccessfulNamedResourceImport()
+        || !source.hasNamedObjectDictionary
+        || source.dictionaryVars.size() != 3u)
+        return fail("physical AC1018 DICTIONARYVAR source is not the three-record profile");
+
+    const auto ownerEntry = std::find_if(
+        source.namedObjectDictionary.m_entries.begin(),
+        source.namedObjectDictionary.m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == "AcDbVariableDictionary";
+        });
+    if (ownerEntry == source.namedObjectDictionary.m_entries.end()
+        || std::count_if(source.namedObjectDictionary.m_entries.begin(),
+            source.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "AcDbVariableDictionary";
+            }) != 1)
+        return fail("physical AC1018 DICTIONARYVAR NOD route is missing or ambiguous");
+
+    const DRW_Dictionary* owner = nullptr;
+    for (const DRW_Dictionary& dictionary : source.dictionaries) {
+        if (dictionary.handle == ownerEntry->m_handle) {
+            if (owner != nullptr)
+                return fail("physical AC1018 DICTIONARYVAR owner handle is ambiguous");
+            owner = &dictionary;
+        }
+    }
+    if (owner == nullptr || !owner->hasCompleteDwgEntries()
+        || owner->parentHandle != source.namedObjectDictionary.handle
+        || owner->m_entries.size() != 3u)
+        return fail("physical AC1018 AcDbVariableDictionary body is incomplete");
+
+    const std::map<std::string, std::string> expected{
+        {"CTABLESTYLE", "STANDARD"},
+        {"DIMASSOC", "2"},
+        {"HIDETEXT", "1"}};
+    std::map<std::string, std::string> actual;
+    for (const DRW_DictionaryVar& value : source.dictionaryVars) {
+        if (value.handle == 0u || value.handle == DRW::NoHandle
+            || value.parentHandle != owner->handle
+            || !value.hasDwgCommonLinkTail()
+            || value.m_schema != 0u
+            || value.reactorCount() != 1
+            || value.reactorHandles.size() != 1u
+            || value.reactorHandles.front() != owner->handle
+            || value.xDictHandle != 0u
+            || !value.extData.empty() || !value.appData.empty())
+            return fail("physical AC1018 DICTIONARYVAR common or typed source profile is incomplete");
+        const auto key = std::find_if(owner->m_entries.begin(),
+            owner->m_entries.end(), [&value](
+                const DRW_Dictionary::Entry& entry) {
+                    return entry.m_handle == value.handle;
+                });
+        if (key == owner->m_entries.end() || key->m_name.empty()
+            || !actual.emplace(key->m_name, value.m_value).second)
+            return fail("physical AC1018 DICTIONARYVAR owner key is missing or duplicated");
+    }
+    if (actual != expected)
+        return fail("physical AC1018 DICTIONARYVAR key/value fields differ from the independent source profile");
+
+    std::cerr << "Physical AC1018 DICTIONARYVAR source profile passed: three "
+                 "owner-linked values, schema, reactor and legacy common-tail "
+                 "frame qualification.\n";
+    return true;
+}
+
 bool physicalDictionaryVarOutputReadback(
         const std::filesystem::path& sourcePath) {
     dx_iface sourceReader;
@@ -57280,6 +57353,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--dictionaryvar-physical-output-readback")
         return physicalDictionaryVarOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--dictionaryvar-physical-ac1018-source-profile")
+        return physicalAc1018DictionaryVarSourceProfile(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--mline-style-physical-output-readback")
         return physicalMLineStyleOutputReadback(argv[2]) ? 0 : 1;
