@@ -48,6 +48,7 @@
       "tools/check_support_matrix.py",
       "tools/emit_native_qualification_receipt.py",
       "tools/normalize_drawing_result.py",
+      "tools/run_fast_focus.py",
       "tools/run_native_qualification.py",
       "tools/run_qualified_differential_v2.py",
       "tools/verify_native_qualification_receipts.py"

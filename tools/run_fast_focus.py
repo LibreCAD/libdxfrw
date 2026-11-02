@@ -77,6 +77,11 @@ CTEST_REGRESSIONS = (
     "dwg2dxf_freecad_installed_cli_compat",
 )
 
+# This CTest is deliberately optional in CMake: it returns 77 when the host
+# lacks a comma-decimal OS locale. Keep requiring its exact result row while
+# accepting only that explicit skip; all other selected cases must pass.
+OPTIONAL_SKIP_CTESTS = {"libdxfrw_numeric_process_locale"}
+
 
 def ctest_selector(inventory: dict) -> str:
     """Fail closed if a required registration or its built command is absent."""
@@ -107,12 +112,28 @@ def require_ctest_passes(junit_path: Path) -> None:
     # weakening native qualification receipts. This lane is regression-only.
     from run_native_qualification import QualificationError, parse_junit
     try:
-        _, summary = parse_junit(junit_path, list(CTEST_REGRESSIONS))
+        rows, summary = parse_junit(junit_path, list(CTEST_REGRESSIONS))
     except QualificationError as exc:
         raise ValueError(str(exc)) from exc
-    if summary["passed"] != len(CTEST_REGRESSIONS):
+    allowed_skips = {
+        row["testId"] for row in rows
+        if row["status"] == "skipped"
+        and row["testId"] in OPTIONAL_SKIP_CTESTS
+    }
+    unexpected = [
+        row["testId"] for row in rows
+        if row["status"] != "passed"
+        and not (row["status"] == "skipped"
+                 and row["testId"] in OPTIONAL_SKIP_CTESTS)
+    ]
+    if (unexpected or summary["failed"] or summary["notRun"]
+            or summary["skipped"] != len(allowed_skips)
+            or summary["passed"] + len(allowed_skips) != len(CTEST_REGRESSIONS)):
         raise ValueError("required fast CTests did not all execute and pass: "
-                         + json.dumps(summary, sort_keys=True))
+                         + json.dumps({**summary,
+                                       "unexpected": unexpected,
+                                       "allowedOptionalSkips": sorted(allowed_skips)},
+                                      sort_keys=True))
 
 
 def run_ctest_regressions(build_dir: Path, configuration: str | None) -> None:
@@ -223,6 +244,27 @@ def self_test() -> None:
                                   encoding="utf-8")
         write_results(passed)
         require_ctest_passes(junit_path)
+        optional_skip = [
+            (f'<testcase name="{name}" status="run"><skipped/></testcase>'
+             if name in OPTIONAL_SKIP_CTESTS else
+             f'<testcase name="{name}" status="run"/>')
+            for name in CTEST_REGRESSIONS
+        ]
+        write_results(optional_skip)
+        require_ctest_passes(junit_path)
+        optional_not_run = [
+            (f'<testcase name="{name}" status="notrun"/>'
+             if name in OPTIONAL_SKIP_CTESTS else
+             f'<testcase name="{name}" status="run"/>')
+            for name in CTEST_REGRESSIONS
+        ]
+        write_results(optional_not_run)
+        try:
+            require_ctest_passes(junit_path)
+        except ValueError:
+            pass
+        else:
+            raise AssertionError("unexecuted optional CTest accepted")
         for invalid in (
             passed[:-1], [*passed, passed[0]],
             [*passed, '<testcase name="unselected" status="run"/>'],
