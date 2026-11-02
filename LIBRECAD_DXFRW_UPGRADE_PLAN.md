@@ -42,7 +42,7 @@ from the active work lists below.
   `DEFERRED_EXTERNAL`; preserve the strict refusal unless independent
   semantics become available. LibreCAD_3's optional DWG route is explicitly
   `NOT_RUN` because this host has no runnable profile. Current-digest hosted
-  receipts are tracked separately in S20B and will run on the S15 commit.
+  receipts are tracked separately in S20B and will run after S20C commits.
 - **S15 / C2.3 — VERIFIED:** handle-less PlotSettings closes its graph without
   changing the LibreCAD adapter contract. The generated AC1015/AC1027 readback,
   frame-failure rollback/retry controls, and independent LibreDWG 0.14 wire
@@ -56,14 +56,17 @@ from the active work lists below.
   writes compatibly while invalid current-field values remain rejected. These
   focused tests pass. Consumer persistence passes; current-digest host gates
   remain in S20B.
-- **S20B / H0B — VERIFYING:** native run `41339924357` passed all three
-  platform receipt jobs; `parity-fast` run `41339924407` was cancelled during
-  its bounded build before tests ran. Both runs target S20A commit
-  `73a847864d51f1650fbb4b5dfb39710294ac2e60`, predate the local compatibility
-  edits, and must be refreshed on the finalized candidate after S15 commits.
+- **S20C / H0C — COMMITTED:** the refreshed hosted CTest contract contains 780
+  tests, including all four S15 registrations. The frozen manifest, 456-input
+  candidate digest/status, support matrix, and support guard pass; no route is
+  advertised. Current-digest hosted receipts and the fast lane are ready in S20B. The diagnostic native run on S15
+  failed on Linux and macOS because its 776-test contract did not match the
+  live 780-test inventory; Windows and the fast build were still running at
+  last poll.
 
-No in-repository implementation work remains. Only current-digest hosted
-qualification in S20B is open. Completed slices S00-S14 and S16-S20A, plus completed child items
+The remaining implementation work is current-digest hosted qualification in
+S20B. Completed slices
+S00-S14 and S16-S20A, plus completed child items
 C2.1 and H0.1-H0.3, are recorded in the history ledger. Former slice S20 and
 its original H0.4/H0.5 items are archived as superseded. Their detailed R0-R6 and
 work-package/phase checklists, implementation critical path, and first-PR
@@ -870,25 +873,23 @@ edit this block or commit the same slice concurrently.
 
 <!-- UPGRADE_PROGRESS_START -->
 
-- Latest implementation slice committed: S15. Earlier completed slices and
-  child receipts are recorded in `docs/LIBRECAD_DXFRW_UPGRADE_HISTORY.md`;
-  S15 remains in this live ledger while S20B qualification runs.
-- Last sealed implementation digest: `9e0d8086907a23858dba4461f345ae3b0e8ed21f4c68b01dfe030999e6ab8823`
+- Latest plan slice committed: S20C refreshes the hosted CTest contract and candidate digest. Earlier completed slices and child receipts are recorded in `docs/LIBRECAD_DXFRW_UPGRADE_HISTORY.md`; S20B current-digest hosted qualification is now ready.
+- Previous sealed implementation digest: `9e0d8086907a23858dba4461f345ae3b0e8ed21f4c68b01dfe030999e6ab8823`
   across 456 inputs, including the corrected local-source CLI regression.
   Focused batch validation passes 27 controls; local fast-focus passes all
-  seven vector executables and 44/44 required CTests in 78.57 seconds. The
-  current S15 candidate digest is `6bf50b44dfbdbc78048e0a1e64266cca098e4ba31508f9afad215cf7ca46dc7b`
-  across the same 456 inputs; the status overlay matches it. This candidate
-  digest was computed from a clean snapshot of the staged tracked inputs;
-  current-digest hosted receipts are pending in S20B. No repository DWG/DXF
-  fixture or support claim changed.
+  seven vector executables and 44/44 required CTests in 78.57 seconds. S20C
+  seals the refreshed digest `84eefb5edeccc7198d5f88134d867eaeba1cbaf6fd07330d293a0315e55b850a`
+  across the same 456 inputs; the status overlay matches it. The digest was
+  computed from a clean snapshot using an isolated temporary index after the
+  required-test inventory refresh. Current-digest hosted receipts are pending
+  in S20B. No repository DWG/DXF fixture or support claim changed.
 - Earlier three-platform receipts were produced for older digests and do not
   close current-digest qualification.
 - The in-place qualification digest checker refuses the shared worktree while
   unrelated untracked build outputs and DWG samples are present; they were left
-  untouched. The selected tracked candidate inputs were copied to a clean
-  temporary snapshot and hashed without including those artifacts. This is a
-  reproducible candidate digest, not a hosted qualification receipt.
+  untouched. The selected tracked candidate inputs were evaluated using an
+  isolated temporary index and clean snapshot without including those artifacts.
+  This is a reproducible candidate digest, not a hosted qualification receipt.
 - Current-worktree fast-focus passes all seven vector executables and
   44/44 required CTests in 35.91 seconds. The run first exposed stale generated
   expectations for coalesced same-APPID EED chunks and for PLOTSETTINGS placed
@@ -927,36 +928,46 @@ edit this block or commit the same slice concurrently.
   These runs predate the uncommitted consumer-compatibility edits in the
   worktree, so refresh both before treating them as current-digest receipts. No
   support claim is promoted.
+- Diagnostic runs `41364146889` and `41364146922` target S15 commit
+  `f30b4bdefce7a3c7c9d26995f5ee8864025276dd`. Native Linux and macOS failed at
+  the frozen inventory gate (776 versus 780 names); Windows and the bounded
+  fast build were still running at last poll. S20C refreshes the contract and
+  digest before the hosted rerun.
 - J256, J260, J268, J284, J293, and J295 remain `DEFERRED_EXTERNAL`. Native
   FreeCAD 3D and independent ACIS/ACDS semantic evidence also remain external
   qualification gates.
-- Active slice states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING / 0 VERIFIED /
-  0 BLOCKED_HARD / 0 SUPERSEDED / 1 COMMITTED.
-- Active parent states: 0 READY / 0 PLANNED / 0 ACTIVE / 1 VERIFYING /
-  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 1 COMMITTED.
-- Active child states: 0 VERIFIED / 2 VERIFYING / 0 ACTIVE / 0 READY / 0 PLANNED /
-  0 SUPERSEDED / 2 COMMITTED.
+- Active slice states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING / 0 VERIFIED /
+  0 BLOCKED_HARD / 0 SUPERSEDED / 2 COMMITTED.
+- Active parent states: 1 READY / 0 PLANNED / 0 ACTIVE / 0 VERIFYING /
+  0 VERIFIED / 0 BLOCKED_HARD / 0 SUPERSEDED / 2 COMMITTED.
+- Active child states: 0 VERIFIED / 0 VERIFYING / 0 ACTIVE / 2 READY / 0 PLANNED /
+  1 SUPERSEDED / 3 COMMITTED.
 - Active evidence dispositions are `NOT_EVALUATED` or `NOT_APPLICABLE`; no row
   promotes a DWG/DXF support claim. Completed rows are in the history ledger.
 
 | Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
 | --- | --- | --- | --- | --- | --- | --- |
 | S15 | C2: UTF-8/native input and atomic-output paths | S11, S14 | COMMITTED | current-worktree fast-focus; standalone install and full LibreCAD app build; LibreCAD adapter re-save/readback; LibreCAD_3 optional DWG-read to DXF Save-As/reopen qualification or explicit `NOT_RUN` if unavailable; strict refusal for unclassified AC1032 suffix | C2.1 implementation and portable controls are archived. The latest local fast-focus passes all seven vector executables and 44/44 required CTests in 35.91 seconds. Standalone package install and full LibreCAD app build pass. ODA §§20.4.4, 20.4.5, and 20.4.46 corrected AC1032 embedded-MTEXT R2018 context and parent annotative-data order; generated ATTRIB/ATTDEF vectors cover context, columns, parent data, and hostile-length rollback. The tracked LibreCAD sample reads without ATTDEF/ATTRIB record failures. Its unclassified 739-byte suffix is `DEFERRED_EXTERNAL`; strict export remains refused and no support claim is made. Generated AC1015 PlotSettings graph/export proof passes. LibreCAD RawCarrier re-save/readback passes in the separate working checkout: 83 assertions in six focused cases on 2026-11-01 and an 8-assertion exact-intermediate probe. LibreCAD_3 DXF-only baselines pass; optional DWG-read/DXF-Save-As/reopen remains explicitly `NOT_RUN` because no runnable profile is available. Fixture admission, inventory, and external-fixture-hook checks pass; zero index candidates and no new fixture. | S20B current-digest hosted qualification on the committed candidate |
-| S20B | H0B: current-digest hosted qualification | S20A, S15 | VERIFYING | sealed Linux/GCC, Windows/MSVC, and macOS/Apple Clang receipts; hosted `parity-fast` and fixture-policy completion | Native run `41339924357` passed and uploaded three receipts; fast run `41339924407` was cancelled before tests. Both used S20A commit `73a847864d51f1650fbb4b5dfb39710294ac2e60`. Candidate digest `6bf50b44dfbdbc78048e0a1e64266cca098e4ba31508f9afad215cf7ca46dc7b` covers 456 selected inputs and is synchronized in the status overlay; no hosted receipt exists for it yet. Run the current-digest gates after S15 commits; keep support claims unchanged. | final release |
+| S20C | H0C: frozen CTest inventory and candidate digest refresh | S20A, S15 | COMMITTED | clean hosted-profile inventory of exactly 780 CTests with the four S15 additions; frozen contract validation; 456-input digest/status synchronization; support checker remains at zero advertised routes | A clean hosted Release snapshot of S15 commit `f30b4bdefce7a3c7c9d26995f5ee8864025276dd` contains exactly 780 CTests; the refreshed manifest adds the four S15 registrations and removes none. Its broad inventory digest is `769800031fa48e428c412d3f77dd8b16c4d2013f3543cf0d3083b6211803ebce`, bound to S15. The clean tracked candidate digest/status guard passes at `84eefb5edeccc7198d5f88134d867eaeba1cbaf6fd07330d293a0315e55b850a` across 456 inputs; `check-manifest` and support matrix pass. Support guard remains 15 claims, two candidate routes, zero advertised. No fixture or support claim changed. | S20B current-digest hosted qualification |
+| S20B | H0B: current-digest hosted qualification | S20A, S15, S20C | READY | sealed Linux/GCC, Windows/MSVC, and macOS/Apple Clang receipts; hosted `parity-fast` and fixture-policy completion on the corrected current-digest candidate | Diagnostic runs `41364146889` and `41364146922` target S15 commit `f30b4bdefce7a3c7c9d26995f5ee8864025276dd`, not the corrected candidate. Native Linux and macOS failed at the frozen-inventory gate (776 expected versus 780 live); the Windows job and bounded fast build were still running at last poll. S20C refreshes the contract and digest; rerun all hosted gates after S20C commits. | final release |
 
 | Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
 | --- | --- | --- | --- | --- | --- |
 | C2 | S15 | F0, G1 | COMMITTED | NOT_EVALUATED | UTF-8/native filename and atomic-output implementation controls pass; LibreCAD adapter persistence passes; optional LibreCAD_3 DWG route has explicit `NOT_RUN`; AC1032 suffix remains `DEFERRED_EXTERNAL` with strict refusal |
-| H0B | S20B | H0A | VERIFYING | NOT_APPLICABLE | Run current-digest hosted native receipts and `parity-fast` after S15 candidate commit |
+| H0C | S20C | H0A | COMMITTED | NOT_APPLICABLE | Refresh the frozen test contract and implementation digest before hosted qualification; the 780-name inventory, 456-input digest/status, manifest, and support guards pass in a clean candidate snapshot. |
+| H0B | S20B | H0A,H0C | READY | NOT_APPLICABLE | Run current-digest hosted native receipts and `parity-fast` on the candidate after H0C.1 commits. |
 
 | Child item | Parent / slice | Active focus | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | C2.2 | C2 / S15 | AC1032 header boundary disposition and LibreCAD consumer persistence | C2.1 | COMMITTED | NOT_EVALUATED | current-worktree focused controls and app build; LibreCAD adapter re-save; optional LibreCAD_3 DWG-read to supported DXF Save-As/reopen (or explicit NOT_RUN if unavailable); AC1032 suffix DEFERRED_EXTERNAL with strict export refusal | Standalone install and LibreCAD filter/full-app build pass. ODA §§20.4.4, 20.4.5, and 20.4.46 corrected embedded-MTEXT R2018 context and parent ATTRIB/ATTDEF annotative-data order; generated vectors verify context fields, dynamic columns, parent data, and atomic hostile-length rejection/reset. The tracked `lc_multiline_attrib_ac1032.dwg` reads without ATTDEF/ATTRIB failures. ODA specification and official LibreDWG master source leave its in-section 739-byte suffix semantically unclassified; strict CLI export remains refused and the sample/profile unsupported. Local fast-focus passes seven vector executables and 44/44 CTests in 35.91 seconds; generated EED coalescing and canonical NOD-owned `ACAD_PLOTSETTINGS` readback pass. LibreCAD downstream RawCarrier re-save/readback passes 83 assertions in six focused cases (rerun 2026-11-01) and an 8-assertion exact-intermediate probe; changes remain uncommitted in that checkout. LibreCAD_3 tracked DXF save/open and export baselines pass; its optional DWG route is explicitly NOT_RUN because no runnable profile is available. Fixture, inventory, and hook checks pass; no drawing fixture or support claim was added. |
 | C2.3 | C2 / S15 | Handle-less and explicit-handle PlotSettings NOD graph closure | C2.1 | COMMITTED | NOT_EVALUATED | output HEADER hard pointer, NOD edge, dictionary ownership, PlotSettings membership, and real LibreCAD readback/re-save | Writer registration closes `ACAD_PLOTSETTINGS` across HEADER/NOD and an owned page dictionary after adapter callbacks. AC1015/AC1027 generated readback covers handle-less, explicit-handle, and explicit-handle/unnamed cases; frame-failure rollback/retry controls pass. LibreDWG 0.14 independently confirms generated graph fields. Candidate LibreCAD round-trip confirms HEADER `0x5E`, NOD edge `0x5E`, owner NOD `0x0C`, and dictionary membership. Candidate strict export verifies selected PlotSettings source fields/references and publishes DXF. The downstream RawCarrier-aware re-save regression and exact-intermediate readback both pass. Repeated physical DWG EED chunks coalesce by APPID while preserving order and layer-reference indexes. No fixture or support claim is promoted. |
-| H0B.1 | H0B / S20B | Current-digest native platform receipts | H0A.1 | VERIFYING | NOT_APPLICABLE | Linux/GCC, Windows/MSVC, and macOS/Apple Clang sealed receipts | Run `41339924357` sealed all three platform receipts on S20A commit `73a847864d51f1650fbb4b5dfb39710294ac2e60`; rerun after S15 candidate commit. |
-| H0B.2 | H0B / S20B | Current-digest hosted fast and fixture-policy gates | H0A.2 | VERIFYING | NOT_APPLICABLE | hosted `parity-fast` build, vectors, CLI regressions, and fixture guard | Run `41339924407` passed inventory/configure and was cancelled during bounded-target build before vectors/CLI tests; rerun on S15 candidate commit. |
+| H0B.1 | H0B / S20B | Current-digest native platform receipts | H0A.1,H0C.1 | READY | NOT_APPLICABLE | Linux/GCC, Windows/MSVC, and macOS/Apple Clang sealed receipts | Diagnostic run `41364146889` targets S15 commit `f30b4bdefce7a3c7c9d26995f5ee8864025276dd`; Linux job `125020668287` and macOS job `125020668244` failed at the frozen inventory gate (776 expected versus 780 live). Windows job `125020668315` was still running at last poll. Rerun all three after S20C commits. |
+| H0B.2 | H0B / S20B | Current-digest hosted fast and fixture-policy gates | H0A.2,H0C.1 | READY | NOT_APPLICABLE | hosted `parity-fast` build, vectors, CLI regressions, and fixture guard | Diagnostic fast run `41364146922` targets S15 commit `f30b4bdefce7a3c7c9d26995f5ee8864025276dd`; fixture policy and inventories passed, while the bounded build was still running at last poll. Rerun after S20C commits. |
 
+| H0C.1 | H0C / S20C | Freeze exact hosted CTest inventory and update candidate digest/status | H0A.1 | COMMITTED | NOT_APPLICABLE | clean hosted-profile inventory matches frozen metadata; `check-manifest`, digest/status, and support checks pass | The clean fixed-profile inventory from S15 commit `f30b4bdefce7a3c7c9d26995f5ee8864025276dd` contains 780 names; the refreshed manifest accounts for all four additions and no removals. Inventory name digest: `769800031fa48e428c412d3f77dd8b16c4d2013f3543cf0d3083b6211803ebce`. Clean tracked-candidate digest/status passes at `84eefb5edeccc7198d5f88134d867eaeba1cbaf6fd07330d293a0315e55b850a` across 456 inputs; manifest, support matrix, and support guard (15 claims, 2 candidate routes, 0 advertised) pass. The 803 count from the shared worktree is from untracked local AC1021/AC1024 samples; they remain untouched and are excluded. No fixture or support claim change. |
+| H0B.3 | H0B / S20B | Refresh frozen broad CTest inventory | H0A.1 | SUPERSEDED | NOT_APPLICABLE | Replaced by S20C / H0C.1 so metadata repair has its own verifiable commit before hosted receipts | Scope split before implementation: the four new registrations make the qualification contract and implementation digest stale. H0C.1 is the replacement inventory-refresh item in a dependency-closed S20C slice; the S20B hosted receipt slice depends on it. |
 <!-- UPGRADE_PROGRESS_END -->
+
 
 
 
